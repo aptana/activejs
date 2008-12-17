@@ -1,0 +1,180 @@
+[
+	{
+		"name": "default",
+		"build": [
+			  "active_support"
+			, "active_support_packed"
+			, "active_event"
+			, "active_event_packed"
+			, "active_routes"
+			, "active_routes_packed"
+			, "active_record"
+			, "active_record_packed"
+			, "active_view"
+			, "active_view_packed"
+			, "active_js"
+			, "active_js_packed"
+			, "test"
+			
+		]
+	},
+	
+	{
+		"name": "active_support",
+		"output": "dist/active_support.js",
+		"files": [
+			  "license.txt"
+			, "src/active_support.js"
+		]
+	},
+	{
+		"name": "active_support_packed",
+		"output": "dist/active_support.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_support.js"
+		]
+	},
+	
+	{
+		"name": "active_event",
+		"output": "dist/active_event.js",
+		"files": [
+			  "license.txt"
+			, "src/active_event.js"
+		]
+	},
+	{
+		"name": "active_event_packed",
+		"output": "dist/active_event.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_event.js"
+		]
+	},
+	
+	{
+		"name": "active_routes",
+		"output": "dist/active_routes.js",
+		"files": [
+				  "license.txt"
+				, "src/active_support.js"
+				, "src/active_routes/init.js"
+				, "src/active_routes/header.js"
+				, "src/active_routes/main.js"
+				, "src/active_routes/errors.js"
+				, "src/active_routes/matching.js"
+				, "src/active_routes/dispatch.js"
+				, "src/active_routes/validations.js"
+				, "src/active_routes/generator.js"
+				, "src/active_routes/footer.js"
+		]
+	},
+	{
+		"name": "active_routes_packed",
+		"output": "dist/active_routes.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_routes.js"
+		]
+	},
+
+	{
+		"name": "active_record",
+		"output": "dist/active_record.js",
+		"files": [
+			  "license.txt"
+			, "src/active_support.js"
+			, "src/active_event.js"
+			, "src/active_record/init.js"
+			, "src/active_record/header.js"
+			, "src/active_record/main.js"
+			, "src/active_record/lifecycle.js"
+			, "src/active_record/errors.js"
+			, "src/active_record/base.js"
+			, "src/active_record/calculations.js"
+			, "src/active_record/adapters.js"
+			, "src/active_record/adapters/sql.js"
+			, "src/active_record/adapters/sqlite.js"
+			, "src/active_record/adapters/mysql.js"
+			, "src/active_record/adapters/jaxer_mysql.js"
+			, "src/active_record/adapters/jaxer_sqlite.js"
+			, "src/active_record/adapters/local.js"
+			, "src/active_record/adapters/air.js"
+			, "src/active_record/adapters/hash_table.js"
+			, "src/active_record/adapters/auto.js"
+			, "src/active_record/where_parser.js"
+			, "src/active_record/finders.js"
+			, "src/active_record/relationships.js"
+			, "src/active_record/relationships/has_one.js"
+			, "src/active_record/relationships/has_many.js"
+			, "src/active_record/relationships/belongs_to.js"
+			, "src/active_record/migrations.js"
+			, "src/active_record/validations.js"
+			, "src/active_record/synchronization.js"
+			, "src/active_record/footer.js"
+		]
+	},
+	{
+		"name": "active_record_packed",
+		"output": "dist/active_record.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_record.js"
+		]
+	},
+	
+	{
+		"name": "active_js",
+		"output": "dist/active.js",
+		"files": [
+			  "license.txt"
+			, "dist/active_support.js"
+			, "dist/active_event.js"
+			, "dist/active_routes.js"
+			, "dist/active_record.js"
+		]
+	},
+	{
+		"name": "active_js_packed",
+		"output": "dist/active.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active.js"
+		]
+	},
+	
+	{
+		"name": "tests",
+		"output": "test.js",
+		"files": [
+			  "license.txt"
+			, "src/active_test.js"
+			, "test/active_record/setup.js"
+			, "test/active_record/teardown.js"
+			, "test/active_record/basic.js"
+			, "test/active_record/callbacks.js"
+			, "test/active_record/cleanup.js"
+			, "test/active_record/finders.js"
+			, "test/active_record/migrations.js"
+			, "test/active_record/relationships.js"
+			, "test/active_record/serialization.js"
+			, "test/active_record/synchronization.js"
+			, "test/active_record/transactions.js"
+			, "test/active_record/validations.js"
+			, "test/active_record/parser.js"
+			
+			, "test/active_routes/setup.js"
+			, "test/active_routes/normalize.js"
+			, "test/active_routes/validation.js"
+			, "test/active_routes/generator.js"
+			, "test/active_routes/matching.js"
+			, "test/active_routes/dispatch.js"
+		]
+	}
+]
