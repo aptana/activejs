@@ -151,7 +151,7 @@
 	
 	{
 		"name": "tests",
-		"output": "test.js",
+		"output": "test/test.js",
 		"files": [
 			  "license.txt"
 			, "src/active_test.js"

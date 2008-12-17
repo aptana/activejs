@@ -29,7 +29,7 @@ ActiveTest.Tests.Routes.generator = function(proceed)
 {
     with(ActiveTest)
     {
-        var routes = new Routes(test_valid_route_set,test_scope);
+        var routes = new ActiveRoutes(test_valid_route_set,test_scope);
         assert('articleUrl' in test_scope,'url_for method generated');
         assert('articleParams' in test_scope,'params_for method generated');
         

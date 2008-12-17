@@ -63,18 +63,18 @@ ActiveTest.Tests.Routes.validation = function(proceed)
             path: ':object/:method'
         };
         
-        assert(!Routes.Validations.hasObject(no_object_no_method),'no_object_no_method: !hasObject()');
-        assert(!Routes.Validations.hasMethod(no_object_no_method),'no_object_no_method: !hasMethod()');
-        assert(!Routes.Validations.hasObject(no_object_method_in_string),'no_object_method_in_string: !hasObject()');
-        assert(Routes.Validations.hasMethod(no_object_method_in_string),'no_object_method_in_string: hasMethod()');
-        assert(!Routes.Validations.hasObject(no_object_method_in_params),'no_object_method_in_params: !hasObject()');
-        assert(Routes.Validations.hasMethod(no_object_method_in_params),'no_object_method_in_params: hasMethod()');
-        assert(Routes.Validations.hasObject(no_method_object_in_string),'no_object_method_in_params: hasObject()');
-        assert(!Routes.Validations.hasMethod(no_method_object_in_string),'no_object_method_in_params: !hasMethod()');
-        assert(Routes.Validations.hasObject(no_method_object_in_params),'no_method_object_in_params: hasObject()');
-        assert(!Routes.Validations.hasMethod(no_method_object_in_params),'no_method_object_in_params: !hasMethod()');
-        assert(Routes.Validations.hasObject(method_and_object_in_params) && Routes.Validations.hasMethod(method_and_object_in_params),'method_and_object_in_params: valid?');
-        assert(Routes.Validations.hasObject(method_and_object_in_string) && Routes.Validations.hasMethod(method_and_object_in_string),'method_and_object_in_string: valid?');
+        assert(!ActiveRoutes.Validations.hasObject(no_object_no_method),'no_object_no_method: !hasObject()');
+        assert(!ActiveRoutes.Validations.hasMethod(no_object_no_method),'no_object_no_method: !hasMethod()');
+        assert(!ActiveRoutes.Validations.hasObject(no_object_method_in_string),'no_object_method_in_string: !hasObject()');
+        assert(ActiveRoutes.Validations.hasMethod(no_object_method_in_string),'no_object_method_in_string: hasMethod()');
+        assert(!ActiveRoutes.Validations.hasObject(no_object_method_in_params),'no_object_method_in_params: !hasObject()');
+        assert(ActiveRoutes.Validations.hasMethod(no_object_method_in_params),'no_object_method_in_params: hasMethod()');
+        assert(ActiveRoutes.Validations.hasObject(no_method_object_in_string),'no_object_method_in_params: hasObject()');
+        assert(!ActiveRoutes.Validations.hasMethod(no_method_object_in_string),'no_object_method_in_params: !hasMethod()');
+        assert(ActiveRoutes.Validations.hasObject(no_method_object_in_params),'no_method_object_in_params: hasObject()');
+        assert(!ActiveRoutes.Validations.hasMethod(no_method_object_in_params),'no_method_object_in_params: !hasMethod()');
+        assert(ActiveRoutes.Validations.hasObject(method_and_object_in_params) && ActiveRoutes.Validations.hasMethod(method_and_object_in_params),'method_and_object_in_params: valid?');
+        assert(ActiveRoutes.Validations.hasObject(method_and_object_in_string) && ActiveRoutes.Validations.hasMethod(method_and_object_in_string),'method_and_object_in_string: valid?');
     
         var test_scope = {
             object_one: {
@@ -82,7 +82,7 @@ ActiveTest.Tests.Routes.validation = function(proceed)
                 method_two: 'a string'
             }
         };
-        var r = new Routes([],test_scope);
+        var r = new ActiveRoutes([],test_scope);
         assert(r.objectExists('object_one'),'Routes.objectExists()');
         assert(!r.objectExists('object_two'),'!Routes.objectExists()');
         

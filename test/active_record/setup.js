@@ -25,6 +25,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+ActiveTest.Tests.ActiveRecord = {};
+
 ActiveTest.Tests.ActiveRecord.setup = function(proceed)
 {
     if(ActiveRecord.asynchronous)

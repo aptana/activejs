@@ -23,9 +23,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
- * Original Author: Ryan Johnson <ryan@syntacticx.com>
- * Additional Contributors: The Aptana Jaxer team
- * 
  * ***** END LICENSE BLOCK ***** */
 
 ActiveEvent = null;

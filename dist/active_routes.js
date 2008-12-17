@@ -833,3 +833,519 @@ ActiveSupport = {
 };
 
 })();
+
+ActiveRoutes = null;
+
+(function() {
+ 
+/**
+ * @alias ActiveRoutes
+ * @param {Array} routes
+ * @param {Object} [scope] defaults to window
+ * @param {Object} [options]
+ * @return {ActiveRoutes}
+ * options can contain the following keys:
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+ * @example
+ * var routes = new ActiveRoutes([
+ *   ['article','article/:id',{object:'article',method:'article',requirements: {id:/\d+/}}],
+ *   ['post','/blog/post/:id',{object:'blog',method: 'post'}],
+ *   ['/blog/:method/:id',{object:'blog'}] //unnamed route
+ * ]);
+ * var route = routes.match('/blog/post/5');
+ * route == {object: 'blog',method: 'post', id: 5};
+ * routes.dispatch('/blog/post/5'); //calls Blog.post({object: 'blog',method: 'post', id: 5})
+ * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
+ * //creating the routes object above creates the following methods because there was a named route "post"
+ * postUrl({id: 5}) == '/blog/post/5'
+ * postParams({id: 5}) == {object: 'blog',method: 'post', id: 5}
+ * callPost({id: 5}) //calls Blog.post({object: 'blog',method: 'post', id: 5})
+ */
+ActiveRoutes = function ActiveRoutes(routes,scope,options)
+{
+    this.error = false;
+    this.scope = scope || window;
+    this.routes = [];
+    this.history = [];
+    this.options = ActiveSupport.extend({
+        camelizeObjectName: true,
+        camelizeMethodName: true,
+        camelizeGeneratedMethods: true,
+        base: '',
+        dispatcher: this.defaultDispatcher
+    },options || {});
+    this.dispatcher = this.options.dispatcher;
+    var i;
+    for(i = 0; i < routes.length; ++i)
+    {
+        this.addRoute.apply(this,routes[i]);
+    }
+    var current_route_set = this;
+    this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
+        current_route_set.urlFor.apply(current_route_set,arguments);
+    };
+};
+
+/**
+ * If match() returns false, the error it generates can be retrieved with this function.
+ * @return {mixed} String or null
+ */
+ActiveRoutes.prototype.getError = function getError()
+{
+    return this.error;
+};
+
+/**
+ * Add a new route to the route set. All of the following are valid:
+ * @example
+ * routes.addRoute('route_name','/route/path',{params});
+ * routes.addRoute('/route/path',{params});
+ * routes.addRoute('/route/path');
+ */
+ActiveRoutes.prototype.addRoute = function addRoute()
+{
+    var name,path,params,route;
+    if(arguments.length == 3)
+    {
+        name = arguments[0];
+        path = arguments[1];
+        params = arguments[2];
+    }
+    else if(arguments.length == 2)
+    {
+        if(typeof(arguments[0]) == 'string' && typeof(arguments[1]) == 'string')
+        {
+            name = arguments[0];
+            path = arguments[1];
+        }
+        else
+        {
+            path = arguments[0];
+            params = arguments[1];
+        }
+    }
+    else if(arguments.length == 1)
+    {
+        path = arguments[0];
+    }
+    route = {
+        name: name,
+        path: ActiveRoutes.normalizePath(path),
+        params: params || {}
+    };
+    if(!Validations.hasPath(route))
+    {
+        throw Errors.NoPathInRoute;
+    }
+    if(!Validations.hasObject(route))
+    {
+        throw Errors.NoObjectInRoute + route.path;
+    }
+    if(!Validations.hasMethod(route))
+    {
+        throw Errors.NoMethodInRoute + route.path;
+    }
+    this.routes.push(route);
+    this.generateMethodsForRoute(route);
+};
+
+ActiveRoutes.normalizePathDotDotRegexp = /[^\/\\]+[\/\\]\.\.[\/\\]/;
+ActiveRoutes.normalizePath = function normalizePath(path)
+{
+    //remove hash
+    path = path.replace(/\#.+$/,'');
+    //remove query string
+    path = path.replace(/\?.+$/,'');
+    //remove trailing and starting slashes, replace backslashes, replace multiple slashes with a single slash
+    path = path.replace(/\/{2,}/g,"/").replace(/\\\\/g,"\\").replace(/(\/|\\)$/,'').replace(/\\/g,'/').replace(/^\//,'');
+    while(path.match(ActiveRoutes.normalizePathDotDotRegexp))
+    {
+        path = path.replace(ActiveRoutes.normalizePathDotDotRegexp,'');
+    }
+    //replace /index with /
+    path = path.replace(/(\/index$|^index$)/i,'');
+    return path;
+};
+
+var Errors = {
+    NoPathInRoute: 'No path was specified in the route',
+    NoObjectInRoute: 'No :object was specified in the route: ',
+    NoMethodInRoute: 'No :method was specified in the route: ',
+    ObjectDoesNotExist: 'The following object does not exist: ',
+    MethodDoesNotExist: 'The following method does not exist: ',
+    MethodNotCallable: 'The following method is not callable: ',
+    NamedRouteDoesNotExist: 'The following named route does not exist: ',
+    UnresolvableUrl: 'Cloud not resolve the url: '
+};
+ActiveRoutes.Errors = Errors;
+
+ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
+{
+    if(!route.params.method)
+    {
+        route.params.method = 'index';
+    }
+    if(this.options.camelizeObjectName)
+    {
+        route.params.object = ActiveSupport.camelize(route.params.object,true);
+    }
+    if(route.params.requirements)
+    {
+        delete route.params.requirements;
+    }
+    if(!this.objectExists(route.params.object))
+    {
+        this.error = Errors.ObjectDoesNotExist + route.params.object;
+    }
+    if(!this.methodExists(route.params.object,route.params.method))
+    {
+        this.error = Errors.MethodDoesNotExist + route.params.object + '.' + route.params.method;
+    }
+    if(!this.methodCallable(route.params.object,route.params.method))
+    {
+        this.error = Errors.MethodNotCallable + route.params.object + '.' + route.params.method;
+    }
+    if(this.error)
+    {
+        return false;
+    }
+    else
+    {
+        return route;
+    }
+};
+
+/**
+ * @alias ActiveRoutes.prototype.match
+ * var route = routes.match('/blog/post/5');
+ * route == {object: 'blog',method: 'post', id: 5};
+ * @param {String} path
+ * @return {mixed} false if no match, otherwise the matching route.
+ */
+ActiveRoutes.prototype.match = function(path){
+    this.error = false;
+    //make sure the path is a copy
+    path = ActiveRoutes.normalizePath((new String(path)).toString());
+    var path_components = path.split('/');
+    var path_length = path_components.length;
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        route.orderedParams = [];
+        
+        //exact match
+        if(route.path == path)
+        {
+            return this.checkAndCleanRoute(route);
+        }
+        
+        //perform full match
+        var route_path_components = route.path.split('/');
+        var route_path_length = route_path_components.length;
+        var valid = true;
+        
+        //length of path components must match, but must treat "/blog", "/blog/action", "/blog/action/id" the same
+        if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*'){
+            for(var ii = 0; ii < route_path_components.length; ++ii)
+            {
+                var path_component = path_components[ii];
+                var route_path_component = route_path_components[ii];
+                //catch all
+                if(route_path_component[0] == '*')
+                {
+                    route.params.path = path_components.slice(ii);
+                    return this.checkAndCleanRoute(route); 
+                }
+                //named component
+                else if(route_path_component[0] == ':')
+                {
+                    var key = route_path_component.substr(1);
+                    if(path_component && route.params.requirements && route.params.requirements[key] && !path_component.match(route.params.requirements[key]))
+                    {
+                        valid = false;
+                        break;
+                    }
+                    else
+                    {
+                        if(typeof(path_component) == 'undefined' && key != 'method' && key != 'object' && key != 'id')
+                        {
+                            valid = false;
+                            break;
+                        }
+                        else
+                        {
+                            route.params[key] = path_component;
+                            route.orderedParams.push(path_component);
+                        }
+                    }
+                }
+                else if(path_component != route_path_component)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if(valid)
+            {
+                return this.checkAndCleanRoute(route);
+            }
+        }
+    }
+    return false;
+};
+ 
+/**
+ * @alias ActiveRoutes.prototype.dispatch
+ * @param {String} path
+ * This will match() the given path and call the dispatcher if one is found.
+ * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
+ * routes.dispatch('/blog/post/5');
+ * //by default calls Blog.post({object:'blog',method: 'post',id: 5});
+ */
+ActiveRoutes.prototype.dispatch = function dispatch(path)
+{
+    var route;
+    if(typeof(path) == 'string')
+    {
+        route = this.match(path);
+        if(!route)
+        {
+            throw Errors.UnresolvableUrl + path;
+        }
+    }
+    else
+    {
+        route = {
+            params: path
+        };
+    }
+    this.history.push(route.params);
+    this.dispatcher(route);
+};
+
+/**
+ * If no "dispatcher" key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)
+ */
+ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
+{
+    this.scope[route.params.object][route.params.method](route.params);
+};
+
+var Validations = {
+    hasPath: function(route)
+    {
+        if(route.path === '')
+        {
+            return true;
+        }
+        else
+        {
+            return !!route.path;
+        }
+    },
+    hasMethod: function(route)
+    {
+        return !(!route.path.match(':method') && (!route.params || !route.params.method));
+    },
+    hasObject: function(route)
+    {
+        return !(!route.path.match(':object') && (!route.params || !route.params.object));
+    }
+};
+
+ActiveRoutes.prototype.objectExists = function(object_name)
+{
+    return !(!this.scope[object_name]);
+};
+ActiveRoutes.prototype.methodExists = function(object_name,method_name)
+{
+    return !(!this.scope[object_name] || !this.scope[object_name][method_name]);
+};
+ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
+{
+    return (this.methodExists(object_name,method_name) && typeof(this.scope[object_name][method_name]) == 'function');
+};
+
+
+ActiveRoutes.Validations = Validations;
+
+ActiveRoutes.prototype.cleanPath = function cleanPath(path,params,only_path)
+{
+    if(!params.id)
+    {
+        path = path.replace(/\/?\:id/,'');
+    }
+    if(params.method == 'index')
+    {
+        path = path.replace(/\/?\:method/,'');
+    }
+    path = path.replace(/\/?index$/,'');
+    if(path[0] != '/')
+    {
+        path = '/' + path;
+    }
+    path = only_path ? path : this.options.base + path;
+    return path;
+};
+
+ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,route,params)
+{
+    for(var p in params)
+    {
+        if(path.match(':' + p) && params[p])
+        {
+            if(route.params.requirements && route.params.requirements[p] && !params[p].toString().match(route.params.requirements[p]))
+            {
+                continue;
+            }
+            path = path.replace(':' + p,params[p].toString());
+        }
+    }
+    return path;
+};
+
+/**
+ * @alias ActiveRoutes.prototype.urlFor
+ * @param {Object} [params]
+ * @return {String}
+ * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
+ * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
+ */
+ActiveRoutes.prototype.urlFor = function urlFor(params)
+{
+    var only_path = false;
+    if(params.only_path){
+        only_path = true;
+        delete params.only_path;
+    }
+  
+    //get a named route with no params
+    if(typeof(params) == 'string')
+    {
+        var found = false;
+        for(var i = 0; i < this.routes.length; ++i)
+        {
+            if(this.routes[i].name && this.routes[i].name == params)
+            {
+                found = i;
+                break;
+            }
+        }
+        if(found === false)
+        {
+            throw Errors.NamedRouteDoesNotExistError + params;
+        }
+        else
+        {
+            var final_params = {};
+            var found_params = ActiveSupport.clone(this.routes[found].params);
+            for(var name in found_params)
+            {
+                final_params[name] = found_params[name];
+            }
+            if(typeof(arguments[1]) == 'object')
+            {
+                for(var name in arguments[1])
+                {
+                    final_params[name] = arguments[1][name];
+                }
+            }
+            return this.urlFor(final_params);
+        }
+    }
+    
+    if(!params.method)
+    {
+        params.method = 'index';
+    }
+    
+    if(this.options.camelizeMethodName)
+    {
+        params.method = ActiveSupport.camelize(params.method,false);
+    }
+    
+    if(this.options.camelizeObjectName)
+    {
+        params.object = ActiveSupport.camelize(params.object,true);
+    }
+    
+    //first past for exact match
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var path = route.path;
+        if((route.params.method || '').toLowerCase() == (params.method || '').toLowerCase() && (route.params.object || '').toLowerCase() == (params.object || '').toLowerCase())
+        {
+            path = ActiveRoutes.performParamSubstitution(path,route,params);
+            var cleaned = this.cleanPath(path,params,only_path);
+            if(!cleaned.match(':'))
+            {
+                return cleaned;
+            }
+            
+        }
+    }
+    //match that requires param replacement
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var path = route.path;
+        if(route.params.object == params.object)
+        {
+            path = ActiveRoutes.performParamSubstitution(path,route,params);
+            var cleaned = this.cleanPath(path,params,only_path);
+            if(!cleaned.match(':'))
+            {
+                return cleaned;
+            }
+        }
+    }
+    return false;
+};
+
+ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRoute(route)
+{
+    var current_route_set = this;
+    if(route.name)
+    {
+        var params_for_method_name = route.name + '_params';
+        var url_for_method_name = route.name + '_url';
+        var call_method_name = 'call_' + route.name;
+        if(current_route_set.options.camelizeGeneratedMethods)
+        {
+            params_for_method_name = ActiveSupport.camelize(params_for_method_name.replace(/\_/g,'-'));
+            url_for_method_name = ActiveSupport.camelize(url_for_method_name.replace(/\_/g,'-'));
+            call_method_name = ActiveSupport.camelize(call_method_name.replace(/\_/g,'-'));
+        }
+        
+        current_route_set.scope[params_for_method_name] = function generated_params_for(params){
+            var final_params = {};
+            for(var name in route.params || {})
+            {
+                final_params[name] = route.params[name];
+            }
+            for(var name in params)
+            {
+                final_params[name] = params[name];
+            }
+            return final_params;
+        };
+        
+        current_route_set.scope[url_for_method_name] = function generated_url_for(params){
+            return current_route_set.urlFor(current_route_set.scope[params_for_method_name](params));
+        };
+        
+        current_route_set.scope[call_method_name] = function generated_call(params){
+            return current_route_set.dispatch(current_route_set.scope[params_for_method_name](params));
+        };
+    }
+};
+
+})();

@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<script src="../dist/active.js" runat="server"></script>
+		<script src="test.js" runat="server"></script>
+		<script runat="server">
+			ActiveRecord.connect(window.location.href.match(/hash\_table\=true/) ? ActiveRecord.Adapters.HashTable : null);
+			ActiveRecord.logging = false;
+			ActiveTest.run();
+		</script>
+	</head>
+	<body>
+		<h1>ActiveJS Tests</h1>
+		<p>Check console for test results.</p>
+	</body>
+</html>

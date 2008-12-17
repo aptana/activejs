@@ -27,7 +27,7 @@
 
 ActiveTest.Tests.ActiveRecord.validations = function(proceed)
 {
-    with(ActiveRecord.Test)
+    with(ActiveTest)
     {
         if(ActiveRecord.asynchronous)
         {

@@ -27,7 +27,7 @@
 
 ActiveTest.Tests.ActiveRecord.migrations = function(proceed)
 {
-    with(ActiveRecord.Test)
+    with(ActiveTest)
     {
         if(ActiveRecord.asynchronous)
         {

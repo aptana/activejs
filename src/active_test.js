@@ -79,7 +79,7 @@ ActiveTest = {
     {
         for(var group_name in ActiveTest.Tests)
         {
-            ActiveTest.log('Test Starting');
+            ActiveTest.log(group_name + ' Test Starting');
             ActiveTest.pass = 0;
             ActiveTest.fail = 0;
             ActiveTest.error = 0;

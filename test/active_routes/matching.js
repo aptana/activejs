@@ -30,7 +30,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
     with(ActiveTest)
     {
         //test exact matches
-        var routes_without_params = new Routes([
+        var routes_without_params = new ActiveRoutes([
             ['index','/home',{object: 'page',method: 'index'}],
             ['contact','pages/contact',{object: 'page', method: 'index'}],
             ['/pages/about/',{object: 'page',method: 'about'}],
@@ -51,7 +51,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(routes_without_params.match('pages/about').params.method == 'about','match() pages/about');
         
         //test index handling
-        var routes_without_params = new Routes([
+        var routes_without_params = new ActiveRoutes([
             ['index','pages',{object: 'page',method: 'index'}],
             ['contact','pages/contact',{object: 'page', method: 'index'}],
         ],test_scope);
@@ -61,7 +61,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(routes_without_params.match('pages/').name == 'index','index match() pages/');
         assert(routes_without_params.match('pages/index').name == 'index','index match() pages/index');
         
-        var routes_without_params = new Routes([
+        var routes_without_params = new ActiveRoutes([
             ['index','pages/index',{object: 'page',method: 'index'}],
             ['contact','pages/contact',{object: 'page', method: 'index'}],
         ],test_scope);
@@ -72,7 +72,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(routes_without_params.match('pages/index').name == 'index','index match() pages/index');
         
         //test complex route set with params
-        var routes = new Routes(test_valid_route_set,test_scope);
+        var routes = new ActiveRoutes(test_valid_route_set,test_scope);
             
         var match;
         

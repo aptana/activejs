@@ -27,7 +27,7 @@
 
 ActiveTest.Tests.ActiveRecord.synchronization = function(proceed)
 {
-    with(ActiveRecord.Test)
+    with(ActiveTest)
     {
         if(ActiveRecord.asynchronous)
         {

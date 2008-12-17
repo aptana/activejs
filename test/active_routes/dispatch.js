@@ -30,7 +30,7 @@ ActiveTest.Tests.Routes.dispatch = function(proceed)
     with(ActiveTest)
     {
         var last_action;
-        var routes = new Routes(test_valid_route_set,test_scope);
+        var routes = new ActiveRoutes(test_valid_route_set,test_scope);
         assert(routes.history.length == 0,'history starts empty');
         
         routes.dispatch('/address/wa/98103');
