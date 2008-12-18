@@ -1,0 +1,188 @@
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Warning: Could not find type for member 'ActiveEvent'
+Missing @alias tags
+===================
+@location=./dist/active.js:69360-69417
+    /**
+     * @type {Boolean} Defaults to false.
+     */
+@location=./dist/active.js:69438-69513
+    /**
+     * @type {Number} Tracks the number of records created.
+     */
+@location=./dist/active.js:69538-69614
+    /**
+     * @type {Object} Contains model_name, ModelClass pairs.
+     */
+@location=./dist/active.js:69631-69741
+    /**
+     * @type {Object} Contains all methods that will become available to ActiveRecord classes.
+     */
+@location=./dist/active.js:69764-69876
+    /**
+     * @type {Object} Contains all methods that will become available to ActiveRecord instances.
+     */
+@location=./dist/active.js:74067-74176
+    /**
+     * @type {String} Error that will be thrown if ActiveRecord is used without a connection.
+     */
+@location=./dist/active.js:74248-74407
+    /**
+     * @type {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
+     */
+@location=./dist/active.js:90010-90109
+/**
+ * @type {mixed} null if no connection is active, or the class that created the connection.
+ */
+@location=./dist/active.js:90140-90223
+/**
+ * @type {mixed} null if no connection is active, or the connection object.
+ */
+@location=./dist/active.js:135287-135356
+/**
+ * Lexeme
+ * 
+ * @param {Number} type
+ * @param {String} text
+ */
+@location=./dist/active.js:135460-135503
+/**
+ * toString
+ * 
+ * @return {String}
+ */
+@location=./dist/active.js:135758-135779
+/**
+ * WhereLexer
+ */
+@location=./dist/active.js:135855-135905
+/**
+ * setSource
+ * 
+ * @param {String} source
+ */
+@location=./dist/active.js:136091-136109
+/**
+ * advance
+ */
+@location=./dist/active.js:138296-138411
+/**
+ * IdentifierNode
+ * 
+ * @param {Node} identifier
+ * @param {Number} identifier
+ * @param {Node} identifier
+ */
+@location=./dist/active.js:138535-138618
+/**
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+@location=./dist/active.js:139732-139798
+/**
+ * Parser.IdentifierNode
+ * 
+ * @param {Object} identifier
+ */
+@location=./dist/active.js:139874-139957
+/**
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+@location=./dist/active.js:140082-140156
+/**
+ * FunctionNode
+ * 
+ * @param {String} name
+ * @param {Array} args
+ */
+@location=./dist/active.js:140240-140323
+/**
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+@location=./dist/active.js:140694-140722
+/**
+ * Parser.ScalarNode
+ */
+@location=./dist/active.js:140779-140862
+/**
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+@location=./dist/active.js:140973-140995
+/**
+ * WhereParser
+ */
+@location=./dist/active.js:141074-141120
+/**
+ * parse
+ * 
+ * @param {String} source
+ */
+@location=./dist/active.js:141895-141923
+/**
+ * parseOrExpression
+ */
+@location=./dist/active.js:142296-142325
+/**
+ * parseAndExpression
+ */
+@location=./dist/active.js:142712-142746
+/**
+ * parseEqualityExpression
+ */
+@location=./dist/active.js:143298-143334
+/**
+ * parseRelationalExpression
+ */
+@location=./dist/active.js:143969-144001
+/**
+ * parseMemberExpression
+ */
+@location=./dist/active.js:170285-170381
+        /**
+         * @param {String} table_name
+         * @param {Object} columns
+         */
+@location=./dist/active.js:170541-170602
+        /**
+         * @param {String} table_name
+         */
+@location=./dist/active.js:170740-170878
+        /**
+         * @param {String} table_name
+         * @param {String} column_name
+         * @param {mixed} [data_type]
+         */
+@location=./dist/active.js:171060-171160
+        /**
+         * @param {String} table_name
+         * @param {String} column_name
+         */
+@location=./dist/active.js:171327-171462
+        /**
+         * @param {String} table_name
+         * @param {Array} column_names
+         * @param {Object} options
+         */
+@location=./dist/active.js:171639-171738
+        /**
+         * @param {String} table_name
+         * @param {String} index_name
+         */

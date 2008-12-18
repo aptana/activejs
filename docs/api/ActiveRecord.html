@@ -1,0 +1,245 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>ActiveJS Reference: ActiveRecord</title>
+      <meta http-equiv="cache-control" content="no-cache">
+      <link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script></head>
+   <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveRecord : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
+      </h1>
+      <div class="content">
+         <div class="classDescription"></div>
+         <h2>Classes</h2>
+         <p>
+            <table cellspacing="2" width="90%">
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Adapters.html">
+                        <div>ActiveRecord.Adapters</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Errors.html">
+                        <div>ActiveRecord.Errors</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Migrations.html">
+                        <div>ActiveRecord.Migrations</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Migrations.Schema.html">
+                        <div>ActiveRecord.Migrations.Schema</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Relationships.html">
+                        <div>ActiveRecord.Relationships</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Validations.html">
+                        <div>ActiveRecord.Validations</div></a></td>
+               </tr>
+            </table>
+         </p><a name="ActiveRecord.Functions"></a><h2>Functions</h2>
+         <table cellspacing="2" width="90%">
+            <tr class="compheader" visibility="">
+               <th style="text-align:left">Method</th>
+               <th>Action</th>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.connect"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">connect</a>(<i>Object</i>&nbsp;adapter) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>adapter</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file'); ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+                        ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master'); //or you can have ActiveRecord try to auto detect the enviornment
+                        ActiveRecord.connect(); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.create"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">create</a>(<i>String</i>&nbsp;table_name, [<i>Array</i>&nbsp;methods,] [<i>Function</i>&nbsp;readyCallback]) : <i>Object</i></div>
+                  <div class="description">Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models [ model_name ] . model_name is
+                     a singularized, capitalized form of table name.
+                  </div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>table_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Array</i></td>
+                           <td width="10%"><b>methods</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>readyCallback</b></td>
+                           <td width="80%"><b>(optional)</b>Must be specified if running in asynchronous mode.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Object</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> var User = ActiveRecord.create('users'); var u = User.find(5); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.define"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">define</a>(<i>String</i>&nbsp;table_name, <i>Object</i>&nbsp;fields, [<i>Object</i>&nbsp;methods,] [<i>Function</i>&nbsp;readyCallback]) : <i>Object</i></div>
+                  <div class="description">If the table for your ActiveRecord does not exist, this will define the ActiveRecord and automatically create the table.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>table_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>fields</b></td>
+                           <td width="80%">Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary
+                              data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that
+                              contains a "type" key, with optional "length" and "value" keys.
+                           </td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>methods</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>readyCallback</b></td>
+                           <td width="80%"><b>(optional)</b>Must be specified if running in asynchronous mode.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Object</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> var User = ActiveRecord.define('users', { name: '', password: '', comment_count: 0, profile: { type: 'text', value:
+                        '' }, serializable_field: { } }); var u = User.create( { name: 'alice', serializable_field: { a : '1', b: '2'} }); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.execute"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">execute</a>(<i>String</i>&nbsp;sql) : <i>mixed</i></div>
+                  <div class="description">Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL
+                     statement.
+                  </div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>sql</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>mixed</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.observe"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">observe</a>(<i>String</i>&nbsp;event_name, <i>Function</i>&nbsp;observer) : <i>Array</i></div>
+                  <div class="description">Observe an event on all models. observer will be called with model_class, model_instance.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>event_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>observer</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Array</i></td>
+                           <td width="80%">Array of observers</td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+         </table>
+      </div>
+      <div style="visibility:hidden;display:none"> aptana_docs</div>
+   </body>
+</html>

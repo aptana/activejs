@@ -1,0 +1,610 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>ActiveJS Reference: ModelClass</title>
+      <meta http-equiv="cache-control" content="no-cache">
+      <link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script></head>
+   <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ModelClass : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
+      </h1>
+      <div class="content">
+         <div class="classDescription"></div><a name="ModelClass.Functions"></a><h2>Functions</h2>
+         <table cellspacing="2" width="90%">
+            <tr class="compheader" visibility="">
+               <th style="text-align:left">Method</th>
+               <th>Action</th>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.average"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">average</a>(<i>String</i>&nbsp;column_name, [<i>Object</i>&nbsp;options]) : <i>Number</i></div>
+                  <div class="description">options can contain all params that find() can</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>column_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.belongsTo"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">belongsTo</a>(<i>String</i>&nbsp;related_model_name, [<i>Object</i>&nbsp;options]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>related_model_name</b></td>
+                           <td width="80%">Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User"
+                              or User would all work).
+                           </td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b>Can contain { String } "foreignKey", { String } "counter" keys.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> Comment.belongsTo('User', { counter: 'comment_count' //comment count must be a column in User }); var c = Comment.find(5);
+                        //each Comment instance will gain the following 3 methods c.getUser() c.buildUser() c.createUser() </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.build"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">build</a>(<i>Object</i>&nbsp;data) : <i>ModelInstance</i></div>
+                  <div class="description">Identical to calling create(), but does not save the record.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>data</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>ModelInstance</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.count"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">count</a>([<i>Object</i>&nbsp;options]) : <i>Number</i></div>
+                  <div class="description">options can contain all params that find() can</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.create"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">create</a>(<i>Object</i>&nbsp;data) : <i>ModelInstance</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>data</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>ModelInstance</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> var u = User.create( { name: 'alice', password: 'pass' }); u.id //will now contain the id of the user </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.destroy"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">destroy</a>(<i>Number</i>&nbsp;id) : <i>Boolean</i></div>
+                  <div class="description">Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Number</i></td>
+                           <td width="10%"><b>id</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Boolean</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.find"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">find</a>(<i>mixed</i>&nbsp;params) : <i>mixed</i></div>
+                  <div class="description">Find a given record, or multiple records matching the passed conditions.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>params</b></td>
+                           <td width="80%">Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
+                              select: Array of columns to select (default [ '*' ] ) where: String or Object joins: String order: String limit: Number offset:
+                              Number
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>mixed</i></td>
+                           <td width="80%">If finding a single record, response will be Boolean false or ModelInstance. Otherwise an Array of ModelInstance s will be
+                              returned (which may be empty).
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var users
+                        = User.find(); //finds all var users = User.find( { where: 'name = "alice" AND password = "' + md5('pass') + '"', order: 'id
+                        DESC' }); //using the where syntax below, the parameters will be properly escaped var users = User.find( { where: { name:
+                        'alice', password: md5('pass') } order: 'id DESC' }); var users = User.find('SELECT * FROM users ORDER id DESC'); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.first"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">first</a>() : <i>ModelInstance</i></div>
+                  <div class="description">Returns the first record sorted by id.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>ModelInstance</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.hasMany"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">hasMany</a>(<i>String</i>&nbsp;related_model_name, [<i>Object</i>&nbsp;options]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>related_model_name</b></td>
+                           <td width="80%">Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User"
+                              or User would all work).
+                           </td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b>Can contain { String } "foreignKey", { Boolean } "dependent", { String } "order" and { String } "where" keys.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> User.hasMany('comments', { dependent: true }); var u = User.find(5); //each User instance will gain the following 5
+                        methods u.createComment() u.buildComment() u.destroyComment() u.getCommentList() //takes the same options as find() u.getCommentCount()
+                        //takes the same options as count() </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.hasOne"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">hasOne</a>(<i>String</i>&nbsp;related_model_name, [<i>Object</i>&nbsp;options]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>related_model_name</b></td>
+                           <td width="80%">Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User"
+                              or User would all work).
+                           </td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b>Can contain { String } "foreignKey", { Boolean } "dependent" keys.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> User.hasOne(CreditCard); var u = User.find(5); //each User instance will gain the following 3 methods u.getCreditCard()
+                        u.buildCreditCard() u.createCreditCard() </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.last"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">last</a>() : <i>ModelInstance</i></div>
+                  <div class="description">Returns the last record sorted by id.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>ModelInstance</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.max"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">max</a>(<i>String</i>&nbsp;column_name, [<i>Object</i>&nbsp;options]) : <i>Number</i></div>
+                  <div class="description">options can contain all params that find() can</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>column_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.min"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">min</a>(<i>String</i>&nbsp;column_name, [<i>Object</i>&nbsp;options]) : <i>Number</i></div>
+                  <div class="description">options can contain all params that find() can</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>column_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.sum"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">sum</a>(<i>String</i>&nbsp;column_name, [<i>Object</i>&nbsp;options]) : <i>Number</i></div>
+                  <div class="description">options can contain all params that find() can</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>column_name</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.transaction"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">transaction</a>(<i>Function</i>&nbsp;proceed, [<i>Function</i>&nbsp;error]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>proceed</b></td>
+                           <td width="80%">The block of code to execute inside the transaction.</td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>error</b></td>
+                           <td width="80%"><b>(optional)</b>Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is
+                              passed the exception will be thrown.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00));
+                        }); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.update"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">update</a>(<i>Number</i>&nbsp;id, <i>Object</i>&nbsp;attributes) : <i>ModelInstance</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Number</i></td>
+                           <td width="10%"><b>id</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>attributes</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>ModelInstance</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        <pre> Article.update(3, { title: 'New Title' }); //or pass an array of ids and an array of attributes Article.update( [ 5,7
+                        ] , [ { title : 'Title for 5'}, { title : 'Title for 7'} ] ); </pre>
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.updateAll"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">updateAll</a>(<i>Object</i>&nbsp;updates, [<i>String</i>&nbsp;conditions]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>updates</b></td>
+                           <td width="80%">A string of updates to make, or a Hash of column value pairs.</td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>conditions</b></td>
+                           <td width="80%"><b>(optional)</b>Optional where condition, or Hash of column name, value pairs.
+                           </td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.validatesLengthOf"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">validatesLengthOf</a>(<i>String</i>&nbsp;field, [<i>Object</i>&nbsp;options]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Accepts "min" and "max" numbers as options.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>field</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ModelClass.validatesPresenceOf"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">validatesPresenceOf</a>(<i>String</i>&nbsp;field, [<i>Object</i>&nbsp;options]) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>field</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>options</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+         </table>
+      </div>
+      <div style="visibility:hidden;display:none"> aptana_docs</div>
+   </body>
+</html>

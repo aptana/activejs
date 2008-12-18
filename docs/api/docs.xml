@@ -1,0 +1,1064 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<javascript>
+    <class type="ActiveEvent" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.makeObservable" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.notify" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.observe" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.observeMethod" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.observeOnce" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveEvent.ObservableObject.stopObserving" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+    </class>
+    <class type="ActiveRecord" superclass="Object">
+        <methods>
+            <method name="connect" scope="static">
+                <description>Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,&apos;path_to_database_file&apos;); ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite; ActiveRecord.connection.executeSQL(&apos;SELECT * FROM sqlite_master&apos;); //or you can have ActiveRecord try to auto detect the enviornment ActiveRecord.connect(); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="adapter" usage="required" type="Object"/>
+                </parameters>
+            </method>
+            <method name="create" scope="static">
+                <description>Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models [ model_name ] . model_name is a singularized, capitalized form of table name.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; var User = ActiveRecord.create(&apos;users&apos;); var u = User.find(5); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="table_name" usage="required" type="String"/>
+                    <parameter name="methods" usage="optional" type="Array"/>
+                    <parameter name="readyCallback" usage="optional" type="Function">
+                        <description>Must be specified if running in asynchronous mode.</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="define" scope="static">
+                <description>If the table for your ActiveRecord does not exist, this will define the ActiveRecord and automatically create the table.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; var User = ActiveRecord.define(&apos;users&apos;, { name: &apos;&apos;, password: &apos;&apos;, comment_count: 0, profile: { type: &apos;text&apos;, value: &apos;&apos; }, serializable_field: { } }); var u = User.create( { name: &apos;alice&apos;, serializable_field: { a : &apos;1&apos;, b: &apos;2&apos;} }); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="table_name" usage="required" type="String"/>
+                    <parameter name="fields" usage="required" type="Object">
+                        <description>Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a &quot;type&quot; key, with optional &quot;length&quot; and &quot;value&quot; keys.</description>
+                    </parameter>
+                    <parameter name="methods" usage="optional" type="Object"/>
+                    <parameter name="readyCallback" usage="optional" type="Function">
+                        <description>Must be specified if running in asynchronous mode.</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="execute" scope="static">
+                <description>Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; ActiveRecord.execute(&apos;DELETE FROM users WHERE user_id = ?&apos;,5); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="sql" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="mixed"/>
+                </return-types>
+            </method>
+            <method name="observe" scope="static">
+                <description>Observe an event on all models. observer will be called with model_class, model_instance.</description>
+                <parameters>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Array">
+                        <description>Array of observers</description>
+                    </return-type>
+                </return-types>
+            </method>
+        </methods>
+    </class>
+    <class type="ActiveRecord.Adapters" superclass="Object">
+    </class>
+    <class type="ActiveRecord.Errors" superclass="Object">
+        <description>Contains all errors / exceptions that ActiveRecord may throw.</description>
+    </class>
+    <class type="ActiveRecord.Migrations" superclass="Object">
+        <description>Migrations are a method of versioining the database schema used by your application. All of your migrations must be defined in an object assigned to ActiveRecord.Migrations.migrations. The keys need not be numerically sequential, but must be numeric (i.e. 1,2,3 or 100,200,300). Each migration object must have an up() and down() method which will recieve an ActiveRecord.Migrations.Schema object. createTable() and addColumn() both use the same syntax as define() to specify default values and field types. ActiveRecord.Migrations.migrations = { 1: { up: function(schema) { schema.createTable(&apos;one&apos;, { a: &apos;&apos;, b: { type: &apos;TEXT&apos;, value: &apos;default&apos; } }); }, down: function(schema) { schema.dropTable(&apos;one&apos;); } }, 2: { up: function(schema) { schema.addColumn(&apos;one&apos;,&apos;c&apos;); }, down: function(schema) { schema.dropColumn(&apos;one&apos;,&apos;c&apos;); } } }; ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case) ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema ActiveRecord.Migrations.migrate(1); //migrates to version 1</description>
+        <methods>
+            <method name="current" scope="static">
+                <description>Returns the current schema version number.</description>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="max" scope="static">
+                <description>Returns the highest key name in the ActiveRecord.Migrations hash.</description>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="migrate" scope="static">
+                <description>Migrates a database schema to the given version.</description>
+                <parameters>
+                    <parameter name="target" usage="required" type="Number"/>
+                </parameters>
+            </method>
+        </methods>
+    </class>
+    <class type="ActiveRecord.Migrations.Schema" superclass="Object">
+        <description>This object is passed to all migrations as the only parameter.</description>
+    </class>
+    <class type="ActiveRecord.Relationships" superclass="Object">
+        <description>Relationships are declared with one of three class methods that are available to all models: - belongsTo - hasMany - hasOne The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work: - User.hasMany(Comment) - User.hasMany(&apos;Comment&apos;) - User.hasMany(&apos;comment&apos;) - User.hasMany(&apos;comments&apos;) Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails &quot;magical array&quot; style of handling relatioship logic: Rails: u = User.find(5) u.comments.length u.comments.create :title =&gt; &apos;comment title&apos; ActiveRecord.js: var u = User.find(5); u.getCommentList().length; u.createComment( { title : &apos;comment title&apos;});</description>
+    </class>
+    <class type="ActiveRecord.Validations" superclass="Object">
+        <description>Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present. User = ActiveRecord.define(&apos;users&apos;, { username: &apos;&apos;, password: &apos;&apos; }, { valid: function() { if(User.findByUsername(this.username)) { this.addError(&apos;The username &apos; + this.username + &apos; is already taken.&apos;); } } }); User.validatesPresenceOf(&apos;password&apos;); var user = User.build( { &apos;username&apos;: &apos;Jessica&apos; }); user.save(); //false var errors = user.getErrors(); //contains a list of the errors that occured user.set(&apos;password&apos;,&apos;rabbit&apos;); user.save(); //true</description>
+    </class>
+    <class type="ActiveRoutes" superclass="Object">
+        <examples>
+            <example>
+                &lt;p&gt;ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.&lt;/p&gt; &lt;h2&gt;Setup&lt;/h2&gt; &lt;p&gt;Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent&apos;s methods. If you extend a class, both the class itself will become observable, as well as all of it&apos;s instances.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;ActiveEvent.extend(MyClass); //class and all instances are observable ActiveEvent.extend(my_object); //this object becomes observable&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Creating Events&lt;/h2&gt; &lt;p&gt;You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var Message = function() { } ; Message.prototype.send = function(text) { //message sending code here... this.notify(&apos;sent&apos;,text); }; ActiveEvent.extend(Message); //make an existing method observable var observable_hash = new Hash( { } ); ActiveEvent.extend(observable_hash); observable_hash.makeObservable(&apos;set&apos;); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Observing Events&lt;/h2&gt; &lt;p&gt;To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.observe(&apos;sent&apos;,function(message,text) { //responds to all sent messages }); var m = new Message(); m.observe(&apos;sent&apos;,function(text) { //this will only be called when &quot;m&quot; is sent }); observable_hash.observe(&apos;set&apos;,function(key,value) { console.log(&apos;observable_hash.set: &apos; + key + &apos;=&apos; + value); }); observable_hash.observeOnce(function(key,value) { //this will only be called once }); &lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Control Flow&lt;/h2&gt; &lt;p&gt;When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;Message.prototype.send = function(text) { if(this.notify(&apos;send&apos;,text) === false) return false; //message sending code here... this.notify(&apos;sent&apos;,text); return true; }; var m = new Message(); var observer = m.observe(&apos;send&apos;,function(message,text) { if(text == &apos;test&apos;) throw $break; }); m.send(&apos;my message&apos;); //returned true m.send(&apos;test&apos;); //returned false m.stopObserving(&apos;send&apos;,observer); m.send(&apos;test&apos;); //returned true&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;Object.options&lt;/h2&gt; &lt;p&gt;If an object has an options property that contains a callable function with the same name as an event triggered with &lt;b&gt;notify()&lt;/b&gt;, it will be treated just like an instance observer. So the falling code is equivalent.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var rating_one = new Control.Rating(&apos;rating_one&apos;, { afterChange: function(new_value) { } }); var rating_two = new Control.Rating(&apos;rating_two&apos;); rating_two.observe(&apos;afterChange&apos;,function(new_value) { } );&lt;/code&gt;&lt;/pre&gt; &lt;h2&gt;MethodCallObserver&lt;/h2&gt; &lt;p&gt;The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it&apos;s original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.&lt;/p&gt; &lt;pre class=&quot;highlighted&quot;&gt;&lt;code class=&quot;javascript&quot;&gt;var h = new Hash( { } ); ActiveEvent.extend(h); var observer = h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); }); h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;a&apos;,&apos;two&apos;); observer.stop(); //console now contains: //&quot;a = one&quot; //&quot;b = two&quot; //the following does the same as above h.observeMethod(&apos;set&apos;,function(key,value) { console.log(key + &apos;=&apos; + value); },function() { h.set(&apos;a&apos;,&apos;one&apos;); h.set(&apos;b&apos;,&apos;two&apos;); });&lt;/code&gt;&lt;/pre&gt;
+            </example>
+            <example>
+                var routes = new ActiveRoutes( [ [ &apos;article&apos;,&apos;article/:id&apos;, { object : &apos;article&apos;,method:&apos;article&apos;,requirements: {id:/\d+/}}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}], [ &apos;/blog/:method/:id&apos;, { object : &apos;blog&apos;}] //unnamed route ] ); var route = routes.match(&apos;/blog/post/5&apos;); route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}; routes.dispatch(&apos;/blog/post/5&apos;); //calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;; //creating the routes object above creates the following methods because there was a named route &quot;post&quot; postUrl( { id : 5}) == &apos;/blog/post/5&apos; postParams( { id : 5}) == {object: &apos;blog&apos;,method: &apos;post&apos;, id: 5} callPost( { id : 5}) //calls Blog.post({object: &apos;blog&apos;,method: &apos;post&apos;, id: 5})
+            </example>
+        </examples>
+        <constructors>
+            <constructor scope="instance">
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="method_name" usage="required" type="String"/>
+                    <parameter name="observe" usage="required" type="Function"/>
+                    <parameter name="callback" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="optional" type="String"/>
+                    <parameter name="observer" usage="optional" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="observer" usage="required" type="Function"/>
+                    <parameter name="event_name" usage="required" type="String"/>
+                    <parameter name="args" usage="optional" type="mixed"/>
+                    <parameter name="routes" usage="required" type="Array"/>
+                    <parameter name="scope" usage="optional" type="Object">
+                        <description>defaults to window</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ActiveRoutes">
+                        <description>options can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot;</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>observer</description>
+                    </return-type>
+                    <return-type type="Function">
+                        <description>The observer that was passed in will be wrapped, this generated / wrapped observer is returned.</description>
+                    </return-type>
+                    <return-type type="mixed">
+                        <description>Array of return values, or false if $break was thrown by an observer.</description>
+                    </return-type>
+                </return-types>
+            </constructor>
+        </constructors>
+        <properties>
+            <property name="defaultDispatcher" access="read-write" scope="instance" type="Function">
+                <description>If no &quot;dispatcher&quot; key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)</description>
+            </property>
+        </properties>
+        <methods>
+            <method name="addRoute" scope="instance">
+                <description>Add a new route to the route set.</description>
+                <examples>
+                    <example>
+                        routes.addRoute(&apos;route_name&apos;,&apos;/route/path&apos;, { params } );&lt;br/&gt; routes.addRoute(&apos;/route/path&apos;, { params } );&lt;br/&gt; routes.addRoute(&apos;/route/path&apos;);
+                    </example>
+                </examples>
+                <exceptions>
+                    <exception type="ActiveRoutes.Errors.NoMethodInRoute"/>
+                    <exception type="ActiveRoutes.Errors.NoObjectInRoute"/>
+                    <exception type="ActiveRoutes.Errors.NoPathInRoute"/>
+                </exceptions>
+            </method>
+            <method name="dispatch" scope="instance">
+                <description>Will match() the given path and call the dispatcher if one is found.</description>
+                <examples>
+                    <example>
+                        var routes = new ActiveRoutes( [ [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}]]);&lt;br/&gt; routes.dispatch(&apos;/blog/post/5&apos;);&lt;br/&gt; //by default calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;,id: 5});
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="path" usage="required" type="String"/>
+                </parameters>
+                <exceptions>
+                    <exception type="ActiveRoutes.Errors.UnresolvableUrl"/>
+                </exceptions>
+            </method>
+            <method name="getError" scope="instance">
+                <description>If match() returns false, the error it generates can be retrieved with this function.</description>
+                <return-types>
+                    <return-type type="mixed">
+                        <description>String or null</description>
+                    </return-type>
+                </return-types>
+            </method>
+            <method name="match" scope="instance">
+                <examples>
+                    <example>
+                        var route = routes.match(&apos;/blog/post/5&apos;);&lt;br/&gt; route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5};
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="path" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="mixed">
+                        <description>false if no match, otherwise the matching route.</description>
+                    </return-type>
+                </return-types>
+            </method>
+            <method name="urlFor" scope="instance">
+                <examples>
+                    <example>
+                        var routes = new ActiveRoutes( [ [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}]]);&lt;br/&gt; routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="params" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+                <exceptions>
+                    <exception type="ActiveRoutes.Errors.NamedRouteDoesNotExistError"/>
+                </exceptions>
+            </method>
+        </methods>
+    </class>
+    <class type="ActiveSupport" superclass="Object">
+        <description>Provides a number of methods from the Prototype.js framework, without modifying any built in prototypes to ensure compatibility and portability.</description>
+        <methods>
+            <method name="arrayFrom" scope="static">
+                <description>Returns an array from an array or array like object.</description>
+                <parameters>
+                    <parameter name="object" usage="required" type="Object">
+                        <description>Any iterable object (Array, NodeList, arguments)</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+            <method name="bind" scope="static">
+                <description>Emulates Prototype&apos;s Function.prototype.bind</description>
+                <parameters>
+                    <parameter name="func" usage="required" type="Function"/>
+                    <parameter name="object" usage="required" type="Object">
+                        <description>object will be in scope as &quot;this&quot; when func is called.</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="Function"/>
+                </return-types>
+            </method>
+            <method name="block" scope="static">
+                <description>If it is the last argument of current function is a function, it will be returned. You can optionally specify the number of calls in the stack to look up.</description>
+                <parameters>
+                    <parameter name="levels" usage="optional" type="Number"/>
+                </parameters>
+                <return-types>
+                    <return-type type="mixed"/>
+                </return-types>
+            </method>
+            <method name="camelize" scope="static">
+                <description>Emulates Prototype&apos;s String.prototype.camelize</description>
+                <parameters>
+                    <parameter name="str" usage="required" type="String"/>
+                    <parameter name="capitalize" usage="optional" type="Boolean"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+            <method name="clone" scope="static">
+                <description>Emulates Prototype&apos;s Object.clone</description>
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="curry" scope="static">
+                <description>Emulates Prototype&apos;s Function.prototype.curry.</description>
+                <parameters>
+                    <parameter name="func" usage="required" type="Function"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Function"/>
+                </return-types>
+            </method>
+            <method name="extend" scope="static">
+                <description>Emulates Prototype&apos;s Object.extend</description>
+                <parameters>
+                    <parameter name="destination" usage="required" type="Object"/>
+                    <parameter name="source" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="getGlobalContext" scope="static">
+                <description>Returns the global context object (window in most implementations).</description>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="indexOf" scope="static">
+                <description>Emulates Array.indexOf for implementations that do not support it.</description>
+                <parameters>
+                    <parameter name="array" usage="required" type="Array"/>
+                    <parameter name="item" usage="required" type="mixed"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="keys" scope="static">
+                <description>Returns an array of keys from an object.</description>
+                <parameters>
+                    <parameter name="object" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+            <method name="proc" scope="static">
+                <description>If the value passed is a function the value passed will be returned, otherwise a function returning the value passed will be returned.</description>
+                <parameters>
+                    <parameter name="proc" usage="required" type="mixed"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Function"/>
+                </return-types>
+            </method>
+            <method name="synchronize" scope="static">
+            </method>
+            <method name="underscore" scope="static">
+                <description>Emulates Prototype&apos;s String.prototype.underscore</description>
+                <parameters>
+                    <parameter name="str" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+            <method name="value" scope="static">
+                <description>If the value passed is a function, the function is called and the value returned, otherwise the value passed in is returned.</description>
+                <parameters>
+                    <parameter name="value" usage="required" type="mixed"/>
+                </parameters>
+                <return-types>
+                    <return-type type="scalar"/>
+                </return-types>
+            </method>
+            <method name="without" scope="static">
+                <description>Returns an array without the given item.</description>
+                <parameters>
+                    <parameter name="arr" usage="required" type="Array"/>
+                    <parameter name="item" usage="required" type="mixed">
+                        <description>to remove</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+        </methods>
+    </class>
+    <class type="ActiveSupport.Inflector" superclass="Object">
+        <description>A port of Rails Inflector class.</description>
+        <methods>
+            <method name="ordinalize" scope="static">
+                <description>Generates an orginalized version of a number as a string (9th, 2nd, etc)</description>
+                <parameters>
+                    <parameter name="number" usage="required" type="Number"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+            <method name="pluralize" scope="static">
+                <description>Generates a plural version of an english word.</description>
+                <parameters>
+                    <parameter name="word" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+            <method name="singularize" scope="static">
+                <description>Generates a singular version of an english word.</description>
+                <parameters>
+                    <parameter name="word" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+        </methods>
+    </class>
+    <class type="ActiveSupport.JSON" superclass="Object">
+        <description>Provides JSON support if a native implementation is not available.</description>
+        <methods>
+            <method name="parse" scope="static">
+                <parameters>
+                    <parameter name="text" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="stringify" scope="static">
+                <parameters>
+                    <parameter name="value" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+        </methods>
+    </class>
+    <class type="ModelClass" superclass="Object">
+        <methods>
+            <method name="average" scope="static">
+                <description>options can contain all params that find() can</description>
+                <parameters>
+                    <parameter name="column_name" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="belongsTo" scope="static">
+                <description>Sepcifies a 1&lt;-1 relationship between models. The foreign key will reside in the declaring object.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; Comment.belongsTo(&apos;User&apos;, { counter: &apos;comment_count&apos; //comment count must be a column in User }); var c = Comment.find(5); //each Comment instance will gain the following 3 methods c.getUser() c.buildUser() c.createUser() &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="related_model_name" usage="required" type="String">
+                        <description>Can be a plural or singular referring to the related table, the model name, or a reference to the model itself (&quot;users&quot;,&quot;User&quot; or User would all work).</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object">
+                        <description>Can contain { String } &quot;foreignKey&quot;, { String } &quot;counter&quot; keys.</description>
+                    </parameter>
+                </parameters>
+            </method>
+            <method name="build" scope="static">
+                <description>Identical to calling create(), but does not save the record.</description>
+                <parameters>
+                    <parameter name="data" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ModelInstance"/>
+                </return-types>
+            </method>
+            <method name="count" scope="static">
+                <description>options can contain all params that find() can</description>
+                <parameters>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="create" scope="static">
+                <examples>
+                    <example>
+                        &lt;pre&gt; var u = User.create( { name: &apos;alice&apos;, password: &apos;pass&apos; }); u.id //will now contain the id of the user &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="data" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ModelInstance"/>
+                </return-types>
+            </method>
+            <method name="destroy" scope="static">
+                <description>Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.</description>
+                <parameters>
+                    <parameter name="id" usage="required" type="Number"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Boolean"/>
+                </return-types>
+            </method>
+            <method name="find" scope="static">
+                <description>Find a given record, or multiple records matching the passed conditions.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var users = User.find(); //finds all var users = User.find( { where: &apos;name = &quot;alice&quot; AND password = &quot;&apos; + md5(&apos;pass&apos;) + &apos;&quot;&apos;, order: &apos;id DESC&apos; }); //using the where syntax below, the parameters will be properly escaped var users = User.find( { where: { name: &apos;alice&apos;, password: md5(&apos;pass&apos;) } order: &apos;id DESC&apos; }); var users = User.find(&apos;SELECT * FROM users ORDER id DESC&apos;); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="params" usage="required" type="mixed">
+                        <description>Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain: select: Array of columns to select (default [ &apos;*&apos; ] ) where: String or Object joins: String order: String limit: Number offset: Number</description>
+                    </parameter>
+                </parameters>
+                <return-types>
+                    <return-type type="mixed">
+                        <description>If finding a single record, response will be Boolean false or ModelInstance. Otherwise an Array of ModelInstance s will be returned (which may be empty).</description>
+                    </return-type>
+                </return-types>
+            </method>
+            <method name="first" scope="static">
+                <description>Returns the first record sorted by id.</description>
+                <return-types>
+                    <return-type type="ModelInstance"/>
+                </return-types>
+            </method>
+            <method name="hasMany" scope="static">
+                <description>Sepcifies a 1-&gt;N relationship between models. The foreign key will reside in the child (related) object.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; User.hasMany(&apos;comments&apos;, { dependent: true }); var u = User.find(5); //each User instance will gain the following 5 methods u.createComment() u.buildComment() u.destroyComment() u.getCommentList() //takes the same options as find() u.getCommentCount() //takes the same options as count() &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="related_model_name" usage="required" type="String">
+                        <description>Can be a plural or singular referring to the related table, the model name, or a reference to the model itself (&quot;users&quot;,&quot;User&quot; or User would all work).</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object">
+                        <description>Can contain { String } &quot;foreignKey&quot;, { Boolean } &quot;dependent&quot;, { String } &quot;order&quot; and { String } &quot;where&quot; keys.</description>
+                    </parameter>
+                </parameters>
+            </method>
+            <method name="hasOne" scope="static">
+                <description>Sepcifies a 1-&gt;1 relationship between models. The foreign key will reside in the related object.</description>
+                <examples>
+                    <example>
+                        &lt;pre&gt; User.hasOne(CreditCard); var u = User.find(5); //each User instance will gain the following 3 methods u.getCreditCard() u.buildCreditCard() u.createCreditCard() &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="related_model_name" usage="required" type="String">
+                        <description>Can be a plural or singular referring to the related table, the model name, or a reference to the model itself (&quot;users&quot;,&quot;User&quot; or User would all work).</description>
+                    </parameter>
+                    <parameter name="options" usage="optional" type="Object">
+                        <description>Can contain { String } &quot;foreignKey&quot;, { Boolean } &quot;dependent&quot; keys.</description>
+                    </parameter>
+                </parameters>
+            </method>
+            <method name="last" scope="static">
+                <description>Returns the last record sorted by id.</description>
+                <return-types>
+                    <return-type type="ModelInstance"/>
+                </return-types>
+            </method>
+            <method name="max" scope="static">
+                <description>options can contain all params that find() can</description>
+                <parameters>
+                    <parameter name="column_name" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="min" scope="static">
+                <description>options can contain all params that find() can</description>
+                <parameters>
+                    <parameter name="column_name" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="sum" scope="static">
+                <description>options can contain all params that find() can</description>
+                <parameters>
+                    <parameter name="column_name" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Number"/>
+                </return-types>
+            </method>
+            <method name="transaction" scope="static">
+                <examples>
+                    <example>
+                        &lt;pre&gt; Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00)); }); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="proceed" usage="required" type="Function">
+                        <description>The block of code to execute inside the transaction.</description>
+                    </parameter>
+                    <parameter name="error" usage="optional" type="Function">
+                        <description>Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.</description>
+                    </parameter>
+                </parameters>
+            </method>
+            <method name="update" scope="static">
+                <examples>
+                    <example>
+                        &lt;pre&gt; Article.update(3, { title: &apos;New Title&apos; }); //or pass an array of ids and an array of attributes Article.update( [ 5,7 ] , [ { title : &apos;Title for 5&apos;}, { title : &apos;Title for 7&apos;} ] ); &lt;/pre&gt;
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="id" usage="required" type="Number"/>
+                    <parameter name="attributes" usage="required" type="Object"/>
+                </parameters>
+                <return-types>
+                    <return-type type="ModelInstance"/>
+                </return-types>
+            </method>
+            <method name="updateAll" scope="static">
+                <parameters>
+                    <parameter name="updates" usage="required" type="Object">
+                        <description>A string of updates to make, or a Hash of column value pairs.</description>
+                    </parameter>
+                    <parameter name="conditions" usage="optional" type="String">
+                        <description>Optional where condition, or Hash of column name, value pairs.</description>
+                    </parameter>
+                </parameters>
+            </method>
+            <method name="validatesLengthOf" scope="static">
+                <description>Accepts &quot;min&quot; and &quot;max&quot; numbers as options.</description>
+                <parameters>
+                    <parameter name="field" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+            </method>
+            <method name="validatesPresenceOf" scope="static">
+                <parameters>
+                    <parameter name="field" usage="required" type="String"/>
+                    <parameter name="options" usage="optional" type="Object"/>
+                </parameters>
+            </method>
+        </methods>
+    </class>
+    <class type="ModelInstance" superclass="Object">
+        <methods>
+            <method name="destroy" scope="static">
+                <description>Removes the object from the database, but does not destroy the object in memory itself.</description>
+                <return-types>
+                    <return-type type="Boolean"/>
+                </return-types>
+            </method>
+            <method name="get" scope="static">
+                <description>Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)</description>
+                <parameters>
+                    <parameter name="key" usage="required" type="String"/>
+                </parameters>
+                <return-types>
+                    <return-type type="mixed"/>
+                </return-types>
+            </method>
+            <method name="getErrors" scope="static">
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+            <method name="keys" scope="static">
+                <description>Returns an array of the column names that the instance contains.</description>
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+            <method name="reload" scope="static">
+                <description>Loads the most current data for the object from the database.</description>
+                <return-types>
+                    <return-type type="Boolean"/>
+                </return-types>
+            </method>
+            <method name="save" scope="static">
+                <description>Persists the object, creating or updating as nessecary.</description>
+                <return-types>
+                    <return-type type="Boolean"/>
+                </return-types>
+            </method>
+            <method name="set" scope="static">
+                <description>Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.</description>
+                <parameters>
+                    <parameter name="key" usage="required" type="String"/>
+                    <parameter name="value" usage="required" type="mixed"/>
+                </parameters>
+            </method>
+            <method name="toJSON" scope="static">
+                <return-types>
+                    <return-type type="String"/>
+                </return-types>
+            </method>
+            <method name="toObject" scope="static">
+                <description>Returns a &quot;clean&quot; version of the object, with just the data and no methods.</description>
+                <return-types>
+                    <return-type type="Object"/>
+                </return-types>
+            </method>
+            <method name="updateAttribute" scope="static">
+                <description>Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .</description>
+                <parameters>
+                    <parameter name="key" usage="required" type="String"/>
+                    <parameter name="value" usage="required" type="mixed"/>
+                </parameters>
+            </method>
+            <method name="updateAttributes" scope="static">
+                <description>Updates all of the passed attributes on the record and then calls save().</description>
+                <parameters>
+                    <parameter name="attributes" usage="required" type="Object"/>
+                </parameters>
+            </method>
+            <method name="valus" scope="static">
+                <description>Returns an array of the column values that the instance contains.</description>
+                <return-types>
+                    <return-type type="Array"/>
+                </return-types>
+            </method>
+        </methods>
+    </class>
+</javascript>

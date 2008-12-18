@@ -62,11 +62,12 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
 };
 
 /**
- * var route = routes.match('/blog/post/5');
- * route == {object: 'blog',method: 'post', id: 5};
  * @alias ActiveRoutes.prototype.match
  * @param {String} path
  * @return {mixed} false if no match, otherwise the matching route.
+ * @example
+ * var route = routes.match('/blog/post/5');<br/>
+ * route == {object: 'blog',method: 'post', id: 5};
  */
 ActiveRoutes.prototype.match = function(path){
     this.error = false;

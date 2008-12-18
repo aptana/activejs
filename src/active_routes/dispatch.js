@@ -26,12 +26,13 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
+ * Will match() the given path and call the dispatcher if one is found.
  * @alias ActiveRoutes.prototype.dispatch
  * @param {String} path
  * @exception {ActiveRoutes.Errors.UnresolvableUrl}
- * This will match() the given path and call the dispatcher if one is found.
- * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
- * routes.dispatch('/blog/post/5');
+ * @example
+ * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);<br/>
+ * routes.dispatch('/blog/post/5');<br/>
  * //by default calls Blog.post({object:'blog',method: 'post',id: 5});
  */
 ActiveRoutes.prototype.dispatch = function dispatch(path)
@@ -56,9 +57,10 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
 };
 
 /**
+ * If no "dispatcher" key is passed into the options to contstruct a route set
+ *  this is used. It will call scope.object_name.method_name(route.params)
  * @property {Function}
  * @alias ActiveRoutes.prototype.defaultDispatcher
- * If no "dispatcher" key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)
  */
 ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
 {

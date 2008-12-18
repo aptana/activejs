@@ -1,0 +1,451 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>ActiveJS Reference: ActiveSupport</title>
+      <meta http-equiv="cache-control" content="no-cache">
+      <link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script></head>
+   <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveSupport : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
+      </h1>
+      <div class="content">
+         <div class="classDescription">Provides a number of methods from the Prototype.js framework, without modifying any built in prototypes to ensure compatibility
+            and portability.
+         </div>
+         <h2>Classes</h2>
+         <p>
+            <table cellspacing="2" width="90%">
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveSupport.Inflector.html">
+                        <div>ActiveSupport.Inflector</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveSupport.JSON.html">
+                        <div>ActiveSupport.JSON</div></a></td>
+               </tr>
+            </table>
+         </p><a name="ActiveSupport.Functions"></a><h2>Functions</h2>
+         <table cellspacing="2" width="90%">
+            <tr class="compheader" visibility="">
+               <th style="text-align:left">Method</th>
+               <th>Action</th>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.arrayFrom"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">arrayFrom</a>(<i>Object</i>&nbsp;object) : <i>Array</i></div>
+                  <div class="description">Returns an array from an array or array like object.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>object</b></td>
+                           <td width="80%">Any iterable object (Array, NodeList, arguments)</td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Array</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.bind"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">bind</a>(<i>Function</i>&nbsp;func, <i>Object</i>&nbsp;object) : <i>Function</i></div>
+                  <div class="description">Emulates Prototype's Function.prototype.bind</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>func</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>object</b></td>
+                           <td width="80%">object will be in scope as "this" when func is called.</td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Function</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.block"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">block</a>([<i>Number</i>&nbsp;levels]) : <i>mixed</i></div>
+                  <div class="description">If it is the last argument of current function is a function, it will be returned. You can optionally specify the number of
+                     calls in the stack to look up.
+                  </div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Number</i></td>
+                           <td width="10%"><b>levels</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>mixed</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.camelize"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">camelize</a>(<i>String</i>&nbsp;str, [<i>Boolean</i>&nbsp;capitalize]) : <i>String</i></div>
+                  <div class="description">Emulates Prototype's String.prototype.camelize</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>str</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Boolean</i></td>
+                           <td width="10%"><b>capitalize</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>String</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.clone"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">clone</a>(<i>Object</i>&nbsp;object) : <i>Object</i></div>
+                  <div class="description">Emulates Prototype's Object.clone</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>object</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Object</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.curry"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">curry</a>(<i>Function</i>&nbsp;func) : <i>Function</i></div>
+                  <div class="description">Emulates Prototype's Function.prototype.curry.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>func</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Function</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.extend"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">extend</a>(<i>Object</i>&nbsp;destination, <i>Object</i>&nbsp;source) : <i>Object</i></div>
+                  <div class="description">Emulates Prototype's Object.extend</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>destination</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>source</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Object</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.getGlobalContext"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">getGlobalContext</a>() : <i>Object</i></div>
+                  <div class="description">Returns the global context object (window in most implementations).</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Object</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.indexOf"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">indexOf</a>(<i>Array</i>&nbsp;array, <i>mixed</i>&nbsp;item) : <i>Number</i></div>
+                  <div class="description">Emulates Array.indexOf for implementations that do not support it.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Array</i></td>
+                           <td width="10%"><b>array</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>item</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Number</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.keys"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">keys</a>(<i>Object</i>&nbsp;object) : <i>Array</i></div>
+                  <div class="description">Returns an array of keys from an object.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Object</i></td>
+                           <td width="10%"><b>object</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Array</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.proc"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">proc</a>(<i>mixed</i>&nbsp;proc) : <i>Function</i></div>
+                  <div class="description">If the value passed is a function the value passed will be returned, otherwise a function returning the value passed will
+                     be returned.
+                  </div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>proc</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Function</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.synchronize"></a>static synchronize() : <i>
+                        			void
+                        		</i></div>
+                  <div class="description"></div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.underscore"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">underscore</a>(<i>String</i>&nbsp;str) : <i>String</i></div>
+                  <div class="description">Emulates Prototype's String.prototype.underscore</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>String</i></td>
+                           <td width="10%"><b>str</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>String</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.value"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">value</a>(<i>mixed</i>&nbsp;value) : <i>scalar</i></div>
+                  <div class="description">If the value passed is a function, the function is called and the value returned, otherwise the value passed in is returned.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>value</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>scalar</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.without"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">without</a>(<i>Array</i>&nbsp;arr, <i>mixed</i>&nbsp;item) : <i>Array</i></div>
+                  <div class="description">Returns an array without the given item.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Array</i></td>
+                           <td width="10%"><b>arr</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>item</b></td>
+                           <td width="80%">to remove</td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Array</i></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+         </table>
+      </div>
+      <div style="visibility:hidden;display:none"> aptana_docs</div>
+   </body>
+</html>

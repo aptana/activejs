@@ -1,0 +1,22 @@
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      <title>ActiveJS Reference: ActiveRecord.Validations</title>
+      <meta http-equiv="cache-control" content="no-cache">
+      <link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script></head>
+   <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveRecord.Validations : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
+      </h1>
+      <div class="content">
+         <div class="classDescription">Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using
+            pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid()
+            method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return
+            the record, but in either case you can call getErrors() on the record to determine if there are any errors present. User =
+            ActiveRecord.define('users', { username: '', password: '' }, { valid: function() { if(User.findByUsername(this.username))
+            { this.addError('The username ' + this.username + ' is already taken.'); } } }); User.validatesPresenceOf('password'); var
+            user = User.build( { 'username': 'Jessica' }); user.save(); //false var errors = user.getErrors(); //contains a list of the
+            errors that occured user.set('password','rabbit'); user.save(); //true
+         </div>
+      </div>
+      <div style="visibility:hidden;display:none"> aptana_docs</div>
+   </body>
+</html>

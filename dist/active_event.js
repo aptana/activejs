@@ -30,9 +30,9 @@
  * @example
  * <p>ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.</p>
  * <h2>Setup</h2>
- * <p>Before you can use Object.Event you must call extend a given class or object with Object.Event's methods. If you extend a class, both the class itself will become observable, as well as all of it's instances.</p>
- * <pre class="highlighted"><code class="javascript">ObjectEvent.extend(MyClass); //class and all instances are observable
- * ObjectEvent.extend(my_object); //this object becomes observable</code></pre>
+ * <p>Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent's methods. If you extend a class, both the class itself will become observable, as well as all of it's instances.</p>
+ * <pre class="highlighted"><code class="javascript">ActiveEvent.extend(MyClass); //class and all instances are observable
+ * ActiveEvent.extend(my_object); //this object becomes observable</code></pre>
  * 
  * <h2>Creating Events</h2>
  * <p>You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().</p>
@@ -41,11 +41,11 @@
  *   //message sending code here...
  *   this.notify('sent',text);
  * };
- * ObjectEvent.extend(Message);
+ * ActiveEvent.extend(Message);
  * 
  * //make an existing method observable
  * var observable_hash = new Hash({});
- * ObjectEvent.extend(observable_hash);
+ * ActiveEvent.extend(observable_hash);
  * observable_hash.makeObservable('set');
  * </code></pre>
  * 
@@ -102,9 +102,9 @@
  * rating_two.observe('afterChange',function(new_value){});</code></pre>
  * 
  * <h2>MethodCallObserver</h2>
- * <p>The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ObjectEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it's original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.</p>
+ * <p>The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it's original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.</p>
  * <pre class="highlighted"><code class="javascript">var h = new Hash({});
- * ObjectEvent.extend(h);
+ * ActiveEvent.extend(h);
  * 
  * var observer = h.observeMethod('set',function(key,value){
  *   console.log(key + '=' + value);
@@ -139,11 +139,6 @@ ActiveEvent = null;
     
 var global_context = ActiveSupport.getGlobalContext();
 
-/**
- * Mimics the Prototype.js framework's $break variable if it is not available.
- * @property {Object}
- * @alias $break
- */
 if(typeof(global_context.$break) == 'undefined')
 {
     global_context.$break = {};

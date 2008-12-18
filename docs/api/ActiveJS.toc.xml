@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?NLS TYPE="org.eclipse.help.toc"?><toc label="ActiveJS" link_to="../com.aptana.ide.documentation/toc.xml#reference">
+   <topic label="ActiveJS" href="html/reference/api/ActiveJS.index.html">
+      <topic label="ActiveEvent" href="html/reference/api/ActiveEvent.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.html#ActiveEvent.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.html?visibility=#ActiveEvent."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.makeObservable"
+             href="html/reference/api/ActiveEvent.ObservableObject.makeObservable.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.makeObservable.html#ActiveEvent.ObservableObject.makeObservable.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.makeObservable.html?visibility=#ActiveEvent.ObservableObject.makeObservable."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.notify"
+             href="html/reference/api/ActiveEvent.ObservableObject.notify.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.notify.html#ActiveEvent.ObservableObject.notify.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.notify.html?visibility=#ActiveEvent.ObservableObject.notify."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.observe"
+             href="html/reference/api/ActiveEvent.ObservableObject.observe.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.observe.html#ActiveEvent.ObservableObject.observe.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.observe.html?visibility=#ActiveEvent.ObservableObject.observe."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.observeMethod"
+             href="html/reference/api/ActiveEvent.ObservableObject.observeMethod.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.observeMethod.html#ActiveEvent.ObservableObject.observeMethod.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.observeMethod.html?visibility=#ActiveEvent.ObservableObject.observeMethod."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.observeOnce"
+             href="html/reference/api/ActiveEvent.ObservableObject.observeOnce.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.observeOnce.html#ActiveEvent.ObservableObject.observeOnce.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.observeOnce.html?visibility=#ActiveEvent.ObservableObject.observeOnce."/>
+         </topic>
+      </topic>
+      <topic label="ActiveEvent.ObservableObject.stopObserving"
+             href="html/reference/api/ActiveEvent.ObservableObject.stopObserving.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveEvent.ObservableObject.stopObserving.html#ActiveEvent.ObservableObject.stopObserving.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveEvent.ObservableObject.stopObserving.html?visibility=#ActiveEvent.ObservableObject.stopObserving."/>
+         </topic>
+      </topic>
+      <topic label="ActiveRecord" href="html/reference/api/ActiveRecord.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveRecord.html#ActiveRecord.Functions">
+            <topic label="connect"
+                   href="html/reference/api/ActiveRecord.html?visibility=#ActiveRecord.connect"/>
+            <topic label="create"
+                   href="html/reference/api/ActiveRecord.html?visibility=#ActiveRecord.create"/>
+            <topic label="define"
+                   href="html/reference/api/ActiveRecord.html?visibility=#ActiveRecord.define"/>
+            <topic label="execute"
+                   href="html/reference/api/ActiveRecord.html?visibility=#ActiveRecord.execute"/>
+            <topic label="observe"
+                   href="html/reference/api/ActiveRecord.html?visibility=#ActiveRecord.observe"/>
+         </topic>
+      </topic>
+      <topic label="ActiveRecord.Adapters"
+             href="html/reference/api/ActiveRecord.Adapters.html"/>
+      <topic label="ActiveRecord.Errors" href="html/reference/api/ActiveRecord.Errors.html"/>
+      <topic label="ActiveRecord.Migrations"
+             href="html/reference/api/ActiveRecord.Migrations.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveRecord.Migrations.html#ActiveRecord.Migrations.Functions">
+            <topic label="current"
+                   href="html/reference/api/ActiveRecord.Migrations.html?visibility=#ActiveRecord.Migrations.current"/>
+            <topic label="max"
+                   href="html/reference/api/ActiveRecord.Migrations.html?visibility=#ActiveRecord.Migrations.max"/>
+            <topic label="migrate"
+                   href="html/reference/api/ActiveRecord.Migrations.html?visibility=#ActiveRecord.Migrations.migrate"/>
+         </topic>
+      </topic>
+      <topic label="ActiveRecord.Migrations.Schema"
+             href="html/reference/api/ActiveRecord.Migrations.Schema.html"/>
+      <topic label="ActiveRecord.Relationships"
+             href="html/reference/api/ActiveRecord.Relationships.html"/>
+      <topic label="ActiveRecord.Validations"
+             href="html/reference/api/ActiveRecord.Validations.html"/>
+      <topic label="ActiveRoutes" href="html/reference/api/ActiveRoutes.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveRoutes.html#ActiveRoutes.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes."/>
+         </topic>
+         <topic label="Properties"
+                href="html/reference/api/ActiveRoutes.html#ActiveRoutes.Properties">
+            <topic label="defaultDispatcher"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.defaultDispatcher"/>
+         </topic>
+         <topic label="Functions"
+                href="html/reference/api/ActiveRoutes.html#ActiveRoutes.Functions">
+            <topic label="addRoute"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.addRoute"/>
+            <topic label="dispatch"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.dispatch"/>
+            <topic label="getError"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.getError"/>
+            <topic label="match"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.match"/>
+            <topic label="urlFor"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.urlFor"/>
+         </topic>
+      </topic>
+      <topic label="ActiveSupport" href="html/reference/api/ActiveSupport.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveSupport.html#ActiveSupport.Functions">
+            <topic label="arrayFrom"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.arrayFrom"/>
+            <topic label="bind"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.bind"/>
+            <topic label="block"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.block"/>
+            <topic label="camelize"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.camelize"/>
+            <topic label="clone"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.clone"/>
+            <topic label="curry"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.curry"/>
+            <topic label="extend"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.extend"/>
+            <topic label="getGlobalContext"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.getGlobalContext"/>
+            <topic label="indexOf"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.indexOf"/>
+            <topic label="keys"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.keys"/>
+            <topic label="proc"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.proc"/>
+            <topic label="synchronize"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.synchronize"/>
+            <topic label="underscore"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.underscore"/>
+            <topic label="value"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.value"/>
+            <topic label="without"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.without"/>
+         </topic>
+      </topic>
+      <topic label="ActiveSupport.Inflector"
+             href="html/reference/api/ActiveSupport.Inflector.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveSupport.Inflector.html#ActiveSupport.Inflector.Functions">
+            <topic label="ordinalize"
+                   href="html/reference/api/ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.ordinalize"/>
+            <topic label="pluralize"
+                   href="html/reference/api/ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.pluralize"/>
+            <topic label="singularize"
+                   href="html/reference/api/ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.singularize"/>
+         </topic>
+      </topic>
+      <topic label="ActiveSupport.JSON" href="html/reference/api/ActiveSupport.JSON.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveSupport.JSON.html#ActiveSupport.JSON.Functions">
+            <topic label="parse"
+                   href="html/reference/api/ActiveSupport.JSON.html?visibility=#ActiveSupport.JSON.parse"/>
+            <topic label="stringify"
+                   href="html/reference/api/ActiveSupport.JSON.html?visibility=#ActiveSupport.JSON.stringify"/>
+         </topic>
+      </topic>
+      <topic label="ModelClass" href="html/reference/api/ModelClass.html">
+         <topic label="Functions"
+                href="html/reference/api/ModelClass.html#ModelClass.Functions">
+            <topic label="average"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.average"/>
+            <topic label="belongsTo"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.belongsTo"/>
+            <topic label="build"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.build"/>
+            <topic label="count"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.count"/>
+            <topic label="create"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.create"/>
+            <topic label="destroy"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.destroy"/>
+            <topic label="find"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.find"/>
+            <topic label="first"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.first"/>
+            <topic label="hasMany"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.hasMany"/>
+            <topic label="hasOne"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.hasOne"/>
+            <topic label="last"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.last"/>
+            <topic label="max"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.max"/>
+            <topic label="min"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.min"/>
+            <topic label="sum"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.sum"/>
+            <topic label="transaction"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.transaction"/>
+            <topic label="update"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.update"/>
+            <topic label="updateAll"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.updateAll"/>
+            <topic label="validatesLengthOf"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.validatesLengthOf"/>
+            <topic label="validatesPresenceOf"
+                   href="html/reference/api/ModelClass.html?visibility=#ModelClass.validatesPresenceOf"/>
+         </topic>
+      </topic>
+      <topic label="ModelInstance" href="html/reference/api/ModelInstance.html">
+         <topic label="Functions"
+                href="html/reference/api/ModelInstance.html#ModelInstance.Functions">
+            <topic label="destroy"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.destroy"/>
+            <topic label="get"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.get"/>
+            <topic label="getErrors"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.getErrors"/>
+            <topic label="keys"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.keys"/>
+            <topic label="reload"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.reload"/>
+            <topic label="save"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.save"/>
+            <topic label="set"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.set"/>
+            <topic label="toJSON"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.toJSON"/>
+            <topic label="toObject"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.toObject"/>
+            <topic label="updateAttribute"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.updateAttribute"/>
+            <topic label="updateAttributes"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.updateAttributes"/>
+            <topic label="valus"
+                   href="html/reference/api/ModelInstance.html?visibility=#ModelInstance.valus"/>
+         </topic>
+      </topic>
+   </topic>
+</toc>
