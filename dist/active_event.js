@@ -27,6 +27,7 @@
 
 /**
  * @alias ActiveEvent
+ * @example
  * <p>ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.</p>
  * <h2>Setup</h2>
  * <p>Before you can use Object.Event you must call extend a given class or object with Object.Event's methods. If you extend a class, both the class itself will become observable, as well as all of it's instances.</p>

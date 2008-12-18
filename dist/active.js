@@ -853,6 +853,7 @@ ActiveSupport = {
 
 /**
  * @alias ActiveEvent
+ * @example
  * <p>ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.</p>
  * <h2>Setup</h2>
  * <p>Before you can use Object.Event you must call extend a given class or object with Object.Event's methods. If you extend a class, both the class itself will become observable, as well as all of it's instances.</p>
@@ -1210,6 +1211,7 @@ ActiveRoutes = null;
  
 /**
  * @alias ActiveRoutes
+ * @constructor
  * @param {Array} routes
  * @param {Object} [scope] defaults to window
  * @param {Object} [options]
@@ -1261,7 +1263,9 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
 };
 
 /**
- * If match() returns false, the error it generates can be retrieved with this function.
+ * If match() returns false, the error it generates can be retrieved with this
+ *  function.
+ * @alias ActiveRoutes.prototype.getError
  * @return {mixed} String or null
  */
 ActiveRoutes.prototype.getError = function getError()
@@ -1270,8 +1274,11 @@ ActiveRoutes.prototype.getError = function getError()
 };
 
 /**
+ * @alias ActiveRoutes.prototype.addRoute
+ * @exception {ActiveRoutes.Errors.NoPathInRoute}
+ * @exception {ActiveRoutes.Errors.NoObjectInRoute}
+ * @exception {ActiveRoutes.Errors.NoMethodInRoute}
  * Add a new route to the route set. All of the following are valid:
- * @example
  * routes.addRoute('route_name','/route/path',{params});
  * routes.addRoute('/route/path',{params});
  * routes.addRoute('/route/path');
@@ -1390,9 +1397,9 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
 };
 
 /**
- * @alias ActiveRoutes.prototype.match
  * var route = routes.match('/blog/post/5');
  * route == {object: 'blog',method: 'post', id: 5};
+ * @alias ActiveRoutes.prototype.match
  * @param {String} path
  * @return {mixed} false if no match, otherwise the matching route.
  */
@@ -1472,6 +1479,7 @@ ActiveRoutes.prototype.match = function(path){
 /**
  * @alias ActiveRoutes.prototype.dispatch
  * @param {String} path
+ * @exception {ActiveRoutes.Errors.UnresolvableUrl}
  * This will match() the given path and call the dispatcher if one is found.
  * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
  * routes.dispatch('/blog/post/5');
@@ -1499,6 +1507,8 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
 };
 
 /**
+ * @property {Function}
+ * @alias ActiveRoutes.prototype.defaultDispatcher
  * If no "dispatcher" key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)
  */
 ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
@@ -1583,6 +1593,7 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
  * @alias ActiveRoutes.prototype.urlFor
  * @param {Object} [params]
  * @return {String}
+ * @exception {ActiveRoutes.Errors.NamedRouteDoesNotExistError}
  * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
  * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
  */

@@ -28,6 +28,7 @@
 /**
  * @alias ActiveRoutes.prototype.dispatch
  * @param {String} path
+ * @exception {ActiveRoutes.Errors.UnresolvableUrl}
  * This will match() the given path and call the dispatcher if one is found.
  * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
  * routes.dispatch('/blog/post/5');
@@ -55,6 +56,8 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
 };
 
 /**
+ * @property {Function}
+ * @alias ActiveRoutes.prototype.defaultDispatcher
  * If no "dispatcher" key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)
  */
 ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)

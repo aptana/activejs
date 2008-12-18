@@ -64,6 +64,7 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
  * @alias ActiveRoutes.prototype.urlFor
  * @param {Object} [params]
  * @return {String}
+ * @exception {ActiveRoutes.Errors.NamedRouteDoesNotExistError}
  * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
  * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
  */

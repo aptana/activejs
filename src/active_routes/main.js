@@ -27,6 +27,7 @@
  
 /**
  * @alias ActiveRoutes
+ * @constructor
  * @param {Array} routes
  * @param {Object} [scope] defaults to window
  * @param {Object} [options]
@@ -78,7 +79,9 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
 };
 
 /**
- * If match() returns false, the error it generates can be retrieved with this function.
+ * If match() returns false, the error it generates can be retrieved with this
+ *  function.
+ * @alias ActiveRoutes.prototype.getError
  * @return {mixed} String or null
  */
 ActiveRoutes.prototype.getError = function getError()
@@ -87,8 +90,11 @@ ActiveRoutes.prototype.getError = function getError()
 };
 
 /**
+ * @alias ActiveRoutes.prototype.addRoute
+ * @exception {ActiveRoutes.Errors.NoPathInRoute}
+ * @exception {ActiveRoutes.Errors.NoObjectInRoute}
+ * @exception {ActiveRoutes.Errors.NoMethodInRoute}
  * Add a new route to the route set. All of the following are valid:
- * @example
  * routes.addRoute('route_name','/route/path',{params});
  * routes.addRoute('/route/path',{params});
  * routes.addRoute('/route/path');
