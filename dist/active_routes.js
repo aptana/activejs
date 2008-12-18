@@ -24,7 +24,12 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+/**
+ * @classDescription {ActiveSupport} Provides a number of methods from the
+ *  Prototype.js framework, without modifying any built in prototypes to
+ *  ensure compatibility and portability.
+ */
 ActiveSupport = null;
 
 (function(){
@@ -32,6 +37,7 @@ ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
      * @alias ActiveSupport.getGlobalContext
+     * @return {Object}
      */
     getGlobalContext: function getGlobalContext()
     {
@@ -61,7 +67,7 @@ ActiveSupport = {
     /**
      * Emulates Array.indexOf for implementations that do not support it.
      * @alias ActiveSupport.indexOf
-     * @param {Array} item
+     * @param {Array} array
      * @param {mixed} item
      * @return {Number}
      */
@@ -247,7 +253,8 @@ ActiveSupport = {
     },
     
     /**
-     * If the value passed is a function the value passed will be returned, otherwise a function returning the value passed will be returned.
+     * If the value passed is a function the value passed will be returned,
+     * otherwise a function returning the value passed will be returned.
      * @alias ActiveSupport.proc
      * @param {mixed} proc
      * @return {Function}
@@ -258,9 +265,10 @@ ActiveSupport = {
     },
     
     /**
-     * If the value passed is a function, the function is called and the value returned, otherwise the value passed in is returned.
+     * If the value passed is a function, the function is called and the value
+     * returned, otherwise the value passed in is returned.
      * @alias ActiveSupport.value
-     * @params {mixed} value
+     * @param {mixed} value
      * @return {scalar}
      */
     value: function value(value)
@@ -269,7 +277,9 @@ ActiveSupport = {
     },
     
     /**
-     * If it is the last argument of current function is a function, it will be returned. You can optionally specify the number of calls in the stack to look up.
+     * If it is the last argument of current function is a function, it will be
+     * returned. You can optionally specify the number of calls in the stack to
+     * look up.
      * @alias ActiveSupport.block
      * @param {Number} [levels]
      * @return {mixed}
@@ -340,6 +350,9 @@ ActiveSupport = {
         }
     },
     
+    /**
+     * @classDescription {ActiveSupport.Inflector} A port of Rails Inflector class.
+     */
     Inflector: {
         Inflections: {
             plural: [
@@ -643,6 +656,10 @@ ActiveSupport = {
         USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
         NOT CONTROL.
     */
+    
+    /**
+     * @classDescription {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     */
     JSON: function()
     {
         //use native support if available

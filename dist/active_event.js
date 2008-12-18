@@ -31,6 +31,11 @@ ActiveEvent = null;
     
 var global_context = ActiveSupport.getGlobalContext();
 
+/**
+ * Mimics the Prototype.js framework's $break variable if it is not available.
+ * @property
+ * @alias $break
+ */
 if(typeof(global_context.$break) == 'undefined')
 {
     global_context.$break = {};
@@ -40,6 +45,14 @@ ActiveEvent = {};
 
 ActiveEvent.extend = function extend(object){
     
+    /**
+     * Wraps the given method_name with a function that will call the method,
+     *  then trigger an event with the same name as the method. This can
+     *  safely be applied to virtually any method, including built in
+     *  Objects (Array.pop, etc), but cannot be undone.
+     * @alias ActiveEvent.ObservableObject.makeObservable
+     * @param {String} method_name
+     */
     object.makeObservable = function makeObservable(method_name)
     {
         if(this[method_name])
@@ -59,6 +72,15 @@ ActiveEvent.extend = function extend(object){
         }
     };
     
+    /**
+     * Similiar to makeObservable(), but after the callback is called, the
+     *  method will be returned to it's original state and will no longer
+     *  be observable.
+     * @alias ActiveEvent.ObservableObject.observeMethod
+     * @param {String} method_name
+     * @param {Function} observe
+     * @param {Function} [callback]
+     */
     object.observeMethod = function observeMethod(method_name,observer,scope)
     {
         return new ActiveEvent.MethodCallObserver([[this,method_name]],observer,scope);
@@ -70,6 +92,12 @@ ActiveEvent.extend = function extend(object){
         this._observers[event_name] = this._observers[event_name] || [];
     };
     
+    /**
+     * @alias ActiveEvent.ObservableObject.observe
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} observer
+     */
     object.observe = function observe(event_name,observer)
     {
         if(typeof(event_name) == 'string' && typeof(observer) != 'undefined')
@@ -90,6 +118,14 @@ ActiveEvent.extend = function extend(object){
         return observer;
     };
     
+    /**
+     * Removes a given observer. If no observer is passed, removes all
+     *   observers of that event. If no event is passed, removes all
+     *   observers of the object.
+     * @alias ActiveEvent.ObservableObject.stopObserving
+     * @param {String} [event_name]
+     * @param {Function} [observer]
+     */
     object.stopObserving = function stopObserving(event_name,observer)
     {
         this._objectEventSetup(event_name);
@@ -107,6 +143,15 @@ ActiveEvent.extend = function extend(object){
         }
     };
     
+    /**
+     * Works exactly like observe(), but will stopObserving() after the next
+     *   time the event is fired.
+     * @alias ActiveEvent.ObservableObject.observeOnce
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} The observer that was passed in will be wrapped,
+     *  this generated / wrapped observer is returned.
+     */
     object.observeOnce = function observeOnce(event_name,outer_observer)
     {
         var inner_observer = ActiveSupport.bind(function bound_inner_observer(){
@@ -118,6 +163,14 @@ ActiveEvent.extend = function extend(object){
         return inner_observer;
     };
     
+    /**
+     * Triggers event_name with the passed arguments.
+     * @alias ActiveEvent.ObservableObject.notify
+     * @param {String} event_name
+     * @param {mixed} [args]
+     * @return {mixed} Array of return values, or false if $break was thrown
+     *  by an observer.
+     */
     object.notify = function notify(event_name){
         this._objectEventSetup(event_name);
         var collected_return_values = [];
@@ -168,7 +221,8 @@ ActiveEvent.extend = function extend(object){
                 {
                     collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
                 }
-            }catch(e)
+            }
+            catch(e)
             {
                 if(e == $break)
                 {
