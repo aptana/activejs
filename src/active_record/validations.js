@@ -25,35 +25,11 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * @namespace {ActiveRecord.Validations}
- * 
- * Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present.
- * 
- * 	   User = ActiveRecord.define('users',{
- * 		   username: '',
- * 	       password: ''
- * 	   },{
- * 		   valid: function(){
- * 		      if(User.findByUsername(this.username)){
- * 			      this.addError('The username ' + this.username + ' is already taken.');
- * 			  }
- * 	       }
- * 	   });
- * 	   User.validatesPresenceOf('password');
- * 	   var user = User.build({
- * 	       'username': 'Jessica'
- * 	   });
- * 	   user.save(); //false
- * 	   var errors = user.getErrors(); //contains a list of the errors that occured
- *     user.set('password','rabbit');
- * 	   user.save(); //true
- */
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
-     * Adds the validator to the _validators array of ModelClass.
+     * Adds the validator to the _validators array of a given ActiveRecord.Class.
      * @private
-     * @alias ModelClass.addValidator
+     * @alias ActiveRecord.Class.addValidator
      * @param {Function} validator
      */
     addValidator: function addValidator(validator)
@@ -65,7 +41,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         this._validators.push(validator);
     },
     /**
-     * @alias ModelClass.validatesPresenceOf
+     * @alias ActiveRecord.Class.validatesPresenceOf
      * @param {String} field
      * @param {Object} [options]
      */
@@ -83,7 +59,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Accepts "min" and "max" numbers as options.
-     * @alias ModelClass.validatesLengthOf
+     * @alias ActiveRecord.Class.validatesLengthOf
      * @param {String} field
      * @param {Object} [options]
      */
@@ -110,8 +86,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * @private
-     * @method
-     * @alias ModelInstance.addError
+     * @alias ActiveRecord.Instance.addError
      * @param {String} message
      * @param {String} field_name
      */
@@ -152,8 +127,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return this.constructor._validators || [];
     },
     /**
-     * @method
-     * @alias ModelInstance.getErrors
+     * @alias ActiveRecord.Instance.getErrors
      * @return {Array}
      */
     getErrors: function getErrors()

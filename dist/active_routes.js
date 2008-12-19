@@ -26,7 +26,7 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
- * @classDescription {ActiveSupport} Provides a number of methods from the
+ * @namespace {ActiveSupport} Provides a number of methods from the
  *  Prototype.js framework, without modifying any built in prototypes to
  *  ensure compatibility and portability.
  */
@@ -42,6 +42,26 @@ ActiveSupport = {
     getGlobalContext: function getGlobalContext()
     {
         return window;
+    },
+    /**
+     * Logs a message to the available logging resource. Accepts a variable
+     * number of arguments.
+     * @alias ActiveSupport.log
+     */
+    log: function log()
+    {
+        if(typeof(Jaxer) != 'undefined')
+        {
+            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
+        }
+        else if(typeof(air) != 'undefined')
+        {
+            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
+        }
+        else if(typeof(console) != 'undefined')
+        {
+            console.log.apply(console,arguments || []);
+        }
     },
     /**
      * Returns an array from an array or array like object.
@@ -351,7 +371,7 @@ ActiveSupport = {
     },
     
     /**
-     * @classDescription {ActiveSupport.Inflector} A port of Rails Inflector class.
+     * @namespace {ActiveSupport.Inflector} A port of Rails Inflector class.
      */
     Inflector: {
         Inflections: {
@@ -658,7 +678,7 @@ ActiveSupport = {
     */
     
     /**
-     * @classDescription {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
      */
     JSON: function()
     {

@@ -25,16 +25,13 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * @namespace {ActiveRecord.Errors} Contains all errors / exceptions that ActiveRecord may throw.
- */
 var Errors = {
     /**
-     * @type {String} Error that will be thrown if ActiveRecord is used without a connection.
+     * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
     ConnectionNotEstablished: 'No ActiveRecord connection is active.',
     /**
-     * @type {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
+     * @property {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
      */
     MethodDoesNotExist: 'The requested method does not exist.'
 };

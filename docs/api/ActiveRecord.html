@@ -16,8 +16,16 @@
                         <div>ActiveRecord.Adapters</div></a></td>
                </tr>
                <tr class="item">
-                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Errors.html">
-                        <div>ActiveRecord.Errors</div></a></td>
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Adapters.HashTable.html">
+                        <div>ActiveRecord.Adapters.HashTable</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Class.html">
+                        <div>ActiveRecord.Class</div></a></td>
+               </tr>
+               <tr class="item">
+                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Instance.html">
+                        <div>ActiveRecord.Instance</div></a></td>
                </tr>
                <tr class="item">
                   <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Migrations.html">
@@ -27,16 +35,126 @@
                   <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Migrations.Schema.html">
                         <div>ActiveRecord.Migrations.Schema</div></a></td>
                </tr>
-               <tr class="item">
-                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Relationships.html">
-                        <div>ActiveRecord.Relationships</div></a></td>
-               </tr>
-               <tr class="item">
-                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Validations.html">
-                        <div>ActiveRecord.Validations</div></a></td>
-               </tr>
             </table>
-         </p><a name="ActiveRecord.Functions"></a><h2>Functions</h2>
+         </p><a name="ActiveRecord.Properties"></a><h2>Properties</h2>
+         <table cellspacing="2" width="90%">
+            <tr class="compheader" visibility="">
+               <th style="text-align:left">Property</th>
+               <th>Action</th>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.adapter"></a>static adapter
+                     					 : <i>mixed</i></div>
+                  <div class="description">null if no connection is active, or the class that created the connection.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.ClassMethods"></a>static ClassMethods
+                     					 : <i>Object</i></div>
+                  <div class="description">Contains all methods that will become available to ActiveRecord classes.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.connection"></a>static connection
+                     					 : <i>mixed</i></div>
+                  <div class="description">null if no connection is active, or the connection object.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.InstanceMethods"></a>static InstanceMethods
+                     					 : <i>Object</i></div>
+                  <div class="description">Contains all methods that will become available to ActiveRecord instances.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.internalCounter"></a>static internalCounter
+                     					 : <i>Number</i></div>
+                  <div class="description">Tracks the number of records created.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.logging"></a>static logging
+                     					 : <i>Boolean</i></div>
+                  <div class="description">Defaults to false.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.Models"></a>static Models
+                     					 : <i>Object</i></div>
+                  <div class="description">Contains model_name, ActiveRecord.Class pairs.</div>
+               </td>
+               <td class="no-details">
+                  						No Details
+                  					
+               </td>
+            </tr>
+            <tr class="details-property">
+               <td valign="top" colspan="2">
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+         </table><a name="ActiveRecord.Functions"></a><h2>Functions</h2>
          <table cellspacing="2" width="90%">
             <tr class="compheader" visibility="">
                <th style="text-align:left">Method</th>
@@ -164,8 +282,8 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> var User = ActiveRecord.define('users', { name: '', password: '', comment_count: 0, profile: { type: 'text', value:
-                        '' }, serializable_field: { } }); var u = User.create( { name: 'alice', serializable_field: { a : '1', b: '2'} }); </pre>
+                        var User = ActiveRecord.define('users', { name: '', password: '', comment_count: 0, profile: { type: 'text', value: '' },
+                        serializable_field: { } }); var u = User.create( { name: 'alice', serializable_field: { a : '1', b: '2'} });
                         
                      </dd>
                   </dl>

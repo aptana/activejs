@@ -27,24 +27,23 @@
 
 /**
  * Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.
- * @example
- * <pre>
- *      User.hasMany('comments',{
- *          dependent: true
- *      });
- *      var u = User.find(5);
- *      //each User instance will gain the following 5 methods
- *      u.createComment()
- *      u.buildComment()
- *      u.destroyComment()
- *      u.getCommentList() //takes the same options as find()
- *      u.getCommentCount() //takes the same options as count()
- * </pre>
- * @alias ModelClass.hasMany
+ * @alias ActiveRecord.Class.hasMany
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {Boolean} "dependent", {String} "order" and {String} "where" keys.
+ * @example
+ *
+ *     User.hasMany('comments',{
+ *         dependent: true
+ *     });
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 5 methods
+ *     u.createComment()
+ *     u.buildComment()
+ *     u.destroyComment()
+ *     u.getCommentList() //takes the same options as find()
+ *     u.getCommentCount() //takes the same options as count() 
  */
 ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options){
     if(related_model_name && related_model_name.modelName)

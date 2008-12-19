@@ -28,10 +28,10 @@
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.
-     * @method
-     * @alias ModelInstance.set
+     * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
+     * @return {mixed} the value that was set
      */
     set: function set(key, value)
     {
@@ -40,11 +40,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             this[key] = value;
         }
         this._object[key] = value;
+        this.notify('set',key,value);
     },
     /**
      * Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)
-     * @method
-     * @alias ModelInstance.get
+     * @alias ActiveRecord.Instance.get
      * @param {String} key
      * @return {mixed}
      */
@@ -54,8 +54,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns a "clean" version of the object, with just the data and no methods.
-     * @method
-     * @alias ModelInstance.toObject
+     * @alias ActiveRecord.Instance.toObject
      * @return {Object}
      */
     toObject: function toObject()
@@ -64,8 +63,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns an array of the column names that the instance contains.
-     * @method
-     * @alias ModelInstance.keys
+     * @alias ActiveRecord.Instance.keys
      * @return {Array}
      */
     keys: function keys()
@@ -79,8 +77,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns an array of the column values that the instance contains.
-     * @method
-     * @alias ModelInstance.valus
+     * @alias ActiveRecord.Instance.values
      * @return {Array}
      */
     values: function values()
@@ -94,8 +91,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
-     * @method
-     * @alias ModelInstance.updateAttribute
+     * @alias ActiveRecord.Instance.updateAttribute
      * @param {String} key
      * @param {mixed} value
      */
@@ -106,8 +102,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Updates all of the passed attributes on the record and then calls save().
-     * @method
-     * @alias ModelInstance.updateAttributes
+     * @alias ActiveRecord.Instance.updateAttributes
      * @param {Object} attributes
      */
     updateAttributes: function updateAttributes(attributes)
@@ -120,8 +115,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Loads the most current data for the object from the database.
-     * @method
-     * @alias ModelInstance.reload
+     * @alias ActiveRecord.Instance.reload
      * @return {Boolean}
      */
     reload: function reload()
@@ -145,8 +139,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Persists the object, creating or updating as nessecary. 
-     * @method
-     * @alias ModelInstance.save
+     * @alias ActiveRecord.Instance.save
      * @return {Boolean}
      */
     save: function save()
@@ -181,8 +174,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Removes the object from the database, but does not destroy the object in memory itself.
-     * @method
-     * @alias ModelInstance.destroy
+     * @alias ActiveRecord.Instance.destroy
      * @return {Boolean}
      */
     destroy: function destroy()
@@ -204,8 +196,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
-     * @method
-     * @alias ModelInstance.toJSON
+     * @alias ActiveRecord.Instance.toJSON
      * @return {String}
      */
     toJSON: function toJSON()
@@ -240,7 +231,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *      });
      *      var users = User.find('SELECT * FROM users ORDER id DESC');
      * </pre>
-     * @alias ModelClass.find
+     * @alias ActiveRecord.Class.find
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
      *          select: Array of columns to select (default ['*'])
@@ -250,7 +241,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          limit: Number
      *          offset: Number
      * @return {mixed}
-     *      If finding a single record, response will be Boolean false or ModelInstance. Otherwise an Array of ModelInstance s will be returned (which may be empty).
+     *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
      */
     find: function find(params)
     {
@@ -322,7 +313,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.
-     * @alias ModelClass.destroy
+     * @alias ActiveRecord.Class.destroy
      * @param {Number} id 
      * @return {Boolean}
      */
@@ -332,9 +323,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Identical to calling create(), but does not save the record.
-     * @alias ModelClass.build
+     * @alias ActiveRecord.Class.build
      * @param {Object} data
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     build: function build(data)
     {
@@ -352,9 +343,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *      });
      *      u.id //will now contain the id of the user
      * </pre>
-     * @alias ModelClass.create
+     * @alias ActiveRecord.Class.create
      * @param {Object} data 
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     create: function create(data)
     {
@@ -374,10 +365,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          {title: 'Title for 7'}
      *      ]);
      * </pre>
-     * @alias ModelClass.update
+     * @alias ActiveRecord.Class.update
      * @param {Number} id
      * @param {Object} attributes
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     update: function update(id, attributes)
     {
@@ -399,7 +390,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * @alias ModelClass.updateAll
+     * @alias ActiveRecord.Class.updateAll
      * @param {Object} updates
      *      A string of updates to make, or a Hash of column value pairs.
      * @param {String} [conditions]
@@ -418,7 +409,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          to.despoit(from.withdraw(100.00));
      *      });
      * </pre>
-     * @alias ModelClass.transaction
+     * @alias ActiveRecord.Class.transaction
      * @param {Function} proceed
      *      The block of code to execute inside the transaction.
      * @param {Function} [error]

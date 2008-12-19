@@ -24,70 +24,78 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- /**
-  * @namespace {ActiveRecord.Migrations}
-  * Migrations are a method of versioining the database schema used by your application. All of your migrations must be defined in an object assigned to ActiveRecord.Migrations.migrations. The keys need not be numerically sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
-  *
-  * Each migration object must have an up() and down() method which will recieve an ActiveRecord.Migrations.Schema object. createTable() and addColumn() both use the same syntax as define() to specify default values and field types.
-  * 
-  * ActiveRecord.Migrations.migrations = {
-  *   1: {
-  *       up: function(schema){
-  *           schema.createTable('one',{
-  *               a: '',
-  *               b: {
-  *                   type: 'TEXT',
-  *                   value: 'default'
-  *               }
-  *           });
-  *       },
-  *       down: function(schema){
-  *           schema.dropTable('one');
-  *       }
-  *   },
-  *   2: {
-  *       up: function(schema){
-  *           schema.addColumn('one','c');
-  *       },
-  *       down: function(schema){
-  *           schema.dropColumn('one','c');
-  *       }
-  *   }
-  * };
-  *
-  * ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
-  * ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
-  * ActiveRecord.Migrations.migrate(1); //migrates to version 1
-  */
+ 
+/**
+ * @namespace {ActiveRecord.Migrations}
+ * 
+ * Migrations are a method of versioining the database schema used by your
+ * application. All of your migrations must be defined in an object assigned
+ * to ActiveRecord.Migrations.migrations. The keys need not be numerically
+ * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
+ *
+ * Each migration object must have an up() and down() method which will
+ * recieve an ActiveRecord.Migrations.Schema object. createTable() and
+ * addColumn() both use the same syntax as define() to specify default
+ * values and field types.
+ * 
+ *     ActiveRecord.Migrations.migrations = {
+ *         1: {
+ *             up: function(schema){
+ *                 schema.createTable('one',{
+ *                     a: '',
+ *                     b: {
+ *                         type: 'TEXT',
+ *                         value: 'default'
+ *                     }
+ *                 });
+ *             },
+ *             down: function(schema){
+ *                 schema.dropTable('one');
+ *             }
+ *         },
+ *         2: {
+ *             up: function(schema){
+ *                 schema.addColumn('one','c');
+ *             },
+ *             down: function(schema){
+ *                 schema.dropColumn('one','c');
+ *             }
+ *         }
+ *     };
+ *     
+ *     ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
+ *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
+ *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
+ */
 
- /**
-  * If the table for your ActiveRecord does not exist, this will define the ActiveRecord and automatically create the table.
-  * @example
-  * <pre>
-  *      var User = ActiveRecord.define('users',{
-  *          name: '',
-  *          password: '',
-  *          comment_count: 0,
-  *          profile: {
-  *              type: 'text',
-  *              value: ''
-  *          },
-  *          serializable_field: {}
-  *      });
-  *      var u = User.create({
-  *          name: 'alice',
-  *          serializable_field: {a: '1', b: '2'}
-  *      });
-  * </pre>
-  * @alias ActiveRecord.define
-  * @param {String} table_name
-  * @param {Object} fields
-  *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
-  * @param {Object} [methods]
-  * @param {Function} [readyCallback]
-  *      Must be specified if running in asynchronous mode.
-  * @return {Object}
-  */
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
 ActiveRecord.define = function define(table_name, fields, methods)
 {
     var model = ActiveRecord.create(table_name,methods);
@@ -279,10 +287,11 @@ var Migrations = {
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema}
-     * This object is passed to all migrations as the only parameter.
+     * @classDescription {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
      */
     Schema: {
         /**
+         * @alias ActiveRecord.Migrations.Schema.createTable
          * @param {String} table_name
          * @param {Object} columns
          */
@@ -291,6 +300,7 @@ var Migrations = {
             return ActiveRecord.connection.createTable(table_name,columns);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.dropTable
          * @param {String} table_name
          */
         dropTable: function dropTable(table_name)
@@ -298,6 +308,7 @@ var Migrations = {
             return ActiveRecord.connection.dropTable(table_name);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.addColumn
          * @param {String} table_name
          * @param {String} column_name
          * @param {mixed} [data_type]
@@ -307,6 +318,7 @@ var Migrations = {
             return ActiveRecord.connection.addColumn(table_name,column_name,data_type);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.dropColumn
          * @param {String} table_name
          * @param {String} column_name
          */
@@ -315,6 +327,7 @@ var Migrations = {
             return ActiveRecord.connection.dropColumn(table_name,column_name);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.addIndex
          * @param {String} table_name
          * @param {Array} column_names
          * @param {Object} options
@@ -324,6 +337,7 @@ var Migrations = {
             return ActiveRecord.connection.addIndex(table_name,column_names,options);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.removeIndex
          * @param {String} table_name
          * @param {String} index_name
          */

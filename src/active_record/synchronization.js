@@ -107,11 +107,20 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
 };
 
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+    /**
+     * Once synchronized a found instance will have it's values updated if
+     * other records with the same id change in the database.
+     * @alias ActiveRecord.Instance.synchronize
+     */
     synchronize: function synchronize()
     {
         Synchronization.setupNotifications(this);
         Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
     },
+    /**
+     * Stops the synchronization of the record with the database.
+     * @alias ActiveRecord.Instance.stop
+     */
     stop: function stop()
     {
         Synchronization.setupNotifications(this);

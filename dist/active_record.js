@@ -26,7 +26,7 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
- * @classDescription {ActiveSupport} Provides a number of methods from the
+ * @namespace {ActiveSupport} Provides a number of methods from the
  *  Prototype.js framework, without modifying any built in prototypes to
  *  ensure compatibility and portability.
  */
@@ -42,6 +42,26 @@ ActiveSupport = {
     getGlobalContext: function getGlobalContext()
     {
         return window;
+    },
+    /**
+     * Logs a message to the available logging resource. Accepts a variable
+     * number of arguments.
+     * @alias ActiveSupport.log
+     */
+    log: function log()
+    {
+        if(typeof(Jaxer) != 'undefined')
+        {
+            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
+        }
+        else if(typeof(air) != 'undefined')
+        {
+            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
+        }
+        else if(typeof(console) != 'undefined')
+        {
+            console.log.apply(console,arguments || []);
+        }
     },
     /**
      * Returns an array from an array or array like object.
@@ -351,7 +371,7 @@ ActiveSupport = {
     },
     
     /**
-     * @classDescription {ActiveSupport.Inflector} A port of Rails Inflector class.
+     * @namespace {ActiveSupport.Inflector} A port of Rails Inflector class.
      */
     Inflector: {
         Inflections: {
@@ -658,7 +678,7 @@ ActiveSupport = {
     */
     
     /**
-     * @classDescription {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
      */
     JSON: function()
     {
@@ -852,111 +872,151 @@ ActiveSupport = {
 })();
 
 /**
- * @alias ActiveEvent
+ * @namespace {ActiveEvent}
  * @example
- * <p>ActiveEvent allows you to create events, and attach event handlers to any class or object, not just DOM nodes.</p>
- * <h2>Setup</h2>
- * <p>Before you can use ActiveEvent you must call extend a given class or object with ActiveEvent's methods. If you extend a class, both the class itself will become observable, as well as all of it's instances.</p>
- * <pre class="highlighted"><code class="javascript">ActiveEvent.extend(MyClass); //class and all instances are observable
- * ActiveEvent.extend(my_object); //this object becomes observable</code></pre>
+ * ActiveEvent allows you to create events, and attach event handlers to any
+ * class or object.
+ *
+ * Setup
+ * -----
+ * Before you can use ActiveEvent you must call extend a given class or object
+ * with ActiveEvent's methods. If you extend a class, both the class itself
+ * will become observable, as well as all of it's instances.
+ *
+ *     ActiveEvent.extend(MyClass); //class and all instances are observable
+ *     ActiveEvent.extend(my_object); //this object becomes observable
  * 
- * <h2>Creating Events</h2>
- * <p>You can create an event inside any method of your class or object by calling the notify() method with name of the event followed by any arguments to be passed to observers. You can also have an existing method fire an event with the same name as the method using makeObservable().</p>
- * <pre class="highlighted"><code class="javascript">var Message = function(){};
- * Message.prototype.send = function(text){
- *   //message sending code here...
- *   this.notify('sent',text);
- * };
- * ActiveEvent.extend(Message);
+ * Creating Events
+ * ---------------
+ * You can create an event inside any method of your class or object by calling
+ * the notify() method with name of the event followed by any arguments to be
+ * passed to observers. You can also have an existing method fire an event with
+ * the same name as the method using makeObservable().
  * 
- * //make an existing method observable
- * var observable_hash = new Hash({});
- * ActiveEvent.extend(observable_hash);
- * observable_hash.makeObservable('set');
- * </code></pre>
+ *     var Message = function(){};
+ *     Message.prototype.send = function(text){
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *     };
+ *     ActiveEvent.extend(Message);
  * 
- * <h2>Observing Events</h2>
- * <p>To observe an event call the observe() method with the name of the event you want to observe, and the observer function. The observer function will receive any additional arguments passed to notify(). If observing a class, the instance that triggered the event will always be the first argument passed to the observer. observeOnce() works just like observe() in every way, but is only called once.</p>
- * <pre class="highlighted"><code class="javascript">Message.observe('sent',function(message,text){
- *   //responds to all sent messages
- * });
+ *     //make an existing method observable
+ *     var observable_hash = new Hash({});
+ *     ActiveEvent.extend(observable_hash);
+ *     observable_hash.makeObservable('set');
  * 
- * var m = new Message();
- * m.observe('sent',function(text){
- *   //this will only be called when "m" is sent
- * });
+ * Observing Events
+ * ----------------
+ * To observe an event call the observe() method with the name of the event you
+ * want to observe, and the observer function. The observer function will
+ * receive any additional arguments passed to notify(). If observing a class,
+ * the instance that triggered the event will always be the first argument
+ * passed to the observer. observeOnce() works just like observe() in every
+ * way, but is only called once.
  * 
- * observable_hash.observe('set',function(key,value){
- *   console.log('observable_hash.set: ' + key + '=' + value);
- * });
- * observable_hash.observeOnce(function(key,value){
- *   //this will only be called once
- * });
- * </code></pre>
+ *     Message.observe('sent',function(message,text){
+ *         //responds to all sent messages
+ *     });
  * 
- * <h2>Control Flow</h2>
- * <p>When notify() is called, if any of the registered observers for that event throw the special $break variable, no other observers will be called and notify() will return false. Otherwise notify() will return an array of the collected return values from any registered observer functions. Observers can be unregistered with the stopObserving() method. If no observer is passed, all observers of that object or class with the given event name will be unregistered. If no event name and no observer is passed, all observers of that object or class will be unregistered.</p>
- * <pre class="highlighted"><code class="javascript">Message.prototype.send = function(text){
- *   if(this.notify('send',text) === false)
- *     return false;
- *   //message sending code here...
- *   this.notify('sent',text);
- *   return true;
- * };
+ *     var m = new Message();
+ *     m.observe('sent',function(text){
+ *         //this will only be called when "m" is sent
+ *     });
  * 
- * var m = new Message();
+ *     observable_hash.observe('set',function(key,value){
+ *         console.log('observable_hash.set: ' + key + '=' + value);
+ *     });
+ *     observable_hash.observeOnce(function(key,value){
+ *         //this will only be called once
+ *     });
  * 
- * var observer = m.observe('send',function(message,text){
- *   if(text == 'test')
- *     throw $break;
- * });
+ * Control Flow
+ * ------------
+ * When notify() is called, if any of the registered observers for that event
+ * throw the special $break variable, no other observers will be called and
+ * notify() will return false. Otherwise notify() will return an array of the
+ * collected return values from any registered observer functions. Observers
+ * can be unregistered with the stopObserving() method. If no observer is
+ * passed, all observers of that object or class with the given event name
+ * will be unregistered. If no event name and no observer is passed, all
+ * observers of that object or class will be unregistered.
+ *
+ *     Message.prototype.send = function(text){
+ *         if(this.notify('send',text) === false)
+ *             return false;
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *         return true;
+ *     };
  * 
- * m.send('my message'); //returned true
- * m.send('test'); //returned false
+ *     var m = new Message();
+ *     
+ *     var observer = m.observe('send',function(message,text){
+ *         if(text == 'test')
+ *             throw $break;
+ *     });
+ *     
+ *     m.send('my message'); //returned true
+ *     m.send('test'); //returned false
+ *     
+ *     m.stopObserving('send',observer);
+ *     
+ *     m.send('test'); //returned true</code></pre>
  * 
- * m.stopObserving('send',observer);
+ * Object.options
+ * --------------
+ * If an object has an options property that contains a callable function with
+ * the same name as an event triggered with <b>notify()</b>, it will be
+ * treated just like an instance observer. So the falling code is equivalent.
+ *
+ *     var rating_one = new Control.Rating('rating_one',{  
+ *         afterChange: function(new_value){}    
+ *     });  
+ *     
+ *     var rating_two = new Control.Rating('rating_two');  
+ *     rating_two.observe('afterChange',function(new_value){});</code></pre>
  * 
- * m.send('test'); //returned true</code></pre>
- * 
- * <h2>Object.options</h2>
- * <p>If an object has an options property that contains a callable function with the same name as an event triggered with <b>notify()</b>, it will be treated just like an instance observer. So the falling code is equivalent.</p>
- * <pre class="highlighted"><code class="javascript">var rating_one = new Control.Rating('rating_one',{  
- *   afterChange: function(new_value){}    
- * });  
- * 
- * var rating_two = new Control.Rating('rating_two');  
- * rating_two.observe('afterChange',function(new_value){});</code></pre>
- * 
- * <h2>MethodCallObserver</h2>
- * <p>The makeObservable() method permanently modifies the method that will become observable. If you need to temporarily observe a method call without permanently modifying it, use the observeMethod(). Pass the name of the method to observe and the observer function will receive all of the arguments passed to the method. An ActiveEvent.MethodCallObserver object is returned from the call to observeMethod(), which has a stop() method on it. Once stop() is called, the method is returned to it's original state. You can optionally pass another function to observeMethod(), if you do the MethodCallObserver will be automatically stopped when that function finishes executing.</p>
- * <pre class="highlighted"><code class="javascript">var h = new Hash({});
- * ActiveEvent.extend(h);
- * 
- * var observer = h.observeMethod('set',function(key,value){
- *   console.log(key + '=' + value);
- * });
- * h.set('a','one');
- * h.set('a','two');
- * observer.stop();
- * 
- * //console now contains:
- * //"a = one"
- * //"b = two"
- * 
- * //the following does the same as above
- * h.observeMethod('set',function(key,value){
- *   console.log(key + '=' + value);
- * },function(){
+ * MethodCallObserver
+ * ------------------
+ * The makeObservable() method permanently modifies the method that will
+ * become observable. If you need to temporarily observe a method call without
+ * permanently modifying it, use the observeMethod(). Pass the name of the
+ * method to observe and the observer function will receive all of the
+ * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
+ * returned from the call to observeMethod(), which has a stop() method on it.
+ * Once stop() is called, the method is returned to it's original state. You
+ * can optionally pass another function to observeMethod(), if you do the
+ * MethodCallObserver will be automatically stopped when that function
+ * finishes executing.
+ *
+ *   var h = new Hash({});
+ *   ActiveEvent.extend(h);
+ *   
+ *   var observer = h.observeMethod('set',function(key,value){
+ *       console.log(key + '=' + value);
+ *   });
  *   h.set('a','one');
- *   h.set('b','two');
- * });</code></pre>
+ *   h.set('a','two');
+ *   observer.stop();
+ *   
+ *   //console now contains:
+ *   //"a = one"
+ *   //"b = two"
+ *   
+ *   //the following does the same as above
+ *   h.observeMethod('set',function(key,value){
+ *       console.log(key + '=' + value);
+ *   },function(){
+ *       h.set('a','one');
+ *       h.set('b','two');
+ *   });
  */
 ActiveEvent = null;
 
 /**
- * @classDescription {ActiveEvent.ObservableObject} After calling
+ * @namespace {ActiveEvent.ObservableObject} After calling
  *  ActiveEvent.extend(object), the given object will inherit the
- *  methods in this class. If the given object has a prototype
+ *  methods in this namespace. If the given object has a prototype
  *  (is a class constructor), the object's prototype will inherit
  *  these methods as well.
  */
@@ -975,6 +1035,7 @@ ActiveEvent = {};
 /**
  * After extending a given object, it will inherit the methods described in
  *  ActiveEvent.ObservableObject.
+ * @alias ActiveEvent.extend
  * @param {Object} object
  */
 ActiveEvent.extend = function extend(object){
@@ -1325,26 +1386,98 @@ ActiveRecord = null;
  * 	- ActsAsList
  * 	- ActsAsTree
  * 	- hasMany :through (which will likely be the only supported many to many relationship)
-*/
+ * 
+ * Relationships
+ * -------------
+ * 
+ * Relationships are declared with one of three class methods that are available to all models:
+ * 
+ * 	- belongsTo
+ * 	- hasMany
+ * 	- hasOne
+ * 
+ * The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work:
+ * 
+ * 	- User.hasMany(Comment)
+ * 	- User.hasMany('Comment')
+ * 	- User.hasMany('comment')
+ * 	- User.hasMany('comments')
+ * 
+ * Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails "magical array" style of handling relatioship logic:
+ * 	
+ * 	Rails:
+ * 		u = User.find(5)
+ * 		u.comments.length
+ * 		u.comments.create :title => 'comment title'
+ * 	
+ * 	ActiveRecord.js:
+ * 		var u = User.find(5);
+ * 		u.getCommentList().length;
+ * 		u.createComment({title: 'comment title'});
+ * 
+ * Validations
+ * -----------
+ * * Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present.
+ * 
+ * 	   User = ActiveRecord.define('users',{
+ * 		   username: '',
+ * 	       password: ''
+ * 	   },{
+ * 		   valid: function(){
+ * 		      if(User.findByUsername(this.username)){
+ * 			      this.addError('The username ' + this.username + ' is already taken.');
+ * 			  }
+ * 	       }
+ * 	   });
+ * 	   User.validatesPresenceOf('password');
+ * 	   var user = User.build({
+ * 	       'username': 'Jessica'
+ * 	   });
+ * 	   user.save(); //false
+ * 	   var errors = user.getErrors(); //contains a list of the errors that occured
+ *     user.set('password','rabbit');
+ * 	   user.save(); //true
+ 
+ */
 ActiveRecord = {
     /**
-     * @type {Boolean} Defaults to false.
+     * Defaults to false.
+     * @alias ActiveRecord.logging
+     * @property {Boolean}
      */
     logging: false,
     /**
-     * @type {Number} Tracks the number of records created.
+     * Tracks the number of records created.
+     * @alias ActiveRecord.internalCounter
+     * @property {Number}
      */
     internalCounter: 0,
     /**
-     * @type {Object} Contains model_name, ModelClass pairs.
+     * Contains model_name, ActiveRecord.Class pairs.
+     * @alias ActiveRecord.Models
+     * @property {Object} 
      */
     Models: {},
     /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord classes.
+     * @namespace {ActiveRecord.Class} Each generated class will inherit all of
+     * the methods in this class, in addition to the ones dynamically generated
+     * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord classes.
+     * @alias ActiveRecord.ClassMethods
+     * @property {Object} 
      */
     ClassMethods: {},
     /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord instances.
+     * @namespace {ActiveRecord.Instance} Each found instance will inherit all of
+      * the methods in this class, in addition to the ones dynamically generated
+      * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord instances.
+     * @alias ActiveRecord.InstanceMethods
+     * @property {Object}
      */
     InstanceMethods: {},
     /**
@@ -1469,16 +1602,13 @@ ActiveRecord.observe = function observe(event_name,observer)
     }
 })();
 
-/**
- * @namespace {ActiveRecord.Errors} Contains all errors / exceptions that ActiveRecord may throw.
- */
 var Errors = {
     /**
-     * @type {String} Error that will be thrown if ActiveRecord is used without a connection.
+     * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
     ConnectionNotEstablished: 'No ActiveRecord connection is active.',
     /**
-     * @type {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
+     * @property {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
      */
     MethodDoesNotExist: 'The requested method does not exist.'
 };
@@ -1488,10 +1618,10 @@ ActiveRecord.Errors = Errors;
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.
-     * @method
-     * @alias ModelInstance.set
+     * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
+     * @return {mixed} the value that was set
      */
     set: function set(key, value)
     {
@@ -1500,11 +1630,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             this[key] = value;
         }
         this._object[key] = value;
+        this.notify('set',key,value);
     },
     /**
      * Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)
-     * @method
-     * @alias ModelInstance.get
+     * @alias ActiveRecord.Instance.get
      * @param {String} key
      * @return {mixed}
      */
@@ -1514,8 +1644,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns a "clean" version of the object, with just the data and no methods.
-     * @method
-     * @alias ModelInstance.toObject
+     * @alias ActiveRecord.Instance.toObject
      * @return {Object}
      */
     toObject: function toObject()
@@ -1524,8 +1653,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns an array of the column names that the instance contains.
-     * @method
-     * @alias ModelInstance.keys
+     * @alias ActiveRecord.Instance.keys
      * @return {Array}
      */
     keys: function keys()
@@ -1539,8 +1667,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Returns an array of the column values that the instance contains.
-     * @method
-     * @alias ModelInstance.valus
+     * @alias ActiveRecord.Instance.values
      * @return {Array}
      */
     values: function values()
@@ -1554,8 +1681,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
-     * @method
-     * @alias ModelInstance.updateAttribute
+     * @alias ActiveRecord.Instance.updateAttribute
      * @param {String} key
      * @param {mixed} value
      */
@@ -1566,8 +1692,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Updates all of the passed attributes on the record and then calls save().
-     * @method
-     * @alias ModelInstance.updateAttributes
+     * @alias ActiveRecord.Instance.updateAttributes
      * @param {Object} attributes
      */
     updateAttributes: function updateAttributes(attributes)
@@ -1580,8 +1705,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Loads the most current data for the object from the database.
-     * @method
-     * @alias ModelInstance.reload
+     * @alias ActiveRecord.Instance.reload
      * @return {Boolean}
      */
     reload: function reload()
@@ -1605,8 +1729,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Persists the object, creating or updating as nessecary. 
-     * @method
-     * @alias ModelInstance.save
+     * @alias ActiveRecord.Instance.save
      * @return {Boolean}
      */
     save: function save()
@@ -1641,8 +1764,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     },
     /**
      * Removes the object from the database, but does not destroy the object in memory itself.
-     * @method
-     * @alias ModelInstance.destroy
+     * @alias ActiveRecord.Instance.destroy
      * @return {Boolean}
      */
     destroy: function destroy()
@@ -1664,8 +1786,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
-     * @method
-     * @alias ModelInstance.toJSON
+     * @alias ActiveRecord.Instance.toJSON
      * @return {String}
      */
     toJSON: function toJSON()
@@ -1700,7 +1821,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *      });
      *      var users = User.find('SELECT * FROM users ORDER id DESC');
      * </pre>
-     * @alias ModelClass.find
+     * @alias ActiveRecord.Class.find
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
      *          select: Array of columns to select (default ['*'])
@@ -1710,7 +1831,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          limit: Number
      *          offset: Number
      * @return {mixed}
-     *      If finding a single record, response will be Boolean false or ModelInstance. Otherwise an Array of ModelInstance s will be returned (which may be empty).
+     *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
      */
     find: function find(params)
     {
@@ -1782,7 +1903,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.
-     * @alias ModelClass.destroy
+     * @alias ActiveRecord.Class.destroy
      * @param {Number} id 
      * @return {Boolean}
      */
@@ -1792,9 +1913,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Identical to calling create(), but does not save the record.
-     * @alias ModelClass.build
+     * @alias ActiveRecord.Class.build
      * @param {Object} data
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     build: function build(data)
     {
@@ -1812,9 +1933,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *      });
      *      u.id //will now contain the id of the user
      * </pre>
-     * @alias ModelClass.create
+     * @alias ActiveRecord.Class.create
      * @param {Object} data 
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     create: function create(data)
     {
@@ -1834,10 +1955,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          {title: 'Title for 7'}
      *      ]);
      * </pre>
-     * @alias ModelClass.update
+     * @alias ActiveRecord.Class.update
      * @param {Number} id
      * @param {Object} attributes
-     * @return {ModelInstance}
+     * @return {ActiveRecord.Instance}
      */
     update: function update(id, attributes)
     {
@@ -1859,7 +1980,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * @alias ModelClass.updateAll
+     * @alias ActiveRecord.Class.updateAll
      * @param {Object} updates
      *      A string of updates to make, or a Hash of column value pairs.
      * @param {String} [conditions]
@@ -1878,7 +1999,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          to.despoit(from.withdraw(100.00));
      *      });
      * </pre>
-     * @alias ModelClass.transaction
+     * @alias ActiveRecord.Class.transaction
      * @param {Function} proceed
      *      The block of code to execute inside the transaction.
      * @param {Function} [error]
@@ -1921,7 +2042,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.count
+     * @alias ActiveRecord.Class.count
      * @param {Object} [options] 
      * @return {Number}
      */
@@ -1931,7 +2052,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.average
+     * @alias ActiveRecord.Class.average
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -1942,7 +2063,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.max
+     * @alias ActiveRecord.Class.max
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -1953,7 +2074,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.min
+     * @alias ActiveRecord.Class.min
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -1964,7 +2085,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.sum
+     * @alias ActiveRecord.Class.sum
      * @param {String} column_name
      * @param {Object} [options]
      * @return {Number}
@@ -1975,9 +2096,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Returns the first record sorted by id.
-     * @method
-     * @alias ModelClass.first
-     * @return {ModelInstance} 
+     * @alias ActiveRecord.Class.first
+     * @return {ActiveRecord.Instance} 
      */
     first: function first()
     {
@@ -1987,9 +2107,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Returns the last record sorted by id.
-     * @method
-     * @alias ModelClass.last
-     * @return {ModelInstance} 
+     * @alias ActiveRecord.Class.last
+     * @return {ActiveRecord.Instance} 
      */
     last: function last()
     {
@@ -2001,12 +2120,16 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
 });
 
 /**
- * @type {mixed} null if no connection is active, or the class that created the connection.
+ * null if no connection is active, or the class that created the connection.
+ * @alias ActiveRecord.adapter
+ * @property {mixed}
  */
 ActiveRecord.adapter = null;
 
 /**
- * @type {mixed} null if no connection is active, or the connection object.
+ * null if no connection is active, or the connection object.
+ * @alias ActiveRecord.connection
+ * @property {mixed}
  */
 ActiveRecord.connection = null;
 
@@ -2396,6 +2519,9 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     }
 });
 
+/**
+ * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, MySQL.
+ */
 Adapters.JaxerMySQL = function(){
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{
@@ -2409,7 +2535,7 @@ Adapters.JaxerMySQL = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return Jaxer.Log.info.apply(Jaxer.Log, arguments);
+            return ActiveSupport.log(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)
         {
@@ -2484,7 +2610,10 @@ Adapters.JaxerMySQL.connect = function connect(options)
     },options));
     return new Adapters.JaxerMySQL();
 };
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, SQLite.
+ */
 Adapters.JaxerSQLite = function(){
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
@@ -2498,7 +2627,7 @@ Adapters.JaxerSQLite = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return Jaxer.Log.info.apply(Jaxer.Log,arguments);
+            return AcitveSupport.log.apply(AcitveSupport,arguments || {});
         },
         executeSQL: function executeSQL(sql)
         {
@@ -2560,7 +2689,10 @@ Adapters.JaxerSQLite.connect = function connect(path)
     });
     return new Adapters.JaxerSQLite();
 };
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.Local} Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ */
 Adapters.Local = function(db){
     this.db = db;
     ActiveSupport.extend(this,Adapters.SQLite);
@@ -2571,7 +2703,7 @@ Adapters.Local = function(db){
             {
                 return;
             }
-            return console.log.apply(console,arguments);
+            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)
         {
@@ -2780,24 +2912,27 @@ Adapters.Local.connect = function connect(name, version, display_name, size)
     
     return new Adapters.Local(db);
 };
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.AIR} Adobe AIR adapter.
+ */
 Adapters.AIR = function(connection){
     this.connection = connection;
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
-            if (!ActiveRecord.logging)
+            if(!ActiveRecord.logging)
             {
                 return;
             }
-            if (arguments[0])
+            if(arguments[0])
             {
                 arguments[0] = '  ' + arguments[0];
             }
             if(air.Introspector)
             {
-                return air.Introspector.Console.log.apply(air.Introspector.Console,arguments);
+                ActiveSupport.log.apply(ActiveSupport,arguments || []);
             }
             else
             {
@@ -2870,10 +3005,15 @@ Adapters.AIR.connect = function connect(path)
     return new Adapters.AIR(connection);
 };
 
-/*
-    add support for  update multiple
-*/
-
+/**
+ * @classDescription {ActiveRecord.Adapters.HashTable} In memory, non persistent storage.
+ */
+ 
+/**
+ * @constructor
+ * @alias ActiveRecord.Adapters.HashTable
+ * @param {Object} [storage]
+ */
 Adapters.HashTable = function HashTable(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
@@ -2894,18 +3034,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
         {
             return;
         }
-        if(typeof(Jaxer) != 'undefined')
-        {
-            Jaxer.Log.info.apply(Jaxer.Log,arguments);
-        }
-        else if(typeof(air) != 'undefined')
-        {
-            air.Introspector.Console.log.apply(air.Introspector.Console,ActiveSupport.arrayFrom(arguments || []));
-        }
-        else if(console)
-        {
-            console.log.apply(console,arguments);
-        }
+        ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
@@ -3294,6 +3423,10 @@ Adapters.HashTable.MethodCallbacks = (function(){
 Adapters.HashTable.connect = function(storage){
   return new Adapters.HashTable(storage || {});
 };
+ 
+/**
+* @classDescription {ActiveRecord.Adapters.Auto} Default adapter, will try to automatically pick the appropriate adapter for the current environment.
+*/ 
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {
@@ -3959,10 +4092,10 @@ var Finders = {
         return options;
     },
     /**
-     * Generates a findByField method for a ModelClass (User.findByName)
+     * Generates a findByField method for a ActiveRecord.Class (User.findByName)
      * @private
      * @alias ActiveRecord.Finders.generateFindByField
-     * @param {Object} ModelClass
+     * @param {Object} ActiveRecord.Class
      * @param {String} field_name
      */
     generateFindByField: function generateFindByField(klass, field_name)
@@ -3974,10 +4107,10 @@ var Finders = {
         }, klass, field_name);
     },
     /**
-     * Generates a findAllByField method for a ModelClass (User.findAllByName)
+     * Generates a findAllByField method for a ActiveRecord.Class (User.findAllByName)
      * @private
      * @alias ActiveRecord.Finders.generateFindAllByField
-     * @param {Object} ModelClass
+     * @param {Object} ActiveRecord.Class
      * @param {String} field_name
      */
     generateFindAllByField: function(klass, field_name)
@@ -3991,35 +4124,6 @@ var Finders = {
 };
 ActiveRecord.Finders = Finders;
 
-/**
- * @namespace {ActiveRecord.Relationships}
- * 
- * Relationships are declared with one of three class methods that are available to all models:
- * 
- * 	- belongsTo
- * 	- hasMany
- * 	- hasOne
- * 
- * The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work:
- * 
- * 	- User.hasMany(Comment)
- * 	- User.hasMany('Comment')
- * 	- User.hasMany('comment')
- * 	- User.hasMany('comments')
- * 
- * Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails "magical array" style of handling relatioship logic:
- * 	
- * 	Rails:
- * 		u = User.find(5)
- * 		u.comments.length
- * 		u.comments.create :title => 'comment title'
- * 	
- * 	ActiveRecord.js:
- * 		var u = User.find(5);
- * 		u.getCommentList().length;
- * 		u.createComment({title: 'comment title'});
- * 
-*/
 var Relationships = {
     normalizeModelName: function(related_model_name)
     {
@@ -4045,20 +4149,19 @@ ActiveRecord.Relationships = Relationships;
 
 /**
  * Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.
- * @example
- * <pre>
- *      User.hasOne(CreditCard);
- *      var u = User.find(5);
- *      //each User instance will gain the following 3 methods
- *      u.getCreditCard()
- *      u.buildCreditCard()
- *      u.createCreditCard()
- * </pre>
- * @alias ModelClass.hasOne
+ * @alias ActiveRecord.Class.hasOne
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {Boolean} "dependent" keys.
+ * @example
+ * 
+ *     User.hasOne(CreditCard);
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 3 methods
+ *     u.getCreditCard()
+ *     u.buildCreditCard()
+ *     u.createCreditCard()
  */
 ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
 {
@@ -4114,24 +4217,23 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
 
 /**
  * Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.
- * @example
- * <pre>
- *      User.hasMany('comments',{
- *          dependent: true
- *      });
- *      var u = User.find(5);
- *      //each User instance will gain the following 5 methods
- *      u.createComment()
- *      u.buildComment()
- *      u.destroyComment()
- *      u.getCommentList() //takes the same options as find()
- *      u.getCommentCount() //takes the same options as count()
- * </pre>
- * @alias ModelClass.hasMany
+ * @alias ActiveRecord.Class.hasMany
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {Boolean} "dependent", {String} "order" and {String} "where" keys.
+ * @example
+ *
+ *     User.hasMany('comments',{
+ *         dependent: true
+ *     });
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 5 methods
+ *     u.createComment()
+ *     u.buildComment()
+ *     u.destroyComment()
+ *     u.getCommentList() //takes the same options as find()
+ *     u.getCommentCount() //takes the same options as count() 
  */
 ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options){
     if(related_model_name && related_model_name.modelName)
@@ -4221,22 +4323,21 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
 
 /**
  * Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.
- * @example
- * <pre>
- *      Comment.belongsTo('User',{
- *          counter: 'comment_count' //comment count must be a column in User
- *      });
- *      var c = Comment.find(5);
- *      //each Comment instance will gain the following 3 methods
- *      c.getUser()
- *      c.buildUser()
- *      c.createUser()
- * </pre>
- * @alias ModelClass.belongsTo
+ * @alias ActiveRecord.Class.belongsTo
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {String} "counter" keys.
+ * @example
+ *
+ *     Comment.belongsTo('User',{
+ *         counter: 'comment_count' //comment count must be a column in User
+ *     });
+ *     var c = Comment.find(5);
+ *     //each Comment instance will gain the following 3 methods
+ *     c.getUser()
+ *     c.buildUser()
+ *     c.createUser()
  */
 ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options){
     if(related_model_name && related_model_name.modelName)
@@ -4310,70 +4411,78 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
         });
     }
 };
- /**
-  * @namespace {ActiveRecord.Migrations}
-  * Migrations are a method of versioining the database schema used by your application. All of your migrations must be defined in an object assigned to ActiveRecord.Migrations.migrations. The keys need not be numerically sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
-  *
-  * Each migration object must have an up() and down() method which will recieve an ActiveRecord.Migrations.Schema object. createTable() and addColumn() both use the same syntax as define() to specify default values and field types.
-  * 
-  * ActiveRecord.Migrations.migrations = {
-  *   1: {
-  *       up: function(schema){
-  *           schema.createTable('one',{
-  *               a: '',
-  *               b: {
-  *                   type: 'TEXT',
-  *                   value: 'default'
-  *               }
-  *           });
-  *       },
-  *       down: function(schema){
-  *           schema.dropTable('one');
-  *       }
-  *   },
-  *   2: {
-  *       up: function(schema){
-  *           schema.addColumn('one','c');
-  *       },
-  *       down: function(schema){
-  *           schema.dropColumn('one','c');
-  *       }
-  *   }
-  * };
-  *
-  * ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
-  * ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
-  * ActiveRecord.Migrations.migrate(1); //migrates to version 1
-  */
+ 
+/**
+ * @namespace {ActiveRecord.Migrations}
+ * 
+ * Migrations are a method of versioining the database schema used by your
+ * application. All of your migrations must be defined in an object assigned
+ * to ActiveRecord.Migrations.migrations. The keys need not be numerically
+ * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
+ *
+ * Each migration object must have an up() and down() method which will
+ * recieve an ActiveRecord.Migrations.Schema object. createTable() and
+ * addColumn() both use the same syntax as define() to specify default
+ * values and field types.
+ * 
+ *     ActiveRecord.Migrations.migrations = {
+ *         1: {
+ *             up: function(schema){
+ *                 schema.createTable('one',{
+ *                     a: '',
+ *                     b: {
+ *                         type: 'TEXT',
+ *                         value: 'default'
+ *                     }
+ *                 });
+ *             },
+ *             down: function(schema){
+ *                 schema.dropTable('one');
+ *             }
+ *         },
+ *         2: {
+ *             up: function(schema){
+ *                 schema.addColumn('one','c');
+ *             },
+ *             down: function(schema){
+ *                 schema.dropColumn('one','c');
+ *             }
+ *         }
+ *     };
+ *     
+ *     ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
+ *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
+ *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
+ */
 
- /**
-  * If the table for your ActiveRecord does not exist, this will define the ActiveRecord and automatically create the table.
-  * @example
-  * <pre>
-  *      var User = ActiveRecord.define('users',{
-  *          name: '',
-  *          password: '',
-  *          comment_count: 0,
-  *          profile: {
-  *              type: 'text',
-  *              value: ''
-  *          },
-  *          serializable_field: {}
-  *      });
-  *      var u = User.create({
-  *          name: 'alice',
-  *          serializable_field: {a: '1', b: '2'}
-  *      });
-  * </pre>
-  * @alias ActiveRecord.define
-  * @param {String} table_name
-  * @param {Object} fields
-  *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
-  * @param {Object} [methods]
-  * @param {Function} [readyCallback]
-  *      Must be specified if running in asynchronous mode.
-  * @return {Object}
-  */
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
 ActiveRecord.define = function define(table_name, fields, methods)
 {
     var model = ActiveRecord.create(table_name,methods);
@@ -4565,10 +4674,11 @@ var Migrations = {
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema}
-     * This object is passed to all migrations as the only parameter.
+     * @classDescription {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
      */
     Schema: {
         /**
+         * @alias ActiveRecord.Migrations.Schema.createTable
          * @param {String} table_name
          * @param {Object} columns
          */
@@ -4577,6 +4687,7 @@ var Migrations = {
             return ActiveRecord.connection.createTable(table_name,columns);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.dropTable
          * @param {String} table_name
          */
         dropTable: function dropTable(table_name)
@@ -4584,6 +4695,7 @@ var Migrations = {
             return ActiveRecord.connection.dropTable(table_name);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.addColumn
          * @param {String} table_name
          * @param {String} column_name
          * @param {mixed} [data_type]
@@ -4593,6 +4705,7 @@ var Migrations = {
             return ActiveRecord.connection.addColumn(table_name,column_name,data_type);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.dropColumn
          * @param {String} table_name
          * @param {String} column_name
          */
@@ -4601,6 +4714,7 @@ var Migrations = {
             return ActiveRecord.connection.dropColumn(table_name,column_name);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.addIndex
          * @param {String} table_name
          * @param {Array} column_names
          * @param {Object} options
@@ -4610,6 +4724,7 @@ var Migrations = {
             return ActiveRecord.connection.addIndex(table_name,column_names,options);
         },
         /**
+         * @alias ActiveRecord.Migrations.Schema.removeIndex
          * @param {String} table_name
          * @param {String} index_name
          */
@@ -4622,35 +4737,11 @@ var Migrations = {
 
 ActiveRecord.Migrations = Migrations;
 
-/**
- * @namespace {ActiveRecord.Validations}
- * 
- * Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present.
- * 
- * 	   User = ActiveRecord.define('users',{
- * 		   username: '',
- * 	       password: ''
- * 	   },{
- * 		   valid: function(){
- * 		      if(User.findByUsername(this.username)){
- * 			      this.addError('The username ' + this.username + ' is already taken.');
- * 			  }
- * 	       }
- * 	   });
- * 	   User.validatesPresenceOf('password');
- * 	   var user = User.build({
- * 	       'username': 'Jessica'
- * 	   });
- * 	   user.save(); //false
- * 	   var errors = user.getErrors(); //contains a list of the errors that occured
- *     user.set('password','rabbit');
- * 	   user.save(); //true
- */
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
-     * Adds the validator to the _validators array of ModelClass.
+     * Adds the validator to the _validators array of a given ActiveRecord.Class.
      * @private
-     * @alias ModelClass.addValidator
+     * @alias ActiveRecord.Class.addValidator
      * @param {Function} validator
      */
     addValidator: function addValidator(validator)
@@ -4662,7 +4753,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         this._validators.push(validator);
     },
     /**
-     * @alias ModelClass.validatesPresenceOf
+     * @alias ActiveRecord.Class.validatesPresenceOf
      * @param {String} field
      * @param {Object} [options]
      */
@@ -4680,7 +4771,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Accepts "min" and "max" numbers as options.
-     * @alias ModelClass.validatesLengthOf
+     * @alias ActiveRecord.Class.validatesLengthOf
      * @param {String} field
      * @param {Object} [options]
      */
@@ -4707,8 +4798,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * @private
-     * @method
-     * @alias ModelInstance.addError
+     * @alias ActiveRecord.Instance.addError
      * @param {String} message
      * @param {String} field_name
      */
@@ -4749,8 +4839,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return this.constructor._validators || [];
     },
     /**
-     * @method
-     * @alias ModelInstance.getErrors
+     * @alias ActiveRecord.Instance.getErrors
      * @return {Array}
      */
     getErrors: function getErrors()
@@ -4841,11 +4930,20 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
 };
 
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+    /**
+     * Once synchronized a found instance will have it's values updated if
+     * other records with the same id change in the database.
+     * @alias ActiveRecord.Instance.synchronize
+     */
     synchronize: function synchronize()
     {
         Synchronization.setupNotifications(this);
         Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
     },
+    /**
+     * Stops the synchronization of the record with the database.
+     * @alias ActiveRecord.Instance.stop
+     */
     stop: function stop()
     {
         Synchronization.setupNotifications(this);

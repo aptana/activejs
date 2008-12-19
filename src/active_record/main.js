@@ -146,26 +146,98 @@
  * 	- ActsAsList
  * 	- ActsAsTree
  * 	- hasMany :through (which will likely be the only supported many to many relationship)
-*/
+ * 
+ * Relationships
+ * -------------
+ * 
+ * Relationships are declared with one of three class methods that are available to all models:
+ * 
+ * 	- belongsTo
+ * 	- hasMany
+ * 	- hasOne
+ * 
+ * The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work:
+ * 
+ * 	- User.hasMany(Comment)
+ * 	- User.hasMany('Comment')
+ * 	- User.hasMany('comment')
+ * 	- User.hasMany('comments')
+ * 
+ * Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails "magical array" style of handling relatioship logic:
+ * 	
+ * 	Rails:
+ * 		u = User.find(5)
+ * 		u.comments.length
+ * 		u.comments.create :title => 'comment title'
+ * 	
+ * 	ActiveRecord.js:
+ * 		var u = User.find(5);
+ * 		u.getCommentList().length;
+ * 		u.createComment({title: 'comment title'});
+ * 
+ * Validations
+ * -----------
+ * * Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present.
+ * 
+ * 	   User = ActiveRecord.define('users',{
+ * 		   username: '',
+ * 	       password: ''
+ * 	   },{
+ * 		   valid: function(){
+ * 		      if(User.findByUsername(this.username)){
+ * 			      this.addError('The username ' + this.username + ' is already taken.');
+ * 			  }
+ * 	       }
+ * 	   });
+ * 	   User.validatesPresenceOf('password');
+ * 	   var user = User.build({
+ * 	       'username': 'Jessica'
+ * 	   });
+ * 	   user.save(); //false
+ * 	   var errors = user.getErrors(); //contains a list of the errors that occured
+ *     user.set('password','rabbit');
+ * 	   user.save(); //true
+ 
+ */
 ActiveRecord = {
     /**
-     * @type {Boolean} Defaults to false.
+     * Defaults to false.
+     * @alias ActiveRecord.logging
+     * @property {Boolean}
      */
     logging: false,
     /**
-     * @type {Number} Tracks the number of records created.
+     * Tracks the number of records created.
+     * @alias ActiveRecord.internalCounter
+     * @property {Number}
      */
     internalCounter: 0,
     /**
-     * @type {Object} Contains model_name, ModelClass pairs.
+     * Contains model_name, ActiveRecord.Class pairs.
+     * @alias ActiveRecord.Models
+     * @property {Object} 
      */
     Models: {},
     /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord classes.
+     * @namespace {ActiveRecord.Class} Each generated class will inherit all of
+     * the methods in this class, in addition to the ones dynamically generated
+     * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord classes.
+     * @alias ActiveRecord.ClassMethods
+     * @property {Object} 
      */
     ClassMethods: {},
     /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord instances.
+     * @namespace {ActiveRecord.Instance} Each found instance will inherit all of
+      * the methods in this class, in addition to the ones dynamically generated
+      * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord instances.
+     * @alias ActiveRecord.InstanceMethods
+     * @property {Object}
      */
     InstanceMethods: {},
     /**

@@ -1,78 +1,41 @@
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
-Warning: Could not find type for member 'ActiveEvent'
 Missing @alias tags
 ===================
-@location=./dist/active.js:69360-69417
+@location=./dist/active.js:77353-77466
     /**
-     * @type {Boolean} Defaults to false.
+     * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
-@location=./dist/active.js:69438-69513
+@location=./dist/active.js:77538-77701
     /**
-     * @type {Number} Tracks the number of records created.
+     * @property {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
      */
-@location=./dist/active.js:69538-69614
-    /**
-     * @type {Object} Contains model_name, ModelClass pairs.
-     */
-@location=./dist/active.js:69631-69741
-    /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord classes.
-     */
-@location=./dist/active.js:69764-69876
-    /**
-     * @type {Object} Contains all methods that will become available to ActiveRecord instances.
-     */
-@location=./dist/active.js:74067-74176
-    /**
-     * @type {String} Error that will be thrown if ActiveRecord is used without a connection.
-     */
-@location=./dist/active.js:74248-74407
-    /**
-     * @type {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
-     */
-@location=./dist/active.js:90010-90109
-/**
- * @type {mixed} null if no connection is active, or the class that created the connection.
- */
-@location=./dist/active.js:90140-90223
-/**
- * @type {mixed} null if no connection is active, or the connection object.
- */
-@location=./dist/active.js:135287-135356
+@location=./dist/active.js:139191-139260
 /**
  * Lexeme
  * 
  * @param {Number} type
  * @param {String} text
  */
-@location=./dist/active.js:135460-135503
+@location=./dist/active.js:139364-139407
 /**
  * toString
  * 
  * @return {String}
  */
-@location=./dist/active.js:135758-135779
+@location=./dist/active.js:139662-139683
 /**
  * WhereLexer
  */
-@location=./dist/active.js:135855-135905
+@location=./dist/active.js:139759-139809
 /**
  * setSource
  * 
  * @param {String} source
  */
-@location=./dist/active.js:136091-136109
+@location=./dist/active.js:139995-140013
 /**
  * advance
  */
-@location=./dist/active.js:138296-138411
+@location=./dist/active.js:142200-142315
 /**
  * IdentifierNode
  * 
@@ -80,109 +43,78 @@ Missing @alias tags
  * @param {Number} identifier
  * @param {Node} identifier
  */
-@location=./dist/active.js:138535-138618
+@location=./dist/active.js:142439-142522
 /**
  * execute
  * 
  * @param {Object} row
  * @param {Function} functionProvider
  */
-@location=./dist/active.js:139732-139798
+@location=./dist/active.js:143636-143702
 /**
  * Parser.IdentifierNode
  * 
  * @param {Object} identifier
  */
-@location=./dist/active.js:139874-139957
+@location=./dist/active.js:143778-143861
 /**
  * execute
  * 
  * @param {Object} row
  * @param {Function} functionProvider
  */
-@location=./dist/active.js:140082-140156
+@location=./dist/active.js:143986-144060
 /**
  * FunctionNode
  * 
  * @param {String} name
  * @param {Array} args
  */
-@location=./dist/active.js:140240-140323
+@location=./dist/active.js:144144-144227
 /**
  * execute
  * 
  * @param {Object} row
  * @param {Function} functionProvider
  */
-@location=./dist/active.js:140694-140722
+@location=./dist/active.js:144598-144626
 /**
  * Parser.ScalarNode
  */
-@location=./dist/active.js:140779-140862
+@location=./dist/active.js:144683-144766
 /**
  * execute
  * 
  * @param {Object} row
  * @param {Function} functionProvider
  */
-@location=./dist/active.js:140973-140995
+@location=./dist/active.js:144877-144899
 /**
  * WhereParser
  */
-@location=./dist/active.js:141074-141120
+@location=./dist/active.js:144978-145024
 /**
  * parse
  * 
  * @param {String} source
  */
-@location=./dist/active.js:141895-141923
+@location=./dist/active.js:145799-145827
 /**
  * parseOrExpression
  */
-@location=./dist/active.js:142296-142325
+@location=./dist/active.js:146200-146229
 /**
  * parseAndExpression
  */
-@location=./dist/active.js:142712-142746
+@location=./dist/active.js:146616-146650
 /**
  * parseEqualityExpression
  */
-@location=./dist/active.js:143298-143334
+@location=./dist/active.js:147202-147238
 /**
  * parseRelationalExpression
  */
-@location=./dist/active.js:143969-144001
+@location=./dist/active.js:147873-147905
 /**
  * parseMemberExpression
  */
-@location=./dist/active.js:170285-170381
-        /**
-         * @param {String} table_name
-         * @param {Object} columns
-         */
-@location=./dist/active.js:170541-170602
-        /**
-         * @param {String} table_name
-         */
-@location=./dist/active.js:170740-170878
-        /**
-         * @param {String} table_name
-         * @param {String} column_name
-         * @param {mixed} [data_type]
-         */
-@location=./dist/active.js:171060-171160
-        /**
-         * @param {String} table_name
-         * @param {String} column_name
-         */
-@location=./dist/active.js:171327-171462
-        /**
-         * @param {String} table_name
-         * @param {Array} column_names
-         * @param {Object} options
-         */
-@location=./dist/active.js:171639-171738
-        /**
-         * @param {String} table_name
-         * @param {String} index_name
-         */

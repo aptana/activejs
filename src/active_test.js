@@ -36,18 +36,7 @@ ActiveTest = {
         {
             msg = '[' + ActiveTest.currentTestName + '] ' + msg;
         }
-        if(typeof(Jaxer) != 'undefined')
-        {
-            Jaxer.Log.info(msg);
-        }
-        else if(typeof(air) != 'undefined')
-        {
-            air.Introspector.Console.log(msg);
-        }
-        else if(console)
-        {
-            console.log(msg);
-        }
+        ActiveSupport.log(msg);
     },
     assert: function assert(condition,note)
     {

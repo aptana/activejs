@@ -44,10 +44,10 @@ var Finders = {
         return options;
     },
     /**
-     * Generates a findByField method for a ModelClass (User.findByName)
+     * Generates a findByField method for a ActiveRecord.Class (User.findByName)
      * @private
      * @alias ActiveRecord.Finders.generateFindByField
-     * @param {Object} ModelClass
+     * @param {Object} ActiveRecord.Class
      * @param {String} field_name
      */
     generateFindByField: function generateFindByField(klass, field_name)
@@ -59,10 +59,10 @@ var Finders = {
         }, klass, field_name);
     },
     /**
-     * Generates a findAllByField method for a ModelClass (User.findAllByName)
+     * Generates a findAllByField method for a ActiveRecord.Class (User.findAllByName)
      * @private
      * @alias ActiveRecord.Finders.generateFindAllByField
-     * @param {Object} ModelClass
+     * @param {Object} ActiveRecord.Class
      * @param {String} field_name
      */
     generateFindAllByField: function(klass, field_name)

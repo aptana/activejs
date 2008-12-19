@@ -27,22 +27,21 @@
 
 /**
  * Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.
- * @example
- * <pre>
- *      Comment.belongsTo('User',{
- *          counter: 'comment_count' //comment count must be a column in User
- *      });
- *      var c = Comment.find(5);
- *      //each Comment instance will gain the following 3 methods
- *      c.getUser()
- *      c.buildUser()
- *      c.createUser()
- * </pre>
- * @alias ModelClass.belongsTo
+ * @alias ActiveRecord.Class.belongsTo
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {String} "counter" keys.
+ * @example
+ *
+ *     Comment.belongsTo('User',{
+ *         counter: 'comment_count' //comment count must be a column in User
+ *     });
+ *     var c = Comment.find(5);
+ *     //each Comment instance will gain the following 3 methods
+ *     c.getUser()
+ *     c.buildUser()
+ *     c.createUser()
  */
 ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options){
     if(related_model_name && related_model_name.modelName)

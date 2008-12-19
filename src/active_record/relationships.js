@@ -25,35 +25,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * @namespace {ActiveRecord.Relationships}
- * 
- * Relationships are declared with one of three class methods that are available to all models:
- * 
- * 	- belongsTo
- * 	- hasMany
- * 	- hasOne
- * 
- * The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work:
- * 
- * 	- User.hasMany(Comment)
- * 	- User.hasMany('Comment')
- * 	- User.hasMany('comment')
- * 	- User.hasMany('comments')
- * 
- * Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails "magical array" style of handling relatioship logic:
- * 	
- * 	Rails:
- * 		u = User.find(5)
- * 		u.comments.length
- * 		u.comments.create :title => 'comment title'
- * 	
- * 	ActiveRecord.js:
- * 		var u = User.find(5);
- * 		u.getCommentList().length;
- * 		u.createComment({title: 'comment title'});
- * 
-*/
 var Relationships = {
     normalizeModelName: function(related_model_name)
     {

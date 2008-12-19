@@ -13,55 +13,35 @@
       <h2><a href="ActiveJS.index.html" target="content">ActiveJS Reference Index</a></h2>
       <ul id="black">
          <li class="closed"><span><a href="ActiveEvent.html" target="content">ActiveEvent</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.html#ActiveEvent.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.html?visibility=#ActiveEvent." target="content">Constructor</a></span></li>
+               <li class="closed"><span><a href="ActiveEvent.html#ActiveEvent.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="After extending a given object, it will inherit the methods described in ActiveEvent.ObservableObject."><a href="ActiveEvent.html?visibility=#ActiveEvent.extend" target="content">extend</a></span></li>
                   </ul>
                </li>
             </ul>
          </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.makeObservable.html" target="content">ActiveEvent.ObservableObject.makeObservable</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.makeObservable.html#ActiveEvent.ObservableObject.makeObservable.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.makeObservable.html?visibility=#ActiveEvent.ObservableObject.makeObservable." target="content">Constructor</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.notify.html" target="content">ActiveEvent.ObservableObject.notify</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.notify.html#ActiveEvent.ObservableObject.notify.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.notify.html?visibility=#ActiveEvent.ObservableObject.notify." target="content">Constructor</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.observe.html" target="content">ActiveEvent.ObservableObject.observe</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.observe.html#ActiveEvent.ObservableObject.observe.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.observe.html?visibility=#ActiveEvent.ObservableObject.observe." target="content">Constructor</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.observeMethod.html" target="content">ActiveEvent.ObservableObject.observeMethod</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.observeMethod.html#ActiveEvent.ObservableObject.observeMethod.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.observeMethod.html?visibility=#ActiveEvent.ObservableObject.observeMethod." target="content">Constructor</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.observeOnce.html" target="content">ActiveEvent.ObservableObject.observeOnce</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.observeOnce.html#ActiveEvent.ObservableObject.observeOnce.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.observeOnce.html?visibility=#ActiveEvent.ObservableObject.observeOnce." target="content">Constructor</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ActiveEvent.ObservableObject.stopObserving.html" target="content">ActiveEvent.ObservableObject.stopObserving</a></span><ul>
-               <li class="closed"><span><a href="ActiveEvent.ObservableObject.stopObserving.html#ActiveEvent.ObservableObject.stopObserving.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveEvent.ObservableObject.stopObserving.html?visibility=#ActiveEvent.ObservableObject.stopObserving." target="content">Constructor</a></span></li>
+         <li class="closed"><span><a href="ActiveEvent.ObservableObject.html" target="content">ActiveEvent.ObservableObject</a></span><ul>
+               <li class="closed"><span><a href="ActiveEvent.ObservableObject.html#ActiveEvent.ObservableObject.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="Wraps the given method_name with a function that will call the method, then trigger an event with the same name as the method. This can safely be applied to virtually any method, including built in Objects (Array.pop, etc), but cannot be undone."><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.makeObservable" target="content">makeObservable</a></span></li>
+                     <li><span class="method method-static" title="Triggers event_name with the passed arguments."><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.notify" target="content">notify</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.observe" target="content">observe</a></span></li>
+                     <li><span class="method method-static" title="Similiar to makeObservable(), but after the callback is called, the method will be returned to it's original state and will no longer be observable."><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.observeMethod" target="content">observeMethod</a></span></li>
+                     <li><span class="method method-static" title="Works exactly like observe(), but will stopObserving() after the next time the event is fired."><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.observeOnce" target="content">observeOnce</a></span></li>
+                     <li><span class="method method-static" title="Removes a given observer. If no observer is passed, removes all observers of that event. If no event is passed, removes all observers of the object."><a href="ActiveEvent.ObservableObject.html?visibility=#ActiveEvent.ObservableObject.stopObserving" target="content">stopObserving</a></span></li>
                   </ul>
                </li>
             </ul>
          </li>
          <li class="closed"><span><a href="ActiveRecord.html" target="content">ActiveRecord</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.html#ActiveRecord.Properties" target="content">Properties</a></span><ul>
+                     <li><span class="property mixed mixed-static" title="null if no connection is active, or the class that created the connection."><a href="ActiveRecord.html?visibility=#ActiveRecord.adapter" target="content">adapter</a></span></li>
+                     <li><span class="property Object Object-static" title="Contains all methods that will become available to ActiveRecord classes."><a href="ActiveRecord.html?visibility=#ActiveRecord.ClassMethods" target="content">ClassMethods</a></span></li>
+                     <li><span class="property mixed mixed-static" title="null if no connection is active, or the connection object."><a href="ActiveRecord.html?visibility=#ActiveRecord.connection" target="content">connection</a></span></li>
+                     <li><span class="property Object Object-static" title="Contains all methods that will become available to ActiveRecord instances."><a href="ActiveRecord.html?visibility=#ActiveRecord.InstanceMethods" target="content">InstanceMethods</a></span></li>
+                     <li><span class="property Number Number-static" title="Tracks the number of records created."><a href="ActiveRecord.html?visibility=#ActiveRecord.internalCounter" target="content">internalCounter</a></span></li>
+                     <li><span class="property Boolean Boolean-static" title="Defaults to false."><a href="ActiveRecord.html?visibility=#ActiveRecord.logging" target="content">logging</a></span></li>
+                     <li><span class="property Object Object-static" title="Contains model_name, ActiveRecord.Class pairs."><a href="ActiveRecord.html?visibility=#ActiveRecord.Models" target="content">Models</a></span></li>
+                  </ul>
+               </li>
                <li class="closed"><span><a href="ActiveRecord.html#ActiveRecord.Functions" target="content">Functions</a></span><ul>
                      <li><span class="method method-static" title="Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter."><a href="ActiveRecord.html?visibility=#ActiveRecord.connect" target="content">connect</a></span></li>
                      <li><span class="method method-static" title="Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models [ model_name ] . model_name is a singularized, capitalized form of table name."><a href="ActiveRecord.html?visibility=#ActiveRecord.create" target="content">create</a></span></li>
@@ -74,7 +54,57 @@
          </li>
          <li class="closed"><span><a href="ActiveRecord.Adapters.html" target="content">ActiveRecord.Adapters</a></span><ul></ul>
          </li>
-         <li class="closed"><span><a href="ActiveRecord.Errors.html" target="content">ActiveRecord.Errors</a></span><ul></ul>
+         <li class="closed"><span><a href="ActiveRecord.Adapters.HashTable.html" target="content">ActiveRecord.Adapters.HashTable</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.Adapters.HashTable.html#ActiveRecord.Adapters.HashTable.Constructors" target="content">Constructors</a></span><ul>
+                     <li><span class="constructor constructor-instance" title=""><a href="ActiveRecord.Adapters.HashTable.html?visibility=#ActiveRecord.Adapters.HashTable." target="content">Constructor</a></span></li>
+                  </ul>
+               </li>
+            </ul>
+         </li>
+         <li class="closed"><span><a href="ActiveRecord.Class.html" target="content">ActiveRecord.Class</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.Class.html#ActiveRecord.Class.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.average" target="content">average</a></span></li>
+                     <li><span class="method method-static" title="Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.belongsTo" target="content">belongsTo</a></span></li>
+                     <li><span class="method method-static" title="Identical to calling create(), but does not save the record."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.build" target="content">build</a></span></li>
+                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.count" target="content">count</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.create" target="content">create</a></span></li>
+                     <li><span class="method method-static" title="Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.destroy" target="content">destroy</a></span></li>
+                     <li><span class="method method-static" title="Find a given record, or multiple records matching the passed conditions."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.find" target="content">find</a></span></li>
+                     <li><span class="method method-static" title="Returns the first record sorted by id."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.first" target="content">first</a></span></li>
+                     <li><span class="method method-static" title="Sepcifies a 1-&gt;N relationship between models. The foreign key will reside in the child (related) object."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.hasMany" target="content">hasMany</a></span></li>
+                     <li><span class="method method-static" title="Sepcifies a 1-&gt;1 relationship between models. The foreign key will reside in the related object."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.hasOne" target="content">hasOne</a></span></li>
+                     <li><span class="method method-static" title="Returns the last record sorted by id."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.last" target="content">last</a></span></li>
+                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.max" target="content">max</a></span></li>
+                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.min" target="content">min</a></span></li>
+                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.sum" target="content">sum</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.transaction" target="content">transaction</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.update" target="content">update</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.updateAll" target="content">updateAll</a></span></li>
+                     <li><span class="method method-static" title="Accepts &#34;min&#34; and &#34;max&#34; numbers as options."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.validatesLengthOf" target="content">validatesLengthOf</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.validatesPresenceOf" target="content">validatesPresenceOf</a></span></li>
+                  </ul>
+               </li>
+            </ul>
+         </li>
+         <li class="closed"><span><a href="ActiveRecord.Instance.html" target="content">ActiveRecord.Instance</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.Instance.html#ActiveRecord.Instance.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="Removes the object from the database, but does not destroy the object in memory itself."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.destroy" target="content">destroy</a></span></li>
+                     <li><span class="method method-static" title="Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)"><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.get" target="content">get</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.getErrors" target="content">getErrors</a></span></li>
+                     <li><span class="method method-static" title="Returns an array of the column names that the instance contains."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.keys" target="content">keys</a></span></li>
+                     <li><span class="method method-static" title="Loads the most current data for the object from the database."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.reload" target="content">reload</a></span></li>
+                     <li><span class="method method-static" title="Persists the object, creating or updating as nessecary."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.save" target="content">save</a></span></li>
+                     <li><span class="method method-static" title="Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.set" target="content">set</a></span></li>
+                     <li><span class="method method-static" title="Stops the synchronization of the record with the database."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.stop" target="content">stop</a></span></li>
+                     <li><span class="method method-static" title="Once synchronized a found instance will have it's values updated if other records with the same id change in the database."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.synchronize" target="content">synchronize</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.toJSON" target="content">toJSON</a></span></li>
+                     <li><span class="method method-static" title="Returns a &#34;clean&#34; version of the object, with just the data and no methods."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.toObject" target="content">toObject</a></span></li>
+                     <li><span class="method method-static" title="Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation ."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.updateAttribute" target="content">updateAttribute</a></span></li>
+                     <li><span class="method method-static" title="Updates all of the passed attributes on the record and then calls save()."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.updateAttributes" target="content">updateAttributes</a></span></li>
+                     <li><span class="method method-static" title="Returns an array of the column values that the instance contains."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.values" target="content">values</a></span></li>
+                  </ul>
+               </li>
+            </ul>
          </li>
          <li class="closed"><span><a href="ActiveRecord.Migrations.html" target="content">ActiveRecord.Migrations</a></span><ul>
                <li class="closed"><span><a href="ActiveRecord.Migrations.html#ActiveRecord.Migrations.Functions" target="content">Functions</a></span><ul>
@@ -85,11 +115,17 @@
                </li>
             </ul>
          </li>
-         <li class="closed"><span><a href="ActiveRecord.Migrations.Schema.html" target="content">ActiveRecord.Migrations.Schema</a></span><ul></ul>
-         </li>
-         <li class="closed"><span><a href="ActiveRecord.Relationships.html" target="content">ActiveRecord.Relationships</a></span><ul></ul>
-         </li>
-         <li class="closed"><span><a href="ActiveRecord.Validations.html" target="content">ActiveRecord.Validations</a></span><ul></ul>
+         <li class="closed"><span><a href="ActiveRecord.Migrations.Schema.html" target="content">ActiveRecord.Migrations.Schema</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.Migrations.Schema.html#ActiveRecord.Migrations.Schema.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.addColumn" target="content">addColumn</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.addIndex" target="content">addIndex</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.createTable" target="content">createTable</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.dropColumn" target="content">dropColumn</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.dropTable" target="content">dropTable</a></span></li>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Migrations.Schema.html?visibility=#ActiveRecord.Migrations.Schema.removeIndex" target="content">removeIndex</a></span></li>
+                  </ul>
+               </li>
+            </ul>
          </li>
          <li class="closed"><span><a href="ActiveRoutes.html" target="content">ActiveRoutes</a></span><ul>
                <li class="closed"><span><a href="ActiveRoutes.html#ActiveRoutes.Constructors" target="content">Constructors</a></span><ul>
@@ -122,6 +158,7 @@
                      <li><span class="method method-static" title="Returns the global context object (window in most implementations)."><a href="ActiveSupport.html?visibility=#ActiveSupport.getGlobalContext" target="content">getGlobalContext</a></span></li>
                      <li><span class="method method-static" title="Emulates Array.indexOf for implementations that do not support it."><a href="ActiveSupport.html?visibility=#ActiveSupport.indexOf" target="content">indexOf</a></span></li>
                      <li><span class="method method-static" title="Returns an array of keys from an object."><a href="ActiveSupport.html?visibility=#ActiveSupport.keys" target="content">keys</a></span></li>
+                     <li><span class="method method-static" title="Logs a message to the available logging resource. Accepts a variable number of arguments."><a href="ActiveSupport.html?visibility=#ActiveSupport.log" target="content">log</a></span></li>
                      <li><span class="method method-static" title="If the value passed is a function the value passed will be returned, otherwise a function returning the value passed will be returned."><a href="ActiveSupport.html?visibility=#ActiveSupport.proc" target="content">proc</a></span></li>
                      <li><span class="method method-static" title=""><a href="ActiveSupport.html?visibility=#ActiveSupport.synchronize" target="content">synchronize</a></span></li>
                      <li><span class="method method-static" title="Emulates Prototype's String.prototype.underscore"><a href="ActiveSupport.html?visibility=#ActiveSupport.underscore" target="content">underscore</a></span></li>
@@ -144,49 +181,6 @@
                <li class="closed"><span><a href="ActiveSupport.JSON.html#ActiveSupport.JSON.Functions" target="content">Functions</a></span><ul>
                      <li><span class="method method-static" title=""><a href="ActiveSupport.JSON.html?visibility=#ActiveSupport.JSON.parse" target="content">parse</a></span></li>
                      <li><span class="method method-static" title=""><a href="ActiveSupport.JSON.html?visibility=#ActiveSupport.JSON.stringify" target="content">stringify</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ModelClass.html" target="content">ModelClass</a></span><ul>
-               <li class="closed"><span><a href="ModelClass.html#ModelClass.Functions" target="content">Functions</a></span><ul>
-                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ModelClass.html?visibility=#ModelClass.average" target="content">average</a></span></li>
-                     <li><span class="method method-static" title="Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object."><a href="ModelClass.html?visibility=#ModelClass.belongsTo" target="content">belongsTo</a></span></li>
-                     <li><span class="method method-static" title="Identical to calling create(), but does not save the record."><a href="ModelClass.html?visibility=#ModelClass.build" target="content">build</a></span></li>
-                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ModelClass.html?visibility=#ModelClass.count" target="content">count</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelClass.html?visibility=#ModelClass.create" target="content">create</a></span></li>
-                     <li><span class="method method-static" title="Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record."><a href="ModelClass.html?visibility=#ModelClass.destroy" target="content">destroy</a></span></li>
-                     <li><span class="method method-static" title="Find a given record, or multiple records matching the passed conditions."><a href="ModelClass.html?visibility=#ModelClass.find" target="content">find</a></span></li>
-                     <li><span class="method method-static" title="Returns the first record sorted by id."><a href="ModelClass.html?visibility=#ModelClass.first" target="content">first</a></span></li>
-                     <li><span class="method method-static" title="Sepcifies a 1-&gt;N relationship between models. The foreign key will reside in the child (related) object."><a href="ModelClass.html?visibility=#ModelClass.hasMany" target="content">hasMany</a></span></li>
-                     <li><span class="method method-static" title="Sepcifies a 1-&gt;1 relationship between models. The foreign key will reside in the related object."><a href="ModelClass.html?visibility=#ModelClass.hasOne" target="content">hasOne</a></span></li>
-                     <li><span class="method method-static" title="Returns the last record sorted by id."><a href="ModelClass.html?visibility=#ModelClass.last" target="content">last</a></span></li>
-                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ModelClass.html?visibility=#ModelClass.max" target="content">max</a></span></li>
-                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ModelClass.html?visibility=#ModelClass.min" target="content">min</a></span></li>
-                     <li><span class="method method-static" title="options can contain all params that find() can"><a href="ModelClass.html?visibility=#ModelClass.sum" target="content">sum</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelClass.html?visibility=#ModelClass.transaction" target="content">transaction</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelClass.html?visibility=#ModelClass.update" target="content">update</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelClass.html?visibility=#ModelClass.updateAll" target="content">updateAll</a></span></li>
-                     <li><span class="method method-static" title="Accepts &#34;min&#34; and &#34;max&#34; numbers as options."><a href="ModelClass.html?visibility=#ModelClass.validatesLengthOf" target="content">validatesLengthOf</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelClass.html?visibility=#ModelClass.validatesPresenceOf" target="content">validatesPresenceOf</a></span></li>
-                  </ul>
-               </li>
-            </ul>
-         </li>
-         <li class="closed"><span><a href="ModelInstance.html" target="content">ModelInstance</a></span><ul>
-               <li class="closed"><span><a href="ModelInstance.html#ModelInstance.Functions" target="content">Functions</a></span><ul>
-                     <li><span class="method method-static" title="Removes the object from the database, but does not destroy the object in memory itself."><a href="ModelInstance.html?visibility=#ModelInstance.destroy" target="content">destroy</a></span></li>
-                     <li><span class="method method-static" title="Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)"><a href="ModelInstance.html?visibility=#ModelInstance.get" target="content">get</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelInstance.html?visibility=#ModelInstance.getErrors" target="content">getErrors</a></span></li>
-                     <li><span class="method method-static" title="Returns an array of the column names that the instance contains."><a href="ModelInstance.html?visibility=#ModelInstance.keys" target="content">keys</a></span></li>
-                     <li><span class="method method-static" title="Loads the most current data for the object from the database."><a href="ModelInstance.html?visibility=#ModelInstance.reload" target="content">reload</a></span></li>
-                     <li><span class="method method-static" title="Persists the object, creating or updating as nessecary."><a href="ModelInstance.html?visibility=#ModelInstance.save" target="content">save</a></span></li>
-                     <li><span class="method method-static" title="Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors."><a href="ModelInstance.html?visibility=#ModelInstance.set" target="content">set</a></span></li>
-                     <li><span class="method method-static" title=""><a href="ModelInstance.html?visibility=#ModelInstance.toJSON" target="content">toJSON</a></span></li>
-                     <li><span class="method method-static" title="Returns a &#34;clean&#34; version of the object, with just the data and no methods."><a href="ModelInstance.html?visibility=#ModelInstance.toObject" target="content">toObject</a></span></li>
-                     <li><span class="method method-static" title="Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation ."><a href="ModelInstance.html?visibility=#ModelInstance.updateAttribute" target="content">updateAttribute</a></span></li>
-                     <li><span class="method method-static" title="Updates all of the passed attributes on the record and then calls save()."><a href="ModelInstance.html?visibility=#ModelInstance.updateAttributes" target="content">updateAttributes</a></span></li>
-                     <li><span class="method method-static" title="Returns an array of the column values that the instance contains."><a href="ModelInstance.html?visibility=#ModelInstance.valus" target="content">valus</a></span></li>
                   </ul>
                </li>
             </ul>

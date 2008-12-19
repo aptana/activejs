@@ -27,20 +27,19 @@
 
 /**
  * Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.
- * @example
- * <pre>
- *      User.hasOne(CreditCard);
- *      var u = User.find(5);
- *      //each User instance will gain the following 3 methods
- *      u.getCreditCard()
- *      u.buildCreditCard()
- *      u.createCreditCard()
- * </pre>
- * @alias ModelClass.hasOne
+ * @alias ActiveRecord.Class.hasOne
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
  *      Can contain {String} "foreignKey", {Boolean} "dependent" keys.
+ * @example
+ * 
+ *     User.hasOne(CreditCard);
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 3 methods
+ *     u.getCreditCard()
+ *     u.buildCreditCard()
+ *     u.createCreditCard()
  */
 ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
 {

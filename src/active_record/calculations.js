@@ -42,7 +42,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.count
+     * @alias ActiveRecord.Class.count
      * @param {Object} [options] 
      * @return {Number}
      */
@@ -52,7 +52,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.average
+     * @alias ActiveRecord.Class.average
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -63,7 +63,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.max
+     * @alias ActiveRecord.Class.max
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -74,7 +74,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.min
+     * @alias ActiveRecord.Class.min
      * @param {String} column_name
      * @param {Object} [options] 
      * @return {Number}
@@ -85,7 +85,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * options can contain all params that find() can
-     * @alias ModelClass.sum
+     * @alias ActiveRecord.Class.sum
      * @param {String} column_name
      * @param {Object} [options]
      * @return {Number}
@@ -96,9 +96,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Returns the first record sorted by id.
-     * @method
-     * @alias ModelClass.first
-     * @return {ModelInstance} 
+     * @alias ActiveRecord.Class.first
+     * @return {ActiveRecord.Instance} 
      */
     first: function first()
     {
@@ -108,9 +107,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * Returns the last record sorted by id.
-     * @method
-     * @alias ModelClass.last
-     * @return {ModelInstance} 
+     * @alias ActiveRecord.Class.last
+     * @return {ActiveRecord.Instance} 
      */
     last: function last()
     {
