@@ -26,8 +26,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, MySQL.
- */
+ * Adapter for Jaxer configured with MySQL.
+ * @alias ActiveRecord.Adapters.JaxerMySQL
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.JaxerMySQL = function(){
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{

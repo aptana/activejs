@@ -207,30 +207,6 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
      * Find a given record, or multiple records matching the passed conditions.
-     * @example
-     * <pre>
-     *      var user = User.find(5); //finds a single record
-     *      var user = User.find({
-     *          first: true,
-     *          where: {
-     *              id: 5
-     *          }
-     *      });
-     *      var users = User.find(); //finds all
-     *      var users = User.find({
-     *          where: 'name = "alice" AND password = "' + md5('pass') + '"',
-     *          order: 'id DESC'
-     *      });
-     *      //using the where syntax below, the parameters will be properly escaped
-     *      var users = User.find({
-     *          where: {
-     *              name: 'alice',
-     *              password: md5('pass')
-     *          }
-     *          order: 'id DESC'
-     *      });
-     *      var users = User.find('SELECT * FROM users ORDER id DESC');
-     * </pre>
      * @alias ActiveRecord.Class.find
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
@@ -240,8 +216,32 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          order: String
      *          limit: Number
      *          offset: Number
+     *          synchronize: Boolean
      * @return {mixed}
      *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
+     * @example
+     *
+     *     var user = User.find(5); //finds a single record
+     *     var user = User.find({
+     *         first: true,
+     *         where: {
+     *             id: 5
+     *         }
+     *     });
+     *     var users = User.find(); //finds all
+     *     var users = User.find({
+     *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
+     *         order: 'id DESC'
+     *     });
+     *     //using the where syntax below, the parameters will be properly escaped
+     *     var users = User.find({
+     *         where: {
+     *             name: 'alice',
+     *             password: md5('pass')
+     *         }
+     *         order: 'id DESC'
+     *     });
+     *     var users = User.find('SELECT * FROM users ORDER id DESC');
      */
     find: function find(params)
     {
@@ -335,17 +335,15 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         return record;
     },
     /**
-     * @example
-     * <pre>
-     *      var u = User.create({
-     *          name: 'alice',
-     *          password: 'pass'
-     *      });
-     *      u.id //will now contain the id of the user
-     * </pre>
      * @alias ActiveRecord.Class.create
      * @param {Object} data 
      * @return {ActiveRecord.Instance}
+     * @example
+     *     var u = User.create({
+     *         name: 'alice',
+     *         password: 'pass'
+     *     });
+     *     u.id //will now contain the id of the user
      */
     create: function create(data)
     {
@@ -354,21 +352,20 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         return record;
     },
     /**
-     * @example
-     * <pre>
-     *      Article.update(3,{
-     *          title: 'New Title'
-     *      });
-     *      //or pass an array of ids and an array of attributes
-     *      Article.update([5,7],[
-     *          {title: 'Title for 5'},
-     *          {title: 'Title for 7'}
-     *      ]);
-     * </pre>
      * @alias ActiveRecord.Class.update
      * @param {Number} id
      * @param {Object} attributes
      * @return {ActiveRecord.Instance}
+     * @example
+     * 
+     *     Article.update(3,{
+     *         title: 'New Title'
+     *     });
+     *     //or pass an array of ids and an array of attributes
+     *     Article.update([5,7],[
+     *         {title: 'Title for 5'},
+     *         {title: 'Title for 7'}
+     *     ]);
      */
     update: function update(id, attributes)
     {
@@ -401,19 +398,17 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
-     * @example
-     * <pre>
-     *      Account.transaction(function(){
-     *          var from = Account.find(2);
-     *          var to = Account.find(3);
-     *          to.despoit(from.withdraw(100.00));
-     *      });
-     * </pre>
      * @alias ActiveRecord.Class.transaction
      * @param {Function} proceed
      *      The block of code to execute inside the transaction.
      * @param {Function} [error]
      *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+     * @example
+     *     Account.transaction(function(){
+     *         var from = Account.find(2);
+     *         var to = Account.find(3);
+     *         to.despoit(from.withdraw(100.00));
+     *     });
      */
     transaction: function transaction(proceed,error)
     {

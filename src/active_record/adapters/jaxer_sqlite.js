@@ -26,8 +26,10 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
- * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, SQLite.
- */
+ * Adapter for Jaxer configured with SQLite
+ * @alias ActiveRecord.Adapters.JaxerSQLite
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.JaxerSQLite = function(){
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{

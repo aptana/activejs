@@ -7,15 +7,7 @@
    <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveRecord.Migrations : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
       </h1>
       <div class="content">
-         <div class="classDescription">Migrations are a method of versioining the database schema used by your application. All of your migrations must be defined
-            in an object assigned to ActiveRecord.Migrations.migrations. The keys need not be numerically sequential, but must be numeric
-            (i.e. 1,2,3 or 100,200,300). Each migration object must have an up() and down() method which will recieve an ActiveRecord.Migrations.Schema
-            object. createTable() and addColumn() both use the same syntax as define() to specify default values and field types. ActiveRecord.Migrations.migrations
-            = { 1: { up: function(schema) { schema.createTable('one', { a: '', b: { type: 'TEXT', value: 'default' } }); }, down: function(schema)
-            { schema.dropTable('one'); } }, 2: { up: function(schema) { schema.addColumn('one','c'); }, down: function(schema) { schema.dropColumn('one','c');
-            } } }; ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case) ActiveRecord.Migrations.migrate(0);
-            //migrates down below 1, effectively erasing the schema ActiveRecord.Migrations.migrate(1); //migrates to version 1
-         </div>
+         <div class="classDescription"></div>
          <h2>Classes</h2>
          <p>
             <table cellspacing="2" width="90%">

@@ -16,10 +16,6 @@
                         <div>ActiveRecord.Adapters</div></a></td>
                </tr>
                <tr class="item">
-                  <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Adapters.HashTable.html">
-                        <div>ActiveRecord.Adapters.HashTable</div></a></td>
-               </tr>
-               <tr class="item">
                   <td class="declaration" style="font-size: 0.8em"><a href="ActiveRecord.Class.html">
                         <div>ActiveRecord.Class</div></a></td>
                </tr>
@@ -162,7 +158,7 @@
             </tr>
             <tr class="item ">
                <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.connect"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">connect</a>(<i>Object</i>&nbsp;adapter) : <i>
+                  <div class="name"><a name="ActiveRecord.connect"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">connect</a>(<i>Object</i>&nbsp;adapter, [<i>mixed</i>&nbsp;args]) : <i>
                         			void
                         		</i></div>
                   <div class="description">Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.</div>
@@ -177,14 +173,19 @@
                            <td width="10%"><b>adapter</b></td>
                            <td width="80%"></td>
                         </tr>
+                        <tr>
+                           <td width="10%"><i>mixed</i></td>
+                           <td width="10%"><b>args</b></td>
+                           <td width="80%"><b>(optional)</b></td>
+                        </tr>
                      </table>
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file'); ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+                        ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file'); ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
                         ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master'); //or you can have ActiveRecord try to auto detect the enviornment
-                        ActiveRecord.connect(); </pre>
+                        ActiveRecord.connect();
                         
                      </dd>
                   </dl>
@@ -318,7 +319,7 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5); </pre>
+                        ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
                         
                      </dd>
                   </dl>

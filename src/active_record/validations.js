@@ -28,7 +28,6 @@
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
      * Adds the validator to the _validators array of a given ActiveRecord.Class.
-     * @private
      * @alias ActiveRecord.Class.addValidator
      * @param {Function} validator
      */
@@ -85,7 +84,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
 });
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
-     * @private
      * @alias ActiveRecord.Instance.addError
      * @param {String} message
      * @param {String} field_name

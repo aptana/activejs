@@ -59,18 +59,26 @@
          </topic>
       </topic>
       <topic label="ActiveRecord.Adapters"
-             href="html/reference/api/ActiveRecord.Adapters.html"/>
-      <topic label="ActiveRecord.Adapters.HashTable"
-             href="html/reference/api/ActiveRecord.Adapters.HashTable.html">
-         <topic label="Constructors"
-                href="html/reference/api/ActiveRecord.Adapters.HashTable.html#ActiveRecord.Adapters.HashTable.Constructors">
-            <topic label="Constructor"
-                   href="html/reference/api/ActiveRecord.Adapters.HashTable.html?visibility=#ActiveRecord.Adapters.HashTable."/>
+             href="html/reference/api/ActiveRecord.Adapters.html">
+         <topic label="Properties"
+                href="html/reference/api/ActiveRecord.Adapters.html#ActiveRecord.Adapters.Properties">
+            <topic label="AIR"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.AIR"/>
+            <topic label="HashTable"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.HashTable"/>
+            <topic label="JaxerMySQL"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerMySQL"/>
+            <topic label="JaxerSQLite"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerSQLite"/>
+            <topic label="Local"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.Local"/>
          </topic>
       </topic>
       <topic label="ActiveRecord.Class" href="html/reference/api/ActiveRecord.Class.html">
          <topic label="Functions"
                 href="html/reference/api/ActiveRecord.Class.html#ActiveRecord.Class.Functions">
+            <topic label="addValidator"
+                   href="html/reference/api/ActiveRecord.Class.html?visibility=#ActiveRecord.Class.addValidator"/>
             <topic label="average"
                    href="html/reference/api/ActiveRecord.Class.html?visibility=#ActiveRecord.Class.average"/>
             <topic label="belongsTo"
@@ -115,6 +123,8 @@
              href="html/reference/api/ActiveRecord.Instance.html">
          <topic label="Functions"
                 href="html/reference/api/ActiveRecord.Instance.html#ActiveRecord.Instance.Functions">
+            <topic label="addError"
+                   href="html/reference/api/ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.addError"/>
             <topic label="destroy"
                    href="html/reference/api/ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.destroy"/>
             <topic label="get"
@@ -185,17 +195,23 @@
                 href="html/reference/api/ActiveRoutes.html#ActiveRoutes.Properties">
             <topic label="defaultDispatcher"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.defaultDispatcher"/>
+            <topic label="history"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.history"/>
          </topic>
          <topic label="Functions"
                 href="html/reference/api/ActiveRoutes.html#ActiveRoutes.Functions">
             <topic label="addRoute"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.addRoute"/>
+            <topic label="back"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.back"/>
             <topic label="dispatch"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.dispatch"/>
             <topic label="getError"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.getError"/>
             <topic label="match"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.match"/>
+            <topic label="next"
+                   href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.next"/>
             <topic label="urlFor"
                    href="html/reference/api/ActiveRoutes.html?visibility=#ActiveRoutes.urlFor"/>
          </topic>

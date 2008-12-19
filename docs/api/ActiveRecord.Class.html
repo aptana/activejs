@@ -17,6 +17,28 @@
             </tr>
             <tr class="item ">
                <td class="declaration">
+                  <div class="name"><a name="ActiveRecord.Class.addValidator"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">addValidator</a>(<i>Function</i>&nbsp;validator) : <i>
+                        			void
+                        		</i></div>
+                  <div class="description">Adds the validator to the _validators array of a given ActiveRecord.Class.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>validator</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details"></dl>
+               </td>
+            </tr>
+            <tr class="item ">
+               <td class="declaration">
                   <div class="name"><a name="ActiveRecord.Class.average"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">average</a>(<i>String</i>&nbsp;column_name, [<i>Object</i>&nbsp;options]) : <i>Number</i></div>
                   <div class="description">options can contain all params that find() can</div>
                </td>
@@ -165,7 +187,7 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> var u = User.create( { name: 'alice', password: 'pass' }); u.id //will now contain the id of the user </pre>
+                        var u = User.create( { name: 'alice', password: 'pass' }); u.id //will now contain the id of the user
                         
                      </dd>
                   </dl>
@@ -213,7 +235,7 @@
                            <td width="10%"><b>params</b></td>
                            <td width="80%">Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
                               select: Array of columns to select (default [ '*' ] ) where: String or Object joins: String order: String limit: Number offset:
-                              Number
+                              Number synchronize: Boolean
                            </td>
                         </tr>
                      </table>
@@ -230,10 +252,10 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var users
-                        = User.find(); //finds all var users = User.find( { where: 'name = "alice" AND password = "' + md5('pass') + '"', order: 'id
-                        DESC' }); //using the where syntax below, the parameters will be properly escaped var users = User.find( { where: { name:
-                        'alice', password: md5('pass') } order: 'id DESC' }); var users = User.find('SELECT * FROM users ORDER id DESC'); </pre>
+                        var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var users = User.find();
+                        //finds all var users = User.find( { where: 'name = "alice" AND password = "' + md5('pass') + '"', order: 'id DESC' }); //using
+                        the where syntax below, the parameters will be properly escaped var users = User.find( { where: { name: 'alice', password:
+                        md5('pass') } order: 'id DESC' }); var users = User.find('SELECT * FROM users ORDER id DESC');
                         
                      </dd>
                   </dl>
@@ -477,8 +499,8 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00));
-                        }); </pre>
+                        Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00));
+                        });
                         
                      </dd>
                   </dl>
@@ -516,8 +538,8 @@
                   <dl class="details">
                      <dt>Examples</dt>
                      <dd>
-                        <pre> Article.update(3, { title: 'New Title' }); //or pass an array of ids and an array of attributes Article.update( [ 5,7
-                        ] , [ { title : 'Title for 5'}, { title : 'Title for 7'} ] ); </pre>
+                        Article.update(3, { title: 'New Title' }); //or pass an array of ids and an array of attributes Article.update( [ 5,7 ] ,
+                        [ { title : 'Title for 5'}, { title : 'Title for 7'} ] );
                         
                      </dd>
                   </dl>

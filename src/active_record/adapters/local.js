@@ -26,7 +26,9 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
- * @classDescription {ActiveRecord.Adapters.Local} Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ * @alias ActiveRecord.Adapters.Local
+ * @property {ActiveRecord.Adapter}
  */
 Adapters.Local = function(db){
     this.db = db;

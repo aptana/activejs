@@ -52,17 +52,20 @@
                </li>
             </ul>
          </li>
-         <li class="closed"><span><a href="ActiveRecord.Adapters.html" target="content">ActiveRecord.Adapters</a></span><ul></ul>
-         </li>
-         <li class="closed"><span><a href="ActiveRecord.Adapters.HashTable.html" target="content">ActiveRecord.Adapters.HashTable</a></span><ul>
-               <li class="closed"><span><a href="ActiveRecord.Adapters.HashTable.html#ActiveRecord.Adapters.HashTable.Constructors" target="content">Constructors</a></span><ul>
-                     <li><span class="constructor constructor-instance" title=""><a href="ActiveRecord.Adapters.HashTable.html?visibility=#ActiveRecord.Adapters.HashTable." target="content">Constructor</a></span></li>
+         <li class="closed"><span><a href="ActiveRecord.Adapters.html" target="content">ActiveRecord.Adapters</a></span><ul>
+               <li class="closed"><span><a href="ActiveRecord.Adapters.html#ActiveRecord.Adapters.Properties" target="content">Properties</a></span><ul>
+                     <li><span class="property ActiveRecord.Adapter ActiveRecord.Adapter-static" title="Adapter for Adobe AIR."><a href="ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.AIR" target="content">AIR</a></span></li>
+                     <li><span class="property ActiveRecord.Adapter ActiveRecord.Adapter-static" title="In memory, non persistent storage."><a href="ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.HashTable" target="content">HashTable</a></span></li>
+                     <li><span class="property ActiveRecord.Adapter ActiveRecord.Adapter-static" title="Adapter for Jaxer configured with MySQL."><a href="ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerMySQL" target="content">JaxerMySQL</a></span></li>
+                     <li><span class="property ActiveRecord.Adapter ActiveRecord.Adapter-static" title="Adapter for Jaxer configured with SQLite"><a href="ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerSQLite" target="content">JaxerSQLite</a></span></li>
+                     <li><span class="property ActiveRecord.Adapter ActiveRecord.Adapter-static" title="Adapter for browsers supporting a SQL implementation (Gears, HTML5)."><a href="ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.Local" target="content">Local</a></span></li>
                   </ul>
                </li>
             </ul>
          </li>
          <li class="closed"><span><a href="ActiveRecord.Class.html" target="content">ActiveRecord.Class</a></span><ul>
                <li class="closed"><span><a href="ActiveRecord.Class.html#ActiveRecord.Class.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="Adds the validator to the _validators array of a given ActiveRecord.Class."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.addValidator" target="content">addValidator</a></span></li>
                      <li><span class="method method-static" title="options can contain all params that find() can"><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.average" target="content">average</a></span></li>
                      <li><span class="method method-static" title="Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.belongsTo" target="content">belongsTo</a></span></li>
                      <li><span class="method method-static" title="Identical to calling create(), but does not save the record."><a href="ActiveRecord.Class.html?visibility=#ActiveRecord.Class.build" target="content">build</a></span></li>
@@ -88,6 +91,7 @@
          </li>
          <li class="closed"><span><a href="ActiveRecord.Instance.html" target="content">ActiveRecord.Instance</a></span><ul>
                <li class="closed"><span><a href="ActiveRecord.Instance.html#ActiveRecord.Instance.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title=""><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.addError" target="content">addError</a></span></li>
                      <li><span class="method method-static" title="Removes the object from the database, but does not destroy the object in memory itself."><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.destroy" target="content">destroy</a></span></li>
                      <li><span class="method method-static" title="Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)"><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.get" target="content">get</a></span></li>
                      <li><span class="method method-static" title=""><a href="ActiveRecord.Instance.html?visibility=#ActiveRecord.Instance.getErrors" target="content">getErrors</a></span></li>
@@ -134,13 +138,16 @@
                </li>
                <li class="closed"><span><a href="ActiveRoutes.html#ActiveRoutes.Properties" target="content">Properties</a></span><ul>
                      <li><span class="property Function Function-instance" title="If no &#34;dispatcher&#34; key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)"><a href="ActiveRoutes.html?visibility=#ActiveRoutes.defaultDispatcher" target="content">defaultDispatcher</a></span></li>
+                     <li><span class="property Array Array-instance" title=""><a href="ActiveRoutes.html?visibility=#ActiveRoutes.history" target="content">history</a></span></li>
                   </ul>
                </li>
                <li class="closed"><span><a href="ActiveRoutes.html#ActiveRoutes.Functions" target="content">Functions</a></span><ul>
                      <li><span class="method method-instance" title="Add a new route to the route set."><a href="ActiveRoutes.html?visibility=#ActiveRoutes.addRoute" target="content">addRoute</a></span></li>
+                     <li><span class="method method-instance" title="Calls to the previous dispatched route in the history."><a href="ActiveRoutes.html?visibility=#ActiveRoutes.back" target="content">back</a></span></li>
                      <li><span class="method method-instance" title="Will match() the given path and call the dispatcher if one is found."><a href="ActiveRoutes.html?visibility=#ActiveRoutes.dispatch" target="content">dispatch</a></span></li>
                      <li><span class="method method-instance" title="If match() returns false, the error it generates can be retrieved with this function."><a href="ActiveRoutes.html?visibility=#ActiveRoutes.getError" target="content">getError</a></span></li>
                      <li><span class="method method-instance" title=""><a href="ActiveRoutes.html?visibility=#ActiveRoutes.match" target="content">match</a></span></li>
+                     <li><span class="method method-instance" title="Calls to the next dispatched route in the history if back() has already been called."><a href="ActiveRoutes.html?visibility=#ActiveRoutes.next" target="content">next</a></span></li>
                      <li><span class="method method-instance" title=""><a href="ActiveRoutes.html?visibility=#ActiveRoutes.urlFor" target="content">urlFor</a></span></li>
                   </ul>
                </li>

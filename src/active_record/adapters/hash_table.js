@@ -26,13 +26,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * @classDescription {ActiveRecord.Adapters.HashTable} In memory, non persistent storage.
- */
- 
-/**
- * @constructor
+ * In memory, non persistent storage.
  * @alias ActiveRecord.Adapters.HashTable
- * @param {Object} [storage]
+ * @property {ActiveRecord.Adapter}
  */
 Adapters.HashTable = function HashTable(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});

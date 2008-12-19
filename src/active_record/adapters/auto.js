@@ -26,8 +26,11 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
-* @classDescription {ActiveRecord.Adapters.Auto} Default adapter, will try to automatically pick the appropriate adapter for the current environment.
-*/ 
+ * Default adapter, will try to automatically pick the appropriate adapter
+ * for the current environment.
+ * @alias ActiveRecord.Adapters.HashTable
+ * @property {ActiveRecord.Adapter}
+ */
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {

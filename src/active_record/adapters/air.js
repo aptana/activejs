@@ -26,8 +26,10 @@
  * ***** END LICENSE BLOCK ***** */
  
 /**
- * @classDescription {ActiveRecord.Adapters.AIR} Adobe AIR adapter.
- */
+ * Adapter for Adobe AIR.
+ * @alias ActiveRecord.Adapters.AIR
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.AIR = function(connection){
     this.connection = connection;
     ActiveSupport.extend(this,Adapters.SQLite);

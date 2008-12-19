@@ -27,7 +27,7 @@
  
 /**
  * @namespace {ActiveRecord.Migrations}
- * 
+ * @example
  * Migrations are a method of versioining the database schema used by your
  * application. All of your migrations must be defined in an object assigned
  * to ActiveRecord.Migrations.migrations. The keys need not be numerically
@@ -286,8 +286,7 @@ var Migrations = {
         Finders.generateFindAllByField(model, 'id');
     },
     /**
-     * @namespace {ActiveRecord.Migrations.Schema}
-     * @classDescription {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
+     * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
      */
     Schema: {
         /**

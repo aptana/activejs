@@ -1267,178 +1267,343 @@ ActiveRecord = null;
 
 /**
  * @namespace {ActiveRecord}
- * @author Aptana Inc.
- * @version 1.0b1
- * @projectDescription
-
- * ActiveRecord.js is a cross browser, cross platform, stand-alone object relational mapper. It shares a very similar vocabulary to the Ruby ActiveRecord implementation, but uses JavaScript idioms and best practices -- it is not a direct port. Aptana's Jaxer platform (SQLite and MySQL) and Google Gears (SQLite) are the currently supported enviornments. Support for the HTML 5 SQL storage spec is planned.
+ * @example
  * 
- * To begin using ActiveRecord.js, you will need to include the activerecord.js file and establish a connection. Jaxer requires pre-configuring of the database for the entire application, and Gears automatically configures the database, so simply passing the type of connection is enough. In all of the SQLite implementations you can optionally specify a database name (browser) or path (Jaxer):
+ * ActiveRecord.js is a cross browser, cross platform, stand-alone object
+ * relational mapper. It shares a very similar vocabulary to the Ruby
+ * ActiveRecord implementation, but uses JavaScript idioms and best
+ * practices -- it is not a direct port. It can operate using an in memory
+ * hash table, or with a SQL back end on the Jaxer platform (SQLite and
+ * MySQL), Adobe's AIR (SQLite) and Google Gears (SQLite). Support
+ * for the HTML 5 SQL storage spec is planned.
  * 
- * 	ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
- * 	ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
- * 	ActiveRecord.connect(ActiveRecord.Adapters.Local,'my_database'); //Gears or HTML5, name is optional
+ * Setup
+ * -----
+ * To begin using ActiveRecord.js, you will need to include the
+ * activerecord.js file and establish a connection, if you do not specify
+ * a connection type, one will be automatically chosen.
  * 
+ *     ActiveRecord.connect();
+ * 
+ * You can also specify a specific type of adapter. Jaxer requires
+ * pre-configuring of the database for the entire application, and Gears
+ * automatically configures the database, so simply passing the type of
+ * connection is enough. In all of the SQLite implementations you can
+ * optionally specify a database name (browser) or path (Jaxer):
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable); //in memory
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
+ *     ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
+ *     ActiveRecord.connect(ActiveRecord.Adapters.Local,'my_database'); //Gears or HTML5, name is optional
+ *     
  * Once connected you can always execute SQL statements directly:
  * 
- * 	ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY, user_id, title, text)');
- * 	
+ *     ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY, user_id, title, text)');
+ *     
  * Logging (to either the Jaxer log or browser console) can be turned on by setting:
  * 
- * 	ActiveRecord.logging = true;
+ *     ActiveRecord.logging = true;
  * 
- * The only rule for all ActiveRecord classes is that the related table in the database must have an auto incrimenting 'id' property. If you are working with a database table that already exists, you can create a model psuedo-class using the create() method, passing the table name as the first parameter, and any methods you want to define on that class as the second paramter:
+ * HashTable Adapter
+ * -----------------
+ * If you are using a browser or platform that does not have access to a SQL
+ * database, you can use the HashTable adapter which will store your objects
+ * in memory. All features (including find by SQL) will still work, but you
+ * will not be able to use the Migration features, since there are no table
+ * schema. Since your objects will not persist, the second parameter to
+ * establish a connection is a hash with the data you would like to use
+ * in this format: {table_name: {id: row}}. The HashTable adapter will also
+ * trigger three observable events that allow you to write an AJAX
+ * persistence layer.
  * 
- * 	var Post = ActiveRecord.create('posts',{
- * 		getWordCount: function(){
- * 			return this.get('text').split(/\s+/).length;
- * 		}
- * 	});
+ *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable,{
+ *         table_one: {
+ *             1: {row_data},
+ *             2: {row_data}
+ *         },
+ *         table_two: {
+ *             1: {row_data},
+ *             2: {row_data}
+ *         }
+ *     });
  * 
- * This both returns the class, and stores it inside ActiveRecord.Models.Post. If the table for your model does not yet exist you can use the define() method which takes the desired table as the first argument, the fields as the second and the methods as the third:
+ *     ActiveRecord.connection.observe('created',function(table_name,id,data){});
+ *     ActiveRecord.connection.observe('updated',function(table_name,id,data){});
+ *     ActiveRecord.connection.observe('destroyed',function(table_name,id){});
+ *     
+ * Defining Your Model
+ * -------------------
+ * The only rule for all ActiveRecord classes is that the related table in the
+ * database must have an auto incrimenting 'id' property. If you are working
+ * with a database table that already exists, you can create a model psuedo-class
+ * using the create() method, passing the table name as the first parameter, and
+ * any methods you want to define on that class as the second paramter:
  * 
- * 	var User = ActiveRecord.define('users',{
- * 		username: '',
- * 		password: '',
- * 		post_count: 0,
- * 		profile: {
- * 			type: 'TEXT',
- * 			value: ''
- * 		}
- * 	},{
- * 		getFormattedProfile: function(){
- * 			return Markdown.format(this.get('profile'));
- * 		}
- * 	});
+ *     var Post = ActiveRecord.create('posts',{
+ *         getWordCount: function(){
+ *             return this.get('text').split(/\s+/).length;
+ *         }
+ *     });
  * 
- * JavaScript does not have true static methods or classes, but in this case any method of the User variable above is refered to as a class method, and any method of a particular user (that the User class would find) is refered to as an instance method. The most important class methods as create() and find():
+ * This both returns the class, and stores it inside ActiveRecord.Models.Post. If
+ * the table for your model does not yet exist you can use the define() method
+ * which takes the desired table as the first argument, the fields as the second
+ * and the methods as the third:
  * 
- * 	var jessica = User.create({
- * 		username: 'Jessica',
- * 		password: 'rabbit'
- * 	});
- * 	
- * It is extremely important to note that all of the attributes/columns of the user are accessible directly for reading (for convenience), but cannot be written directly. You <b>must</b> use the set() method to set an attribute, you <b>should</b> use the get() method to access all attributes, but you <b>must</b> use the get() method if your attribute/column is a method of the object or a JavaScript reserved keyword ('save,'initialize','default', etc). 
+ *     var User = ActiveRecord.define('users',{
+ *         username: '',
+ *         password: '',
+ *         post_count: 0,
+ *         profile: {
+ *             type: 'TEXT',
+ *             value: ''
+ *         }
+ *     },{
+ *         getFormattedProfile: function(){
+ *             return Markdown.format(this.get('profile'));
+ *         }
+ *     });
  * 
- * 	jessica.username // 'Jessica'
- * 	jessica.get('username'); // 'Jessica'
- * 	jessica.username = 'new username';
- * 	jessica.get('username'); // 'Jessica'
- * 	jessica.set('username','new username');
- * 	jessica.get('username'); // 'new username'
+ * Class & Instance Methods
+ * ------------------------
+ * JavaScript does not have true static methods or classes, but in this case any
+ * method of the User variable above is refered to as a class method, and any
+ * method of a particular user (that the User class would find) is refered to as
+ * an instance method. The most important class methods as create() and find():
  * 
- * If you created the User class using the define() method you automatically have free "finder" methods:
- * 	
- * 	User.findByUsername('Jessica');
- * 	User.findAllByPassword(''); //finds all with blank passwords
- * 	
- * Otherwise you can use the base find() method, which takes a hash of options, a numeric id or a complete SQL string:
+ *     var jessica = User.create({
+ *         username: 'Jessica',
+ *         password: 'rabbit'
+ *     });
  * 
- * 	var posts = Post.find({
- * 		all: true,
- * 		order: 'id DESC',
- * 		limit: 10
- * 	});
- * 	
- * There are 7 currently supported lifecycle events which allow granular control over your data, and are convenient to build user interface components and interactions around on the client side:
+ * To add new class or instance methods to all ActiveRecord models in the following
+ * way:
  * 
- * 	- afterInitialize
- * 	- beforeSave
- * 	- afterSave
- * 	- beforeCreate
- * 	- afterCreate
- * 	- beforeDestroy
- * 	- afterDestroy
+ *     ActiveRecord.ClassMethods.myClassMethod = function(){
+ *         //this == model class
+ *     };
+ *     ActiveRecord.InstanceMethods.myInstanceMethod = function(){
+ *         // this == model instance
+ *     };
  * 
- * beforeSave and afterSave are called when both creating (inserting) and saving (updating) a record. You can observe events on all instances of a class, or just a particular instnace:
+ * Getters & Setters
+ * -----------------
+ * It is extremely important to note that all of the attributes/columns of the user
+ * are accessible directly for reading (for convenience), but cannot be written
+ * directly. You **must** use the set() method to set an attribute, you **should**
+ * use the get() method to access all attributes, but you **must** use the get()
+ * method if your attribute/column is a method of the object or a JavaScript
+ * reserved keyword ('save,'initialize','default', etc).
  * 
- * 	User.observe('afterCreate',function(user){
- * 		console.log('User with id of ' + user.id + ' was created.');
- * 	});
- * 	
- * 	var u = User.find(5);
- * 	u.observe('afterDestroy',function(){
- * 		//this particular user was destroyed
- * 	});
+ *     jessica.username // 'Jessica'
+ *     jessica.get('username'); // 'Jessica'
+ *     jessica.username = 'new username';
+ *     jessica.get('username'); // 'Jessica'
+ *     jessica.set('username','new username');
+ *     jessica.get('username'); // 'new username'
  * 
- * In the example above, each user that is created will be passed to the first callback. You can also call stopObserving() to remove a given observer, and use the observeOnce() method (same arguments as observe()) method if needed. Alternately, each event name is also a convience method and the following example is functionally equivelent to the prior example:
+ * When Data is Persisted
+ * ----------------------
+ * Data is only persisted to the database in three cases: when you explicitly call
+ * save() on a record, when you call create() on a record, or create a child record
+ * through a relationship (the method will contain the word "create" in this case),
+ * or when you call updateAttribute() on a record. In the case of the latter, only
+ * the attribute you update will be saved, the rest of the record will not be
+ * persisted to the database, even if changes have been made. Calling save() may
+ * add an "id" property to the record if it does not exist, but if there are no
+ * errors, it's state will otherwise be unchanged. You can call refresh() on any
+ * record to ensure it is not out of synch with your DB at any time.
  * 
- * 	User.afterCreate(function(user){
- * 		console.log('User with id of ' + user.id + ' was created.');
- * 	});
- * 	
- * 	var u = User.find(5);
- * 	u.afterDestroy(function(){
- * 		//this particular user was destroyed
- * 	});
+ * Finding Records
+ * ---------------
+ * If you created the User class using the define() method you automatically have
+ * free "finder" methods:
  * 
- * You can stop the creation, saving or destruction of a record by throwing the $break variable inside any observers of the beforeCreate, beforeSave and beforeDestroy events respectively:
+ *     User.findByUsername('Jessica');
+ *     User.findAllByPassword(''); //finds all with blank passwords
  * 
- * 	User.beforeDestroy(function(user){
- * 		if(!allow_deletion_checkbox.checked){
- * 			throw $break; //record will not be destroyed
- * 		}
- * 	});
+ * Otherwise you can use the base find() method, which takes a hash of options,
+ * a numeric id or a complete SQL string:
  * 
- * ActiveRecord.js will not support all of the advanced features of the Ruby ActiveRecord implementation, but several key features are currently missing and will be added soon:
+ *     var posts = Post.find({
+ *         all: true,
+ *         order: 'id DESC',
+ *         limit: 10
+ *     });
  * 
- * 	- complete set o f default validations from ActiveRecord::Validations::ClassMethods
- * 	- ActsAsList
- * 	- ActsAsTree
- * 	- hasMany :through (which will likely be the only supported many to many relationship)
+ * Synchronization
+ * ---------------
+ * It is sometimes useful to keep records that have already been found in synch
+ * with the database. Each found record has a synchronize() method that will keep
+ * the values of that record in synch with the database. If you pass the parameter
+ * synchronize: true to find(), all objects will have their values synchronized,
+ * and in addition the result set itself will update as objects are destroyed or
+ * created. Both features are relatively expensive operations, and are not
+ * automatically garbage collected / stopped when the record or result set goes
+ * out of scope, so you will need to explicitly stop both record and result set
+ * synchronization.
  * 
+ *     var aaron = User.findByName('aaron');
+ *     aaron.synchronize();
+ * 
+ *     var aaron_clone = User.findByName('aaron');
+ *     aaron_clone.set('name','Aaron!');
+ *     aaron_clone.save();
+ * 
+ *     aaron.get('name') == 'Aaron!';
+ *     aaron.stop(); //record will no longer be synchronized
+ * 
+ *     var users = User.find({
+ *         all: true,
+ *         synchronize: true
+ *     });
+ *     //users contains aaron
+ *     aaron.destroy();
+ *     //users will no longer contain aaron
+ *     users.stop(); //result set will no longer be synchronized
+ * 
+ * Lifecycle
+ * ---------
+ * There are 8 currently supported lifecycle events which allow granular control
+ * over your data, and are convenient to build user interface components and
+ * interactions around on the client side:
+ * 
+ * - afterFind
+ * - afterInitialize
+ * - beforeSave
+ * - afterSave
+ * - beforeCreate
+ * - afterCreate
+ * - beforeDestroy
+ * - afterDestroy
+ * 
+ * beforeSave and afterSave are called when both creating (inserting) and saving
+ * (updating) a record. You can observe events on all instances of a class, or
+ * just a particular instnace:
+ * 
+ *     User.observe('afterCreate',function(user){
+ *         console.log('User with id of ' + user.id + ' was created.');
+ *     });
+ * 
+ *     var u = User.find(5);
+ *     u.observe('afterDestroy',function(){
+ *         //this particular user was destroyed
+ *     });
+ * 
+ * In the example above, each user that is created will be passed to the first
+ * callback. You can also call stopObserving() to remove a given observer, and
+ * use the observeOnce() method (same arguments as observe()) method if needed.
+ * Alternately, each event name is also a convience method and the following
+ * example is functionally equivelent to the prior example:
+ * 
+ *     User.afterCreate(function(user){
+ *         console.log('User with id of ' + user.id + ' was created.');
+ *     });
+ * 
+ *     var u = User.find(5);
+ *     u.afterDestroy(function(){
+ *         //this particular user was destroyed
+ *     });
+ * 
+ * You can stop the creation, saving or destruction of a record by throwing the
+ * $break variable inside any observers of the beforeCreate, beforeSave and
+ * beforeDestroy events respectively:
+ * 
+ *     User.beforeDestroy(function(user){
+ *         if(!allow_deletion_checkbox.checked){
+ *             throw $break; //record will not be destroyed
+ *         }
+ *     });
+ *     
+ * To observe a given event on all models, you can do the following: 
+ * 
+ *     ActiveRecord.observe('created',function(model_class,model_instance){});
+ *     
+ * afterFind works differently than all of the other events. It is only available
+ * to the model class, not the instances, and is called only when a result set is
+ * found. A find first, or find by id call will not trigger the event.
+ * 
+ *     User.observe('afterFind',function(users,params){
+ *         //params contains the params used to find the array of users
+ *     });
+ *     
+ * Validation
+ * ----------
+ * Validation is performed on each model instance when create() or save() is
+ * called. Validation can be applied either by using pre defined validations
+ * (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by
+ * defining a valid() method in the class definition. (or by both). If a record is
+ * not valid, save() will return false. create() will always return the record,
+ * but in either case you can call getErrors() on the record to determine if
+ * there are any errors present.
+ * 
+ *     User = ActiveRecord.define('users',{
+ *         username: '',
+ *         password: ''
+ *     },{
+ *         valid: function(){
+ *             if(User.findByUsername(this.username)){
+ *                 this.addError('The username ' + this.username + ' is already taken.');
+ *             }
+ *         }
+ *     });
+ * 
+ *     User.validatesPresenceOf('password');
+ * 
+ *     var user = User.build({
+ *         'username': 'Jessica'
+ *     });
+ * 
+ *     user.save(); //false
+ *     var errors = user.getErrors(); //contains a list of the errors that occured
+ *     user.set('password','rabbit');
+ *     user.save(); //true
+ *     
  * Relationships
  * -------------
+ * Relationships are declared with one of three class methods that are available
+ *  to all models:
  * 
- * Relationships are declared with one of three class methods that are available to all models:
+ * - belongsTo
+ * - hasMany
+ * - hasOne
  * 
- * 	- belongsTo
- * 	- hasMany
- * 	- hasOne
+ * The related model name can be specified in a number of ways, assuming that you
+ * have a Comment model already declared, any of the following would work:
  * 
- * The related model name can be specified in a number of ways, assuming that you have a Comment model already declared, any of the following would work:
+ *     User.hasMany(Comment)
+ *     User.hasMany('Comment')
+ *     User.hasMany('comment')
+ *     User.hasMany('comments')
  * 
- * 	- User.hasMany(Comment)
- * 	- User.hasMany('Comment')
- * 	- User.hasMany('comment')
- * 	- User.hasMany('comments')
+ * Each relationship adds various instance methods to each instance of that
+ * model. This differs significantly from the Rails "magical array" style of
+ * handling relatioship logic:
  * 
- * Each relationship adds various instance methods to each instance of that model. This differs significantly from the Rails "magical array" style of handling relatioship logic:
- * 	
- * 	Rails:
- * 		u = User.find(5)
- * 		u.comments.length
- * 		u.comments.create :title => 'comment title'
- * 	
- * 	ActiveRecord.js:
- * 		var u = User.find(5);
- * 		u.getCommentList().length;
- * 		u.createComment({title: 'comment title'});
+ * Rails:
  * 
- * Validations
- * -----------
- * * Validation is performed on each model instance when create() or save() is called. Validation can be applied either by using pre defined validations (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by defining a valid() method in the class definition. (or by both). If a record is not valid, save() will return false. create() will always return the record, but in either case you can call getErrors() on the record to determine if there are any errors present.
+ *     u = User.find(5)
+ *     u.comments.length
+ *     u.comments.create :title => 'comment title'
  * 
- * 	   User = ActiveRecord.define('users',{
- * 		   username: '',
- * 	       password: ''
- * 	   },{
- * 		   valid: function(){
- * 		      if(User.findByUsername(this.username)){
- * 			      this.addError('The username ' + this.username + ' is already taken.');
- * 			  }
- * 	       }
- * 	   });
- * 	   User.validatesPresenceOf('password');
- * 	   var user = User.build({
- * 	       'username': 'Jessica'
- * 	   });
- * 	   user.save(); //false
- * 	   var errors = user.getErrors(); //contains a list of the errors that occured
- *     user.set('password','rabbit');
- * 	   user.save(); //true
- 
- */
+ * ActiveRecord.js:
+ * 
+ *     var u = User.find(5);
+ *     u.getCommentList().length;
+ *     u.createComment({title: 'comment title'});
+ *     
+ * Missing Features
+ * ----------------
+ * ActiveRecord.js will not support all of the advanced features of the Ruby
+ * ActiveRecord implementation, but several key features are currently missing
+ * and will be added soon:
+ * 
+ * - complete set of default validations from ActiveRecord::Validations::ClassMethods
+ * - ActsAsList
+ * - ActsAsTree
+ * - hasMany :through (which will likely be the only supported many to many relationship)
+*/
 ActiveRecord = {
     /**
      * Defaults to false.
@@ -1797,30 +1962,6 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
      * Find a given record, or multiple records matching the passed conditions.
-     * @example
-     * <pre>
-     *      var user = User.find(5); //finds a single record
-     *      var user = User.find({
-     *          first: true,
-     *          where: {
-     *              id: 5
-     *          }
-     *      });
-     *      var users = User.find(); //finds all
-     *      var users = User.find({
-     *          where: 'name = "alice" AND password = "' + md5('pass') + '"',
-     *          order: 'id DESC'
-     *      });
-     *      //using the where syntax below, the parameters will be properly escaped
-     *      var users = User.find({
-     *          where: {
-     *              name: 'alice',
-     *              password: md5('pass')
-     *          }
-     *          order: 'id DESC'
-     *      });
-     *      var users = User.find('SELECT * FROM users ORDER id DESC');
-     * </pre>
      * @alias ActiveRecord.Class.find
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
@@ -1830,8 +1971,32 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *          order: String
      *          limit: Number
      *          offset: Number
+     *          synchronize: Boolean
      * @return {mixed}
      *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
+     * @example
+     *
+     *     var user = User.find(5); //finds a single record
+     *     var user = User.find({
+     *         first: true,
+     *         where: {
+     *             id: 5
+     *         }
+     *     });
+     *     var users = User.find(); //finds all
+     *     var users = User.find({
+     *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
+     *         order: 'id DESC'
+     *     });
+     *     //using the where syntax below, the parameters will be properly escaped
+     *     var users = User.find({
+     *         where: {
+     *             name: 'alice',
+     *             password: md5('pass')
+     *         }
+     *         order: 'id DESC'
+     *     });
+     *     var users = User.find('SELECT * FROM users ORDER id DESC');
      */
     find: function find(params)
     {
@@ -1925,17 +2090,15 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         return record;
     },
     /**
-     * @example
-     * <pre>
-     *      var u = User.create({
-     *          name: 'alice',
-     *          password: 'pass'
-     *      });
-     *      u.id //will now contain the id of the user
-     * </pre>
      * @alias ActiveRecord.Class.create
      * @param {Object} data 
      * @return {ActiveRecord.Instance}
+     * @example
+     *     var u = User.create({
+     *         name: 'alice',
+     *         password: 'pass'
+     *     });
+     *     u.id //will now contain the id of the user
      */
     create: function create(data)
     {
@@ -1944,21 +2107,20 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         return record;
     },
     /**
-     * @example
-     * <pre>
-     *      Article.update(3,{
-     *          title: 'New Title'
-     *      });
-     *      //or pass an array of ids and an array of attributes
-     *      Article.update([5,7],[
-     *          {title: 'Title for 5'},
-     *          {title: 'Title for 7'}
-     *      ]);
-     * </pre>
      * @alias ActiveRecord.Class.update
      * @param {Number} id
      * @param {Object} attributes
      * @return {ActiveRecord.Instance}
+     * @example
+     * 
+     *     Article.update(3,{
+     *         title: 'New Title'
+     *     });
+     *     //or pass an array of ids and an array of attributes
+     *     Article.update([5,7],[
+     *         {title: 'Title for 5'},
+     *         {title: 'Title for 7'}
+     *     ]);
      */
     update: function update(id, attributes)
     {
@@ -1991,19 +2153,17 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
-     * @example
-     * <pre>
-     *      Account.transaction(function(){
-     *          var from = Account.find(2);
-     *          var to = Account.find(3);
-     *          to.despoit(from.withdraw(100.00));
-     *      });
-     * </pre>
      * @alias ActiveRecord.Class.transaction
      * @param {Function} proceed
      *      The block of code to execute inside the transaction.
      * @param {Function} [error]
      *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+     * @example
+     *     Account.transaction(function(){
+     *         var from = Account.find(2);
+     *         var to = Account.find(3);
+     *         to.despoit(from.withdraw(100.00));
+     *     });
      */
     transaction: function transaction(proceed,error)
     {
@@ -2135,16 +2295,16 @@ ActiveRecord.connection = null;
 
 /**
  * Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.
- * @example
- * <pre>
- *      ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *      ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
- *      ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
- *      //or you can have ActiveRecord try to auto detect the enviornment
- *      ActiveRecord.connect();
- * </pre>
  * @alias ActiveRecord.connect
  * @param {Object} adapter
+ * @param {mixed} [args]
+ * @example
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
+ *     ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
+ *     //or you can have ActiveRecord try to auto detect the enviornment
+ *     ActiveRecord.connect();
  */
 ActiveRecord.connect = function connect(adapter)
 {   
@@ -2164,13 +2324,12 @@ ActiveRecord.connect = function connect(adapter)
 
 /**
  * Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.
- * @example
- * <pre>
- *      ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
- * </pre>
  * @alias ActiveRecord.execute
  * @param {String} sql
  * @return {mixed}
+ * @example
+ *
+ *     ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
  */
 ActiveRecord.execute = function execute()
 {
@@ -2520,8 +2679,10 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
 });
 
 /**
- * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, MySQL.
- */
+ * Adapter for Jaxer configured with MySQL.
+ * @alias ActiveRecord.Adapters.JaxerMySQL
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.JaxerMySQL = function(){
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{
@@ -2612,8 +2773,10 @@ Adapters.JaxerMySQL.connect = function connect(options)
 };
  
 /**
- * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, SQLite.
- */
+ * Adapter for Jaxer configured with SQLite
+ * @alias ActiveRecord.Adapters.JaxerSQLite
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.JaxerSQLite = function(){
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
@@ -2691,7 +2854,9 @@ Adapters.JaxerSQLite.connect = function connect(path)
 };
  
 /**
- * @classDescription {ActiveRecord.Adapters.Local} Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ * @alias ActiveRecord.Adapters.Local
+ * @property {ActiveRecord.Adapter}
  */
 Adapters.Local = function(db){
     this.db = db;
@@ -2914,8 +3079,10 @@ Adapters.Local.connect = function connect(name, version, display_name, size)
 };
  
 /**
- * @classDescription {ActiveRecord.Adapters.AIR} Adobe AIR adapter.
- */
+ * Adapter for Adobe AIR.
+ * @alias ActiveRecord.Adapters.AIR
+ * @property {ActiveRecord.Adapter}
+ */ 
 Adapters.AIR = function(connection){
     this.connection = connection;
     ActiveSupport.extend(this,Adapters.SQLite);
@@ -3006,13 +3173,9 @@ Adapters.AIR.connect = function connect(path)
 };
 
 /**
- * @classDescription {ActiveRecord.Adapters.HashTable} In memory, non persistent storage.
- */
- 
-/**
- * @constructor
+ * In memory, non persistent storage.
  * @alias ActiveRecord.Adapters.HashTable
- * @param {Object} [storage]
+ * @property {ActiveRecord.Adapter}
  */
 Adapters.HashTable = function HashTable(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
@@ -3425,8 +3588,11 @@ Adapters.HashTable.connect = function(storage){
 };
  
 /**
-* @classDescription {ActiveRecord.Adapters.Auto} Default adapter, will try to automatically pick the appropriate adapter for the current environment.
-*/ 
+ * Default adapter, will try to automatically pick the appropriate adapter
+ * for the current environment.
+ * @alias ActiveRecord.Adapters.HashTable
+ * @property {ActiveRecord.Adapter}
+ */
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {
@@ -4414,7 +4580,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
  
 /**
  * @namespace {ActiveRecord.Migrations}
- * 
+ * @example
  * Migrations are a method of versioining the database schema used by your
  * application. All of your migrations must be defined in an object assigned
  * to ActiveRecord.Migrations.migrations. The keys need not be numerically
@@ -4673,8 +4839,7 @@ var Migrations = {
         Finders.generateFindAllByField(model, 'id');
     },
     /**
-     * @namespace {ActiveRecord.Migrations.Schema}
-     * @classDescription {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
+     * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
      */
     Schema: {
         /**
@@ -4740,7 +4905,6 @@ ActiveRecord.Migrations = Migrations;
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
     /**
      * Adds the validator to the _validators array of a given ActiveRecord.Class.
-     * @private
      * @alias ActiveRecord.Class.addValidator
      * @param {Function} validator
      */
@@ -4797,7 +4961,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
 });
 ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
-     * @private
      * @alias ActiveRecord.Instance.addError
      * @param {String} message
      * @param {String} field_name

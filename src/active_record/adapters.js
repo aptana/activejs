@@ -41,16 +41,16 @@ ActiveRecord.connection = null;
 
 /**
  * Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.
- * @example
- * <pre>
- *      ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *      ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
- *      ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
- *      //or you can have ActiveRecord try to auto detect the enviornment
- *      ActiveRecord.connect();
- * </pre>
  * @alias ActiveRecord.connect
  * @param {Object} adapter
+ * @param {mixed} [args]
+ * @example
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
+ *     ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
+ *     //or you can have ActiveRecord try to auto detect the enviornment
+ *     ActiveRecord.connect();
  */
 ActiveRecord.connect = function connect(adapter)
 {   
@@ -70,13 +70,12 @@ ActiveRecord.connect = function connect(adapter)
 
 /**
  * Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.
- * @example
- * <pre>
- *      ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
- * </pre>
  * @alias ActiveRecord.execute
  * @param {String} sql
  * @return {mixed}
+ * @example
+ *
+ *     ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
  */
 ActiveRecord.execute = function execute()
 {
