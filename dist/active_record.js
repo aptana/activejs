@@ -1260,7 +1260,7 @@ ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,sc
 };
 
 })();
-
+ 
 ActiveRecord = null;
 
 (function() {

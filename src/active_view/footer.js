@@ -25,4 +25,4 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveRoutes = null;
+})();

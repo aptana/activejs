@@ -24,7 +24,5 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
-ActiveRoutes = null;
 
-(function() {
+ActiveTest.Tests.View = {};

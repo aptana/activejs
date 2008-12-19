@@ -1260,3 +1260,354 @@ ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,sc
 };
 
 })();
+
+ActiveView = null;
+
+(function(){
+
+ActiveView = {};
+
+ActiveView.create = function create(structure,methods)
+{
+    if(typeof(options) == 'function')
+    {
+        options = {
+            structure: options
+        };
+    }
+    var klass = function klass(){
+        this.initialize.apply(this,arguments);
+    };
+    ActiveSupport.extend(klass,ClassMethods);
+    ActiveSupport.extend(klass.prototype,methods || {});
+    ActiveSupport.extend(klass.prototype,InstanceMethods);
+    klass.prototype.structure = structure || ActiveView.defaultStructure;
+    ActiveEvent.extend(klass);
+    return klass;
+};
+
+ActiveView.defaultStructure = function defaultStructure()
+{
+    return document.createElement('div');
+};
+
+ActiveView.makeArrayObservable = function makeArrayObservable(array)
+{
+    ActiveEvent.extend(array);
+    array.makeObservable('shift');
+    array.makeObservable('unshift');
+    array.makeObservable('pop');
+    array.makeObservable('push');
+    array.makeObservable('splice');
+};
+
+var InstanceMethods = {
+    initialize: function initialize(scope,parent)
+    {
+        this.parent = parent;
+        this.scope = scope || {};
+        if(!this.scope.get || typeof(this.scope.get) != 'function')
+        {
+            this.scope = new ObservableHash(this.scope);
+        }
+        this.builder = Builder.generateBuilder(this);
+        this.binding = new Binding(this);
+        for(var key in this.scope._object)
+        {
+            if(Object.isArray(this.scope._object[key]) && !this.scope._object[key].observe)
+            {
+                ActiveView.makeArrayObservable(this.scope._object[key]);
+            }
+        }
+        this.container = this.structure();
+        for(var key in this.scope._object)
+        {
+            this.scope.set(key,this.scope._object[key]);
+        }
+    },
+    get: function get(key)
+    {
+        this.notify('get',key);
+        return this.scope.get(key);
+    },
+    set: function set(key,value)
+    {
+        var response = this.scope.set(key,value);
+        this.notify('set',key,value);
+        return response;
+    },
+    registerEventHandler: function registerEventHandler(element,event_name,observer)
+    {
+      this.eventHandlers.push([element,event_name,observer]);
+    }
+};
+
+var ClassMethods = {
+
+};
+
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveView.ObservableHash = ObservableHash;
+
+var Builder = {
+    tags: ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
+        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
+        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
+        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
+        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
+        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/),
+    createElement: function createElement(tag,attributes,view)
+    {
+        var ie = !!(window.attachEvent && !window.opera);
+        attributes = attributes || {};
+        tag = tag.toLowerCase();
+        if(ie && attributes.name)
+        {
+            tag = '<' + tag + ' name="' + attributes.name + '">';
+            delete attributes.name;
+        }
+        var element = document.createElement(tag)
+        Builder.writeAttribute(element,attributes);
+        return element;
+    },
+    writeAttribute: function writeAttribute(element,name,value)
+    {
+        var transitions = {
+            className: 'class',
+            htmlFor:   'for'
+        };
+        var attributes = {};
+        if(typeof name == 'object')
+        {
+            attributes = name;
+        }
+        else
+        {
+            attributes[name] = typeof(value) == 'undefined' ? true : value;
+        }
+        for(var attribute_name in attributes)
+        {
+            name = transitions[attribute_name] || attribute_name;
+            value = attributes[attribute_name];
+            if(value === false || value === null)
+            {
+                element.removeAttribute(name);
+            }
+            else if(value === true)
+            {
+                element.setAttribute(name,name);
+            }
+            else
+            {
+                element.setAttribute(name,value);
+            }
+        }
+        return element;
+    },
+    generateBuilder: function generateBuilder(view)
+    {
+        var builder;
+        builder = {};
+        ActiveSupport.extend(builder,Builder.InstanceMethods);
+        for(var t = 0; t < Builder.tags.length; ++t)
+        {
+            var tag = Builder.tags[t];
+            (function tag_iterator(tag){
+                builder[tag.toLowerCase()] = builder[tag] = function tag_generator(){
+                    var i, argument, attributes, elements, element;
+                    text_nodes = [];
+                    elements = [];
+                    for(i = 0; i < arguments.length; ++i)
+                    {
+                        argument = arguments[i];
+                        if(typeof(argument) == 'function')
+                        {
+                            argument = argument();
+                        }
+                        if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                        {
+                            attributes = argument;
+                        }
+                        else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                        {
+                            elements = argument;
+                        }
+                        else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                        {
+                            elements.push(argument);
+                        }
+                    }
+                    element = Builder.createElement(tag,attributes,view);
+                    for(i = 0; i < elements.length; ++i)
+                    {
+                        element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : document.createTextNode((new String(elements[i])).toString()));
+                    }
+                    return element;
+                };
+            })(tag);
+        }
+        return builder;
+    }
+};
+
+Builder.InstanceMethods = {};
+ActiveView.Builder = Builder;
+
+var Binding = function Binding(view)
+{
+    this.view = view;
+};
+
+ActiveSupport.extend(Binding,{
+    
+});
+
+ActiveSupport.extend(Binding.prototype,{
+    update: function update(element)
+    {
+        return {
+            from: ActiveSupport.bind(function from(observe_key)
+            {
+                var transformation = null;
+                var condition = function default_condition(){
+                    return true;
+                };
+                
+                var transform = function transform(callback)
+                {
+                    transformation = callback;
+                    return {
+                        when: when
+                    };
+                };
+
+                var when = function when(callback)
+                {
+                    condition = callback;
+                    return {
+                        transform: transform
+                    };
+                };
+
+                this.view.scope.observe('set',function update_from_observer(set_key,value){
+                    if(observe_key == set_key)
+                    {
+                        if(condition())
+                        {
+                            element.innerHTML = transformation ? transformation(value) : value;
+                        }
+                    }
+                });
+                return {
+                    transform: transform,
+                    when: when
+                };
+            },this)
+        }
+    },
+    collect: function collect(view)
+    {
+        /*
+        var view = function(){
+            var response = view_callback.apply(view_callback,arguments);
+            if(typeof(response) == 'string')
+            {
+                response = document.createTextNode(response);
+            }
+            return response;
+        };
+        */
+        return {
+            from: ActiveSupport.bind(function from(collection)
+            {
+                if(typeof(collection) == 'string')
+                {
+                    collection = this.view.scope.get(collection);
+                }
+                return {
+                    into: function into(element)
+                    {
+                        var collected_elements = [];
+                        for(var i = 0; i < collection.length; ++i)
+                        {
+                            element.insert(view(collection[i]));
+                            collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                        }
+                        collection.observe('pop',function pop_observer(){
+                            collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
+                            collected_elements.pop();
+                        });
+                        collection.observe('push',function push_observer(item){
+                            element.insert(view(item));
+                            collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                        });
+                        collection.observe('unshift',function unshift_observer(item){
+                            element.insert({top: view(item)});
+                            collected_elements.unshift(element.firstChild);
+                        });
+                        collection.observe('shift',function shift_observer(){
+                            element.removeChild(element.firstChild);
+                            collected_elements.shift(element.firstChild);
+                        });
+                        collection.observe('splice',function splice_observer(index,to_remove){
+                            var children = [];
+                            var i;
+                            for(i = 2; i < arguments.length; ++i)
+                            {
+                                children.push(arguments[i]);
+                            }
+                            if(to_remove)
+                            {
+                                for(i = index; i < (index + to_remove); ++i)
+                                {
+                                    collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                }
+                            }
+                            for(i = 0; i < children.length; ++i)
+                            {
+                                var item = view(children[i]);
+                                if(index == 0 && i == 0)
+                                {
+                                    element.insert({top: item});
+                                    children[i] = element.firstChild;
+                                }
+                                else
+                                {
+                                    element.insertBefore(typeof(item) == 'string' ? document.createTextNode(item) : item,element.childNodes[index + i]);
+                                    children[i] = element.childNodes[i + 1];
+                                }
+                            }
+                            collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
+                        });
+                    }
+                };
+            },this)
+        };
+    }
+});
+
+})();

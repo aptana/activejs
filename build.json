@@ -42,6 +42,7 @@
 		"output": "dist/active_event.js",
 		"files": [
 			  "license.txt"
+			, "src/active_support.js"
 			, "src/active_event.js"
 		]
 	},
@@ -61,7 +62,6 @@
 		"files": [
 				  "license.txt"
 				, "src/active_support.js"
-				, "src/active_routes/init.js"
 				, "src/active_routes/header.js"
 				, "src/active_routes/main.js"
 				, "src/active_routes/errors.js"
@@ -89,7 +89,6 @@
 			  "license.txt"
 			, "src/active_support.js"
 			, "src/active_event.js"
-			, "src/active_record/init.js"
 			, "src/active_record/header.js"
 			, "src/active_record/main.js"
 			, "src/active_record/lifecycle.js"
@@ -129,13 +128,40 @@
 	},
 	
 	{
-		"name": "active_js",
-		"output": "dist/active.js",
+		"name": "active_view",
+		"output": "dist/active_view.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
 			, "src/active_event.js"
-			, "src/active_routes/init.js"
+			, "src/active_view/header.js"
+			, "src/active_view/main.js"
+			, "src/active_view/observable_hash.js"
+			, "src/active_view/builder.js"
+			, "src/active_view/binding.js"
+			, "src/active_view/footer.js"
+		]
+	},
+	{
+		"name": "active_view_packed",
+		"output": "dist/active_view.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_view.js"
+		]
+	},
+	
+	{
+		"name": "active_js",
+		"output": "dist/active.js",
+		"files": [
+			  "license.txt"
+			  
+			, "src/active_support.js"
+			
+			, "src/active_event.js"
+			
 			, "src/active_routes/header.js"
 			, "src/active_routes/main.js"
 			, "src/active_routes/errors.js"
@@ -144,7 +170,7 @@
 			, "src/active_routes/validations.js"
 			, "src/active_routes/generator.js"
 			, "src/active_routes/footer.js"
-			, "src/active_record/init.js"
+			
 			, "src/active_record/header.js"
 			, "src/active_record/main.js"
 			, "src/active_record/lifecycle.js"
@@ -171,6 +197,13 @@
 			, "src/active_record/validations.js"
 			, "src/active_record/synchronization.js"
 			, "src/active_record/footer.js"
+			
+			, "src/active_view/header.js"
+			, "src/active_view/main.js"
+			, "src/active_view/observable_hash.js"
+			, "src/active_view/builder.js"
+			, "src/active_view/binding.js"
+			, "src/active_view/footer.js"
 		]
 	},
 	{
@@ -210,6 +243,9 @@
 			, "test/active_routes/matching.js"
 			, "test/active_routes/dispatch.js"
 			, "test/active_routes/history.js"
+			
+			, "test/active_view/setup.js"
+			, "test/active_view/builder.js"
 		]
 	}
 ]

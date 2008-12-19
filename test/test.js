@@ -1314,3 +1314,60 @@ ActiveTest.Tests.Routes.history = function(proceed)
     if(proceed())
         proceed();
 };
+
+ActiveTest.Tests.View = {};
+
+ActiveTest.Tests.View.builder = function(proceed)
+{
+    with(ActiveTest)
+    {
+        var ArgumentsTestView = ActiveView.create(function(){
+           with(this.builder){
+               return ul(
+                   li('one','two',b('three'),'four',b('five')),
+                   li({className: 'test'}),
+                   {className: 'blarg'}
+               );
+           } 
+        });
+        
+        var DeepView = ActiveView.create(function(){
+            with(this.builder){
+                return div(
+                    table(
+                        tbody(
+                            tr(
+                                td(
+                                    ul(
+                                        li(),
+                                        li(span(b('test')))
+                                    )
+                                ),
+                                td(
+                                    p(span('test'))
+                                )
+                            ),
+                            tr(
+                                td(
+                                    
+                                ),
+                                td(
+                                    
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+        });
+        var deep_instance = new DeepView();
+        var arguments_instance = new ArgumentsTestView();
+
+        assert(arguments_instance.container.firstChild.firstChild.nodeValue == 'one' && arguments_instance.container.firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
+        
+        //console.log()
+        
+        if(proceed)
+            proceed()
+    }
+};

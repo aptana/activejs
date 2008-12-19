@@ -25,4 +25,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveRecord = null;
+ActiveView = null;
+
+(function(){

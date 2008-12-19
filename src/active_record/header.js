@@ -24,6 +24,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
+ 
+ActiveRecord = null;
 
 (function() {
 
