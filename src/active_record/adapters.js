@@ -26,12 +26,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * @type {mixed} null if no connection is active, or the class that created the connection.
+ * null if no connection is active, or the class that created the connection.
+ * @alias ActiveRecord.adapter
+ * @property {mixed}
  */
 ActiveRecord.adapter = null;
 
 /**
- * @type {mixed} null if no connection is active, or the connection object.
+ * null if no connection is active, or the connection object.
+ * @alias ActiveRecord.connection
+ * @property {mixed}
  */
 ActiveRecord.connection = null;
 

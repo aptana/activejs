@@ -24,7 +24,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.Local} Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ */
 Adapters.Local = function(db){
     this.db = db;
     ActiveSupport.extend(this,Adapters.SQLite);
@@ -35,7 +38,7 @@ Adapters.Local = function(db){
             {
                 return;
             }
-            return console.log.apply(console,arguments);
+            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)
         {

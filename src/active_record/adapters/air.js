@@ -24,24 +24,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.AIR} Adobe AIR adapter.
+ */
 Adapters.AIR = function(connection){
     this.connection = connection;
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
-            if (!ActiveRecord.logging)
+            if(!ActiveRecord.logging)
             {
                 return;
             }
-            if (arguments[0])
+            if(arguments[0])
             {
                 arguments[0] = '  ' + arguments[0];
             }
             if(air.Introspector)
             {
-                return air.Introspector.Console.log.apply(air.Introspector.Console,arguments);
+                ActiveSupport.log.apply(ActiveSupport,arguments || []);
             }
             else
             {

@@ -25,6 +25,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, MySQL.
+ */
 Adapters.JaxerMySQL = function(){
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{
@@ -38,7 +41,7 @@ Adapters.JaxerMySQL = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return Jaxer.Log.info.apply(Jaxer.Log, arguments);
+            return ActiveSupport.log(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)
         {

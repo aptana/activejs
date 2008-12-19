@@ -25,10 +25,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-/*
-    add support for  update multiple
-*/
-
+/**
+ * @classDescription {ActiveRecord.Adapters.HashTable} In memory, non persistent storage.
+ */
+ 
+/**
+ * @constructor
+ * @alias ActiveRecord.Adapters.HashTable
+ * @param {Object} [storage]
+ */
 Adapters.HashTable = function HashTable(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
@@ -49,18 +54,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
         {
             return;
         }
-        if(typeof(Jaxer) != 'undefined')
-        {
-            Jaxer.Log.info.apply(Jaxer.Log,arguments);
-        }
-        else if(typeof(air) != 'undefined')
-        {
-            air.Introspector.Console.log.apply(air.Introspector.Console,ActiveSupport.arrayFrom(arguments || []));
-        }
-        else if(console)
-        {
-            console.log.apply(console,arguments);
-        }
+        ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {

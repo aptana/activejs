@@ -24,6 +24,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
+ 
+/**
+* @classDescription {ActiveRecord.Adapters.Auto} Default adapter, will try to automatically pick the appropriate adapter for the current environment.
+*/ 
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {

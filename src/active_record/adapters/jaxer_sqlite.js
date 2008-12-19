@@ -24,7 +24,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+/**
+ * @classDescription {ActiveRecord.Adapters.JaxerMySQL} Adapter for Jaxer, SQLite.
+ */
 Adapters.JaxerSQLite = function(){
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
@@ -38,7 +41,7 @@ Adapters.JaxerSQLite = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return Jaxer.Log.info.apply(Jaxer.Log,arguments);
+            return AcitveSupport.log.apply(AcitveSupport,arguments || {});
         },
         executeSQL: function executeSQL(sql)
         {
