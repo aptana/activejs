@@ -889,19 +889,87 @@ ActiveRoutes = null;
  * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
  * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
  * @example
- * var routes = new ActiveRoutes([
- *   ['article','article/:id',{object:'article',method:'article',requirements: {id:/\d+/}}],
- *   ['post','/blog/post/:id',{object:'blog',method: 'post'}],
- *   ['/blog/:method/:id',{object:'blog'}] //unnamed route
- * ]);
- * var route = routes.match('/blog/post/5');
- * route == {object: 'blog',method: 'post', id: 5};
- * routes.dispatch('/blog/post/5'); //calls Blog.post({object: 'blog',method: 'post', id: 5})
- * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
- * //creating the routes object above creates the following methods because there was a named route "post"
- * postUrl({id: 5}) == '/blog/post/5'
- * postParams({id: 5}) == {object: 'blog',method: 'post', id: 5}
- * callPost({id: 5}) //calls Blog.post({object: 'blog',method: 'post', id: 5})
+ * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
+ * similar syntax to Rails Routing, but is framework agnostic and can map
+ * calls to any type of object. Server side it can be used to map requests for
+ * a given URL to a method that will render a page, client side it can be used
+ * to provide deep linking and back button / history support for your Ajax
+ * application.
+ * 
+ * Declaring Routes
+ * ----------------
+ * Wether declared in the constructor, or with addRoute(), routes can have up
+ * to three parameters, and can be declared in any of the follow ways:
+ * 
+ * - "name", "path", {params}
+ * - "path", {params}
+ * - "path"
+ * 
+ * The path portion of a route is a URI string. Parameters that will be passed
+ * to the method called are represented with a colon. Names are optional, but
+ * the path and the params together must declare "object" and "method"
+ * parameters. The following are all valid routes:
+ * 
+ *     var routes = new ActiveRoutes([
+ *       ['root','/',{object:'Pages',method:'index'}],
+ *       ['contact','/contact',{object:'Pages',method:'contact'}],
+ *       ['blog','/blog',{object:'Blog',method:'index'}],
+ *       ['post','/blog/post/:id',{object:'Blog',method:'post'}],
+ *       ['/pages/*',{object:'Pages',method:'page'}],
+ *       ['/:object/:method']
+ *     ],Application);
+ * 
+ * Catch All Routes
+ * ----------------
+ * If you want to route all requests below a certain path to a given method,
+ * place an asterisk in your route. When a matching path is dispatched to
+ * that route the path components will be available in an array called "path".
+ * 
+ *     route_set.addRoute('/wiki/*',{object:'WikiController',method:'page'})
+ *     route_set.dispatch('/wiki/a/b/c');
+ *     //calls: WikiController.page({object:'WikiController',method:'page',path:['a','b','c']})
+ * 
+ * Scope
+ * -----
+ * You can specify what scope an ActiveRoutes instance will look in to call
+ * the specified objects and methods. This defaults to window but can be
+ * specified as the second parameter to the constructor.
+ * 
+ * Generating URLs
+ * ---------------
+ * The method urlFor() is available on every route set, and can generate a
+ * URL from an object. Using the routes declared in the example above:
+ * 
+ *     routes.urlFor({object:'Blog',method:'post',id:5}) == '/blog/post/5';
+ * 
+ * If named routes are given, corresponding methods are generated in the
+ * passed scope to resolve these urls.
+ * 
+ *     Application.postUrl({id: 5}) == '/blog/post/5';
+ * 
+ * To get the params to generate a url, a similar method is generated:
+ * 
+ *     Application.postParams({id: 5}) == {object:'Blog',method:'post',id:5};
+ * 
+ * To call a named route directly without round-tripping to a string and
+ * back to params use:
+ * 
+ *     Application.callPost({id: 5});
+ *
+ * Dispatching
+ * -----------
+ * To call a given method from a URL string, use the dispatch() method.
+ * 
+ *     routes.dispatch('/'); //will call Pages.index()
+ *     routes.dispatch('/blog/post/5'); //will call Blog.post({id: 5});
+ * 
+ * History
+ * -------
+ * Most server side JavaScript implementations will not preserve objects
+ * between requests, so the history is not of use. Client side, after each
+ * dispatch, the route and parameters are recorded. The history itself is
+ * accessible with the "history" property, and is traversable with the
+ * next() and back() methods.
  */
 ActiveRoutes = function ActiveRoutes(routes,scope,options)
 {
