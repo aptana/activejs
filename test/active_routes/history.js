@@ -25,27 +25,41 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveTest.Tests.Routes.dispatch = function(proceed)
+ActiveTest.Tests.Routes.history = function(proceed)
 {
     with(ActiveTest)
     {
         var last_action;
+        
         var routes = new ActiveRoutes(test_valid_route_set,test_scope);
         assert(routes.history.length == 0,'history starts empty');
         
         routes.dispatch('/address/wa/98103');
-        assert(routes.history.length == 1,'history incrimented');
-        assert(routes.history[routes.history.length - 1].params.zip == '98103' == 1,'history contains params');
-        last_action = logged_actions.pop()[0];
-        assert(last_action.zip == '98103' && last_action.method == 'address','dispatcher called action from string');
+        routes.dispatch('/address/wa/98104');
+        routes.dispatch('/address/wa/98105');
         
-        routes.dispatch(test_scope.addressParams({zip:'83340',state:'id'}))
-        last_action = logged_actions.pop()[0];
-        assert(last_action.zip == '83340' && last_action.method == 'address','dispatcher called action from params');
+        assert(routes.history.length == 3,'history incrimented');
+        assert(routes.index == 2,'index incrimented');
         
-        test_scope.callAddress({zip:'83340',state:'id'});
+        var back_response = routes.back();
+        assert(routes.history.length == 3,'history not incrimented by back()');
+        assert(routes.index == 1,'index decrimented by back()');
         last_action = logged_actions.pop()[0];
-        assert(last_action.zip == '83340' && last_action.method == 'address','dispatcher called action from generated call method');
+        assert(back_response && last_action.zip == '98104','back() calls correct action');
+        
+        routes.back();
+        var back_response = routes.back();
+        assert(!back_response && routes.index == 0,'back cannot traverse below 0');
+        
+        routes.next();
+        routes.next();
+        assert(routes.history.length == 3,'history not incrimented by next()');
+        assert(routes.index == 2,'index incrimented by next()');
+        last_action = logged_actions.pop()[0];
+        assert(last_action.zip == '98105','next() calls correct action');
+        
+        var next_response = routes.next();
+        assert(!next_response && routes.index == 2,'next() cannot traverse beyond history length');
     }
     if(proceed())
         proceed();

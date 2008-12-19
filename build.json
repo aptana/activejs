@@ -209,6 +209,7 @@
 			, "test/active_routes/generator.js"
 			, "test/active_routes/matching.js"
 			, "test/active_routes/dispatch.js"
+			, "test/active_routes/history.js"
 		]
 	}
 ]

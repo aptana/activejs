@@ -58,6 +58,11 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     this.error = false;
     this.scope = scope || window;
     this.routes = [];
+    this.index = 0;
+    /**
+     * @alias ActiveRoutes.prototype.history
+     * @property {Array}
+     */
     this.history = [];
     this.options = ActiveSupport.extend({
         camelizeObjectName: true,
@@ -76,6 +81,50 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
         current_route_set.urlFor.apply(current_route_set,arguments);
     };
+};
+
+ActiveRoutes.prototype.goToIndex = function goToIndex(index)
+{
+    if(!this.history[index])
+    {
+        return false;
+    }
+    this.index = index;
+    this.dispatcher(this.history[this.index]);
+    return true;
+};
+
+/**
+ * Calls to the previous dispatched route in the history.
+ * @alias ActiveRoutes.prototype.back
+ * @return {Boolean}
+ */
+ActiveRoutes.prototype.back = function back()
+{
+    if(this.index == 0)
+    {
+        return false;
+    }
+    --this.index;
+    this.dispatcher(this.history[this.index]);
+    return true;
+};
+
+/**
+ * Calls to the next dispatched route in the history if back() has already
+ * been called.
+ * @alias ActiveRoutes.prototype.next
+ * @return {Boolean}
+ */
+ActiveRoutes.prototype.next = function next()
+{
+    if(this.index >= this.history.length - 1)
+    {
+        return false;
+    }
+    ++this.index;
+    this.dispatcher(this.history[this.index]);
+    return true;
 };
 
 /**

@@ -52,7 +52,8 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
             params: path
         };
     }
-    this.history.push(route.params);
+    this.history.push(route);
+    this.index = this.history.length - 1;
     this.dispatcher(route);
 };
 
