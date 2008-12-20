@@ -1365,8 +1365,6 @@ ActiveTest.Tests.View.builder = function(proceed)
 
         assert(arguments_instance.container.firstChild.firstChild.nodeValue == 'one' && arguments_instance.container.firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
         
-        //console.log()
-        
         if(proceed)
             proceed()
     }

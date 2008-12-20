@@ -1314,7 +1314,7 @@ var InstanceMethods = {
         this.binding = new Binding(this);
         for(var key in this.scope._object)
         {
-            if(Object.isArray(this.scope._object[key]) && !this.scope._object[key].observe)
+            if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
             {
                 ActiveView.makeArrayObservable(this.scope._object[key]);
             }

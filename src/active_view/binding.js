@@ -40,6 +40,13 @@ ActiveSupport.extend(Binding.prototype,{
         return {
             from: ActiveSupport.bind(function from(observe_key)
             {
+                var object = this.view.scope;
+                if(arguments.length == 2)
+                {
+                    object = arguments[1];
+                    observe_key = arguments[2];
+                }
+                
                 var transformation = null;
                 var condition = function default_condition(){
                     return true;
@@ -61,7 +68,7 @@ ActiveSupport.extend(Binding.prototype,{
                     };
                 };
 
-                this.view.scope.observe('set',function update_from_observer(set_key,value){
+                object.observe('set',function update_from_observer(set_key,value){
                     if(observe_key == set_key)
                     {
                         if(condition())
@@ -70,6 +77,7 @@ ActiveSupport.extend(Binding.prototype,{
                         }
                     }
                 });
+                
                 return {
                     transform: transform,
                     when: when
