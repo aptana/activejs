@@ -12,6 +12,8 @@
 			, "active_record_packed"
 			, "active_view"
 			, "active_view_packed"
+			, "active_controller"
+			, "active_controller_packed"
 			, "active_js"
 			, "active_js_packed"
 			, "test"
@@ -153,6 +155,28 @@
 	},
 	
 	{
+		"name": "active_controller",
+		"output": "dist/active_controller.js",
+		"files": [
+			  "license.txt"
+			, "src/active_support.js"
+			, "src/active_event.js"
+			, "src/active_controller/header.js"
+			, "src/active_controller/main.js"
+			, "src/active_controller/footer.js"
+		]
+	},
+	{
+		"name": "active_controller_packed",
+		"output": "dist/active_controller.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active_controller.js"
+		]
+	},
+	
+	{
 		"name": "active_js",
 		"output": "dist/active.js",
 		"files": [
@@ -204,6 +228,10 @@
 			, "src/active_view/builder.js"
 			, "src/active_view/binding.js"
 			, "src/active_view/footer.js"
+			
+			, "src/active_controller/header.js"
+			, "src/active_controller/main.js"
+			, "src/active_controller/footer.js"
 		]
 	},
 	{
