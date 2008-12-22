@@ -986,6 +986,16 @@ var test_scope = {
 };
 var test_valid_route_set = [
     ['article','article/:id',{object:'article',method:'article',requirements: {id:/\d+/}}],
+    ['article_comment','article/:id/:comment_id',{
+      object:'article',
+      method:'article',
+      requirements: {
+        id: /\d+/,
+        comment_id: function(comment_id){
+          return comment_id.match(/^\d+$/)
+        }
+      }
+    }],
     ['post','/blog/post/:id',{object:'blog',method: 'post'}],
     ['/blog/:method/:id',{object:'blog'}],
     ['/pages/:method',{object:'page'}],
@@ -1219,6 +1229,10 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(!match,'requirements article/test');
         match = routes.match('article/53');
         assert(match.params.method == 'article' && match.params.id == '53' && !match.params.requirements,'requirements article/53');
+        
+        //with callback
+        match = routes.match('article/53/54');
+        assert(match.params.method == 'article' && match.params.id == '53' && match.params.comment_id == '54' && !match.params.requirements,'requirements article/53/54');
         
         //test catch all
         match = routes.match('my/application/wiki');

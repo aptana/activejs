@@ -929,6 +929,20 @@ ActiveRoutes = null;
  *     route_set.dispatch('/wiki/a/b/c');
  *     //calls: WikiController.page({object:'WikiController',method:'page',path:['a','b','c']})
  * 
+ * Route Requirements
+ * ------------------
+ * Each route can take a special "requirements" parameter that will not be
+ * passed in the params passed to the called method. Each requirement
+ * can be a regular expression or a function, which the value of the
+ * parameter will be checked against.
+ *
+ *     route_set.addRoute('/article/:article_id/:comment_id,{
+ *         article_id: /^\d+$/,
+ *         comment_id: function(comment_id){
+ *             return comment_id.match(/^\d+$/);
+ *         }
+ *     });
+ *
  * Scope
  * -----
  * You can specify what scope an ActiveRoutes instance will look in to call
@@ -1227,7 +1241,10 @@ ActiveRoutes.prototype.match = function(path){
                 else if(route_path_component[0] == ':')
                 {
                     var key = route_path_component.substr(1);
-                    if(path_component && route.params.requirements && route.params.requirements[key] && !path_component.match(route.params.requirements[key]))
+                    if(path_component && route.params.requirements && route.params.requirements[key] &&
+                      !(typeof(route.params.requirements[key]) == 'function'
+                        ? route.params.requirements[key]((new String(path_component).toString()))
+                        : path_component.match(route.params.requirements[key])))
                     {
                         valid = false;
                         break;

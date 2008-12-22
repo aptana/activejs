@@ -79,6 +79,20 @@
  *     route_set.dispatch('/wiki/a/b/c');
  *     //calls: WikiController.page({object:'WikiController',method:'page',path:['a','b','c']})
  * 
+ * Route Requirements
+ * ------------------
+ * Each route can take a special "requirements" parameter that will not be
+ * passed in the params passed to the called method. Each requirement
+ * can be a regular expression or a function, which the value of the
+ * parameter will be checked against.
+ *
+ *     route_set.addRoute('/article/:article_id/:comment_id,{
+ *         article_id: /^\d+$/,
+ *         comment_id: function(comment_id){
+ *             return comment_id.match(/^\d+$/);
+ *         }
+ *     });
+ *
  * Scope
  * -----
  * You can specify what scope an ActiveRoutes instance will look in to call

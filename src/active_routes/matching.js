@@ -108,7 +108,10 @@ ActiveRoutes.prototype.match = function(path){
                 else if(route_path_component[0] == ':')
                 {
                     var key = route_path_component.substr(1);
-                    if(path_component && route.params.requirements && route.params.requirements[key] && !path_component.match(route.params.requirements[key]))
+                    if(path_component && route.params.requirements && route.params.requirements[key] &&
+                      !(typeof(route.params.requirements[key]) == 'function'
+                        ? route.params.requirements[key]((new String(path_component).toString()))
+                        : path_component.match(route.params.requirements[key])))
                     {
                         valid = false;
                         break;

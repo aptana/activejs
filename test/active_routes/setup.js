@@ -62,6 +62,16 @@ var test_scope = {
 };
 var test_valid_route_set = [
     ['article','article/:id',{object:'article',method:'article',requirements: {id:/\d+/}}],
+    ['article_comment','article/:id/:comment_id',{
+      object:'article',
+      method:'article',
+      requirements: {
+        id: /\d+/,
+        comment_id: function(comment_id){
+          return comment_id.match(/^\d+$/)
+        }
+      }
+    }],
     ['post','/blog/post/:id',{object:'blog',method: 'post'}],
     ['/blog/:method/:id',{object:'blog'}],
     ['/pages/:method',{object:'page'}],

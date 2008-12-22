@@ -139,6 +139,10 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         match = routes.match('article/53');
         assert(match.params.method == 'article' && match.params.id == '53' && !match.params.requirements,'requirements article/53');
         
+        //with callback
+        match = routes.match('article/53/54');
+        assert(match.params.method == 'article' && match.params.id == '53' && match.params.comment_id == '54' && !match.params.requirements,'requirements article/53/54');
+        
         //test catch all
         match = routes.match('my/application/wiki');
         assert(match.params.method == 'wiki' && match.params.path.length == 0,'catch all my/application/wiki');
