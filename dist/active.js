@@ -1720,13 +1720,27 @@ ActiveRoutes.prototype.objectExists = function(object_name)
 {
     return !(!this.scope[object_name]);
 };
+
+ActiveRoutes.prototype.getMethod = function(object_name,method_name)
+{
+    if(this.scope[object_name].prototype && this.scope[object_name].prototype[method_name])
+    {
+        return this.scope[object_name].prototype[method_name];
+    }
+    else
+    {
+        return this.scope[object_name][method_name];
+    }
+};
+
 ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 {
-    return !(!this.scope[object_name] || !this.scope[object_name][method_name]);
+    return !(!this.scope[object_name] || !this.getMethod(object_name,method_name));
 };
+
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
 {
-    return (this.methodExists(object_name,method_name) && typeof(this.scope[object_name][method_name]) == 'function');
+    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) == 'function'));
 };
 
 
@@ -6195,8 +6209,11 @@ ActiveController = {};
 
 ActiveController.create = function create(actions,methods)
 {
-    var klass = function klass(){
-        this.initialize.apply(this,arguments);
+    var klass = function klass(container,params){
+        this.container = container;
+        this.params = params || {};
+        this.scope = {};
+        this.initialize();
     };
     ActiveSupport.extend(klass,ClassMethods);
     for(var action_name in actions || {})
@@ -6219,10 +6236,9 @@ ActiveController.createAction = function wrapAction(klass,action_name,action)
 };
 
 var InstanceMethods = {
-    initialize: function initialize(params)
+    initialize: function initialize()
     {
-        this.params = params || {};
-        this.scope = {};
+        
     },
     get: function get(key)
     {

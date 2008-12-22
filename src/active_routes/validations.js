@@ -51,13 +51,27 @@ ActiveRoutes.prototype.objectExists = function(object_name)
 {
     return !(!this.scope[object_name]);
 };
+
+ActiveRoutes.prototype.getMethod = function(object_name,method_name)
+{
+    if(this.scope[object_name].prototype && this.scope[object_name].prototype[method_name])
+    {
+        return this.scope[object_name].prototype[method_name];
+    }
+    else
+    {
+        return this.scope[object_name][method_name];
+    }
+};
+
 ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 {
-    return !(!this.scope[object_name] || !this.scope[object_name][method_name]);
+    return !(!this.scope[object_name] || !this.getMethod(object_name,method_name));
 };
+
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
 {
-    return (this.methodExists(object_name,method_name) && typeof(this.scope[object_name][method_name]) == 'function');
+    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) == 'function'));
 };
 
 
