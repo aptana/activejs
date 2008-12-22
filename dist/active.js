@@ -3652,7 +3652,7 @@ Adapters.Local = function(db){
 Adapters.Local.DatabaseUnavailableError = 'ActiveRecord.Adapters.Local could not find an HTML5 compliant or Google Gears database to connect to.';
 Adapters.Local.connect = function connect(name, version, display_name, size)
 {
-    var global_context = Support.getGlobalContext();
+    var global_context = ActiveSupport.getGlobalContext();
     
     var db = null;
     /*
@@ -6059,6 +6059,13 @@ ActiveSupport.extend(Binding.prototype,{
         return {
             from: ActiveSupport.bind(function from(observe_key)
             {
+                var object = this.view.scope;
+                if(arguments.length == 2)
+                {
+                    object = arguments[1];
+                    observe_key = arguments[2];
+                }
+                
                 var transformation = null;
                 var condition = function default_condition(){
                     return true;
@@ -6080,7 +6087,7 @@ ActiveSupport.extend(Binding.prototype,{
                     };
                 };
 
-                this.view.scope.observe('set',function update_from_observer(set_key,value){
+                object.observe('set',function update_from_observer(set_key,value){
                     if(observe_key == set_key)
                     {
                         if(condition())
@@ -6089,6 +6096,7 @@ ActiveSupport.extend(Binding.prototype,{
                         }
                     }
                 });
+                
                 return {
                     transform: transform,
                     when: when
@@ -6176,5 +6184,60 @@ ActiveSupport.extend(Binding.prototype,{
         };
     }
 });
+
+})();
+
+ActiveController = null;
+
+(function(){
+
+ActiveController = {};
+
+ActiveController.create = function create(actions,methods)
+{
+    var klass = function klass(){
+        this.initialize.apply(this,arguments);
+    };
+    ActiveSupport.extend(klass,ClassMethods);
+    for(var action_name in actions || {})
+    {
+        ActiveController.createAction(klass,action_name,actions[action_name]);
+    }
+    ActiveSupport.extend(klass.prototype,InstanceMethods);
+    ActiveSupport.extend(klass.prototype,methods || {});
+    ActiveEvent.extend(klass);
+    return klass;
+};
+
+ActiveController.createAction = function wrapAction(klass,action_name,action)
+{
+    klass.prototype[action_name] = function action_wrapper(){
+        this.notify('beforeCall',action_name);
+        action.bind(this)();
+        this.notify('afterCall',action_name);
+    };
+};
+
+var InstanceMethods = {
+    initialize: function initialize(params)
+    {
+        this.params = params || {};
+        this.scope = {};
+    },
+    get: function get(key)
+    {
+        return this.scope[key];
+    },
+    set: function set(key,value)
+    {
+        this.scope[key] = value;
+        this.notify('set',key,value);
+        return value;
+    }
+};
+
+var ClassMethods = {
+    
+};
 
 })();

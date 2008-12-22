@@ -175,7 +175,7 @@ Adapters.Local = function(db){
 Adapters.Local.DatabaseUnavailableError = 'ActiveRecord.Adapters.Local could not find an HTML5 compliant or Google Gears database to connect to.';
 Adapters.Local.connect = function connect(name, version, display_name, size)
 {
-    var global_context = Support.getGlobalContext();
+    var global_context = ActiveSupport.getGlobalContext();
     
     var db = null;
     /*
