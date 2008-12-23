@@ -29,8 +29,11 @@ ActiveController = {};
 
 ActiveController.create = function create(actions,methods)
 {
-    var klass = function klass(){
-        this.initialize.apply(this,arguments);
+    var klass = function klass(container,params){
+        this.container = container;
+        this.params = params || {};
+        this.scope = {};
+        this.initialize();
     };
     ActiveSupport.extend(klass,ClassMethods);
     for(var action_name in actions || {})
@@ -53,10 +56,9 @@ ActiveController.createAction = function wrapAction(klass,action_name,action)
 };
 
 var InstanceMethods = {
-    initialize: function initialize(params)
+    initialize: function initialize()
     {
-        this.params = params || {};
-        this.scope = {};
+        
     },
     get: function get(key)
     {

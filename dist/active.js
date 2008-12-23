@@ -4392,7 +4392,7 @@ function Lexeme(type, text)
     this.type = type;
     this.typeName = null;
     this.text = text;
-}
+};
 
 /**
  * toString
@@ -4420,26 +4420,26 @@ function WhereLexer()
 {
     // initialize
     this.setSource(null);
-}    
+};
 
 /**
  * setSource
  * 
  * @param {String} source
  */
-WhereLexer.prototype.setSource = function(source)
+WhereLexer.prototype.setSource = function setSource(source)
 {
     this.source = source;
     this.offset = 0;
     this.length = (source != null) ? source.length : 0;
 
     currentLexeme = null;
-}
+};
 
 /**
  * advance
  */
-WhereLexer.prototype.advance = function()
+WhereLexer.prototype.advance = function advance()
 {
     var inWhitespace = true;
     var result = null;
@@ -4528,7 +4528,7 @@ function BinaryOperatorNode(lhs, operator, rhs)
     this.lhs = lhs;
     this.operator = operator;
     this.rhs = rhs;
-}
+};
 
 /**
  * execute
@@ -4536,7 +4536,7 @@ function BinaryOperatorNode(lhs, operator, rhs)
  * @param {Object} row
  * @param {Function} functionProvider
  */
-BinaryOperatorNode.prototype.execute = function(row, functionProvider)
+BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 {
     var result = null;
     var lhs = this.lhs.execute(row, functionProvider);
@@ -4593,7 +4593,7 @@ BinaryOperatorNode.prototype.execute = function(row, functionProvider)
 function IdentifierNode(identifier)
 {
     this.identifier = identifier;
-}
+};
 
 /**
  * execute
@@ -4601,7 +4601,7 @@ function IdentifierNode(identifier)
  * @param {Object} row
  * @param {Function} functionProvider
  */
-IdentifierNode.prototype.execute = function(row, functionProvider)
+IdentifierNode.prototype.execute = function execute(row, functionProvider)
 {
     return row[this.identifier];
 };
@@ -4618,7 +4618,7 @@ function FunctionNode(name, args)
 {
     this.name = name;
     this.args = args;
-}
+};
 
 /**
  * execute
@@ -4626,7 +4626,7 @@ function FunctionNode(name, args)
  * @param {Object} row
  * @param {Function} functionProvider
  */
-FunctionNode.prototype.execute = function(row, functionProvider)
+FunctionNode.prototype.execute = function execute(row, functionProvider)
 {
     // evaluate arguments
     var args = new Array(this.args.length);
@@ -4656,7 +4656,7 @@ function ScalarNode(value)
  * @param {Object} row
  * @param {Function} functionProvider
  */
-ScalarNode.prototype.execute = function(row, functionProvider)
+ScalarNode.prototype.execute = function execute(row, functionProvider)
 {
     return this.value;
 };
@@ -4670,14 +4670,14 @@ ScalarNode.prototype.execute = function(row, functionProvider)
 WhereParser = function WhereParser()
 {
     this._lexer = new WhereLexer();
-}
+};
 
 /**
  * parse
  * 
  * @param {String} source
  */
-WhereParser.prototype.parse = function(source)
+WhereParser.prototype.parse = function parse(source)
 {
     var result = null;
 
@@ -4716,7 +4716,7 @@ WhereParser.prototype.parse = function(source)
 /**
  * parseOrExpression
  */
-WhereParser.prototype.parseOrExpression = function()
+WhereParser.prototype.parseOrExpression = function parseOrExpression()
 {
     var result = this.parseAndExpression();
 
@@ -4736,7 +4736,7 @@ WhereParser.prototype.parseOrExpression = function()
 /**
  * parseAndExpression
  */
-WhereParser.prototype.parseAndExpression = function()
+WhereParser.prototype.parseAndExpression = function parseAndExpression()
 {
     var result = this.parseEqualityExpression();
 
@@ -4756,7 +4756,7 @@ WhereParser.prototype.parseAndExpression = function()
 /**
  * parseEqualityExpression
  */
-WhereParser.prototype.parseEqualityExpression = function()
+WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression()
 {
     var result = this.parseRelationalExpression();
 
@@ -4814,7 +4814,7 @@ WhereParser.prototype.parseRelationalExpression = function()
 /**
  * parseMemberExpression
  */
-WhereParser.prototype.parseMemberExpression = function()
+WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 {
     var result = null;
 

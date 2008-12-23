@@ -84,7 +84,8 @@
  * Each route can take a special "requirements" parameter that will not be
  * passed in the params passed to the called method. Each requirement
  * can be a regular expression or a function, which the value of the
- * parameter will be checked against.
+ * parameter will be checked against. Each value checked by a regular
+ * expression or function is always a string.
  *
  *     route_set.addRoute('/article/:article_id/:comment_id,{
  *         article_id: /^\d+$/,
