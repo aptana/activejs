@@ -1428,9 +1428,15 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
     {
         if(path.match(':' + p) && params[p])
         {
-            if(route.params.requirements && route.params.requirements[p] && !params[p].toString().match(route.params.requirements[p]))
-            {
-                continue;
+            if(route.params.requirements && route.params.requirements[p]){
+                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p]((new String(params[p]).toString())))
+                {
+                    continue;
+                }
+                else if(!route.params.requirements[p]((new String(params[p]).toString())))
+                {
+                    continue;
+                }
             }
             path = path.replace(':' + p,params[p].toString());
         }
