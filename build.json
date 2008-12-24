@@ -255,6 +255,7 @@
 			, "test/active_record/basic.js"
 			, "test/active_record/callbacks.js"
 			, "test/active_record/cleanup.js"
+			, "test/active_record/date.js"
 			, "test/active_record/finders.js"
 			, "test/active_record/migrations.js"
 			, "test/active_record/relationships.js"

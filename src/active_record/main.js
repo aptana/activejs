@@ -443,6 +443,18 @@ ActiveRecord = {
             }
             this._errors = [];
             this.notify('afterInitialize', data);
+            if('created' in this._object)
+            {
+                this.observe('beforeCreate',ActiveSupport.bind(function set_created_date(){
+                    this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
+                },this));
+            }
+            if('updated' in this._object)
+            {
+                this.observe('beforeSave',ActiveSupport.bind(function set_updated_date(){
+                    this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
+                },this));
+            }
         };
         model.modelName = model_name;
         model.tableName = table_name;

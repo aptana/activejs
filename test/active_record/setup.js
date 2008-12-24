@@ -104,6 +104,24 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         User.hasOne(CreditCard,{
             dependent: true
         });
+        
+        ModelWithStringDates = ActiveRecord.define('string_dates',{
+            name: '',
+            created: '',
+            updated: ''
+        });
+        
+        ModelWithDates = ActiveRecord.define('dates',{
+            name: '',
+            created: {
+                type: 'DATETIME'
+            },
+            updated: {
+                type: 'DATETIME'
+            }
+        });
+        
+        
         if(proceed)
             proceed();
     }

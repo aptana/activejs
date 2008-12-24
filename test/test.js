@@ -201,6 +201,24 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         User.hasOne(CreditCard,{
             dependent: true
         });
+        
+        ModelWithStringDates = ActiveRecord.define('string_dates',{
+            name: '',
+            created: '',
+            updated: ''
+        });
+        
+        ModelWithDates = ActiveRecord.define('dates',{
+            name: '',
+            created: {
+                type: 'DATETIME'
+            },
+            updated: {
+                type: 'DATETIME'
+            }
+        });
+        
+        
         if(proceed)
             proceed();
     }
@@ -344,6 +362,42 @@ ActiveTest.Tests.ActiveRecord.cleanup = function(proceed)
         User.destroy('all');
         if(proceed)
             proceed();
+    }
+};
+
+ActiveTest.Tests.ActiveRecord.date = function(proceed)
+{
+    with(ActiveTest)
+    {
+        if(ActiveRecord.asynchronous)
+        {
+
+        }
+        else
+        {
+            var a = ModelWithStringDates.create({
+                name: 'a'
+            });
+            assert(a.get('created').match(/^\d{4}/) && a.get('updated').match(/^\d{4}/),'created and updated set via string field');
+            var old_date = a.get('updated');
+            a.set('updated','');
+            a.save();
+            var new_date = a.get('updated');
+            assert(ModelWithStringDates.find(a.id).get('updated') == new_date,'created and updated persist via string field');
+
+            var a = ModelWithDates.create({
+                name: 'a'
+            });
+            assert(a.get('created').match(/^\d{4}/) && a.get('updated').match(/^\d{4}/),'created and updated set via date field');
+            var old_date = a.get('updated');
+            a.set('updated','');
+            a.save();
+            var new_date = a.get('updated');
+            assert(ModelWithDates.find(a.id).get('updated') == new_date,'created and updated persist via date field');
+            
+            if(proceed)
+                proceed();
+        }
     }
 };
 
