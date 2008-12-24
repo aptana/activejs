@@ -31,7 +31,7 @@ var Errors = {
      */
     ConnectionNotEstablished: 'No ActiveRecord connection is active.',
     /**
-     * @property {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
+     * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
     MethodDoesNotExist: 'The requested method does not exist.'
 };

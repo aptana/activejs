@@ -28,7 +28,7 @@
 /**
  * Default adapter, will try to automatically pick the appropriate adapter
  * for the current environment.
- * @alias ActiveRecord.Adapters.HashTable
+ * @alias ActiveRecord.Adapters.Auto
  * @property {ActiveRecord.Adapter}
  */
 Adapters.Auto = {};
@@ -52,9 +52,9 @@ Adapters.Auto.connect = function connect()
     else
     {
         try{
-            return Adapters.Local.connect.apply(Adapters.Local.connect,arguments);
+            return Adapters.Gears.connect.apply(Adapters.Gears.connect,arguments);
         }catch(e){
-            return Adapters.HashTable.connect.apply(Adapters.HashTable.connect,arguments);
+            return Adapters.InMemory.connect.apply(Adapters.InMemory.connect,arguments);
         }
     }
 };

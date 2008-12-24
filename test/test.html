@@ -3,7 +3,7 @@
 		<script src="../dist/active.js" runat="server"></script>
 		<script src="test.js" runat="server"></script>
 		<script runat="server">
-			ActiveRecord.connect(window.location.href.match(/hash\_table\=true/) ? ActiveRecord.Adapters.HashTable : null);
+			ActiveRecord.connect(window.location.href.match(/in\_memory\=true/) ? ActiveRecord.Adapters.InMemory : null);
 			ActiveRecord.logging = false;
 			ActiveTest.run();
 		</script>

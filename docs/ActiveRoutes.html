@@ -308,18 +308,21 @@
             to route all requests below a certain path to a given method, place an asterisk in your route. When a matching path is dispatched
             to that route the path components will be available in an array called "path". route_set.addRoute('/wiki/*', { object : 'WikiController',method:'page'})
             route_set.dispatch('/wiki/a/b/c'); //calls: WikiController.page( { object : 'WikiController',method:'page',path:['a','b','c']})
-            Scope ----- You can specify what scope an ActiveRoutes instance will look in to call the specified objects and methods. This
-            defaults to window but can be specified as the second parameter to the constructor. Generating URLs --------------- The method
-            urlFor() is available on every route set, and can generate a URL from an object. Using the routes declared in the example
-            above: routes.urlFor( { object : 'Blog',method:'post',id:5}) == '/blog/post/5'; If named routes are given, corresponding methods
-            are generated in the passed scope to resolve these urls. Application.postUrl( { id : 5}) == '/blog/post/5'; To get the params
-            to generate a url, a similar method is generated: Application.postParams( { id : 5}) == {object:'Blog',method:'post',id:5};
-            To call a named route directly without round-tripping to a string and back to params use: Application.callPost( { id : 5});
-            Dispatching ----------- To call a given method from a URL string, use the dispatch() method. routes.dispatch('/'); //will
-            call Pages.index() routes.dispatch('/blog/post/5'); //will call Blog.post( { id : 5}); History ------- Most server side JavaScript
-            implementations will not preserve objects between requests, so the history is not of use. Client side, after each dispatch,
-            the route and parameters are recorded. The history itself is accessible with the "history" property, and is traversable with
-            the next() and back() methods.
+            Route Requirements ------------------ Each route can take a special "requirements" parameter that will not be passed in the
+            params passed to the called method. Each requirement can be a regular expression or a function, which the value of the parameter
+            will be checked against. Each value checked by a regular expression or function is always a string. route_set.addRoute('/article/:article_id/:comment_id,
+            { article_id: /^\d+$/, comment_id: function(comment_id) { return comment_id.match(/^\d+$/); } }); Scope ----- You can specify
+            what scope an ActiveRoutes instance will look in to call the specified objects and methods. This defaults to window but can
+            be specified as the second parameter to the constructor. Generating URLs --------------- The method urlFor() is available
+            on every route set, and can generate a URL from an object. Using the routes declared in the example above: routes.urlFor(
+            { object : 'Blog',method:'post',id:5}) == '/blog/post/5'; If named routes are given, corresponding methods are generated in
+            the passed scope to resolve these urls. Application.postUrl( { id : 5}) == '/blog/post/5'; To get the params to generate a
+            url, a similar method is generated: Application.postParams( { id : 5}) == {object:'Blog',method:'post',id:5}; To call a named
+            route directly without round-tripping to a string and back to params use: Application.callPost( { id : 5}); Dispatching -----------
+            To call a given method from a URL string, use the dispatch() method. routes.dispatch('/'); //will call Pages.index() routes.dispatch('/blog/post/5');
+            //will call Blog.post( { id : 5}); History ------- Most server side JavaScript implementations will not preserve objects between
+            requests, so the history is not of use. Client side, after each dispatch, the route and parameters are recorded. The history
+            itself is accessible with the "history" property, and is traversable with the next() and back() methods.
             
          </p>
       </div>

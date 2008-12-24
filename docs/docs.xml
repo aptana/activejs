@@ -180,7 +180,13 @@
             <property name="AIR" access="read-write" scope="static" type="ActiveRecord.Adapter">
                 <description>Adapter for Adobe AIR.</description>
             </property>
-            <property name="HashTable" access="read-write" scope="static" type="ActiveRecord.Adapter">
+            <property name="Auto" access="read-write" scope="static" type="ActiveRecord.Adapter">
+                <description>Default adapter, will try to automatically pick the appropriate adapter for the current environment.</description>
+            </property>
+            <property name="Gears" access="read-write" scope="static" type="ActiveRecord.Adapter">
+                <description>Adapter for browsers supporting a SQL implementation (Gears, HTML5).</description>
+            </property>
+            <property name="InMemory" access="read-write" scope="static" type="ActiveRecord.Adapter">
                 <description>In memory, non persistent storage.</description>
             </property>
             <property name="JaxerMySQL" access="read-write" scope="static" type="ActiveRecord.Adapter">
@@ -188,9 +194,6 @@
             </property>
             <property name="JaxerSQLite" access="read-write" scope="static" type="ActiveRecord.Adapter">
                 <description>Adapter for Jaxer configured with SQLite</description>
-            </property>
-            <property name="Local" access="read-write" scope="static" type="ActiveRecord.Adapter">
-                <description>Adapter for browsers supporting a SQL implementation (Gears, HTML5).</description>
             </property>
         </properties>
     </class>
@@ -579,7 +582,7 @@
     <class type="ActiveRoutes" superclass="Object">
         <examples>
             <example>
-                ActiveRoutes maps URI strings to method calls, and visa versa. It shares a similar syntax to Rails Routing, but is framework agnostic and can map calls to any type of object. Server side it can be used to map requests for a given URL to a method that will render a page, client side it can be used to provide deep linking and back button / history support for your Ajax application. Declaring Routes ---------------- Wether declared in the constructor, or with addRoute(), routes can have up to three parameters, and can be declared in any of the follow ways: - &quot;name&quot;, &quot;path&quot;, { params } - &quot;path&quot;, { params } - &quot;path&quot; The path portion of a route is a URI string. Parameters that will be passed to the method called are represented with a colon. Names are optional, but the path and the params together must declare &quot;object&quot; and &quot;method&quot; parameters. The following are all valid routes: var routes = new ActiveRoutes( [ [ &apos;root&apos;,&apos;/&apos;, { object : &apos;Pages&apos;,method:&apos;index&apos;}], [ &apos;contact&apos;,&apos;/contact&apos;, { object : &apos;Pages&apos;,method:&apos;contact&apos;}], [ &apos;blog&apos;,&apos;/blog&apos;, { object : &apos;Blog&apos;,method:&apos;index&apos;}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;Blog&apos;,method:&apos;post&apos;}], [ &apos;/pages/*&apos;, { object : &apos;Pages&apos;,method:&apos;page&apos;}], [ &apos;/:object/:method&apos; ] ] ,Application); Catch All Routes ---------------- If you want to route all requests below a certain path to a given method, place an asterisk in your route. When a matching path is dispatched to that route the path components will be available in an array called &quot;path&quot;. route_set.addRoute(&apos;/wiki/*&apos;, { object : &apos;WikiController&apos;,method:&apos;page&apos;}) route_set.dispatch(&apos;/wiki/a/b/c&apos;); //calls: WikiController.page( { object : &apos;WikiController&apos;,method:&apos;page&apos;,path:[&apos;a&apos;,&apos;b&apos;,&apos;c&apos;]}) Scope ----- You can specify what scope an ActiveRoutes instance will look in to call the specified objects and methods. This defaults to window but can be specified as the second parameter to the constructor. Generating URLs --------------- The method urlFor() is available on every route set, and can generate a URL from an object. Using the routes declared in the example above: routes.urlFor( { object : &apos;Blog&apos;,method:&apos;post&apos;,id:5}) == &apos;/blog/post/5&apos;; If named routes are given, corresponding methods are generated in the passed scope to resolve these urls. Application.postUrl( { id : 5}) == &apos;/blog/post/5&apos;; To get the params to generate a url, a similar method is generated: Application.postParams( { id : 5}) == {object:&apos;Blog&apos;,method:&apos;post&apos;,id:5}; To call a named route directly without round-tripping to a string and back to params use: Application.callPost( { id : 5}); Dispatching ----------- To call a given method from a URL string, use the dispatch() method. routes.dispatch(&apos;/&apos;); //will call Pages.index() routes.dispatch(&apos;/blog/post/5&apos;); //will call Blog.post( { id : 5}); History ------- Most server side JavaScript implementations will not preserve objects between requests, so the history is not of use. Client side, after each dispatch, the route and parameters are recorded. The history itself is accessible with the &quot;history&quot; property, and is traversable with the next() and back() methods.
+                ActiveRoutes maps URI strings to method calls, and visa versa. It shares a similar syntax to Rails Routing, but is framework agnostic and can map calls to any type of object. Server side it can be used to map requests for a given URL to a method that will render a page, client side it can be used to provide deep linking and back button / history support for your Ajax application. Declaring Routes ---------------- Wether declared in the constructor, or with addRoute(), routes can have up to three parameters, and can be declared in any of the follow ways: - &quot;name&quot;, &quot;path&quot;, { params } - &quot;path&quot;, { params } - &quot;path&quot; The path portion of a route is a URI string. Parameters that will be passed to the method called are represented with a colon. Names are optional, but the path and the params together must declare &quot;object&quot; and &quot;method&quot; parameters. The following are all valid routes: var routes = new ActiveRoutes( [ [ &apos;root&apos;,&apos;/&apos;, { object : &apos;Pages&apos;,method:&apos;index&apos;}], [ &apos;contact&apos;,&apos;/contact&apos;, { object : &apos;Pages&apos;,method:&apos;contact&apos;}], [ &apos;blog&apos;,&apos;/blog&apos;, { object : &apos;Blog&apos;,method:&apos;index&apos;}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;Blog&apos;,method:&apos;post&apos;}], [ &apos;/pages/*&apos;, { object : &apos;Pages&apos;,method:&apos;page&apos;}], [ &apos;/:object/:method&apos; ] ] ,Application); Catch All Routes ---------------- If you want to route all requests below a certain path to a given method, place an asterisk in your route. When a matching path is dispatched to that route the path components will be available in an array called &quot;path&quot;. route_set.addRoute(&apos;/wiki/*&apos;, { object : &apos;WikiController&apos;,method:&apos;page&apos;}) route_set.dispatch(&apos;/wiki/a/b/c&apos;); //calls: WikiController.page( { object : &apos;WikiController&apos;,method:&apos;page&apos;,path:[&apos;a&apos;,&apos;b&apos;,&apos;c&apos;]}) Route Requirements ------------------ Each route can take a special &quot;requirements&quot; parameter that will not be passed in the params passed to the called method. Each requirement can be a regular expression or a function, which the value of the parameter will be checked against. Each value checked by a regular expression or function is always a string. route_set.addRoute(&apos;/article/:article_id/:comment_id, { article_id: /^\d+$/, comment_id: function(comment_id) { return comment_id.match(/^\d+$/); } }); Scope ----- You can specify what scope an ActiveRoutes instance will look in to call the specified objects and methods. This defaults to window but can be specified as the second parameter to the constructor. Generating URLs --------------- The method urlFor() is available on every route set, and can generate a URL from an object. Using the routes declared in the example above: routes.urlFor( { object : &apos;Blog&apos;,method:&apos;post&apos;,id:5}) == &apos;/blog/post/5&apos;; If named routes are given, corresponding methods are generated in the passed scope to resolve these urls. Application.postUrl( { id : 5}) == &apos;/blog/post/5&apos;; To get the params to generate a url, a similar method is generated: Application.postParams( { id : 5}) == {object:&apos;Blog&apos;,method:&apos;post&apos;,id:5}; To call a named route directly without round-tripping to a string and back to params use: Application.callPost( { id : 5}); Dispatching ----------- To call a given method from a URL string, use the dispatch() method. routes.dispatch(&apos;/&apos;); //will call Pages.index() routes.dispatch(&apos;/blog/post/5&apos;); //will call Blog.post( { id : 5}); History ------- Most server side JavaScript implementations will not preserve objects between requests, so the history is not of use. Client side, after each dispatch, the route and parameters are recorded. The history itself is accessible with the &quot;history&quot; property, and is traversable with the next() and back() methods.
             </example>
         </examples>
         <constructors>
@@ -825,6 +828,23 @@
                 </parameters>
                 <return-types>
                     <return-type type="Array"/>
+                </return-types>
+            </method>
+            <method name="wrap" scope="static">
+                <description>Returns a function wrapped around the original function.</description>
+                <examples>
+                    <example>
+                        String.prototype.capitalize = String.prototype.capitalize.wrap( function(proceed, eachWord) { if (eachWord &amp;&amp; this.include(&quot; &quot;)) { // capitalize each word in the string return this.split(&quot; &quot;).invoke(&quot;capitalize&quot;).join(&quot; &quot;); } else { // proceed using the original function return proceed(); } });
+                    </example>
+                </examples>
+                <parameters>
+                    <parameter name="func" usage="required" type="Function"/>
+                    <parameter name="wrapper" usage="required" type="Function"/>
+                </parameters>
+                <return-types>
+                    <return-type type="Function">
+                        <description>wrapped</description>
+                    </return-type>
                 </return-types>
             </method>
         </methods>

@@ -461,6 +461,46 @@
                   <dl class="details"></dl>
                </td>
             </tr>
+            <tr class="item ">
+               <td class="declaration">
+                  <div class="name"><a name="ActiveSupport.wrap"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">wrap</a>(<i>Function</i>&nbsp;func, <i>Function</i>&nbsp;wrapper) : <i>Function</i></div>
+                  <div class="description">Returns a function wrapped around the original function.</div>
+               </td>
+               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
+            </tr>
+            <tr class="details-method">
+               <td valign="top" colspan="2">
+                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>func</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                        <tr>
+                           <td width="10%"><i>Function</i></td>
+                           <td width="10%"><b>wrapper</b></td>
+                           <td width="80%"></td>
+                        </tr>
+                     </table>
+                  </p>
+                  <p class="padded"><b>Returns</b><table cellspacing="1" width="90%" class="parameter-table">
+                        <tr>
+                           <td width="20%"><i>Function</i></td>
+                           <td width="80%">wrapped</td>
+                        </tr>
+                     </table>
+                  </p>
+                  <dl class="details">
+                     <dt>Examples</dt>
+                     <dd>
+                        String.prototype.capitalize = String.prototype.capitalize.wrap( function(proceed, eachWord) { if (eachWord && this.include("
+                        ")) { // capitalize each word in the string return this.split(" ").invoke("capitalize").join(" "); } else { // proceed using
+                        the original function return proceed(); } });
+                        
+                     </dd>
+                  </dl>
+               </td>
+            </tr>
          </table>
       </div>
       <div style="visibility:hidden;display:none"> aptana_docs</div>

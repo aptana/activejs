@@ -51,11 +51,11 @@
  * connection is enough. In all of the SQLite implementations you can
  * optionally specify a database name (browser) or path (Jaxer):
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable); //in memory
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory); //in JS memory
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
  *     ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
- *     ActiveRecord.connect(ActiveRecord.Adapters.Local,'my_database'); //Gears or HTML5, name is optional
+ *     ActiveRecord.connect(ActiveRecord.Adapters.Gears,'my_database'); //Gears or HTML5, name is optional
  *     
  * Once connected you can always execute SQL statements directly:
  * 
@@ -65,19 +65,19 @@
  * 
  *     ActiveRecord.logging = true;
  * 
- * HashTable Adapter
- * -----------------
+ * InMemory Adapter
+ * ----------------
  * If you are using a browser or platform that does not have access to a SQL
- * database, you can use the HashTable adapter which will store your objects
+ * database, you can use the InMemory adapter which will store your objects
  * in memory. All features (including find by SQL) will still work, but you
  * will not be able to use the Migration features, since there are no table
  * schema. Since your objects will not persist, the second parameter to
  * establish a connection is a hash with the data you would like to use
- * in this format: {table_name: {id: row}}. The HashTable adapter will also
+ * in this format: {table_name: {id: row}}. The InMemory adapter will also
  * trigger three observable events that allow you to write an AJAX
  * persistence layer.
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable,{
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory,{
  *         table_one: {
  *             1: {row_data},
  *             2: {row_data}

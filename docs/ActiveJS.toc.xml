@@ -64,14 +64,16 @@
                 href="html/reference/api/ActiveRecord.Adapters.html#ActiveRecord.Adapters.Properties">
             <topic label="AIR"
                    href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.AIR"/>
-            <topic label="HashTable"
-                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.HashTable"/>
+            <topic label="Auto"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.Auto"/>
+            <topic label="Gears"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.Gears"/>
+            <topic label="InMemory"
+                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.InMemory"/>
             <topic label="JaxerMySQL"
                    href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerMySQL"/>
             <topic label="JaxerSQLite"
                    href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.JaxerSQLite"/>
-            <topic label="Local"
-                   href="html/reference/api/ActiveRecord.Adapters.html?visibility=#ActiveRecord.Adapters.Local"/>
          </topic>
       </topic>
       <topic label="ActiveRecord.Class" href="html/reference/api/ActiveRecord.Class.html">
@@ -251,6 +253,8 @@
                    href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.value"/>
             <topic label="without"
                    href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.without"/>
+            <topic label="wrap"
+                   href="html/reference/api/ActiveSupport.html?visibility=#ActiveSupport.wrap"/>
          </topic>
       </topic>
       <topic label="ActiveSupport.Inflector"

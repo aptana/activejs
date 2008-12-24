@@ -27,15 +27,15 @@
 
 /**
  * In memory, non persistent storage.
- * @alias ActiveRecord.Adapters.HashTable
+ * @alias ActiveRecord.Adapters.InMemory
  * @property {ActiveRecord.Adapter}
  */
-Adapters.HashTable = function HashTable(storage){
+Adapters.InMemory = function InMemory(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
 };
 
-ActiveSupport.extend(Adapters.HashTable.prototype,{
+ActiveSupport.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
     entityMissing: function entityMissing(id){
         return {};
@@ -54,7 +54,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
     },
     executeSQL: function executeSQL(sql)
     {
-        ActiveRecord.connection.log('Adapters.HashTable could not execute SQL:' + sql);
+        ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
     },
     insertEntity: function insertEntity(table, data)
     {
@@ -296,7 +296,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
                 var abstract_syntax_tree = where_parser.parse(where);
                 for(var i = 0; i < result_set.length; ++i)
                 {
-                    if(abstract_syntax_tree.execute(result_set[i],Adapters.HashTable.method_call_handler))
+                    if(abstract_syntax_tree.execute(result_set[i],Adapters.InMemory.method_call_handler))
                     {
                         response.push(result_set[i]);
                     }
@@ -405,24 +405,24 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
     }
 });
 
-Adapters.HashTable.method_call_handler = function method_call_handler(name,args)
+Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
 {
-    if(!Adapters.HashTable.MethodCallbacks[name])
+    if(!Adapters.InMemory.MethodCallbacks[name])
     {
         name = name.toLowerCase().replace(/\_[0-9A-Z-a-z]/g,function camelize_underscores(match){
             return match.toUpperCase();
         });
     }
-    if(!Adapters.HashTable.MethodCallbacks[name])
+    if(!Adapters.InMemory.MethodCallbacks[name])
     {
         throw Errors.MethodDoesNotExist;
     }
     else
     {
-        return Adapters.HashTable.MethodCallbacks[name].apply(Adapters.HashTable.MethodCallbacks[name],args);
+        return Adapters.InMemory.MethodCallbacks[name].apply(Adapters.InMemory.MethodCallbacks[name],args);
     }
 };
-Adapters.HashTable.MethodCallbacks = (function(){
+Adapters.InMemory.MethodCallbacks = (function(){
     var methods = {};
     var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
     for(var i = 0; i < math_methods.length; ++i)
@@ -436,6 +436,6 @@ Adapters.HashTable.MethodCallbacks = (function(){
     return methods;
 })();
 
-Adapters.HashTable.connect = function(storage){
-  return new Adapters.HashTable(storage || {});
+Adapters.InMemory.connect = function(storage){
+  return new Adapters.InMemory(storage || {});
 };

@@ -1320,11 +1320,11 @@ ActiveRecord = null;
  * connection is enough. In all of the SQLite implementations you can
  * optionally specify a database name (browser) or path (Jaxer):
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable); //in memory
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory); //in JS memory
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
  *     ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
- *     ActiveRecord.connect(ActiveRecord.Adapters.Local,'my_database'); //Gears or HTML5, name is optional
+ *     ActiveRecord.connect(ActiveRecord.Adapters.Gears,'my_database'); //Gears or HTML5, name is optional
  *     
  * Once connected you can always execute SQL statements directly:
  * 
@@ -1334,19 +1334,19 @@ ActiveRecord = null;
  * 
  *     ActiveRecord.logging = true;
  * 
- * HashTable Adapter
- * -----------------
+ * InMemory Adapter
+ * ----------------
  * If you are using a browser or platform that does not have access to a SQL
- * database, you can use the HashTable adapter which will store your objects
+ * database, you can use the InMemory adapter which will store your objects
  * in memory. All features (including find by SQL) will still work, but you
  * will not be able to use the Migration features, since there are no table
  * schema. Since your objects will not persist, the second parameter to
  * establish a connection is a hash with the data you would like to use
- * in this format: {table_name: {id: row}}. The HashTable adapter will also
+ * in this format: {table_name: {id: row}}. The InMemory adapter will also
  * trigger three observable events that allow you to write an AJAX
  * persistence layer.
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.HashTable,{
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory,{
  *         table_one: {
  *             1: {row_data},
  *             2: {row_data}
@@ -1802,7 +1802,7 @@ var Errors = {
      */
     ConnectionNotEstablished: 'No ActiveRecord connection is active.',
     /**
-     * @property {String} Error that will be thrown if using a HashTable based adapter, and a method called inside a SQL statement cannot be found.
+     * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
     MethodDoesNotExist: 'The requested method does not exist.'
 };
@@ -2884,10 +2884,10 @@ Adapters.JaxerSQLite.connect = function connect(path)
  
 /**
  * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
- * @alias ActiveRecord.Adapters.Local
+ * @alias ActiveRecord.Adapters.Gears
  * @property {ActiveRecord.Adapter}
  */
-Adapters.Local = function(db){
+Adapters.Gears = function(db){
     this.db = db;
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
@@ -2907,29 +2907,13 @@ Adapters.Local = function(db){
             {
                 proceed = args.pop();
             }
-            ActiveRecord.connection.log("Adapters.Local.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
-            if(ActiveRecord.connection.db.execute)
+            ActiveRecord.connection.log("Adapters.Gears.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
+            var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
+            if(proceed)
             {
-                //gears
-                var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
-                if(proceed)
-                {
-                    proceed(response);
-                }
-                return response;
+                proceed(response);
             }
-            else
-            {
-                //HTML5
-                ActiveRecord.connection.db.transaction(function(transaction){
-                    transaction.executeSql(sql, args.slice(1),function(transaction, result){
-                        if(proceed)
-                        {
-                            proceed(result);
-                        }
-                    });
-                });
-            }
+            return response;
         },
         getLastInsertedRowId: function getLastInsertedRowId()
         {
@@ -2940,65 +2924,41 @@ Adapters.Local = function(db){
             var response = {
                 rows: []
             };
-            if(result.fieldCount)
+            var count = result.fieldCount();
+            while(result.isValidRow())
             {
-                //gears
-                var count = result.fieldCount();
-                while(result.isValidRow())
+                var row = {};
+                for(var i = 0; i < count; ++i)
                 {
-                    var row = {};
-                    for(var i = 0; i < count; ++i)
-                    {
-                        row[result.fieldName(i)] = result.field(i);
-                    }
-                    response.rows.push(row);
-                    result.next();
+                    row[result.fieldName(i)] = result.field(i);
                 }
-                result.close();
-                response.iterate = function(iterator)
-                {
-                    if(typeof(iterator) == 'number')
-                    {
-                        if (this.rows[iterator])
-                        {
-                            return ActiveSupport.clone(this.rows[iterator]);
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        for(var i = 0; i < this.rows.length; ++i)
-                        {
-                            var row = ActiveSupport.clone(this.rows[i]);
-                            iterator(row);
-                        }
-                    }
-                };
-                return response;
+                response.rows.push(row);
+                result.next();
             }
-            else
+            result.close();
+            response.iterate = function(iterator)
             {
-                //HTML5
-                result.iterate = function iterate(iterator)
+                if(typeof(iterator) == 'number')
                 {
-                    if(typeof(iterator) == 'number')
+                    if (this.rows[iterator])
                     {
-                        return this.rows.item(iterator);
+                        return ActiveSupport.clone(this.rows[iterator]);
                     }
                     else
                     {
-                        for(var i = 0; i < this.rows.length; ++i)
-                        {
-                            var row = ActiveSupport.clone(this.rows.item(i));
-                            iterator(row);
-                        }
+                        return false;
                     }
-                };
-                return result;
-            }
+                }
+                else
+                {
+                    for(var i = 0; i < this.rows.length; ++i)
+                    {
+                        var row = ActiveSupport.clone(this.rows[i]);
+                        iterator(row);
+                    }
+                }
+            };
+            return response;
         },
         fieldListFromTable: function(table_name)
         {
@@ -3029,82 +2989,66 @@ Adapters.Local = function(db){
         }
     });
 };
-Adapters.Local.DatabaseUnavailableError = 'ActiveRecord.Adapters.Local could not find an HTML5 compliant or Google Gears database to connect to.';
-Adapters.Local.connect = function connect(name, version, display_name, size)
+Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find an HTML5 compliant or Google Gears database to connect to.';
+Adapters.Gears.connect = function connect(name, version, display_name, size)
 {
     var global_context = ActiveSupport.getGlobalContext();
-    
     var db = null;
-    /*
-    if(window.openDatabase)
-    {
-        db = window.openDatabase(name || 'ActiveRecord', version || '1.0', display_name || 'ActiveRecord', size || 65535);
-        ActiveRecord.asynchronize();
-    }
-    else
-    {
-    */
     
-        if(global_context.google && google.gears)
+    if(!(global_context.google && google.gears))
+    {
+        var gears_factory = null;
+        if('GearsFactory' in global_context)
         {
-            return;
+          gears_factory = new GearsFactory();
         }
-        else
+        else if('ActiveXObject' in global_context)
         {
-            var gears_factory = null;
-            if('GearsFactory' in global_context)
+            try
             {
-              gears_factory = new GearsFactory();
-            }
-            else if('ActiveXObject' in global_context)
-            {
-                try
+                gears_factory = new ActiveXObject('Gears.Factory');
+                if(gears_factory.getBuildInfo().indexOf('ie_mobile') != -1)
                 {
-                    gears_factory = new ActiveXObject('Gears.Factory');
-                    if(gears_factory.getBuildInfo().indexOf('ie_mobile') != -1)
-                    {
-                        gears_factory.privateSetGlobalObject(this);
-                    }
-                }
-                catch(e)
-                {
-                    throw Adapters.Local.DatabaseUnavailableError;
+                    gears_factory.privateSetGlobalObject(this);
                 }
             }
-            else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
+            catch(e)
             {
-                gears_factory = document.createElement("object");
-                gears_factory.style.display = "none";
-                gears_factory.width = 0;
-                gears_factory.height = 0;
-                gears_factory.type = "application/x-googlegears";
-                document.documentElement.appendChild(gears_factory);
+                throw Adapters.Gears.DatabaseUnavailableError;
             }
-            
-            if(!gears_factory)
-            {
-              throw Adapters.Local.DatabaseUnavailableError;
-            }
+        }
+        else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
+        {
+            gears_factory = document.createElement("object");
+            gears_factory.style.display = "none";
+            gears_factory.width = 0;
+            gears_factory.height = 0;
+            gears_factory.type = "application/x-googlegears";
+            document.documentElement.appendChild(gears_factory);
+        }
         
-            if(!('google' in global_context))
-            {
-              google = {};
-            }
-
-            if(!('gears' in google))
-            {
-                google.gears = {
-                    factory: gears_factory
-                };
-            }
+        if(!gears_factory)
+        {
+          throw Adapters.Gears.DatabaseUnavailableError;
         }
     
-        db = google.gears.factory.create('beta.database');
-        db.open(name || 'ActiveRecord');
-    
-    /* } */
-    
-    return new Adapters.Local(db);
+        if(!('google' in global_context))
+        {
+          google = {};
+        }
+
+        if(!('gears' in google))
+        {
+            google.gears = {
+                factory: gears_factory
+            };
+        }
+    }
+
+    db = google.gears.factory.create('beta.database');
+    db.open(name || 'ActiveRecord');
+        
+    return new Adapters.Gears(db);
 };
  
 /**
@@ -3203,15 +3147,15 @@ Adapters.AIR.connect = function connect(path)
 
 /**
  * In memory, non persistent storage.
- * @alias ActiveRecord.Adapters.HashTable
+ * @alias ActiveRecord.Adapters.InMemory
  * @property {ActiveRecord.Adapter}
  */
-Adapters.HashTable = function HashTable(storage){
+Adapters.InMemory = function InMemory(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
 };
 
-ActiveSupport.extend(Adapters.HashTable.prototype,{
+ActiveSupport.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
     entityMissing: function entityMissing(id){
         return {};
@@ -3230,7 +3174,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
     },
     executeSQL: function executeSQL(sql)
     {
-        ActiveRecord.connection.log('Adapters.HashTable could not execute SQL:' + sql);
+        ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
     },
     insertEntity: function insertEntity(table, data)
     {
@@ -3472,7 +3416,7 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
                 var abstract_syntax_tree = where_parser.parse(where);
                 for(var i = 0; i < result_set.length; ++i)
                 {
-                    if(abstract_syntax_tree.execute(result_set[i],Adapters.HashTable.method_call_handler))
+                    if(abstract_syntax_tree.execute(result_set[i],Adapters.InMemory.method_call_handler))
                     {
                         response.push(result_set[i]);
                     }
@@ -3581,24 +3525,24 @@ ActiveSupport.extend(Adapters.HashTable.prototype,{
     }
 });
 
-Adapters.HashTable.method_call_handler = function method_call_handler(name,args)
+Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
 {
-    if(!Adapters.HashTable.MethodCallbacks[name])
+    if(!Adapters.InMemory.MethodCallbacks[name])
     {
         name = name.toLowerCase().replace(/\_[0-9A-Z-a-z]/g,function camelize_underscores(match){
             return match.toUpperCase();
         });
     }
-    if(!Adapters.HashTable.MethodCallbacks[name])
+    if(!Adapters.InMemory.MethodCallbacks[name])
     {
         throw Errors.MethodDoesNotExist;
     }
     else
     {
-        return Adapters.HashTable.MethodCallbacks[name].apply(Adapters.HashTable.MethodCallbacks[name],args);
+        return Adapters.InMemory.MethodCallbacks[name].apply(Adapters.InMemory.MethodCallbacks[name],args);
     }
 };
-Adapters.HashTable.MethodCallbacks = (function(){
+Adapters.InMemory.MethodCallbacks = (function(){
     var methods = {};
     var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
     for(var i = 0; i < math_methods.length; ++i)
@@ -3612,14 +3556,14 @@ Adapters.HashTable.MethodCallbacks = (function(){
     return methods;
 })();
 
-Adapters.HashTable.connect = function(storage){
-  return new Adapters.HashTable(storage || {});
+Adapters.InMemory.connect = function(storage){
+  return new Adapters.InMemory(storage || {});
 };
  
 /**
  * Default adapter, will try to automatically pick the appropriate adapter
  * for the current environment.
- * @alias ActiveRecord.Adapters.HashTable
+ * @alias ActiveRecord.Adapters.Auto
  * @property {ActiveRecord.Adapter}
  */
 Adapters.Auto = {};
@@ -3643,9 +3587,9 @@ Adapters.Auto.connect = function connect()
     else
     {
         try{
-            return Adapters.Local.connect.apply(Adapters.Local.connect,arguments);
+            return Adapters.Gears.connect.apply(Adapters.Gears.connect,arguments);
         }catch(e){
-            return Adapters.HashTable.connect.apply(Adapters.HashTable.connect,arguments);
+            return Adapters.InMemory.connect.apply(Adapters.InMemory.connect,arguments);
         }
     }
 };
