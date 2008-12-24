@@ -49,9 +49,9 @@ ActiveController.create = function create(actions,methods)
 ActiveController.createAction = function wrapAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
-        this.notify('beforeCall',action_name);
+        this.notify('beforeCall',action_name,this.params);
         action.bind(this)();
-        this.notify('afterCall',action_name);
+        this.notify('afterCall',action_name,this.params);
     };
 };
 
