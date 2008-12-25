@@ -125,6 +125,46 @@ ActiveTest.Tests.ActiveRecord.relationships = function(proceed)
             assert(credit_card.id == abbey.getCreditCard().id && !before,'hasOne get#{X}() and create#{X}()');
             abbey.destroy();
             assert(!CreditCard.find(credit_card.id),'hasOne dependent destroyed');
+            
+            //has many through
+            var a = Article.create({
+                name: 'sports are great'
+            });
+            var b = Article.create({
+                name: 'sports are boring in england'
+            });
+            var c = Article.create({
+                name: 'england is great'
+            });
+            
+            var sports = Category.create({
+                name: 'sports'
+            });
+            var england = Category.create({
+                name: 'england'
+            });
+            
+            Categorization.create({
+                category_id: sports.id,
+                article_id: a.id
+            });
+            Categorization.create({
+                category_id: sports.id,
+                article_id: b.id
+            });
+            Categorization.create({
+                category_id: england.id,
+                article_id: b.id
+            });
+            Categorization.create({
+                category_id: england.id,
+                article_id: c.id
+            });
+            
+            assert(a.getCategorizationCount() == 1 && b.getCategorizationCount() == 2,'has many through, regular has many in tact');
+            assert(typeof(a.getCategoryList) == 'function' && typeof(a.getCategoryCount) == 'function','has many through generates correct methods');
+            assert(a.getCategoryList()[0].name == 'sports' && b.getCategoryList()[1].name == 'england' && b.getCategoryCount() == 2,'has many through returns proper results')
+            
             if(proceed)
                 proceed();
         }

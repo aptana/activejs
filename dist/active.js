@@ -5212,65 +5212,106 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         options = {};
     }
     related_model_name = Relationships.normalizeModelName(related_model_name);
+    var original_related_model_name = related_model_name;
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(this.modelName));
     var class_methods = {};
     var instance_methods = {};
-    instance_methods['destroy' + related_model_name] = class_methods['destroy' + related_model_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
-        var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) == 'function') ? params.get('id') : params);
-        if (record)
-        {
-            return record.destroy();
-        }
-        else
-        {
-            return false;
-        }
-    }, related_model_name, foreign_key);
-    instance_methods['get' + related_model_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
-        if(!params)
-        {
-            params = {};
-        }
-        if(options.order)
-        {
-            params.order = options.order;
-        }
-        if(options.synchronize)
-        {
-            params.synchronize = options.synchronize;
-        }
-        if(!params.where)
-        {
-            params.where = {};
-        }
-        params.where[foreign_key] = this.get('id');
-        params.all = true;
-        return ActiveRecord.Models[related_model_name].find(params);
-    }, related_model_name, foreign_key);
-    instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
-        if(!params)
-            params = {};
-        if(!params.where)
-            params.where = {};
-        params.where[foreign_key] = this.get('id');
-        return ActiveRecord.Models[related_model_name].count(params);
-    }, related_model_name, foreign_key);
-    instance_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
-        if(!params)
-        {
-            params = {};
-        }
-        params[foreign_key] = this.get('id');
-        return ActiveRecord.Models[related_model_name].build(params);
-    }, related_model_name, foreign_key);
-    instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
-        if(!params)
-        {
-            params = {};
-        }
-        params[foreign_key] = this.get('id');
-        return ActiveRecord.Models[related_model_name].create(params);
-    }, related_model_name, foreign_key);
+    
+    if(options.through)
+    {
+        var through_model_name = Relationships.normalizeModelName(options.through);
+        instance_methods['get' + related_model_name + 'List'] = ActiveSupport.curry(function getRelatedListForThrough(through_model_name, related_model_name, foreign_key, params){
+            var related_list = this['get' + through_model_name + 'List']();
+            var ids = [];
+            var response = [];
+            for(var i = 0; i < related_list.length; ++i)
+            {
+                response.push(related_list[i]['get' + related_model_name]());
+            }
+            return response;
+        }, through_model_name, related_model_name, foreign_key);
+        
+        instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = this.get('id');
+            return ActiveRecord.Models[through_model_name].count(params);
+        }, through_model_name, related_model_name, foreign_key);
+    }
+    else
+    {
+        instance_methods['destroy' + related_model_name] = class_methods['destroy' + related_model_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) == 'function') ? params.get('id') : params);
+            if (record)
+            {
+                return record.destroy();
+            }
+            else
+            {
+                return false;
+            }
+        }, related_model_name, foreign_key);
+
+        instance_methods['get' + related_model_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            if(options.order)
+            {
+                params.order = options.order;
+            }
+            if(options.synchronize)
+            {
+                params.synchronize = options.synchronize;
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = this.get('id');
+            params.all = true;
+            return ActiveRecord.Models[related_model_name].find(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = this.get('id');
+            return ActiveRecord.Models[related_model_name].count(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            params[foreign_key] = this.get('id');
+            return ActiveRecord.Models[related_model_name].build(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            params[foreign_key] = this.get('id');
+            return ActiveRecord.Models[related_model_name].create(params);
+        }, related_model_name, foreign_key);
+    }
+    
     ActiveSupport.extend(this.prototype, instance_methods);
     ActiveSupport.extend(this, class_methods);
     

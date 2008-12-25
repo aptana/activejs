@@ -121,6 +121,32 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
             }
         });
         
+        Article = ActiveRecord.define('articles',{
+            name: ''
+        });
+        Article.hasMany('Categorization');
+        Article.hasMany('Category',{
+            through: 'Categorization'
+        });
+        
+        Category = ActiveRecord.define('categories',{
+            name: ''
+        });
+        Category.hasMany('Categorization');
+        Category.hasMany('Article',{
+            through: 'Categorization'
+        });
+        
+        Categorization = ActiveRecord.define('categorizations',{
+            article_id: 0,
+            category_id: 0
+        });
+        Categorization.belongsTo('Article',{
+            dependent: true
+        });
+        Categorization.belongsTo('Category',{
+            dependent: true
+        });
         
         if(proceed)
             proceed();
