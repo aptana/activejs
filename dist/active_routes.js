@@ -1526,7 +1526,7 @@ ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
 {
-    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) == 'function'));
+    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) === 'function'));
 };
 
 

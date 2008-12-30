@@ -1916,7 +1916,7 @@ ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
 {
-    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) == 'function'));
+    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) === 'function'));
 };
 
 
@@ -3998,7 +3998,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             return;
         }
-        ActiveSupport.log.apply(ActiveSupport,arguments || []);
+        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
@@ -5232,6 +5232,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         }, through_model_name, related_model_name, foreign_key);
         
         instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
+            console.log('curried count called')
             if(!params)
             {
                 params = {};
@@ -5281,6 +5282,8 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         }, related_model_name, foreign_key);
 
         instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
+            console.log('normal count called')
+            
             if(!params)
             {
                 params = {};
@@ -6061,6 +6064,52 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
     array.makeObservable('splice');
 };
 
+ActiveView.render = function render(content,target,scope,clear,execute)
+{
+    if(!execute)
+    {
+        execute = function render_execute(target,content)
+        {
+            target.appendChild(content);
+        };
+    }
+    if(typeof(content) === 'function' && !content.prototype.structure)
+    {
+        content = content(scope);
+    }
+    if(clear !== false)
+    {
+        target.innerHTML = '';
+    }
+    if(typeof(content) === 'string')
+    {
+        target.innerHTML = content;
+        return content;
+    }
+    else if(content && content.nodeType == 1)
+    {
+        execute(target,content);
+        return content;
+    }
+    else if(content && content.container)
+    {
+      //is ActiveView instance
+      execute(target,content.container);
+      return view;
+    }
+    else if(content && content.prototype && content.prototype.structure)
+    {
+        //is ActiveView class
+        var view = new content(scope);
+        execute(target,view.container);
+        return view;
+    }
+    else
+    {
+        throw Errors.InvalidContent;
+    }
+};
+
 var InstanceMethods = {
     initialize: function initialize(scope,parent)
     {
@@ -6070,7 +6119,7 @@ var InstanceMethods = {
         {
             this.scope = new ObservableHash(this.scope);
         }
-        this.builder = Builder.generateBuilder(this);
+        this.builder = Builder.generate(this);
         this.binding = new Binding(this);
         for(var key in this.scope._object)
         {
@@ -6140,7 +6189,7 @@ var Builder = {
         "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
         "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
         "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/),
-    createElement: function createElement(tag,attributes,view)
+    createElement: function createElement(tag,attributes)
     {
         var ie = !!(window.attachEvent && !window.opera);
         attributes = attributes || {};
@@ -6188,7 +6237,7 @@ var Builder = {
         }
         return element;
     },
-    generateBuilder: function generateBuilder(view)
+    generate: function generate()
     {
         var builder;
         builder = {};
@@ -6221,7 +6270,7 @@ var Builder = {
                             elements.push(argument);
                         }
                     }
-                    element = Builder.createElement(tag,attributes,view);
+                    element = Builder.createElement(tag,attributes);
                     for(i = 0; i < elements.length; ++i)
                     {
                         element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : document.createTextNode((new String(elements[i])).toString()));
@@ -6231,11 +6280,16 @@ var Builder = {
             })(tag);
         }
         return builder;
+    },
+    addMethods: function addMethods(methods)
+    {
+        ActiveSupport.extend(Builder.InstanceMethods,methods || {});
+        ActiveView.Builder = Builder.generate();
     }
 };
 
 Builder.InstanceMethods = {};
-ActiveView.Builder = Builder;
+ActiveView.Builder = Builder.generate();
 
 var Binding = function Binding(view)
 {
@@ -6322,55 +6376,63 @@ ActiveSupport.extend(Binding.prototype,{
                         var collected_elements = [];
                         for(var i = 0; i < collection.length; ++i)
                         {
-                            element.insert(view(collection[i]));
+                            ActiveView.render(view,element,collection[i],false);
                             collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                         }
-                        collection.observe('pop',function pop_observer(){
-                            collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
-                            collected_elements.pop();
-                        });
-                        collection.observe('push',function push_observer(item){
-                            element.insert(view(item));
-                            collected_elements.push(element.childNodes[element.childNodes.length - 1]);
-                        });
-                        collection.observe('unshift',function unshift_observer(item){
-                            element.insert({top: view(item)});
-                            collected_elements.unshift(element.firstChild);
-                        });
-                        collection.observe('shift',function shift_observer(){
-                            element.removeChild(element.firstChild);
-                            collected_elements.shift(element.firstChild);
-                        });
-                        collection.observe('splice',function splice_observer(index,to_remove){
-                            var children = [];
-                            var i;
-                            for(i = 2; i < arguments.length; ++i)
-                            {
-                                children.push(arguments[i]);
-                            }
-                            if(to_remove)
-                            {
-                                for(i = index; i < (index + to_remove); ++i)
+                        if(collection.observe)
+                        {
+                            collection.observe('pop',function pop_observer(){
+                                collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
+                                collected_elements.pop();
+                            });
+                            collection.observe('push',function push_observer(item){
+                                ActiveView.render(view,element,item,false);
+                                collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                            });
+                            collection.observe('unshift',function unshift_observer(item){
+                                ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
+                                    element.insertBefore(content,element.firstChild);
+                                });
+                                collected_elements.unshift(element.firstChild);
+                            });
+                            collection.observe('shift',function shift_observer(){
+                                element.removeChild(element.firstChild);
+                                collected_elements.shift(element.firstChild);
+                            });
+                            collection.observe('splice',function splice_observer(index,to_remove){
+                                var children = [];
+                                var i;
+                                for(i = 2; i < arguments.length; ++i)
                                 {
-                                    collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                    children.push(arguments[i]);
                                 }
-                            }
-                            for(i = 0; i < children.length; ++i)
-                            {
-                                var item = view(children[i]);
-                                if(index == 0 && i == 0)
+                                if(to_remove)
                                 {
-                                    element.insert({top: item});
-                                    children[i] = element.firstChild;
+                                    for(i = index; i < (index + to_remove); ++i)
+                                    {
+                                        collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                    }
                                 }
-                                else
+                                for(i = 0; i < children.length; ++i)
                                 {
-                                    element.insertBefore(typeof(item) == 'string' ? document.createTextNode(item) : item,element.childNodes[index + i]);
-                                    children[i] = element.childNodes[i + 1];
+                                    if(index == 0 && i == 0)
+                                    {
+                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
+                                            element.insertBefore(content,element.firstChild);
+                                            children[i] = element.firstChild;
+                                        });
+                                    }
+                                    else
+                                    {
+                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
+                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            children[i] = element.childNodes[i + 1];
+                                        });
+                                    }
                                 }
-                            }
-                            collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
-                        });
+                                collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
+                            });
+                        }
                     }
                 };
             },this)
@@ -6389,7 +6451,13 @@ ActiveController = {};
 ActiveController.create = function create(actions,methods)
 {
     var klass = function klass(container,params){
-        this.container = container;
+        this.container = container || ActiveController.createDefaultContainer();
+        this.renderTarget = this.container;
+        this.layoutRendered = false;
+        if(this.layout && typeof(this.layout) == 'function')
+        {
+            this.layout = ActiveSupport.bind(this.layout,this);
+        }
         this.params = params || {};
         this.scope = {};
         this.initialize();
@@ -6405,11 +6473,27 @@ ActiveController.create = function create(actions,methods)
     return klass;
 };
 
+ActiveController.createDefaultContainer = function createDefaultContainer()
+{
+    var div = document.createElement('div');
+    document.body.appendChild(div);
+    return div;
+};
+
 ActiveController.createAction = function wrapAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
-        action.bind(this)();
+        if(this.layout && !this.layoutRendered)
+        {
+            this.layoutRendered = true;
+            var layout = this.render(this.layout,this.container);
+            if(layout && layout.renderTarget)
+            {
+                this.renderTarget = layout.renderTarget;
+            }
+        }        
+        ActiveSupport.bind(action,this)();
         this.notify('afterCall',action_name,this.params);
     };
 };
@@ -6428,11 +6512,20 @@ var InstanceMethods = {
         this.scope[key] = value;
         this.notify('set',key,value);
         return value;
+    },
+    render: function render(content,target,clear)
+    {
+        return ActiveView.render(content,target || this.renderTarget,this,clear);
     }
 };
 
 var ClassMethods = {
     
 };
+
+var Errors = {
+    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+};
+ActiveController.Errors = Errors;
 
 })();
