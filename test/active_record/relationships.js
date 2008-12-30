@@ -160,7 +160,7 @@ ActiveTest.Tests.ActiveRecord.relationships = function(proceed)
                 category_id: england.id,
                 article_id: c.id
             });
-            
+                        
             assert(a.getCategorizationCount() == 1 && b.getCategorizationCount() == 2,'has many through, regular has many in tact');
             assert(typeof(a.getCategoryList) == 'function' && typeof(a.getCategoryCount) == 'function','has many through generates correct methods');
             assert(a.getCategoryList()[0].name == 'sports' && b.getCategoryList()[1].name == 'england' && b.getCategoryCount() == 2,'has many through returns proper results')
