@@ -50,7 +50,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             return;
         }
-        ActiveSupport.log.apply(ActiveSupport,arguments || []);
+        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
