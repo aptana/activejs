@@ -1,0 +1,662 @@
+<!--
+Copyright 2007, Google Inc.
+
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, 
+    this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ 3. Neither the name of Google Inc. nor the names of its contributors may be
+    used to endorse or promote products derived from this software without
+    specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Database Query Tool</title>
+<style>
+
+html {
+  overflow: auto;
+  font: icon;
+}
+
+
+body {
+  margin-top: 2em;
+}
+
+table {
+  border: 1px solid ThreeDShadow;
+}
+
+td, th {
+  font: icon;
+  padding: 2px 5px;
+}
+
+thead {
+  background-color: ThreeDFace;
+}
+
+th {
+  border: 1px solid;
+  border-color: ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight;
+}
+
+td.even {
+  background-color: #f5f5f5;
+}
+
+#command-area {
+  width: 100%;
+}
+
+#command-area, h3 {
+  border: 0;
+  margin: 5px 0;
+}
+
+#command-area td {
+  vertical-align: top;
+  padding: 0;
+  white-space: nowrap;
+}
+
+h3, textarea, input, label {
+  font: icon;
+  font-size: 15pt !important;
+  border: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* work around IE rendering bug */
+:root textarea {
+  width: 100%;
+}
+
+#ta.label {
+  color: GrayText;
+}
+
+button {
+  font: icon;
+  font-size: 15pt !important;
+}
+
+#active {
+  display: none;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5em;
+}
+
+input {
+  width: 13em;
+}
+
+#login-form {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+}
+
+#status-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5em;
+  display: none;
+  cursor: pointer;
+}
+
+#status-bar a {
+  color: blue;
+}
+
+form {
+  float:left;
+  position: relative;
+  top: -50%;
+  left: -50%;
+  height: 100%;
+  text-align: right;
+}
+
+form button {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+</style>
+<script>
+  
+  
+  // Copyright 2007, Google Inc.
+  //
+  // Redistribution and use in source and binary forms, with or without
+  // modification, are permitted provided that the following conditions are met:
+  //
+  //  1. Redistributions of source code must retain the above copyright notice,
+  //     this list of conditions and the following disclaimer.
+  //  2. Redistributions in binary form must reproduce the above copyright notice,
+  //     this list of conditions and the following disclaimer in the documentation
+  //     and/or other materials provided with the distribution.
+  //  3. Neither the name of Google Inc. nor the names of its contributors may be
+  //     used to endorse or promote products derived from this software without
+  //     specific prior written permission.
+  //
+  // THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  // WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+  // EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  // OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+  // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+  // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  //
+  // Sets up google.gears.*, which is *the only* supported way to access Gears.
+  //
+  // Circumvent this file at your own risk!
+  //
+  // In the future, Gears may automatically define google.gears.* without this
+  // file. Gears may use these objects to transparently fix bugs and compatibility
+  // issues. Applications that use the code below will continue to work seamlessly
+  // when that happens.
+
+  (function() {
+    // We are already defined. Hooray!
+    if (window.google && google.gears) {
+      return;
+    }
+
+    var factory = null;
+
+    // Firefox
+    if (typeof GearsFactory != 'undefined') {
+      factory = new GearsFactory();
+    } else {
+      // IE
+      try {
+        factory = new ActiveXObject('Gears.Factory');
+        // privateSetGlobalObject is only required and supported on IE Mobile on
+        // WinCE.
+        if (factory.getBuildInfo().indexOf('ie_mobile') != -1) {
+          factory.privateSetGlobalObject(this);
+        }
+      } catch (e) {
+        // Safari
+        if ((typeof navigator.mimeTypes != 'undefined')
+             && navigator.mimeTypes["application/x-googlegears"]) {
+          factory = document.createElement("object");
+          factory.style.display = "none";
+          factory.width = 0;
+          factory.height = 0;
+          factory.type = "application/x-googlegears";
+          document.documentElement.appendChild(factory);
+        }
+      }
+    }
+
+    // *Do not* define any objects if Gears is not installed. This mimics the
+    // behavior of Gears defining the objects in the future.
+    if (!factory) {
+      return;
+    }
+
+    // Now set up the objects, being careful not to overwrite anything.
+    //
+    // Note: In Internet Explorer for Windows Mobile, you can't add properties to
+    // the window object. However, global objects are automatically added as
+    // properties of the window object in all browsers.
+    if (!window.google) {
+      google = {};
+    }
+
+    if (!google.gears) {
+      google.gears = {factory: factory};
+    }
+  })();
+  
+</script>
+<script>
+
+/**
+ * Global reference to the database. Set in init.
+ * @type GearsDatabase
+ */
+var db;
+
+
+/**
+ * @type String
+ */
+var DATABASE_NAME = 'mydatabasename';
+
+
+/**
+ * Executes an SQL statement and outputs the result to the document
+ * @param {GearsDatabase} db  The database object.
+ * @param {String} sql  The SQL statement to execute.
+ */
+function executeAndPrintResult(db, sql) {
+  var rs, error = false, errorMessage;
+
+  try {
+    rs = db.execute(sql);
+  } catch (ex) {
+    error = true;
+    errorMessage = ex.message || ex.description || String(ex);
+  }
+
+  var i, cols, sb, row;
+  sb = [];
+  sb.push('<h3>', escapeHtml(sql), '</h3>');
+  sb.push('<table cellspacing=0><thead><tr>');
+  if (!rs || error) {
+    sb.push('<th>Error</th><thead><tbody><tr><td>',
+            errorMessage || 'Unknown error',
+            '</td></tr>');
+
+  // If we did an update, insert, delete etc. we would not have a valid row
+  } else if (rs.isValidRow()) {
+
+    // headers
+    cols = rs.fieldCount()
+    for (i = 0; i < cols; i++) {
+      sb.push('<th>', escapeHtml(rs.fieldName(i)), '</th>');
+    }
+    sb.push('</tr></thead><tbody>');
+
+    var odd = true;
+    while (rs.isValidRow()) {
+      sb.push('<tr>');
+        for (i = 0; i < cols; i++) {
+        sb.push('<td class=' + (odd ? 'odd' : 'even') + '>',
+                escapeHtml(rs.field(i)),/* ' [', typeof rs.field(i), ']',*/
+                '</td>');
+      }
+      odd = !odd;
+      sb.push('</tr>');
+      rs.next();
+    }
+    rs.close();
+  }
+  sb.push('</tbody></table>');
+  var output = document.createElement('div');
+  document.getElementById('output').appendChild(output);
+  output.innerHTML = sb.join('');
+}
+
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+}
+
+
+function populateLoginForm(opt_databaseName) {
+  var databaseName = opt_databaseName != null ? opt_databaseName
+                                              : DATABASE_NAME;
+  document.getElementById('database-name').value = databaseName;
+}
+
+
+/**
+ * Initializes the application
+ * @param {String} opt_databaseName  User ID. If left out the id is taken from
+ *    the form.
+ */
+function init(opt_databaseName) {
+  var dbNameInput = document.getElementById('database-name');
+  dbNameInput.blur();
+  hideLoginForm();
+  hideInstallMessage();
+
+  try {
+    db = google.gears.factory.create('beta.database');
+  } catch (ex) {
+    // Gears not installed
+    alert('Could not create database:\n\n' + ex.message);
+    showLoginForm();
+    return;
+  }
+
+  var dbNameInput = document.getElementById('database-name');
+  var databaseName = opt_databaseName != null ? opt_databaseName :
+      dbNameInput.value;
+
+  setCookieInfo(databaseName);
+  var statusBar = document.getElementById('status-bar');
+  var as = statusBar.getElementsByTagName('a');
+  as[0].firstChild.data = databaseName || 'None';
+
+  db.open(databaseName);
+
+  populateLoginForm(databaseName);
+
+  // set up events
+  var ta = document.getElementById('ta');
+  var button = document.getElementById('bt');
+
+  ta.onkeypress = function (e) {
+    if (!e) {
+      e = window.event;
+    }
+    if (e.keyCode == 13) {
+      if (!e.shiftKey && !e.ctrlKey) { // Enter
+        execute();
+        return false;
+      }
+    }
+    updateTextAreaRows(ta);
+  };
+
+  ta.onkeydown = function (e) {
+    if (!e) {
+      e = window.event;
+    }
+
+    if (e.keyCode == 38 && isCursorOnFirstLine(ta)) {
+      return previousCommand();
+    } else if (e.keyCode == 40 && isCursorOnLastLine(ta)) {
+      return nextCommand();
+    }
+    updateTextAreaRows(ta);
+  };
+
+  var label = 'Enter SQL statement here';
+
+  ta.onblur = function() {
+    if (/^\s*$/.test(ta.value)) {
+      ta.value = label;
+      ta.className = 'label';
+    }
+  };
+
+  ta.onfocus = function() {
+    if (ta.value == label) {
+      ta.className = '';
+      ta.value = '';
+    }
+  };
+
+  ta.value = 'select * from sqlite_master';
+  taFocus();
+}
+
+
+function isCursorOnFirstLine(ta) {
+  if (typeof ta.selectionStart == 'number') {
+    var index = ta.value.indexOf('\n');
+    return index == -1 || ta.selectionStart <= index;
+  } else {
+    // Get the range representing the text before the cursor. Then get the
+    // number of rects that is and see if we have more than one
+    var selectionRange = document.selection.createRange();
+    var range = selectionRange.duplicate();
+    range.moveToElementText(ta);
+    range.setEndPoint('EndToStart', selectionRange);
+    return range.getClientRects().length == 1;
+  }
+}
+
+
+function isCursorOnLastLine(ta) {
+  if (typeof ta.selectionEnd == 'number') {
+    var index = ta.value.substr(ta.selectionEnd).indexOf('\n');
+    return index == -1;
+  } else {
+    // Get the range representing the text before the cursor. Then get the
+    // number of rects that is and see if we have more than one
+    var selectionRange = document.selection.createRange();
+    var range = selectionRange.duplicate();
+    range.moveToElementText(ta);
+    range.setEndPoint('StartToEnd', selectionRange);
+    return range.getClientRects().length == 1;
+  }
+}
+
+
+/**
+ * Updates the rows property of a textarea depending on the content
+ * @param {HTMLTextareaElement} ta  The textarea to modify
+ */
+function updateTextAreaRows(ta) {
+  ta.rows = ta.value.split(/\n/).length + 2;
+}
+
+
+/**
+ * Hides the installation message
+ */
+function hideInstallMessage() {
+  var el = document.getElementById('install-message');
+  if (el) {
+    el.parentNode.removeChild(el);
+    el = document.getElementById('command-area');
+    el.style.display = '';
+  }
+}
+
+var currentCommandIndex = 0;
+var commandHistory = [];
+
+
+/**
+ * Called when the user clicks the 'Execute' button.
+ */
+function execute() {
+  var ta = document.getElementById('ta');
+  var val = ta.value.replace(/(^\s+)|(\s+$)/g, '');
+  if (val != '') {
+    add(val);
+    executeSql(val);
+    var commandDiv = document.getElementById('command-area');
+    document.body.appendChild(commandDiv);
+    ta.value = '';
+    ta.rows = 2;
+    taFocus();
+  }
+}
+
+
+/**
+ * Changes the value of the textarea to the next command
+ */
+function previousCommand() {
+  if (currentCommandIndex > 0) {
+    save();
+    currentCommandIndex--;
+    var ta = document.getElementById('ta');
+    ta.value = commandHistory[currentCommandIndex];
+    updateTextAreaRows(ta);
+    return false;
+  }
+}
+
+
+/**
+ * Changes the value of the textarea to the next command
+ */
+function nextCommand() {
+  if (currentCommandIndex < commandHistory.length - 1) {
+    save();
+    currentCommandIndex++;
+    var ta = document.getElementById('ta');
+    ta.value = commandHistory[currentCommandIndex];
+    updateTextAreaRows(ta);
+    return false;
+  }
+}
+
+
+/**
+ * Saves the current value of the textarea to the command history
+ */
+function save() {
+  var ta = document.getElementById('ta');
+  commandHistory[currentCommandIndex] = ta.value;
+}
+
+
+/**
+ * Adds an entry to the command history
+ * @param {String} val  The command to add
+ */
+function add(val) {
+  if (commandHistory[commandHistory.length - 1] == '') {
+    commandHistory[commandHistory.length - 1] = val;
+  } else if (val != commandHistory[commandHistory.length - 1]) {
+    commandHistory.push(val);
+  }
+  currentCommandIndex = commandHistory.length;
+}
+
+
+/**
+ * Clears the previous outputted results
+ */
+function clearOutput() {
+  var ca = document.getElementById('command-area');
+  var ta = document.getElementById('ta');
+  if (ta) {
+    document.body.removeChild(ca);
+    document.getElementById('output').innerHTML = '';
+    document.body.appendChild(ca);
+    taFocus();
+  }
+}
+
+
+function executeSql(sql) {
+  executeAndPrintResult(db, sql);
+}
+
+
+// work around IE bug
+function taFocus() {
+  window.setTimeout(function() {
+    document.getElementById('ta').focus();
+  }, 100);
+}
+
+
+function hideLoginForm() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('active').style.display = 'block';
+  document.getElementById('status-bar').style.display = 'block';
+  document.getElementById('command-area').style.display = '';
+  document.getElementById('output').style.display = '';
+}
+
+
+function showLoginForm() {
+  document.getElementById('login-form').style.display = '';
+  document.getElementById('active').style.display = '';
+  document.getElementById('status-bar').style.display = '';
+  document.getElementById('command-area').style.display = 'none';
+  document.getElementById('output').style.display = 'none';
+  document.getElementById('database-name').focus();
+  document.getElementById('database-name').select();
+}
+
+
+/**
+ * Checks the cookie to see if we have a 'dbinfo' stored and returns
+ * it as a string or null if not found.
+ * @return String|Null
+ */
+function getCookieInfo() {
+  var res = /dbinfo\=([^\;\= ]+)/.exec(document.cookie);
+  return res && res[1];
+}
+
+
+/**
+ * Checks the query params to see if we have a 'dbinfo' in it and returns
+ * the value of that param as a string. Returns null if not found.
+ * @return String|Null
+ */
+function getQueryInfo() {
+  var res = /[?&]dbinfo\=([^&#]*)/.exec(window.location.href);
+  return res && res[1];
+}
+
+
+/**
+ * Sets a cookie so that you don't have to reenter the user data every time
+ * @param {String} databaseName  The name of the database.
+ */
+function setCookieInfo(databaseName) {
+  var d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  document.cookie = 'dbinfo=' + databaseName + ';expires=' + d.toUTCString();
+}
+
+</script>
+</head>
+<body>
+
+<div id=status-bar
+     onclick="showLoginForm(); return false">DB Name: <a href=#>&nbsp;</a>
+</div>
+
+<div id=login-form>
+  <form onsubmit="init(); return false">
+    <label title="This is the ID used for opening the database">Database Name:
+      <input id=database-name></label>
+    <button type=submit>OK</button>
+  </form>
+</div>
+
+<div id=active>
+  <table id=command-area cellspacing=0 style="display:none">
+    <tr>
+      <td>
+        <textarea id=ta cols=80 rows=2 spellcheck=false></textarea>
+      <td style="text-align: right">
+        <button onclick="execute()">Execute</button>
+        <button onclick="clearOutput()">Clear</button>
+  </table>
+
+  <div id=install-message>
+    <h2>Gears is not installed</h2>
+  </div>
+</div>
+
+<div id=output></div>
+
+<script>
+
+var dbInfo = getQueryInfo() || getCookieInfo();
+if (!dbInfo) {
+  populateLoginForm();
+  showLoginForm();
+} else {
+  init(dbInfo);
+}
+
+</script>
+
+</body>
+</html>
