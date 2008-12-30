@@ -61,6 +61,52 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
     array.makeObservable('splice');
 };
 
+ActiveView.render = function render(content,target,scope,clear,execute)
+{
+    if(!execute)
+    {
+        execute = function render_execute(target,content)
+        {
+            target.appendChild(content);
+        };
+    }
+    if(typeof(content) === 'function' && !content.prototype.structure)
+    {
+        content = content(scope);
+    }
+    if(clear !== false)
+    {
+        target.innerHTML = '';
+    }
+    if(typeof(content) === 'string')
+    {
+        target.innerHTML = content;
+        return content;
+    }
+    else if(content && content.nodeType == 1)
+    {
+        execute(target,content);
+        return content;
+    }
+    else if(content && content.container)
+    {
+      //is ActiveView instance
+      execute(target,content.container);
+      return view;
+    }
+    else if(content && content.prototype && content.prototype.structure)
+    {
+        //is ActiveView class
+        var view = new content(scope);
+        execute(target,view.container);
+        return view;
+    }
+    else
+    {
+        throw Errors.InvalidContent;
+    }
+};
+
 var InstanceMethods = {
     initialize: function initialize(scope,parent)
     {
@@ -70,7 +116,7 @@ var InstanceMethods = {
         {
             this.scope = new ObservableHash(this.scope);
         }
-        this.builder = Builder.generateBuilder(this);
+        this.builder = Builder.generate(this);
         this.binding = new Binding(this);
         for(var key in this.scope._object)
         {

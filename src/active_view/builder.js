@@ -32,7 +32,7 @@ var Builder = {
         "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
         "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
         "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/),
-    createElement: function createElement(tag,attributes,view)
+    createElement: function createElement(tag,attributes)
     {
         var ie = !!(window.attachEvent && !window.opera);
         attributes = attributes || {};
@@ -80,7 +80,7 @@ var Builder = {
         }
         return element;
     },
-    generateBuilder: function generateBuilder(view)
+    generate: function generate()
     {
         var builder;
         builder = {};
@@ -113,7 +113,7 @@ var Builder = {
                             elements.push(argument);
                         }
                     }
-                    element = Builder.createElement(tag,attributes,view);
+                    element = Builder.createElement(tag,attributes);
                     for(i = 0; i < elements.length; ++i)
                     {
                         element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : document.createTextNode((new String(elements[i])).toString()));
@@ -123,8 +123,13 @@ var Builder = {
             })(tag);
         }
         return builder;
+    },
+    addMethods: function addMethods(methods)
+    {
+        ActiveSupport.extend(Builder.InstanceMethods,methods || {});
+        ActiveView.Builder = Builder.generate();
     }
 };
 
 Builder.InstanceMethods = {};
-ActiveView.Builder = Builder;
+ActiveView.Builder = Builder.generate();

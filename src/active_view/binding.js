@@ -110,55 +110,63 @@ ActiveSupport.extend(Binding.prototype,{
                         var collected_elements = [];
                         for(var i = 0; i < collection.length; ++i)
                         {
-                            element.insert(view(collection[i]));
+                            ActiveView.render(view,element,collection[i],false);
                             collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                         }
-                        collection.observe('pop',function pop_observer(){
-                            collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
-                            collected_elements.pop();
-                        });
-                        collection.observe('push',function push_observer(item){
-                            element.insert(view(item));
-                            collected_elements.push(element.childNodes[element.childNodes.length - 1]);
-                        });
-                        collection.observe('unshift',function unshift_observer(item){
-                            element.insert({top: view(item)});
-                            collected_elements.unshift(element.firstChild);
-                        });
-                        collection.observe('shift',function shift_observer(){
-                            element.removeChild(element.firstChild);
-                            collected_elements.shift(element.firstChild);
-                        });
-                        collection.observe('splice',function splice_observer(index,to_remove){
-                            var children = [];
-                            var i;
-                            for(i = 2; i < arguments.length; ++i)
-                            {
-                                children.push(arguments[i]);
-                            }
-                            if(to_remove)
-                            {
-                                for(i = index; i < (index + to_remove); ++i)
+                        if(collection.observe)
+                        {
+                            collection.observe('pop',function pop_observer(){
+                                collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
+                                collected_elements.pop();
+                            });
+                            collection.observe('push',function push_observer(item){
+                                ActiveView.render(view,element,item,false);
+                                collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                            });
+                            collection.observe('unshift',function unshift_observer(item){
+                                ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
+                                    element.insertBefore(content,element.firstChild);
+                                });
+                                collected_elements.unshift(element.firstChild);
+                            });
+                            collection.observe('shift',function shift_observer(){
+                                element.removeChild(element.firstChild);
+                                collected_elements.shift(element.firstChild);
+                            });
+                            collection.observe('splice',function splice_observer(index,to_remove){
+                                var children = [];
+                                var i;
+                                for(i = 2; i < arguments.length; ++i)
                                 {
-                                    collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                    children.push(arguments[i]);
                                 }
-                            }
-                            for(i = 0; i < children.length; ++i)
-                            {
-                                var item = view(children[i]);
-                                if(index == 0 && i == 0)
+                                if(to_remove)
                                 {
-                                    element.insert({top: item});
-                                    children[i] = element.firstChild;
+                                    for(i = index; i < (index + to_remove); ++i)
+                                    {
+                                        collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                    }
                                 }
-                                else
+                                for(i = 0; i < children.length; ++i)
                                 {
-                                    element.insertBefore(typeof(item) == 'string' ? document.createTextNode(item) : item,element.childNodes[index + i]);
-                                    children[i] = element.childNodes[i + 1];
+                                    if(index == 0 && i == 0)
+                                    {
+                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
+                                            element.insertBefore(content,element.firstChild);
+                                            children[i] = element.firstChild;
+                                        });
+                                    }
+                                    else
+                                    {
+                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
+                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            children[i] = element.childNodes[i + 1];
+                                        });
+                                    }
                                 }
-                            }
-                            collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
-                        });
+                                collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
+                            });
+                        }
                     }
                 };
             },this)
