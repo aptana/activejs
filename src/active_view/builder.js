@@ -96,6 +96,10 @@ var Builder = {
                     for(i = 0; i < arguments.length; ++i)
                     {
                         argument = arguments[i];
+                        if(typeof(argument) === 'undefined' || argument === null || argument === false)
+                        {
+                            continue;
+                        }
                         if(typeof(argument) == 'function')
                         {
                             argument = argument();
