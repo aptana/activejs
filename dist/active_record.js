@@ -4545,7 +4545,6 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         }, through_model_name, related_model_name, foreign_key);
         
         instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
-            console.log('curried count called')
             if(!params)
             {
                 params = {};
@@ -4595,8 +4594,6 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         }, related_model_name, foreign_key);
 
         instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
-            console.log('normal count called')
-            
             if(!params)
             {
                 params = {};
