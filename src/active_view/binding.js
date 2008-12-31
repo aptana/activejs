@@ -87,32 +87,33 @@ ActiveSupport.extend(Binding.prototype,{
     },
     collect: function collect(view)
     {
-        /*
-        var view = function(){
-            var response = view_callback.apply(view_callback,arguments);
-            if(typeof(response) == 'string')
-            {
-                response = document.createTextNode(response);
-            }
-            return response;
-        };
-        */
         return {
             from: ActiveSupport.bind(function from(collection)
             {
-                if(typeof(collection) == 'string')
-                {
-                    collection = this.view.scope.get(collection);
-                }
                 return {
-                    into: function into(element)
+                    into: ActiveSupport.bind(function into(element)
                     {
+                        //if a string is passed make sure that the view is re-built when the key is set
+                        if(typeof(collection) == 'string')
+                        {
+                            var collection_name = collection;
+                            this.view.scope.observe('set',ActiveSupport.bind(function collection_key_change_observer(key,value){
+                                if(key == collection_name)
+                                {
+                                    element.innerHTML = '';
+                                    this.collect(view).from(value).into(element);
+                                }
+                            },this));
+                            collection = this.view.scope.get(collection);
+                        }
+                        //loop over the collection when it is passed in to build the view the first time
                         var collected_elements = [];
                         for(var i = 0; i < collection.length; ++i)
                         {
                             ActiveView.render(view,element,collection[i],false);
                             collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                         }
+                        //these handlers will add or remove elements from the view as the collection changes
                         if(collection.observe)
                         {
                             collection.observe('pop',function pop_observer(){
@@ -167,8 +168,21 @@ ActiveSupport.extend(Binding.prototype,{
                                 collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
                             });
                         }
-                    }
+                    },this)
                 };
+            },this)
+        };
+    },
+    when: function when(outer_key)
+    {
+        return {
+            changes: ActiveSupport.bind(function changes(callback){
+                this.view.observe('set',function changes_observer(inner_key,value){
+                    if(outer_key == inner_key)
+                    {
+                        callback(value);
+                    }
+                });
             },this)
         };
     }
