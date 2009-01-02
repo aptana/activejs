@@ -295,14 +295,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     response.push(this.build(row));
                 }, this));
             }
-            response.reload = ActiveSupport.bind(function reload(){
-                response.length = 0;
-                var new_response = this.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
-                for(var i = 0; i < new_response.length; ++i)
-                {
-                    response.push(new_response[i]);
-                }
-            },this);
+			ResultSet.extend(response,params,this);
             this.notify('afterFind',response,params);
             if(params.synchronize)
             {
