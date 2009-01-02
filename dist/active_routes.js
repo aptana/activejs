@@ -32,7 +32,7 @@
  */
 ActiveSupport = null;
 
-(function(){
+(function(global_context){
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -41,7 +41,7 @@ ActiveSupport = {
      */
     getGlobalContext: function getGlobalContext()
     {
-        return window;
+        return global_context;
     },
     /**
      * Logs a message to the available logging resource. Accepts a variable
@@ -841,9 +841,9 @@ ActiveSupport = {
     JSON: function()
     {
         //use native support if available
-        if(window && 'JSON' in window && 'stringify' in window.JSON && 'parse' in window.JSON)
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
         {
-          return window.JSON;
+          return global_context.JSON;
         }
         
         function f(n) {
@@ -1027,7 +1027,7 @@ ActiveSupport = {
     }()
 };
 
-})();
+})(this);
  
 ActiveRoutes = null;
 

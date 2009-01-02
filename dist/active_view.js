@@ -32,7 +32,7 @@
  */
 ActiveSupport = null;
 
-(function(){
+(function(global_context){
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -41,7 +41,7 @@ ActiveSupport = {
      */
     getGlobalContext: function getGlobalContext()
     {
-        return window;
+        return global_context;
     },
     /**
      * Logs a message to the available logging resource. Accepts a variable
@@ -841,9 +841,9 @@ ActiveSupport = {
     JSON: function()
     {
         //use native support if available
-        if(window && 'JSON' in window && 'stringify' in window.JSON && 'parse' in window.JSON)
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
         {
-          return window.JSON;
+          return global_context.JSON;
         }
         
         function f(n) {
@@ -1027,13 +1027,13 @@ ActiveSupport = {
     }()
 };
 
-})();
+})(this);
 
 /**
  * @namespace {ActiveEvent}
  * @example
- * ActiveEvent allows you to create events, and attach event handlers to any
- * class or object.
+ * ActiveEvent allows you to create observable events, and attach event
+ * handlers to any class or object.
  *
  * Setup
  * -----
@@ -1091,8 +1091,10 @@ ActiveSupport = {
  * Control Flow
  * ------------
  * When notify() is called, if any of the registered observers for that event
- * throw the special $break variable, no other observers will be called and
- * notify() will return false. Otherwise notify() will return an array of the
+ * return false, no other observers will be called and notify() will return
+ * false. Returning null or not calling return will not stop the event.
+ *
+ * Otherwise notify() will return an array of the
  * collected return values from any registered observer functions. Observers
  * can be unregistered with the stopObserving() method. If no observer is
  * passed, all observers of that object or class with the given event name
@@ -1111,7 +1113,7 @@ ActiveSupport = {
  *     
  *     var observer = m.observe('send',function(message,text){
  *         if(text == 'test')
- *             throw $break;
+ *             return false;
  *     });
  *     
  *     m.send('my message'); //returned true
@@ -1180,13 +1182,6 @@ ActiveEvent = null;
  */
 
 (function(){
-    
-var global_context = ActiveSupport.getGlobalContext();
-
-if(typeof(global_context.$break) == 'undefined')
-{
-    global_context.$break = {};
-}
 
 ActiveEvent = {};
 
@@ -1321,26 +1316,25 @@ ActiveEvent.extend = function extend(object){
      * @alias ActiveEvent.ObservableObject.notify
      * @param {String} event_name
      * @param {mixed} [args]
-     * @return {mixed} Array of return values, or false if $break was thrown
-     *  by an observer.
+     * @return {mixed} Array of return values, or false if the event was
+     *  stopped by an observer.
      */
     object.notify = function notify(event_name){
         this._objectEventSetup(event_name);
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
-        try{
-            for(var i = 0; i < this._observers[event_name].length; ++i)
-                collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-        }catch(e){
-            if(e == $break)
-            {
-                return false;
-            }
-            else
-            {
-                throw e;
-            }
-        }
+        for(var i = 0; i < this._observers[event_name].length; ++i)
+		{
+			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+			if(response === false)
+			{
+				return false;
+			}
+			else
+			{
+	            collected_return_values.push(response);
+			}
+		}
         return collected_return_values;
     };
     if(object.prototype)
@@ -1364,27 +1358,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-            try
+			var response;
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-                if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
-                {
-                    collected_return_values.push(this.options[event_name].apply(this,args) || null);
-                }
-                for(var i = 0; i < this._observers[event_name].length; ++i)
-                {
-                    collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-                }
+				response = this.options[event_name].apply(this,args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
-            catch(e)
+            for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-                if(e == $break)
-                {
-                    return false;
-                }
-                else
-                {
-                    throw e;
-                }
+				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
             return collected_return_values;
         };
@@ -1514,8 +1511,8 @@ var InstanceMethods = {
         {
             this.scope = new ObservableHash(this.scope);
         }
-        this.builder = Builder.generate(this);
-        this.binding = new Binding(this);
+        this.builder = ActiveView.Builder;
+		ActiveView.generateBinding(this);
         for(var key in this.scope._object)
         {
             if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
@@ -1578,15 +1575,10 @@ ActiveEvent.extend(ObservableHash);
 ActiveView.ObservableHash = ObservableHash;
 
 var Builder = {
-    tags: ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/),
     createElement: function createElement(tag,attributes)
     {
-        var ie = !!(window.attachEvent && !window.opera);
+		var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag = tag.toLowerCase();
         if(ie && attributes.name)
@@ -1594,7 +1586,7 @@ var Builder = {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
         }
-        var element = document.createElement(tag)
+        var element = global_context.document.createElement(tag);
         Builder.writeAttribute(element,attributes);
         return element;
     },
@@ -1632,80 +1624,74 @@ var Builder = {
         }
         return element;
     },
-    generate: function generate()
+	addMethods: function addMethods(methods)
+	{
+		ActiveSupport.extend(Builder,methods || {});
+	}
+};
+
+(function builder_generator(){
+	var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
+	    "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
+	    "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
+	    "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
+	    "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
+	    "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+	var global_context = ActiveSupport.getGlobalContext();
+    for(var t = 0; t < tags.length; ++t)
     {
-        var builder;
-        builder = {};
-        ActiveSupport.extend(builder,Builder.InstanceMethods);
-        for(var t = 0; t < Builder.tags.length; ++t)
-        {
-            var tag = Builder.tags[t];
-            (function tag_iterator(tag){
-                builder[tag.toLowerCase()] = builder[tag] = function tag_generator(){
-                    var i, argument, attributes, elements, element;
-                    text_nodes = [];
-                    elements = [];
-                    for(i = 0; i < arguments.length; ++i)
+        var tag = tags[t];
+        (function tag_iterator(tag){
+            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+                var i, argument, attributes, elements, element;
+                text_nodes = [];
+                elements = [];
+                for(i = 0; i < arguments.length; ++i)
+                {
+                    argument = arguments[i];
+                    if(typeof(argument) === 'undefined' || argument === null || argument === false)
                     {
-                        argument = arguments[i];
-                        if(typeof(argument) === 'undefined' || argument === null || argument === false)
-                        {
-                            continue;
-                        }
-                        if(typeof(argument) == 'function')
-                        {
-                            argument = argument();
-                        }
-                        if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
-                        {
-                            attributes = argument;
-                        }
-                        else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
-                        {
-                            elements = argument;
-                        }
-                        else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
-                        {
-                            elements.push(argument);
-                        }
+                        continue;
                     }
-                    element = Builder.createElement(tag,attributes);
-                    for(i = 0; i < elements.length; ++i)
+                    if(typeof(argument) == 'function')
                     {
-                        element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : document.createTextNode((new String(elements[i])).toString()));
+                        argument = argument();
                     }
-                    return element;
-                };
-            })(tag);
-        }
-        return builder;
-    },
-    addMethods: function addMethods(methods)
-    {
-        ActiveSupport.extend(Builder.InstanceMethods,methods || {});
-        ActiveView.Builder = Builder.generate();
+                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    {
+                        attributes = argument;
+                    }
+                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    {
+                        elements = argument;
+                    }
+                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    {
+                        elements.push(argument);
+                    }
+                }
+                element = Builder.createElement(tag,attributes);
+                for(i = 0; i < elements.length; ++i)
+                {
+                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                }
+                return element;
+            };
+		})(tag);
     }
-};
+})();
 
-Builder.InstanceMethods = {};
-ActiveView.Builder = Builder.generate();
+ActiveView.Builder = Builder;
 
-var Binding = function Binding(view)
+ActiveView.generateBinding = function generateBinding(instance)
 {
-    this.view = view;
-};
-
-ActiveSupport.extend(Binding,{
-    
-});
-
-ActiveSupport.extend(Binding.prototype,{
-    update: function update(element)
+	instance.binding = {};
+	instance.binding.update = function update(element)
     {
         return {
-            from: ActiveSupport.bind(function from(observe_key)
+            from: function from(observe_key)
             {
-                var object = this.view.scope;
+                var object = instance.scope;
                 if(arguments.length == 2)
                 {
                     object = arguments[1];
@@ -1747,28 +1733,30 @@ ActiveSupport.extend(Binding.prototype,{
                     transform: transform,
                     when: when
                 };
-            },this)
-        }
-    },
-    collect: function collect(view)
+            }
+        };
+    };
+
+    instance.binding.collect = function collect(view)
     {
         return {
-            from: ActiveSupport.bind(function from(collection)
+            from: function from(collection)
             {
                 return {
-                    into: ActiveSupport.bind(function into(element)
+                    into: function into(element)
                     {
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) == 'string')
                         {
-                            this.view.scope.observe('set',ActiveSupport.bind(function collection_key_change_observer(collection_name,key,value){
+                            var collection_name = collection;
+                            instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
                                     element.innerHTML = '';
-                                    this.collect(view).from(value).into(element);
+                                    instance.binding.collect(view).from(value).into(element);
                                 }
-                            },this,collection));
-                            collection = this.view.scope.get(collection);
+                            });
+                            collection = instance.scope.get(collection);
                         }
                         //loop over the collection when it is passed in to build the view the first time
                         var collected_elements = [];
@@ -1832,24 +1820,26 @@ ActiveSupport.extend(Binding.prototype,{
                                 collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
                             });
                         }
-                    },this)
+                    }
                 };
-            },this)
+            }
         };
-    },
-    when: function when(outer_key)
+    };
+
+	instance.binding.when = function when(outer_key)
     {
         return {
-            changes: ActiveSupport.bind(function changes(callback){
-                this.view.observe('set',function changes_observer(inner_key,value){
+            changes: function changes(callback)
+			{
+                instance.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
                         callback(value);
                     }
                 });
-            },this)
+            }
         };
-    }
-});
+    };
+};
 
 })();

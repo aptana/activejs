@@ -32,7 +32,7 @@
  */
 ActiveSupport = null;
 
-(function(){
+(function(global_context){
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -41,7 +41,7 @@ ActiveSupport = {
      */
     getGlobalContext: function getGlobalContext()
     {
-        return window;
+        return global_context;
     },
     /**
      * Logs a message to the available logging resource. Accepts a variable
@@ -841,9 +841,9 @@ ActiveSupport = {
     JSON: function()
     {
         //use native support if available
-        if(window && 'JSON' in window && 'stringify' in window.JSON && 'parse' in window.JSON)
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
         {
-          return window.JSON;
+          return global_context.JSON;
         }
         
         function f(n) {
@@ -1027,13 +1027,13 @@ ActiveSupport = {
     }()
 };
 
-})();
+})(this);
 
 /**
  * @namespace {ActiveEvent}
  * @example
- * ActiveEvent allows you to create events, and attach event handlers to any
- * class or object.
+ * ActiveEvent allows you to create observable events, and attach event
+ * handlers to any class or object.
  *
  * Setup
  * -----
@@ -1091,8 +1091,10 @@ ActiveSupport = {
  * Control Flow
  * ------------
  * When notify() is called, if any of the registered observers for that event
- * throw the special $break variable, no other observers will be called and
- * notify() will return false. Otherwise notify() will return an array of the
+ * return false, no other observers will be called and notify() will return
+ * false. Returning null or not calling return will not stop the event.
+ *
+ * Otherwise notify() will return an array of the
  * collected return values from any registered observer functions. Observers
  * can be unregistered with the stopObserving() method. If no observer is
  * passed, all observers of that object or class with the given event name
@@ -1111,7 +1113,7 @@ ActiveSupport = {
  *     
  *     var observer = m.observe('send',function(message,text){
  *         if(text == 'test')
- *             throw $break;
+ *             return false;
  *     });
  *     
  *     m.send('my message'); //returned true
@@ -1180,13 +1182,6 @@ ActiveEvent = null;
  */
 
 (function(){
-    
-var global_context = ActiveSupport.getGlobalContext();
-
-if(typeof(global_context.$break) == 'undefined')
-{
-    global_context.$break = {};
-}
 
 ActiveEvent = {};
 
@@ -1321,26 +1316,25 @@ ActiveEvent.extend = function extend(object){
      * @alias ActiveEvent.ObservableObject.notify
      * @param {String} event_name
      * @param {mixed} [args]
-     * @return {mixed} Array of return values, or false if $break was thrown
-     *  by an observer.
+     * @return {mixed} Array of return values, or false if the event was
+     *  stopped by an observer.
      */
     object.notify = function notify(event_name){
         this._objectEventSetup(event_name);
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
-        try{
-            for(var i = 0; i < this._observers[event_name].length; ++i)
-                collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-        }catch(e){
-            if(e == $break)
-            {
-                return false;
-            }
-            else
-            {
-                throw e;
-            }
-        }
+        for(var i = 0; i < this._observers[event_name].length; ++i)
+		{
+			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+			if(response === false)
+			{
+				return false;
+			}
+			else
+			{
+	            collected_return_values.push(response);
+			}
+		}
         return collected_return_values;
     };
     if(object.prototype)
@@ -1364,27 +1358,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-            try
+			var response;
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-                if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
-                {
-                    collected_return_values.push(this.options[event_name].apply(this,args) || null);
-                }
-                for(var i = 0; i < this._observers[event_name].length; ++i)
-                {
-                    collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-                }
+				response = this.options[event_name].apply(this,args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
-            catch(e)
+            for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-                if(e == $break)
-                {
-                    return false;
-                }
-                else
-                {
-                    throw e;
-                }
+				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
             return collected_return_values;
         };
@@ -1664,15 +1661,18 @@ ActiveRecord = null;
  *         //this particular user was destroyed
  *     });
  * 
- * You can stop the creation, saving or destruction of a record by throwing the
- * $break variable inside any observers of the beforeCreate, beforeSave and
+ * You can stop the creation, saving or destruction of a record by returning
+ * false inside any observers of the beforeCreate, beforeSave and
  * beforeDestroy events respectively:
  * 
  *     User.beforeDestroy(function(user){
  *         if(!allow_deletion_checkbox.checked){
- *             throw $break; //record will not be destroyed
+ *             return false; //record will not be destroyed
  *         }
  *     });
+ *
+ * Returning null, or returning nothing is equivelent to returning true in
+ * this context and will not stop the event.
  *     
  * To observe a given event on all models, you can do the following: 
  * 
@@ -2220,14 +2220,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     response.push(this.build(row));
                 }, this));
             }
-            response.reload = ActiveSupport.bind(function reload(){
-                response.length = 0;
-                var new_response = this.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
-                for(var i = 0; i < new_response.length; ++i)
-                {
-                    response.push(new_response[i]);
-                }
-            },this);
+			ResultSet.extend(response,params,this);
             this.notify('afterFind',response,params);
             if(params.synchronize)
             {
@@ -4403,6 +4396,50 @@ var Finders = {
     }
 };
 ActiveRecord.Finders = Finders;
+
+/**
+ * When using any finder method, the returned array will be extended
+ * with the methods in this namespace. A returned result set is still
+ * an instance of Array.
+ * @namespace {ActiveRecord.ResultSet}
+ */
+var ResultSet = {};
+
+ResultSet.extend = function extend(result_set,params,model){
+	for(var method_name in ResultSet.InstanceMethods)
+	{
+		result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,model);
+	}
+};
+
+ResultSet.InstanceMethods = {
+	/**
+	 * Re-runs the query that generated the result set. This modifies the
+	 * array in place and does not return a new array.
+	 * @alias ActiveRecord.ResultSet.reload
+	 */
+	reload: function reload(result_set,params,model){
+        result_set.length = 0;
+        var new_response = model.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
+        for(var i = 0; i < new_response.length; ++i)
+        {
+            result_set.push(new_response[i]);
+        }
+	},
+	/**
+	 * @alias ActiveRecord.ResultSet.toJSON
+	 * @return {String}
+	 */
+	toJSON: function toJSON(result_set,params,model)
+	{
+		var items = [];
+		for(var i = 0; i < result_set.length; ++i)
+		{
+			items = result_set[i].toObject();
+		}
+		return ActiveSupport.JSON.stringify(items);
+	}
+};
 
 var Relationships = {
     normalizeModelName: function(related_model_name)
