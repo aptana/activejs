@@ -31,8 +31,8 @@
 /**
  * @namespace {ActiveEvent}
  * @example
- * ActiveEvent allows you to create events, and attach event handlers to any
- * class or object.
+ * ActiveEvent allows you to create observable events, and attach event
+ * handlers to any class or object.
  *
  * Setup
  * -----
@@ -90,8 +90,10 @@
  * Control Flow
  * ------------
  * When notify() is called, if any of the registered observers for that event
- * throw the special $break variable, no other observers will be called and
- * notify() will return false. Otherwise notify() will return an array of the
+ * return false, no other observers will be called and notify() will return
+ * false. Returning null or not calling return will not stop the event.
+ *
+ * Otherwise notify() will return an array of the
  * collected return values from any registered observer functions. Observers
  * can be unregistered with the stopObserving() method. If no observer is
  * passed, all observers of that object or class with the given event name
@@ -110,7 +112,7 @@
  *     
  *     var observer = m.observe('send',function(message,text){
  *         if(text == 'test')
- *             throw $break;
+ *             return false;
  *     });
  *     
  *     m.send('my message'); //returned true
@@ -179,13 +181,6 @@ ActiveEvent = null;
  */
 
 (function(){
-    
-var global_context = ActiveSupport.getGlobalContext();
-
-if(typeof(global_context.$break) == 'undefined')
-{
-    global_context.$break = {};
-}
 
 ActiveEvent = {};
 
@@ -320,26 +315,25 @@ ActiveEvent.extend = function extend(object){
      * @alias ActiveEvent.ObservableObject.notify
      * @param {String} event_name
      * @param {mixed} [args]
-     * @return {mixed} Array of return values, or false if $break was thrown
-     *  by an observer.
+     * @return {mixed} Array of return values, or false if the event was
+     *  stopped by an observer.
      */
     object.notify = function notify(event_name){
         this._objectEventSetup(event_name);
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
-        try{
-            for(var i = 0; i < this._observers[event_name].length; ++i)
-                collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-        }catch(e){
-            if(e == $break)
-            {
-                return false;
-            }
-            else
-            {
-                throw e;
-            }
-        }
+        for(var i = 0; i < this._observers[event_name].length; ++i)
+		{
+			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+			if(response === false)
+			{
+				return false;
+			}
+			else
+			{
+	            collected_return_values.push(response);
+			}
+		}
         return collected_return_values;
     };
     if(object.prototype)
@@ -363,27 +357,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-            try
+			var response;
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-                if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
-                {
-                    collected_return_values.push(this.options[event_name].apply(this,args) || null);
-                }
-                for(var i = 0; i < this._observers[event_name].length; ++i)
-                {
-                    collected_return_values.push(this._observers[event_name][i].apply(this._observers[event_name][i],args) || null);
-                }
+				response = this.options[event_name].apply(this,args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
-            catch(e)
+            for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-                if(e == $break)
-                {
-                    return false;
-                }
-                else
-                {
-                    throw e;
-                }
+				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+				if(response === false)
+				{
+					return false;
+				}
+				else
+				{
+	                collected_return_values.push(response);
+				}
             }
             return collected_return_values;
         };

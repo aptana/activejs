@@ -266,15 +266,18 @@
  *         //this particular user was destroyed
  *     });
  * 
- * You can stop the creation, saving or destruction of a record by throwing the
- * $break variable inside any observers of the beforeCreate, beforeSave and
+ * You can stop the creation, saving or destruction of a record by returning
+ * false inside any observers of the beforeCreate, beforeSave and
  * beforeDestroy events respectively:
  * 
  *     User.beforeDestroy(function(user){
  *         if(!allow_deletion_checkbox.checked){
- *             throw $break; //record will not be destroyed
+ *             return false; //record will not be destroyed
  *         }
  *     });
+ *
+ * Returning null, or returning nothing is equivelent to returning true in
+ * this context and will not stop the event.
  *     
  * To observe a given event on all models, you can do the following: 
  * 
