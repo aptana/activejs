@@ -26,15 +26,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 var Builder = {
-    tags: ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/),
     createElement: function createElement(tag,attributes)
     {
-        var ie = !!(window.attachEvent && !window.opera);
+		var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag = tag.toLowerCase();
         if(ie && attributes.name)
@@ -42,7 +37,7 @@ var Builder = {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
         }
-        var element = document.createElement(tag)
+        var element = global_context.document.createElement(tag);
         Builder.writeAttribute(element,attributes);
         return element;
     },
@@ -80,60 +75,61 @@ var Builder = {
         }
         return element;
     },
-    generate: function generate()
-    {
-        var builder;
-        builder = {};
-        ActiveSupport.extend(builder,Builder.InstanceMethods);
-        for(var t = 0; t < Builder.tags.length; ++t)
-        {
-            var tag = Builder.tags[t];
-            (function tag_iterator(tag){
-                builder[tag.toLowerCase()] = builder[tag] = function tag_generator(){
-                    var i, argument, attributes, elements, element;
-                    text_nodes = [];
-                    elements = [];
-                    for(i = 0; i < arguments.length; ++i)
-                    {
-                        argument = arguments[i];
-                        if(typeof(argument) === 'undefined' || argument === null || argument === false)
-                        {
-                            continue;
-                        }
-                        if(typeof(argument) == 'function')
-                        {
-                            argument = argument();
-                        }
-                        if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
-                        {
-                            attributes = argument;
-                        }
-                        else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
-                        {
-                            elements = argument;
-                        }
-                        else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
-                        {
-                            elements.push(argument);
-                        }
-                    }
-                    element = Builder.createElement(tag,attributes);
-                    for(i = 0; i < elements.length; ++i)
-                    {
-                        element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : document.createTextNode((new String(elements[i])).toString()));
-                    }
-                    return element;
-                };
-            })(tag);
-        }
-        return builder;
-    },
-    addMethods: function addMethods(methods)
-    {
-        ActiveSupport.extend(Builder.InstanceMethods,methods || {});
-        ActiveView.Builder = Builder.generate();
-    }
+	addMethods: function addMethods(methods)
+	{
+		ActiveSupport.extend(Builder,methods || {});
+	}
 };
 
-Builder.InstanceMethods = {};
-ActiveView.Builder = Builder.generate();
+(function builder_generator(){
+	var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
+	    "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
+	    "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
+	    "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
+	    "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
+	    "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+	var global_context = ActiveSupport.getGlobalContext();
+    for(var t = 0; t < tags.length; ++t)
+    {
+        var tag = tags[t];
+        (function tag_iterator(tag){
+            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+                var i, argument, attributes, elements, element;
+                text_nodes = [];
+                elements = [];
+                for(i = 0; i < arguments.length; ++i)
+                {
+                    argument = arguments[i];
+                    if(typeof(argument) === 'undefined' || argument === null || argument === false)
+                    {
+                        continue;
+                    }
+                    if(typeof(argument) == 'function')
+                    {
+                        argument = argument();
+                    }
+                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    {
+                        attributes = argument;
+                    }
+                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    {
+                        elements = argument;
+                    }
+                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    {
+                        elements.push(argument);
+                    }
+                }
+                element = Builder.createElement(tag,attributes);
+                for(i = 0; i < elements.length; ++i)
+                {
+                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                }
+                return element;
+            };
+		})(tag);
+    }
+})();
+
+ActiveView.Builder = Builder;

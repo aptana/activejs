@@ -25,22 +25,15 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var Binding = function Binding(view)
+ActiveView.generateBinding = function generateBinding(instance)
 {
-    this.view = view;
-};
-
-ActiveSupport.extend(Binding,{
-    
-});
-
-ActiveSupport.extend(Binding.prototype,{
-    update: function update(element)
+	instance.binding = {};
+	instance.binding.update = function update(element)
     {
         return {
-            from: ActiveSupport.bind(function from(observe_key)
+            from: function from(observe_key)
             {
-                var object = this.view.scope;
+                var object = instance.scope;
                 if(arguments.length == 2)
                 {
                     object = arguments[1];
@@ -82,29 +75,30 @@ ActiveSupport.extend(Binding.prototype,{
                     transform: transform,
                     when: when
                 };
-            },this)
-        }
-    },
-    collect: function collect(view)
+            }
+        };
+    };
+
+    instance.binding.collect = function collect(view)
     {
         return {
-            from: ActiveSupport.bind(function from(collection)
+            from: function from(collection)
             {
                 return {
-                    into: ActiveSupport.bind(function into(element)
+                    into: function into(element)
                     {
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) == 'string')
                         {
                             var collection_name = collection;
-                            this.view.scope.observe('set',ActiveSupport.bind(function collection_key_change_observer(key,value){
+                            instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
                                     element.innerHTML = '';
-                                    this.collect(view).from(value).into(element);
+                                    instance.binding.collect(view).from(value).into(element);
                                 }
-                            },this));
-                            collection = this.view.scope.get(collection);
+                            });
+                            collection = instance.scope.get(collection);
                         }
                         //loop over the collection when it is passed in to build the view the first time
                         var collected_elements = [];
@@ -168,22 +162,24 @@ ActiveSupport.extend(Binding.prototype,{
                                 collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
                             });
                         }
-                    },this)
+                    }
                 };
-            },this)
+            }
         };
-    },
-    when: function when(outer_key)
+    };
+
+	instance.binding.when = function when(outer_key)
     {
         return {
-            changes: ActiveSupport.bind(function changes(callback){
-                this.view.observe('set',function changes_observer(inner_key,value){
+            changes: function changes(callback)
+			{
+                instance.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
                         callback(value);
                     }
                 });
-            },this)
+            }
         };
-    }
-});
+    };
+};

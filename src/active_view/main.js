@@ -116,8 +116,8 @@ var InstanceMethods = {
         {
             this.scope = new ObservableHash(this.scope);
         }
-        this.builder = Builder.generate(this);
-        this.binding = new Binding(this);
+        this.builder = ActiveView.Builder;
+		ActiveView.generateBinding(this);
         for(var key in this.scope._object)
         {
             if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
