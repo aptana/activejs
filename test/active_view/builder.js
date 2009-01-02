@@ -30,7 +30,7 @@ ActiveTest.Tests.View.builder = function(proceed)
     with(ActiveTest)
     {
         var ArgumentsTestView = ActiveView.create(function(){
-           with(this.builder){
+           with(ActiveView.Builder){
                return ul(
                    li('one','two',b('three'),'four',b('five')),
                    li({className: 'test'}),
@@ -40,7 +40,7 @@ ActiveTest.Tests.View.builder = function(proceed)
         });
         
         var DeepView = ActiveView.create(function(){
-            with(this.builder){
+            with(ActiveView.Builder){
                 return div(
                     table(
                         tbody(
