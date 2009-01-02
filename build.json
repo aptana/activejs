@@ -16,8 +16,9 @@
 			, "active_controller_packed"
 			, "active_js"
 			, "active_js_packed"
+			, "active_js_ext"
+			, "active_js_ext_packed"
 			, "test"
-			
 		]
 	},
 	
@@ -109,6 +110,7 @@
 			, "src/active_record/adapters/auto.js"
 			, "src/active_record/where_parser.js"
 			, "src/active_record/finders.js"
+			, "src/active_record/result_set.js"
 			, "src/active_record/relationships.js"
 			, "src/active_record/relationships/has_one.js"
 			, "src/active_record/relationships/has_many.js"
@@ -213,6 +215,7 @@
 			, "src/active_record/adapters/auto.js"
 			, "src/active_record/where_parser.js"
 			, "src/active_record/finders.js"
+			, "src/active_record/result_set.js"
 			, "src/active_record/relationships.js"
 			, "src/active_record/relationships/has_one.js"
 			, "src/active_record/relationships/has_many.js"
@@ -241,6 +244,80 @@
 		"compress_prepend": "license.txt",
 		"files": [
 			"dist/active.js"
+		]
+	},
+	
+	{
+		"name": "active_js_ext",
+		"output": "dist/active.ext.js",
+		"files": [
+			  "license.txt"
+			
+			, "ext/pure/pure.js"
+			, "ext/pure/sizzle.js"
+			
+			, "src/active_support.js"
+			
+			, "src/active_event.js"
+			
+			, "src/active_routes/header.js"
+			, "src/active_routes/main.js"
+			, "src/active_routes/errors.js"
+			, "src/active_routes/matching.js"
+			, "src/active_routes/dispatch.js"
+			, "src/active_routes/validations.js"
+			, "src/active_routes/generator.js"
+			, "src/active_routes/footer.js"
+			
+			, "src/active_record/header.js"
+			, "src/active_record/main.js"
+			, "src/active_record/lifecycle.js"
+			, "src/active_record/errors.js"
+			, "src/active_record/base.js"
+			, "src/active_record/calculations.js"
+			, "src/active_record/adapters.js"
+			, "src/active_record/adapters/sql.js"
+			, "src/active_record/adapters/sqlite.js"
+			, "src/active_record/adapters/mysql.js"
+			, "src/active_record/adapters/jaxer_mysql.js"
+			, "src/active_record/adapters/jaxer_sqlite.js"
+			, "src/active_record/adapters/gears.js"
+			, "src/active_record/adapters/air.js"
+			, "src/active_record/adapters/in_memory.js"
+			, "src/active_record/adapters/auto.js"
+			, "src/active_record/where_parser.js"
+			, "src/active_record/finders.js"
+			, "src/active_record/result_set.js"
+			, "src/active_record/relationships.js"
+			, "src/active_record/relationships/has_one.js"
+			, "src/active_record/relationships/has_many.js"
+			, "src/active_record/relationships/belongs_to.js"
+			, "src/active_record/migrations.js"
+			, "src/active_record/validations.js"
+			, "src/active_record/synchronization.js"
+			, "src/active_record/footer.js"
+			
+			, "src/active_view/header.js"
+			, "src/active_view/main.js"
+			, "src/active_view/observable_hash.js"
+			, "src/active_view/builder.js"
+			, "src/active_view/binding.js"
+			, "src/active_view/footer.js"
+			
+			, "src/active_controller/header.js"
+			, "src/active_controller/main.js"
+			, "src/active_controller/footer.js"
+			
+			, "ext/pure/integration.js"
+		]
+	},
+	{
+		"name": "active_js_ext_packed",
+		"output": "dist/active.ext.packed.js",
+		"compress": true,
+		"compress_prepend": "license.txt",
+		"files": [
+			"dist/active.ext.js"
 		]
 	},
 	
