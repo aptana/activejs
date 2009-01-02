@@ -92,15 +92,21 @@ var InstanceMethods = {
         this.notify('set',key,value);
         return value;
     },
+	toObject: function toObject()
+	{
+		return this.scope;
+	},
     render: function render(content,target,clear)
     {
         return ActiveView.render(content,target || this.renderTarget,this,clear);
     }
 };
+ActiveController.InstanceMethods = InstanceMethods;
 
 var ClassMethods = {
     
 };
+ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
     InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
