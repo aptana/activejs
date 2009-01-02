@@ -27,8 +27,8 @@
 
 ActiveView.generateBinding = function generateBinding(instance)
 {
-	instance.binding = {};
-	instance.binding.update = function update(element)
+    instance.binding = {};
+    instance.binding.update = function update(element)
     {
         return {
             from: function from(observe_key)
@@ -168,11 +168,11 @@ ActiveView.generateBinding = function generateBinding(instance)
         };
     };
 
-	instance.binding.when = function when(outer_key)
+    instance.binding.when = function when(outer_key)
     {
         return {
             changes: function changes(callback)
-			{
+            {
                 instance.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {

@@ -1324,17 +1324,17 @@ ActiveEvent.extend = function extend(object){
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
         for(var i = 0; i < this._observers[event_name].length; ++i)
-		{
-			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-			if(response === false)
-			{
-				return false;
-			}
-			else
-			{
-	            collected_return_values.push(response);
-			}
-		}
+        {
+            var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+            if(response === false)
+            {
+                return false;
+            }
+            else
+            {
+                collected_return_values.push(response);
+            }
+        }
         return collected_return_values;
     };
     if(object.prototype)
@@ -1358,30 +1358,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-			var response;
+            var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-				response = this.options[event_name].apply(this,args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this.options[event_name].apply(this,args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             return collected_return_values;
         };
@@ -2220,7 +2220,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     response.push(this.build(row));
                 }, this));
             }
-			ResultSet.extend(response,params,this);
+            ResultSet.extend(response,params,this);
             this.notify('afterFind',response,params);
             if(params.synchronize)
             {
@@ -4406,39 +4406,39 @@ ActiveRecord.Finders = Finders;
 var ResultSet = {};
 
 ResultSet.extend = function extend(result_set,params,model){
-	for(var method_name in ResultSet.InstanceMethods)
-	{
-		result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,model);
-	}
+    for(var method_name in ResultSet.InstanceMethods)
+    {
+        result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,model);
+    }
 };
 
 ResultSet.InstanceMethods = {
-	/**
-	 * Re-runs the query that generated the result set. This modifies the
-	 * array in place and does not return a new array.
-	 * @alias ActiveRecord.ResultSet.reload
-	 */
-	reload: function reload(result_set,params,model){
+    /**
+     * Re-runs the query that generated the result set. This modifies the
+     * array in place and does not return a new array.
+     * @alias ActiveRecord.ResultSet.reload
+     */
+    reload: function reload(result_set,params,model){
         result_set.length = 0;
         var new_response = model.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
         for(var i = 0; i < new_response.length; ++i)
         {
             result_set.push(new_response[i]);
         }
-	},
-	/**
-	 * @alias ActiveRecord.ResultSet.toJSON
-	 * @return {String}
-	 */
-	toJSON: function toJSON(result_set,params,model)
-	{
-		var items = [];
-		for(var i = 0; i < result_set.length; ++i)
-		{
-			items = result_set[i].toObject();
-		}
-		return ActiveSupport.JSON.stringify(items);
-	}
+    },
+    /**
+     * @alias ActiveRecord.ResultSet.toJSON
+     * @return {String}
+     */
+    toJSON: function toJSON(result_set,params,model)
+    {
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items = result_set[i].toObject();
+        }
+        return ActiveSupport.JSON.stringify(items);
+    }
 };
 
 var Relationships = {

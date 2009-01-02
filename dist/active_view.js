@@ -1324,17 +1324,17 @@ ActiveEvent.extend = function extend(object){
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
         for(var i = 0; i < this._observers[event_name].length; ++i)
-		{
-			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-			if(response === false)
-			{
-				return false;
-			}
-			else
-			{
-	            collected_return_values.push(response);
-			}
-		}
+        {
+            var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+            if(response === false)
+            {
+                return false;
+            }
+            else
+            {
+                collected_return_values.push(response);
+            }
+        }
         return collected_return_values;
     };
     if(object.prototype)
@@ -1358,30 +1358,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-			var response;
+            var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-				response = this.options[event_name].apply(this,args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this.options[event_name].apply(this,args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             return collected_return_values;
         };
@@ -1512,7 +1512,7 @@ var InstanceMethods = {
             this.scope = new ObservableHash(this.scope);
         }
         this.builder = ActiveView.Builder;
-		ActiveView.generateBinding(this);
+        ActiveView.generateBinding(this);
         for(var key in this.scope._object)
         {
             if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
@@ -1577,7 +1577,7 @@ ActiveView.ObservableHash = ObservableHash;
 var Builder = {
     createElement: function createElement(tag,attributes)
     {
-		var global_context = ActiveSupport.getGlobalContext();
+        var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag = tag.toLowerCase();
@@ -1624,20 +1624,20 @@ var Builder = {
         }
         return element;
     },
-	addMethods: function addMethods(methods)
-	{
-		ActiveSupport.extend(Builder,methods || {});
-	}
+    addMethods: function addMethods(methods)
+    {
+        ActiveSupport.extend(Builder,methods || {});
+    }
 };
 
 (function builder_generator(){
-	var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-	    "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
-	    "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-	    "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-	    "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-	    "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
-	var global_context = ActiveSupport.getGlobalContext();
+    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
+        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
+        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
+        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
+        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
+        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+    var global_context = ActiveSupport.getGlobalContext();
     for(var t = 0; t < tags.length; ++t)
     {
         var tag = tags[t];
@@ -1677,7 +1677,7 @@ var Builder = {
                 }
                 return element;
             };
-		})(tag);
+        })(tag);
     }
 })();
 
@@ -1685,8 +1685,8 @@ ActiveView.Builder = Builder;
 
 ActiveView.generateBinding = function generateBinding(instance)
 {
-	instance.binding = {};
-	instance.binding.update = function update(element)
+    instance.binding = {};
+    instance.binding.update = function update(element)
     {
         return {
             from: function from(observe_key)
@@ -1826,11 +1826,11 @@ ActiveView.generateBinding = function generateBinding(instance)
         };
     };
 
-	instance.binding.when = function when(outer_key)
+    instance.binding.when = function when(outer_key)
     {
         return {
             changes: function changes(callback)
-			{
+            {
                 instance.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {

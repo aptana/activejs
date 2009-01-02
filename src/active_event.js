@@ -323,17 +323,17 @@ ActiveEvent.extend = function extend(object){
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
         for(var i = 0; i < this._observers[event_name].length; ++i)
-		{
-			var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-			if(response === false)
-			{
-				return false;
-			}
-			else
-			{
-	            collected_return_values.push(response);
-			}
-		}
+        {
+            var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+            if(response === false)
+            {
+                return false;
+            }
+            else
+            {
+                collected_return_values.push(response);
+            }
+        }
         return collected_return_values;
     };
     if(object.prototype)
@@ -357,30 +357,30 @@ ActiveEvent.extend = function extend(object){
             this._objectEventSetup(event_name);
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
-			var response;
+            var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
             {
-				response = this.options[event_name].apply(this,args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this.options[event_name].apply(this,args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             for(var i = 0; i < this._observers[event_name].length; ++i)
             {
-				response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
-				if(response === false)
-				{
-					return false;
-				}
-				else
-				{
-	                collected_return_values.push(response);
-				}
+                response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
             }
             return collected_return_values;
         };

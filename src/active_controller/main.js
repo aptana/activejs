@@ -92,10 +92,10 @@ var InstanceMethods = {
         this.notify('set',key,value);
         return value;
     },
-	toObject: function toObject()
-	{
-		return this.scope;
-	},
+    toObject: function toObject()
+    {
+        return this.scope;
+    },
     render: function render(content,target,clear)
     {
         return ActiveView.render(content,target || this.renderTarget,this,clear);

@@ -295,7 +295,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     response.push(this.build(row));
                 }, this));
             }
-			ResultSet.extend(response,params,this);
+            ResultSet.extend(response,params,this);
             this.notify('afterFind',response,params);
             if(params.synchronize)
             {
