@@ -33,6 +33,6 @@ var Errors = {
     MethodDoesNotExist: 'The following method does not exist: ',
     MethodNotCallable: 'The following method is not callable: ',
     NamedRouteDoesNotExist: 'The following named route does not exist: ',
-    UnresolvableUrl: 'Cloud not resolve the url: '
+    UnresolvableUrl: 'Could not resolve the url: '
 };
 ActiveRoutes.Errors = Errors;
