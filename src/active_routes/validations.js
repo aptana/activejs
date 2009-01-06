@@ -49,7 +49,20 @@ var Validations = {
 
 ActiveRoutes.prototype.objectExists = function(object_name)
 {
-    return !(!this.scope[object_name]);
+    var in_scope = !!this.scope[object_name];
+    if(!in_scope && this.options.triggerNoSuchMethod)
+    {
+        try
+        {
+            this.scope[object_name]();
+        }
+        catch(e)
+        {
+            
+        }
+        in_scope = !!this.scope[object_name];
+    }
+    return in_scope;
 };
 
 ActiveRoutes.prototype.getMethod = function(object_name,method_name)
@@ -66,7 +79,7 @@ ActiveRoutes.prototype.getMethod = function(object_name,method_name)
 
 ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 {
-    return !(!this.scope[object_name] || !this.getMethod(object_name,method_name));
+    return !(!this.objectExists(object_name) || !this.getMethod(object_name,method_name));
 };
 
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)

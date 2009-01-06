@@ -139,7 +139,7 @@
 ActiveRoutes = function ActiveRoutes(routes,scope,options)
 {
     this.error = false;
-    this.scope = scope || window;
+    this.scope = scope || ActiveSupport.getGlobalContext();
     this.routes = [];
     this.index = 0;
     /**
@@ -148,6 +148,8 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
      */
     this.history = [];
     this.options = ActiveSupport.extend({
+        triggerNoSuchMethod: (typeof(ActiveSupport.getGlobalContext().__noSuchMethod__) != 'undefined'),
+        class_suffix: '_controller',
         camelizeObjectName: true,
         camelizeMethodName: true,
         camelizeGeneratedMethods: true,
