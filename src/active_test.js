@@ -25,6 +25,8 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+$break = {};
+
 ActiveTest = {
     pass: 0,
     fail: 0,
