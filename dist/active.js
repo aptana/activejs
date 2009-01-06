@@ -1427,12 +1427,6 @@ ActiveRoutes = null;
  * @param {Object} [scope] defaults to window
  * @param {Object} [options]
  * @return {ActiveRoutes}
- * options can contain the following keys:
- * - base: default '', the default path / url prefix to be used in a generated url
- * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
- * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
- * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
- * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
  * @example
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
@@ -1441,6 +1435,18 @@ ActiveRoutes = null;
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
+ * 
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+ *
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with addRoute(), routes can have up
@@ -1544,7 +1550,7 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     this.history = [];
     this.options = ActiveSupport.extend({
         triggerNoSuchMethod: (typeof(ActiveSupport.getGlobalContext().__noSuchMethod__) != 'undefined'),
-        class_suffix: '_controller',
+        classSuffix: '',
         camelizeObjectName: true,
         camelizeMethodName: true,
         camelizeGeneratedMethods: true,
@@ -1738,6 +1744,10 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     else
     {
+        if(this.options.classSuffix)
+        {
+            route.params.object += this.options.classSuffix;
+        }
         return route;
     }
 };
@@ -1790,9 +1800,9 @@ ActiveRoutes.prototype.match = function(path){
                 {
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
-                      !(typeof(route.params.requirements[key]) == 'function'
-                        ? route.params.requirements[key]((new String(path_component).toString()))
-                        : path_component.match(route.params.requirements[key])))
+                        !(typeof(route.params.requirements[key]) == 'function'
+                            ? route.params.requirements[key]((new String(path_component).toString()))
+                            : path_component.match(route.params.requirements[key])))
                     {
                         valid = false;
                         break;
@@ -3524,7 +3534,7 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     },
     dropColumn: function dropColumn(table_name,column_name)
     {
-        this.transaction(ActiveSupport.bind(function(){
+        this.transaction(ActiveSupport.bind(function drop_column_transaction(){
             var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
             var temp_table_name = 'temp_' + table_name;
             ActiveRecord.execute(description['sql'].replace(new RegExp('^CREATE\s+TABLE\s+' + table_name),'CREATE TABLE ' + temp_table_name).replace(new RegExp('(,|\()\s*' + column_name + '[\s\w]+(\)|,)'),function(){

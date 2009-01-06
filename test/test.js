@@ -1391,6 +1391,13 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(match.params.method == 'index' && match.params.object == 'Welcome','test root ""');
         match = routes.match('/');
         assert(match.params.method == 'index' && match.params.object == 'Welcome','test root "/"');
+        
+        //test class suffix
+        var old_suffix = routes.options.classSuffix;
+        routes.options.classSuffix = 'Controller';
+        match = routes.match('/blog/post/5');
+        routes.options.classSuffix = old_suffix;
+        assert(match.name == 'post' && match.params.id == 5 && match.params.method == 'post' && match.params.object == 'BlogController','test of classSuffix');
     }
     if(proceed())
         proceed();

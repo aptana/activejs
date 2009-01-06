@@ -2815,7 +2815,7 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     },
     dropColumn: function dropColumn(table_name,column_name)
     {
-        this.transaction(ActiveSupport.bind(function(){
+        this.transaction(ActiveSupport.bind(function drop_column_transaction(){
             var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
             var temp_table_name = 'temp_' + table_name;
             ActiveRecord.execute(description['sql'].replace(new RegExp('^CREATE\s+TABLE\s+' + table_name),'CREATE TABLE ' + temp_table_name).replace(new RegExp('(,|\()\s*' + column_name + '[\s\w]+(\)|,)'),function(){

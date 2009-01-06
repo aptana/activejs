@@ -57,6 +57,10 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     else
     {
+        if(this.options.classSuffix)
+        {
+            route.params.object += this.options.classSuffix;
+        }
         return route;
     }
 };
@@ -109,9 +113,9 @@ ActiveRoutes.prototype.match = function(path){
                 {
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
-                      !(typeof(route.params.requirements[key]) == 'function'
-                        ? route.params.requirements[key]((new String(path_component).toString()))
-                        : path_component.match(route.params.requirements[key])))
+                        !(typeof(route.params.requirements[key]) == 'function'
+                            ? route.params.requirements[key]((new String(path_component).toString()))
+                            : path_component.match(route.params.requirements[key])))
                     {
                         valid = false;
                         break;
