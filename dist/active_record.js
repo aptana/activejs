@@ -2589,7 +2589,12 @@ Adapters.SQL = {
         {
             var args = ["DELETE FROM " + table];
             var ids = [];
-            this.iterableFromResultSet(this.executeSQL('SELECT id FROM ' + table)).iterate(function id_collector_iterator(row){
+            var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
+            if(!ids_result_set)
+            {
+                return null;
+            }
+            this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
                 ids.push(row.id);
             });
             var response = this.executeSQL.apply(this,args);
@@ -2795,8 +2800,14 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     createTable: function createTable(table_name,columns)
     {
         var keys = ActiveSupport.keys(columns);
-        keys.unshift('id INTEGER PRIMARY KEY');
-        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + keys.join(',') + ')');
+        var fragments = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            var key = keys[i];
+            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+        }
+        fragments.unshift('id INTEGER PRIMARY KEY');
+        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
     },
     addColumn: function addColumn(table_name,column_name,data_type)
     {

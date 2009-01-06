@@ -2963,7 +2963,7 @@ ActiveRoutes = null;
 ActiveRoutes = function ActiveRoutes(routes,scope,options)
 {
     this.error = false;
-    this.scope = scope || window;
+    this.scope = scope || ActiveSupport.getGlobalContext();
     this.routes = [];
     this.index = 0;
     /**
@@ -2972,6 +2972,8 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
      */
     this.history = [];
     this.options = ActiveSupport.extend({
+        triggerNoSuchMethod: (typeof(ActiveSupport.getGlobalContext().__noSuchMethod__) != 'undefined'),
+        class_suffix: '_controller',
         camelizeObjectName: true,
         camelizeMethodName: true,
         camelizeGeneratedMethods: true,
@@ -3129,7 +3131,7 @@ var Errors = {
     MethodDoesNotExist: 'The following method does not exist: ',
     MethodNotCallable: 'The following method is not callable: ',
     NamedRouteDoesNotExist: 'The following named route does not exist: ',
-    UnresolvableUrl: 'Cloud not resolve the url: '
+    UnresolvableUrl: 'Could not resolve the url: '
 };
 ActiveRoutes.Errors = Errors;
 
@@ -3271,7 +3273,14 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
         route = this.match(path);
         if(!route)
         {
-            throw Errors.UnresolvableUrl + path;
+            if(this.error)
+            {
+                throw this.error;
+            }
+            else
+            {
+                throw Errors.UnresolvableUrl + path;
+            }
         }
     }
     else
@@ -3320,7 +3329,20 @@ var Validations = {
 
 ActiveRoutes.prototype.objectExists = function(object_name)
 {
-    return !(!this.scope[object_name]);
+    var in_scope = !!this.scope[object_name];
+    if(!in_scope && this.options.triggerNoSuchMethod)
+    {
+        try
+        {
+            this.scope[object_name]();
+        }
+        catch(e)
+        {
+            
+        }
+        in_scope = !!this.scope[object_name];
+    }
+    return in_scope;
 };
 
 ActiveRoutes.prototype.getMethod = function(object_name,method_name)
@@ -3337,7 +3359,7 @@ ActiveRoutes.prototype.getMethod = function(object_name,method_name)
 
 ActiveRoutes.prototype.methodExists = function(object_name,method_name)
 {
-    return !(!this.scope[object_name] || !this.getMethod(object_name,method_name));
+    return !(!this.objectExists(object_name) || !this.getMethod(object_name,method_name));
 };
 
 ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
@@ -4705,7 +4727,12 @@ Adapters.SQL = {
         {
             var args = ["DELETE FROM " + table];
             var ids = [];
-            this.iterableFromResultSet(this.executeSQL('SELECT id FROM ' + table)).iterate(function id_collector_iterator(row){
+            var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
+            if(!ids_result_set)
+            {
+                return null;
+            }
+            this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
                 ids.push(row.id);
             });
             var response = this.executeSQL.apply(this,args);
@@ -4911,8 +4938,14 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     createTable: function createTable(table_name,columns)
     {
         var keys = ActiveSupport.keys(columns);
-        keys.unshift('id INTEGER PRIMARY KEY');
-        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + keys.join(',') + ')');
+        var fragments = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            var key = keys[i];
+            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+        }
+        fragments.unshift('id INTEGER PRIMARY KEY');
+        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
     },
     addColumn: function addColumn(table_name,column_name,data_type)
     {
@@ -8008,29 +8041,29 @@ var Errors = {
 ActiveController.Errors = Errors;
 
 })();
-(function(){
-    var global_context = ActiveSupport.getGlobalContext();
-    var pure = global_context.pure;
-    
-    ActiveController.InstanceMethods.compile = function compile(source_element,name,directives)
+
+ActiveController.InstanceMethods.compile = function compile(source_element,name,directives)
+{
+    return ActiveSupport.getGlobalContext().pure.libs.compile(source_element,name,directives,this.toObject());
+};
+
+ActiveController.InstanceMethods.directive = function directive(source_element,directives)
+{
+    return ActiveSupport.getGlobalContext().pure.libs.mapDirective(source_element,directives);
+};
+
+ActiveController.InstanceMethods.render = ActiveSupport.wrap(ActiveController.InstanceMethods.render,function pure_render(proceed,source_element,target,clear){
+    if(source_element && source_element.nodeType == 1 && ((target && target.nodeType == 1) || !target))
     {
-        return pure.libs.compile(source_element,name,directives,this.toObject());
-    };
-    
-    ActiveController.InstanceMethods.directive = function directive(source_element,directives)
+        if(!target)
+        {
+            target = source_element;
+        }
+        var directives = clear;
+        return ActiveSupport.getGlobalContext().pure.libs.render(target,this.toObject(),directives,source_element,(typeof(directives) == 'undefined' || !directives));
+    }
+    else
     {
-        return pure.libs.mapDirective(source_element,directives);
-    };
-    
-    ActiveController.InstanceMethods.render = ActiveSupport.wrap(ActiveController.InstanceMethods.render,function pure_render(proceed,source_element,target,clear){
-        if(content && content.nodeType == 1 && target && target.nodeType == 1 && typeof(clear) === 'object')
-        {
-            var directives = clear;
-            return pure.libs.render(target,this.toObject(),directives,source_element,(typeof(directives) == 'undefined' || !directives));
-        }
-        else
-        {
-            return proceed(source_element,target,clear);
-        }
-    });
-})();
+        return proceed(source_element,target,clear);
+    }
+});
