@@ -46,6 +46,11 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS comments');
         ActiveRecord.execute('DROP TABLE IF EXISTS users');
         ActiveRecord.execute('DROP TABLE IF EXISTS credit_cards');
+        ActiveRecord.execute('DROP TABLE IF EXISTS string_dates');
+        ActiveRecord.execute('DROP TABLE IF EXISTS dates');
+        ActiveRecord.execute('DROP TABLE IF EXISTS articles');
+        ActiveRecord.execute('DROP TABLE IF EXISTS categories');
+        ActiveRecord.execute('DROP TABLE IF EXISTS categorizations');
         
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
