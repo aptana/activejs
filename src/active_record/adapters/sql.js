@@ -105,7 +105,12 @@ Adapters.SQL = {
         {
             var args = ["DELETE FROM " + table];
             var ids = [];
-            this.iterableFromResultSet(this.executeSQL('SELECT id FROM ' + table)).iterate(function id_collector_iterator(row){
+            var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
+            if(!ids_result_set)
+            {
+                return null;
+            }
+            this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
                 ids.push(row.id);
             });
             var response = this.executeSQL.apply(this,args);
