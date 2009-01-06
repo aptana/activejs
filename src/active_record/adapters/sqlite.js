@@ -29,8 +29,14 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
     createTable: function createTable(table_name,columns)
     {
         var keys = ActiveSupport.keys(columns);
-        keys.unshift('id INTEGER PRIMARY KEY');
-        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + keys.join(',') + ')');
+        var fragments = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            var key = keys[i];
+            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+        }
+        fragments.unshift('id INTEGER PRIMARY KEY');
+        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
     },
     addColumn: function addColumn(table_name,column_name,data_type)
     {
