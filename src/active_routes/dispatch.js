@@ -43,7 +43,14 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
         route = this.match(path);
         if(!route)
         {
-            throw Errors.UnresolvableUrl + path;
+            if(this.error)
+            {
+                throw this.error;
+            }
+            else
+            {
+                throw Errors.UnresolvableUrl + path;
+            }
         }
     }
     else
