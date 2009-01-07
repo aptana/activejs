@@ -144,6 +144,7 @@
  */
 ActiveRoutes = function ActiveRoutes(routes,scope,options)
 {
+    this.initialized = false;
     this.error = false;
     this.scope = scope || ActiveSupport.getGlobalContext();
     this.routes = [];
@@ -154,7 +155,6 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
      */
     this.history = [];
     this.options = ActiveSupport.extend({
-        triggerNoSuchMethod: (typeof(ActiveSupport.getGlobalContext().__noSuchMethod__) != 'undefined'),
         classSuffix: '',
         camelizeObjectName: true,
         camelizeMethodName: true,
@@ -172,6 +172,7 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
         current_route_set.urlFor.apply(current_route_set,arguments);
     };
+    this.initialized = true;
 };
 
 ActiveRoutes.prototype.goToIndex = function goToIndex(index)
@@ -230,7 +231,10 @@ ActiveRoutes.prototype.getError = function getError()
 };
 
 /**
- * Add a new route to the route set.
+ * Add a new route to the route set. When adding routes via the constructor
+ * routes will be pushed onto the array, if called after the route set is
+ * initialized, the route will be unshifted onto the route set (and will
+ * have the highest priority).
  * @alias ActiveRoutes.prototype.addRoute
  * @exception {ActiveRoutes.Errors.NoPathInRoute}
  * @exception {ActiveRoutes.Errors.NoObjectInRoute}
@@ -283,7 +287,14 @@ ActiveRoutes.prototype.addRoute = function addRoute()
     {
         throw Errors.NoMethodInRoute + route.path;
     }
-    this.routes.push(route);
+    if(this.initialized)
+    {
+        this.routes.unshift(route);
+    }
+    else
+    {
+        this.routes.push(route);
+    }
     this.generateMethodsForRoute(route);
 };
 
