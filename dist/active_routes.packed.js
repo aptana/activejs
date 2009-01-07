@@ -1,27 +1,1760 @@
-/* ***** BEGIN LICENSE BLOCK *****
+ 
+/**
+ * @namespace {ActiveSupport} Provides a number of methods from the
+ *  Prototype.js framework, without modifying any built in prototypes to
+ *  ensure compatibility and portability.
+ */
+ActiveSupport = null;
+
+(function(global_context){
+ActiveSupport = {
+    /**
+     * Returns the global context object (window in most implementations).
+     * @alias ActiveSupport.getGlobalContext
+     * @return {Object}
+     */
+    getGlobalContext: function getGlobalContext()
+    {
+        return global_context;
+    },
+    /**
+     * Returns a class if it exists. If the context (default window / global
+     * context) does not contain the class, but does have a __noSuchMethod__
+     * property, it will attempt to call context[class_name]() to trigger
+     * the __noSuchMethod__ handler.
+     * @param {String} class_name
+     * @param {Object} context
+     * @return {Mixed}
+     */
+    getClass: function getClass(class_name,context)
+    {
+        context = context || ActiveSupport.getGlobalContext();
+        var klass = context[class_name];
+        if(!klass)
+        {
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            if(trigger_no_such_method)
+            {
+                try
+                {
+                    context[class_name]();
+                    klass = context[class_name];
+                }
+                catch(e)
+                {
+                    return false;
+                }
+            }
+        }
+        return klass;
+    },
+    /**
+     * Logs a message to the available logging resource. Accepts a variable
+     * number of arguments.
+     * @alias ActiveSupport.log
+     */
+    log: function log()
+    {
+        if(typeof(Jaxer) != 'undefined')
+        {
+            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
+        }
+        else if(typeof(air) != 'undefined')
+        {
+            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
+        }
+        else if(typeof(console) != 'undefined')
+        {
+            console.log.apply(console,arguments || []);
+        }
+    },
+    /**
+     * Returns an array from an array or array like object.
+     * @alias ActiveSupport.arrayFrom
+     * @param {Object} object
+     *      Any iterable object (Array, NodeList, arguments)
+     * @return {Array}
+     */
+    arrayFrom: function arrayFrom(object)
+    {
+        if(!object)
+        {
+            return [];
+        }
+        var length = object.length || 0;
+        var results = new Array(length);
+        while (length--)
+        {
+            results[length] = object[length];
+        }
+        return results;
+    },
+    /**
+     * Emulates Array.indexOf for implementations that do not support it.
+     * @alias ActiveSupport.indexOf
+     * @param {Array} array
+     * @param {mixed} item
+     * @return {Number}
+     */
+    indexOf: function indexOf(array,item,i)
+    {
+        i || (i = 0);
+        var length = array.length;
+        if(i < 0)
+        {
+            i = length + i;
+        }
+        for(; i < length; i++)
+        {
+            if(array[i] === item)
+            {
+                return i;
+            }
+        }
+        return -1;
+    },
+    /**
+     * Returns an array without the given item.
+     * @alias ActiveSupport.without
+     * @param {Array} arr
+     * @param {mixed} item to remove
+     * @return {Array}
+     */
+    without: function without(arr){
+        var values = ActiveSupport.arrayFrom(arguments).slice(1);
+        var response = [];
+        for(var i = 0 ; i < arr.length; i++)
+        {
+            if(!(ActiveSupport.indexOf(values,arr[i]) > -1))
+            {
+                response.push(arr[i]);
+            }
+        }
+        return response;
+    },
+    /**
+     * Emulates Prototype's Function.prototype.bind
+     * @alias ActiveSupport.bind
+     * @param {Function} func
+     * @param {Object} object
+     *      object will be in scope as "this" when func is called.
+     * @return {Function}
+     */
+    bind: function bind(func, object)
+    {
+        func.bind = function bind()
+        {
+            if (arguments.length < 2 && typeof(arguments[0]) == "undefined")
+            {
+                return this;
+            }
+            var __method = this;
+            var args = ActiveSupport.arrayFrom(arguments);
+            var object = args.shift();
+            return function bound()
+            {
+                return __method.apply(object, args.concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.bind(object);
+    },
+    /**
+     * Emulates Prototype's Function.prototype.curry.
+     * @alias ActiveSupport.curry
+     * @param {Function} func
+     * @return {Function}
+     */
+    curry: function curry(func)
+    {
+        func.curry = function curry()
+        {
+            if (!arguments.length)
+            {
+                return this;
+            }
+            var __method = this;
+            var args = ActiveSupport.arrayFrom(arguments);
+            return function curried()
+            {
+                return __method.apply(this, args.concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.curry.apply(func, ActiveSupport.arrayFrom(arguments).slice(1));
+    },
+    /**
+     * Returns a function wrapped around the original function.
+     * @alias ActiveSupport.wrap
+     * @param {Function} func
+     * @param {Function} wrapper
+     * @return {Function} wrapped
+     * @example
+     *
+     *     String.prototype.capitalize = String.prototype.capitalize.wrap( 
+     *     function(proceed, eachWord) { 
+     *         if (eachWord && this.include(" ")) {
+     *             // capitalize each word in the string
+     *             return this.split(" ").invoke("capitalize").join(" ");
+     *         } else {
+     *             // proceed using the original function
+     *             return proceed(); 
+     *         }
+     *     });
+     */
+    wrap: function wrap(func,wrapper)
+    {
+        func.wrap = function wrap(wrapper){
+            var __method = this;
+            return function wrapped(){
+                return wrapper.apply(this,[ActiveSupport.bind(__method,this)].concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.wrap(wrapper);
+    },
+    /**
+     * Returns an array of keys from an object.
+     * @alias ActiveSupport.keys
+     * @param {Object} object
+     * @return {Array}
+     */
+    keys: function keys(object)
+    {
+        var keys = [];
+        for (var property in object)
+        {
+            keys.push(property);
+        }
+        return keys;
+    },
+    /**
+     * Emulates Prototype's String.prototype.underscore
+     * @alias ActiveSupport.underscore
+     * @param {String} str
+     * @return {String}
+     */
+    underscore: function underscore(str)
+    {
+        return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            return match[0] + '_' + match[1];
+        }).replace(/([a-z\d])([A-Z])/g, function(match){
+            return match[0] + '_' + match[1];
+        }).replace(/-/g, '_').toLowerCase();
+    },
+    /**
+     * Emulates Prototype's String.prototype.camelize
+     * @alias ActiveSupport.camelize
+     * @param {String} str
+     * @param {Boolean} [capitalize]
+     * @return {String}
+     */
+    camelize: function camelize(str, capitalize){
+        var parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
+        if (len == 1)
+        {
+            if(capitalize)
+            {
+                return parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+            }
+            else
+            {
+                return parts[0];
+            }
+        }
+        if(str.charAt(0) == '-')
+        {
+            var camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+        }
+        else
+        {
+            var camelized = parts[0];
+        }
+        for (var i = 1; i < len; i++)
+        {
+            camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
+        }
+        if(capitalize)
+        {
+            return camelized.charAt(0).toUpperCase() + camelized.substring(1);
+        }
+        else
+        {
+            return camelized;
+        }
+    },
+    /**
+     * Emulates Prototype's Object.extend
+     * @alias ActiveSupport.extend
+     * @param {Object} destination
+     * @param {Object} source
+     * @return {Object}
+     */
+    extend: function extend(destination, source)
+    {
+        for (var property in source)
+        {
+            destination[property] = source[property];
+        }
+        return destination;
+    },
+    /**
+     * Emulates Prototype's Object.clone
+     * @alias ActiveSupport.clone
+     * @param {Object} object
+     * @return {Object}
+     */
+    clone: function clone(object)
+    {
+        return ActiveSupport.extend({}, object);
+    },
+    
+    /**
+     * If the value passed is a function the value passed will be returned,
+     * otherwise a function returning the value passed will be returned.
+     * @alias ActiveSupport.proc
+     * @param {mixed} proc
+     * @return {Function}
+     */
+    proc: function proc(proc)
+    {
+        return typeof(proc) == 'function' ? proc : function(){return proc;};
+    },
+    
+    /**
+     * If the value passed is a function, the function is called and the value
+     * returned, otherwise the value passed in is returned.
+     * @alias ActiveSupport.value
+     * @param {mixed} value
+     * @return {scalar}
+     */
+    value: function value(value)
+    {
+        return typeof(value) == 'function' ? value() : value;
+    },
+    
+    /**
+     * If it is the last argument of current function is a function, it will be
+     * returned. You can optionally specify the number of calls in the stack to
+     * look up.
+     * @alias ActiveSupport.block
+     * @param {Number} [levels]
+     * @return {mixed}
+     */
+    block: function block(args)
+    {
+        if(typeof(args) == 'number' || !args)
+        {
+            var up = arguments.callee;
+            for(var i = 0; i <= (args || 0); ++i)
+            {
+                up = up.caller;
+                if(!up)
+                {
+                    return false;
+                }
+            }
+            args = up.arguments;
+        }
+        return (args.length == 0 || typeof(args[args.length - 1]) != 'function') ? false : args[args.length - 1];
+    },
+    
+    /**
+     * @alias ActiveSupport.synchronize
+     */
+    synchronize: function synchronize(execute,finish)
+    {
+        var scope = {};
+        var stack = [];
+        stack.waiting = {};
+        stack.add = function add(callback){
+            var wrapped = ActiveSupport.wrap(callback || function(){},function synchronizationWrapper(proceed){
+                var i = null;
+                var index = ActiveSupport.indexOf(stack,wrapped);
+                stack.waiting[index] = [proceed,ActiveSupport.arrayFrom(arguments)];
+                var all_present = true;
+                for(i = 0; i < stack.length; ++i)
+                {
+                    if(!stack.waiting[i])
+                    {
+                        all_present = false;
+                    }
+                }
+                if(all_present)
+                {
+                    for(i = 0; i < stack.length; ++i)
+                    {
+                        var item = stack.waiting[i];
+                        item[0].apply(item[0],item[1]);
+                        delete stack.waiting[i];
+                    }
+                }
+                if(all_present && i == stack.length)
+                {
+                    if(finish)
+                    {
+                        finish(scope);
+                    }
+                }
+            });
+            stack.push(wrapped);
+            return wrapped;
+        };
+        execute(stack,scope);
+        if(stack.length == 0 && finish)
+        {
+            finish(scope);
+        }
+    },
+    
+    /**
+     * @namespace {ActiveSupport.Inflector} A port of Rails Inflector class.
+     */
+    Inflector: {
+        Inflections: {
+            plural: [
+                [/(quiz)$/i,               "$1zes"  ],
+                [/^(ox)$/i,                "$1en"   ],
+                [/([m|l])ouse$/i,          "$1ice"  ],
+                [/(matr|vert|ind)ix|ex$/i, "$1ices" ],
+                [/(x|ch|ss|sh)$/i,         "$1es"   ],
+                [/([^aeiouy]|qu)y$/i,      "$1ies"  ],
+                [/(hive)$/i,               "$1s"    ],
+                [/(?:([^f])fe|([lr])f)$/i, "$1$2ves"],
+                [/sis$/i,                  "ses"    ],
+                [/([ti])um$/i,             "$1a"    ],
+                [/(buffal|tomat)o$/i,      "$1oes"  ],
+                [/(bu)s$/i,                "$1ses"  ],
+                [/(alias|status)$/i,       "$1es"   ],
+                [/(octop|vir)us$/i,        "$1i"    ],
+                [/(ax|test)is$/i,          "$1es"   ],
+                [/s$/i,                    "s"      ],
+                [/$/,                      "s"      ]
+            ],
+            singular: [
+                [/(quiz)zes$/i,                                                    "$1"     ],
+                [/(matr)ices$/i,                                                   "$1ix"   ],
+                [/(vert|ind)ices$/i,                                               "$1ex"   ],
+                [/^(ox)en/i,                                                       "$1"     ],
+                [/(alias|status)es$/i,                                             "$1"     ],
+                [/(octop|vir)i$/i,                                                 "$1us"   ],
+                [/(cris|ax|test)es$/i,                                             "$1is"   ],
+                [/(shoe)s$/i,                                                      "$1"     ],
+                [/(o)es$/i,                                                        "$1"     ],
+                [/(bus)es$/i,                                                      "$1"     ],
+                [/([m|l])ice$/i,                                                   "$1ouse" ],
+                [/(x|ch|ss|sh)es$/i,                                               "$1"     ],
+                [/(m)ovies$/i,                                                     "$1ovie" ],
+                [/(s)eries$/i,                                                     "$1eries"],
+                [/([^aeiouy]|qu)ies$/i,                                            "$1y"    ],
+                [/([lr])ves$/i,                                                    "$1f"    ],
+                [/(tive)s$/i,                                                      "$1"     ],
+                [/(hive)s$/i,                                                      "$1"     ],
+                [/([^f])ves$/i,                                                    "$1fe"   ],
+                [/(^analy)ses$/i,                                                  "$1sis"  ],
+                [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, "$1$2sis"],
+                [/([ti])a$/i,                                                      "$1um"   ],
+                [/(n)ews$/i,                                                       "$1ews"  ],
+                [/s$/i,                                                            ""       ]
+            ],
+            irregular: [
+                ['move',   'moves'   ],
+                ['sex',    'sexes'   ],
+                ['child',  'children'],
+                ['man',    'men'     ],
+                ['person', 'people'  ]
+            ],
+            uncountable: [
+                "sheep",
+                "fish",
+                "series",
+                "species",
+                "money",
+                "rice",
+                "information",
+                "equipment"
+            ]
+        },
+        /**
+         * Generates an orginalized version of a number as a string (9th, 2nd, etc)
+         * @alias ActiveSupport.Inflector.ordinalize
+         * @param {Number} number
+         * @return {String}
+         */
+        ordinalize: function ordinalize(number)
+        {
+            if (11 <= parseInt(number) % 100 && parseInt(number) % 100 <= 13)
+            {
+                return number + "th";
+            }
+            else
+            {
+                switch (parseInt(number) % 10)
+                {
+                    case  1: return number + "st";
+                    case  2: return number + "nd";
+                    case  3: return number + "rd";
+                    default: return number + "th";
+                }
+            }
+        },
+        /**
+         * Generates a plural version of an english word.
+         * @alias ActiveSupport.Inflector.pluralize
+         * @param {String} word
+         * @return {String}
+         */
+        pluralize: function pluralize(word)
+        {
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = Inflector.Inflections.uncountable[i];
+                if (word.toLowerCase == uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((word.toLowerCase == singular) || (word == plural))
+                {
+                    return plural;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.plural[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.plural[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+        },
+        /**
+         * Generates a singular version of an english word.
+         * @alias ActiveSupport.Inflector.singularize
+         * @param {String} word
+         * @return {String}
+         */
+        singularize: function singularize(word) {
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
+                if (word.toLowerCase == uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((word.toLowerCase == singular) || (word == plural))
+                {
+                    return plural;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.singular[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.singular[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+        }
+    },
+    /*
+     * Date Format 1.2.2
+     * (c) 2007-2008 Steven Levithan <stevenlevithan.com>
+     * MIT license
+     * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
+     *
+     * Accepts a date, a mask, or a date and a mask.
+     * Returns a formatted version of the given date.
+     * The date defaults to the current date/time.
+     * The mask defaults to dateFormat.masks.default.
+     */
+     
+    /**
+     * @alias ActiveSupport.dateFormat
+     * @param {Date} date
+     * @param {String} format
+     * @param {Boolean} utc
+     * @return {String}
+     */
+    dateFormat: function date_format_wrapper()
+    {
+        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+            timezoneClip = /[^-+\dA-Z]/g,
+            pad = function (val, len) {
+                val = String(val);
+                len = len || 2;
+                while (val.length < len) val = "0" + val;
+                return val;
+            };
+
+        // Regexes and supporting functions are cached through closure
+        var dateFormat = function dateFormat(date, mask, utc) {
+            var dF = dateFormat;
+
+            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+            if (arguments.length == 1 && (typeof date == "string" || date instanceof String) && !/\d/.test(date)) {
+                mask = date;
+                date = undefined;
+            }
+
+            // Passing date through Date applies Date.parse, if necessary
+            date = date ? new Date(date) : new Date();
+            if (isNaN(date)) throw new SyntaxError("invalid date");
+
+            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+            // Allow setting the utc argument via the mask
+            if (mask.slice(0, 4) == "UTC:") {
+                mask = mask.slice(4);
+                utc = true;
+            }
+
+            var _ = utc ? "getUTC" : "get",
+                d = date[_ + "Date"](),
+                D = date[_ + "Day"](),
+                m = date[_ + "Month"](),
+                y = date[_ + "FullYear"](),
+                H = date[_ + "Hours"](),
+                M = date[_ + "Minutes"](),
+                s = date[_ + "Seconds"](),
+                L = date[_ + "Milliseconds"](),
+                o = utc ? 0 : date.getTimezoneOffset(),
+                flags = {
+                    d:    d,
+                    dd:   pad(d),
+                    ddd:  dF.i18n.dayNames[D],
+                    dddd: dF.i18n.dayNames[D + 7],
+                    m:    m + 1,
+                    mm:   pad(m + 1),
+                    mmm:  dF.i18n.monthNames[m],
+                    mmmm: dF.i18n.monthNames[m + 12],
+                    yy:   String(y).slice(2),
+                    yyyy: y,
+                    h:    H % 12 || 12,
+                    hh:   pad(H % 12 || 12),
+                    H:    H,
+                    HH:   pad(H),
+                    M:    M,
+                    MM:   pad(M),
+                    s:    s,
+                    ss:   pad(s),
+                    l:    pad(L, 3),
+                    L:    pad(L > 99 ? Math.round(L / 10) : L),
+                    t:    H < 12 ? "a"  : "p",
+                    tt:   H < 12 ? "am" : "pm",
+                    T:    H < 12 ? "A"  : "P",
+                    TT:   H < 12 ? "AM" : "PM",
+                    Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                    o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                };
+
+            return mask.replace(token, function ($0) {
+                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+            });
+        };
+        
+        // Some common format strings
+        dateFormat.masks = {
+            "default":      "ddd mmm dd yyyy HH:MM:ss",
+            shortDate:      "m/d/yy",
+            mediumDate:     "mmm d, yyyy",
+            longDate:       "mmmm d, yyyy",
+            fullDate:       "dddd, mmmm d, yyyy",
+            shortTime:      "h:MM TT",
+            mediumTime:     "h:MM:ss TT",
+            longTime:       "h:MM:ss TT Z",
+            isoDate:        "yyyy-mm-dd",
+            isoTime:        "HH:MM:ss",
+            isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+            MySQL:          "yyyy-mm-dd HH:MM:ss",
+            isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+        };
+
+        // Internationalization strings
+        dateFormat.i18n = {
+            dayNames: [
+                "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+                "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+            ],
+            monthNames: [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+            ]
+        };
+        
+        return dateFormat;
+    }(),
+    /*
+        http://www.JSON.org/json2.js
+        2008-07-15
+
+        Public Domain.
+
+        NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+        See http://www.JSON.org/js.html
+
+        This file creates a global JSON object containing two methods: stringify
+        and parse.
+
+            JSON.stringify(value, replacer, space)
+                value       any JavaScript value, usually an object or array.
+
+                replacer    an optional parameter that determines how object
+                            values are stringified for objects. It can be a
+                            function or an array.
+
+                space       an optional parameter that specifies the indentation
+                            of nested structures. If it is omitted, the text will
+                            be packed without extra whitespace. If it is a number,
+                            it will specify the number of spaces to indent at each
+                            level. If it is a string (such as '\t' or '&nbsp;'),
+                            it contains the characters used to indent at each level.
+
+                This method produces a JSON text from a JavaScript value.
+
+                When an object value is found, if the object contains a toJSON
+                method, its toJSON method will be called and the result will be
+                stringified. A toJSON method does not serialize: it returns the
+                value represented by the name/value pair that should be serialized,
+                or undefined if nothing should be serialized. The toJSON method
+                will be passed the key associated with the value, and this will be
+                bound to the object holding the key.
+
+                For example, this would serialize Dates as ISO strings.
+
+                    Date.prototype.toJSON = function (key) {
+                        function f(n) {
+                            // Format integers to have at least two digits.
+                            return n < 10 ? '0' + n : n;
+                        }
+
+                        return this.getUTCFullYear()   + '-' +
+                             f(this.getUTCMonth() + 1) + '-' +
+                             f(this.getUTCDate())      + 'T' +
+                             f(this.getUTCHours())     + ':' +
+                             f(this.getUTCMinutes())   + ':' +
+                             f(this.getUTCSeconds())   + 'Z';
+                    };
+
+                You can provide an optional replacer method. It will be passed the
+                key and value of each member, with this bound to the containing
+                object. The value that is returned from your method will be
+                serialized. If your method returns undefined, then the member will
+                be excluded from the serialization.
+
+                If the replacer parameter is an array, then it will be used to
+                select the members to be serialized. It filters the results such
+                that only members with keys listed in the replacer array are
+                stringified.
+
+                Values that do not have JSON representations, such as undefined or
+                functions, will not be serialized. Such values in objects will be
+                dropped; in arrays they will be replaced with null. You can use
+                a replacer function to replace those with JSON values.
+                JSON.stringify(undefined) returns undefined.
+
+                The optional space parameter produces a stringification of the
+                value that is filled with line breaks and indentation to make it
+                easier to read.
+
+                If the space parameter is a non-empty string, then that string will
+                be used for indentation. If the space parameter is a number, then
+                the indentation will be that many spaces.
+
+                Example:
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}]);
+                // text is '["e",{"pluribus":"unum"}]'
+
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+                // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+                text = JSON.stringify([new Date()], function (key, value) {
+                    return this[key] instanceof Date ?
+                        'Date(' + this[key] + ')' : value;
+                });
+                // text is '["Date(---current time---)"]'
+
+
+            JSON.parse(text, reviver)
+                This method parses a JSON text to produce an object or array.
+                It can throw a SyntaxError exception.
+
+                The optional reviver parameter is a function that can filter and
+                transform the results. It receives each of the keys and values,
+                and its return value is used instead of the original value.
+                If it returns what it received, then the structure is not modified.
+                If it returns undefined then the member is deleted.
+
+                Example:
+
+                // Parse the text. Values that look like ISO date strings will
+                // be converted to Date objects.
+
+                myData = JSON.parse(text, function (key, value) {
+                    var a;
+                    if (typeof value === 'string') {
+                        a =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                        if (a) {
+                            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                                +a[5], +a[6]));
+                        }
+                    }
+                    return value;
+                });
+
+                myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+                    var d;
+                    if (typeof value === 'string' &&
+                            value.slice(0, 5) === 'Date(' &&
+                            value.slice(-1) === ')') {
+                        d = new Date(value.slice(5, -1));
+                        if (d) {
+                            return d;
+                        }
+                    }
+                    return value;
+                });
+
+
+        This is a reference implementation. You are free to copy, modify, or
+        redistribute.
+
+        This code should be minified before deployment.
+        See http://javascript.crockford.com/jsmin.html
+
+        USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+        NOT CONTROL.
+    */
+    
+    /**
+     * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     */
+    JSON: function()
+    {
+        //use native support if available
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
+        {
+          return global_context.JSON;
+        }
+        
+        function f(n) {
+            // Format integers to have at least two digits.
+            return n < 10 ? '0' + n : n;
+        };
+        Date.prototype.toJSON = function (key) {
+            return this.getUTCFullYear()   + '-' +
+                 f(this.getUTCMonth() + 1) + '-' +
+                 f(this.getUTCDate())      + 'T' +
+                 f(this.getUTCHours())     + ':' +
+                 f(this.getUTCMinutes())   + ':' +
+                 f(this.getUTCSeconds())   + 'Z';
+        };
+        String.prototype.toJSON =
+        Number.prototype.toJSON =
+        Boolean.prototype.toJSON = function (key) {
+            return this.valueOf();
+        };
+        var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            gap,
+            indent,
+            meta = {    // table of character substitutions
+                '\b': '\\b',
+                '\t': '\\t',
+                '\n': '\\n',
+                '\f': '\\f',
+                '\r': '\\r',
+                '"' : '\\"',
+                '\\': '\\\\'
+            },
+            rep;
+        function quote(string) {
+            escapeable.lastIndex = 0;
+            return escapeable.test(string) ?
+                '"' + string.replace(escapeable, function (a) {
+                    var c = meta[a];
+                    if (typeof c === 'string') {
+                        return c;
+                    }
+                    return '\\u' + ('0000' +
+                            (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                }) + '"' :
+                '"' + string + '"';
+        };
+        function str(key, holder) {
+            var i,          // The loop counter.
+                k,          // The member key.
+                v,          // The member value.
+                length,
+                mind = gap,
+                partial,
+                value = holder[key];
+            if (value && typeof value === 'object' &&
+                    typeof value.toJSON === 'function') {
+                value = value.toJSON(key);
+            }
+            if (typeof rep === 'function') {
+                value = rep.call(holder, key, value);
+            }
+            switch (typeof value) {
+            case 'string':
+                return quote(value);
+            case 'number':
+                return isFinite(value) ? String(value) : 'null';
+            case 'boolean':
+            case 'null':
+                return String(value);
+            case 'object':
+                if (!value) {
+                    return 'null';
+                }
+                gap += indent;
+                partial = [];
+                if (typeof value.length === 'number' &&
+                        !(value.propertyIsEnumerable('length'))) {
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+                    v = partial.length === 0 ? '[]' :
+                        gap ? '[\n' + gap +
+                                partial.join(',\n' + gap) + '\n' +
+                                    mind + ']' :
+                              '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        k = rep[i];
+                        if (typeof k === 'string') {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                } else {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                v = partial.length === 0 ? '{}' :
+                    gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                            mind + '}' : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+            }
+        };
+        return {
+            /**
+             * @alias ActiveSupport.JSON.stringify
+             * @param {Object} value
+             * @return {String}
+             */
+            stringify: function (value, replacer, space) {
+                var i;
+                gap = '';
+                indent = '';
+                if (typeof space === 'number') {
+                    for (i = 0; i < space; i += 1) {
+                        indent += ' ';
+                    }
+                } else if (typeof space === 'string') {
+                    indent = space;
+                }
+                rep = replacer;
+                if (replacer && typeof replacer !== 'function' &&
+                        (typeof replacer !== 'object' ||
+                         typeof replacer.length !== 'number')) {
+                    throw new Error('JSON.stringify');
+                }
+                return str('', {'': value});
+            },
+            /**
+             * @alias ActiveSupport.JSON.parse
+             * @param {String} text
+             * @return {Object}
+             */
+            parse: function (text, reviver) {
+                var j;
+                function walk(holder, key) {
+                    var k, v, value = holder[key];
+                    if (value && typeof value === 'object') {
+                        for (k in value) {
+                            if (Object.hasOwnProperty.call(value, k)) {
+                                v = walk(value, k);
+                                if (v !== undefined) {
+                                    value[k] = v;
+                                } else {
+                                    delete value[k];
+                                }
+                            }
+                        }
+                    }
+                    return reviver.call(holder, key, value);
+                };
+                cx.lastIndex = 0;
+                if (cx.test(text)) {
+                    text = text.replace(cx, function (a) {
+                        return '\\u' + ('0000' +
+                                (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                    });
+                }
+                if (/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+                    j = eval('(' + text + ')');
+                    return typeof reviver === 'function' ?
+                        walk({'': j}, '') : j;
+                }
+                throw new SyntaxError('JSON.parse');
+            }
+        };
+    }()
+};
+
+})(this);
+ 
+ActiveRoutes = null;
+
+(function() {
+ 
+/**
+ * @alias ActiveRoutes
+ * @constructor
+ * @param {Array} routes
+ * @param {Object} [scope] defaults to window
+ * @param {Object} [options]
+ * @return {ActiveRoutes}
+ * @example
+ * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
+ * similar syntax to Rails Routing, but is framework agnostic and can map
+ * calls to any type of object. Server side it can be used to map requests for
+ * a given URL to a method that will render a page, client side it can be used
+ * to provide deep linking and back button / history support for your Ajax
+ * application.
  * 
- * Copyright (c) 2009 Aptana, Inc.
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
  * 
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+ *
+ * Declaring Routes
+ * ----------------
+ * Wether declared in the constructor, or with addRoute(), routes can have up
+ * to three parameters, and can be declared in any of the follow ways:
  * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * - "name", "path", {params}
+ * - "path", {params}
+ * - "path"
  * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * The path portion of a route is a URI string. Parameters that will be passed
+ * to the method called are represented with a colon. Names are optional, but
+ * the path and the params together must declare "object" and "method"
+ * parameters. The following are all valid routes:
  * 
- * ***** END LICENSE BLOCK ***** */
-eval(function(p,a,c,k,e,r){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('C=1F;(q(l){C={2b:q 2b(){8 l},2h:q 2h(){6(E(2S)!=\'1E\'){2S.3N.7G.1m(2S.3N,G||[])}R 6(E(2M)!=\'1E\'){2M.3I.3G.2h.1m(2M.3I.3G,G||[])}R 6(E(2K)!=\'1E\'){2K.2h.1m(2K,G||[])}},1k:q 1k(a){6(!a){8[]}9 b=a.B||0;9 c=1n 7r(b);2J(b--){c[b]=a[b]}8 c},2f:q 2f(a,b,i){i||(i=0);9 c=a.B;6(i<0){i=c+i}N(;i<c;i++){6(a[i]===b){8 i}}8-1},4l:q 4l(a){9 b=C.1k(G).1t(1);9 c=[];N(9 i=0;i<a.B;i++){6(!(C.2f(b,a[i])>-1)){c.1C(a[i])}}8 c},1S:q 1S(d,e){d.1S=q 1S(){6(G.B<2&&E(G[0])=="1E"){8 5}9 a=5;9 b=C.1k(G);9 c=b.7d();8 q 7c(){8 a.1m(c,b.2x(C.1k(G)))}};8 d.1S(e)},1U:q 1U(c){c.1U=q 1U(){6(!G.B){8 5}9 a=5;9 b=C.1k(G);8 q 79(){8 a.1m(5,b.2x(C.1k(G)))}};8 c.1U.1m(c,C.1k(G).1t(1))},1N:q 1N(c,d){c.1N=q 1N(a){9 b=5;8 q 77(){8 a.1m(5,[C.1S(b,5)].2x(C.1k(G)))}};8 c.1N(d)},76:q b(a){9 b=[];N(9 c 14 a){b.1C(c)}8 b},3Q:q 3Q(b){8 b.K(/::/g,\'/\').K(/([A-Z]+)([A-Z][a-z])/g,q(a){8 a[0]+\'15\'+a[1]}).K(/([a-z\\d])([A-Z])/g,q(a){8 a[0]+\'15\'+a[1]}).K(/-/g,\'15\').1r()},1A:q 1A(a,b){9 c=a.K(/\\15/g,\'-\').2P(\'-\'),2Q=c.B;6(2Q==1){6(b){8 c[0].1W(0).2q()+c[0].2p(1)}R{8 c[0]}}6(a.1W(0)==\'-\'){9 d=c[0].1W(0).2q()+c[0].2p(1)}R{9 d=c[0]}N(9 i=1;i<2Q;i++){d+=c[i].1W(0).2q()+c[i].2p(1)}6(b){8 d.1W(0).2q()+d.2p(1)}R{8 d}},2o:q 2o(a,b){N(9 c 14 b){a[c]=b[c]}8 a},1q:q 1q(a){8 C.2o({},a)},6O:q a(a){8 E(a)==\'q\'?a:q(){8 a}},I:q a(a){8 E(a)==\'q\'?a():a},3t:q 3t(a){6(E(a)==\'1X\'||!a){9 b=G.6K;N(9 i=0;i<=(a||0);++i){b=b.6J;6(!b){8 V}}a=b.G}8(a.B==0||E(a[a.B-1])!=\'q\')?V:a[a.B-1]},3j:q 3j(g,h){9 j={};9 k=[];k.1Y={};k.3L=q 3L(e){9 f=C.1N(e||q(){},q 6A(a){9 i=1F;9 b=C.2f(k,f);k.1Y[b]=[a,C.1k(G)];9 c=1b;N(i=0;i<k.B;++i){6(!k.1Y[i]){c=V}}6(c){N(i=0;i<k.B;++i){9 d=k.1Y[i];d[0].1m(d[0],d[1]);26 k.1Y[i]}}6(c&&i==k.B){6(h){h(j)}}});k.1C(f);8 f};g(k,j);6(k.B==0&&h){h(j)}},Y:{X:{29:[[/(3a)$/i,"$6t"],[/^(3b)$/i,"$6r"],[/([m|l])6p$/i,"$6o"],[/(3d|3e|3f)6k|6j$/i,"$6i"],[/(x|3g|1o|3i)$/i,"$30"],[/([^3k]|3l)y$/i,"$69"],[/(3n)$/i,"$1s"],[/(?:([^f])67|([3o])f)$/i,"$1$65"],[/64$/i,"2Y"],[/([3q])62$/i,"$1a"],[/(61|5Z)o$/i,"$5X"],[/(5W)s$/i,"$5U"],[/(3v|3w)$/i,"$30"],[/(3y|3z)5Q$/i,"$1i"],[/(3A|1B)3C$/i,"$30"],[/s$/i,"s"],[/$/,"s"]],2v:[[/(3a)5L$/i,"$1"],[/(3d)3H$/i,"$5J"],[/(3e|3f)3H$/i,"$5I"],[/^(3b)5H/i,"$1"],[/(3v|3w)23$/i,"$1"],[/(3y|3z)i$/i,"$5G"],[/(5F|3A|1B)23$/i,"$5E"],[/(5D)s$/i,"$1"],[/(o)23$/i,"$1"],[/(5C)23$/i,"$1"],[/([m|l])5B$/i,"$5A"],[/(x|3g|1o|3i)23$/i,"$1"],[/(m)5z$/i,"$5y"],[/(s)5x$/i,"$5w"],[/([^3k]|3l)5v$/i,"$1y"],[/([3o])3U$/i,"$1f"],[/(5t)s$/i,"$1"],[/(3n)s$/i,"$1"],[/([^f])3U$/i,"$5s"],[/(^5r)2Y$/i,"$5q"],[/((a)5p|(b)a|(d)5o|(p)5m|(p)5l|(s)5k|(t)5i)2Y$/i,"$1$5h"],[/([3q])a$/i,"$5g"],[/(n)5e$/i,"$5d"],[/s$/i,""]],1M:[[\'5b\',\'5a\'],[\'59\',\'58\'],[\'57\',\'56\'],[\'55\',\'54\'],[\'4u\',\'52\']],1V:["50","4Z","4Y","4X","4W","4V","4U","4T"]},43:q 43(a){6(11<=2T(a)%2n&&2T(a)%2n<=13){8 a+"2U"}R{49(2T(a)%10){1H 1:8 a+"4f";1H 2:8 a+"4j";1H 3:8 a+"4m";31:8 a+"2U"}}},4o:q 4o(a){N(9 i=0;i<C.Y.X.1V.B;i++){9 b=Y.X.1V[i];6(a.1r==b){8 b}}N(9 i=0;i<C.Y.X.1M.B;i++){9 c=C.Y.X.1M[i][0];9 d=C.Y.X.1M[i][1];6((a.1r==c)||(a==d)){8 d}}N(9 i=0;i<C.Y.X.29.B;i++){9 e=C.Y.X.29[i][0];9 f=C.Y.X.29[i][1];6(e.1B(a)){8 a.K(e,f)}}},4p:q 4p(a){N(9 i=0;i<C.Y.X.1V.B;i++){9 b=C.Y.X.1V[i];6(a.1r==b){8 b}}N(9 i=0;i<C.Y.X.1M.B;i++){9 c=C.Y.X.1M[i][0];9 d=C.Y.X.1M[i][1];6((a.1r==c)||(a==d)){8 d}}N(9 i=0;i<C.Y.X.2v.B;i++){9 e=C.Y.X.2v[i][0];9 f=C.Y.X.2v[i][1];6(e.1B(a)){8 a.K(e,f)}}}},4E:q 4D(){9 f=/d{1,4}|m{1,4}|2a(?:2a)?|([4A])\\1?|[4z]|"[^"]*"|\'[^\']*\'/g,4s=/\\b(?:[4x][4w]T|(?:53|4v|4y|4B|4C) (?:4F|4G|4H) 4I|(?:4J|2d)(?:[-+]\\d{4})?)\\b/g,4k=/[^-+\\4K-Z]/g,1p=q(a,b){a=1e(a);b=b||2;2J(a.B<b)a="0"+a;8 a};9 g=q g(a,b,c){9 e=g;6(G.B==1&&(E a=="1x"||a 4L 1e)&&!/\\d/.1B(a)){b=a;a=1E}a=a?1n 2i(a):1n 2i();6(4M(a))1u 1n 4b("4N 4O");b=1e(e.2w[b]||b||e.2w["31"]);6(b.1t(0,4)=="2d:"){b=b.1t(4);c=1b}9 15=c?"4P":"4Q",d=a[15+"2i"](),D=a[15+"4R"](),m=a[15+"4S"](),y=a[15+"51"](),H=a[15+"5c"](),M=a[15+"5f"](),s=a[15+"5j"](),L=a[15+"5n"](),o=c?0:a.5u(),2N={d:d,1R:1p(d),3R:e.1T.2C[D],3O:e.1T.2C[D+7],m:m+1,22:1p(m+1),2E:e.1T.2G[m],2L:e.1T.2G[m+12],2a:1e(y).1t(2),1w:y,h:H%12||12,5K:1p(H%12||12),H:H,1O:1p(H),M:M,1z:1p(M),s:s,1o:1p(s),l:1p(L,3),L:1p(L>5M?2s.5N(L/10):L),t:H<12?"a":"p",5O:H<12?"5P":"5R",T:H<12?"A":"P",2r:H<12?"5S":"5T",Z:c?"2d":(1e(a).1l(4s)||[""]).5V().K(4k,""),o:(o>0?"-":"+")+1p(2s.5Y(2s.3r(o)/60)*2n+2s.3r(o)%60,4),S:["2U","4f","4j","4m"][d%10>3?0:(d%2n-d%10!=10)*d%10]};8 b.K(f,q($0){8 $0 14 2N?2N[$0]:$0.1t(1,$0.B-1)})};g.2w={"31":"3R 2E 1R 1w 1O:1z:1o",63:"m/d/2a",66:"2E d, 1w",68:"2L d, 1w",6a:"3O, 2L d, 1w",6b:"h:1z 2r",6c:"h:1z:1o 2r",6d:"h:1z:1o 2r Z",6e:"1w-22-1R",6f:"1O:1z:1o",6g:"1w-22-1R\'T\'1O:1z:1o",6h:"1w-22-1R 1O:1z:1o",6l:"2d:1w-22-1R\'T\'1O:1z:1o\'Z\'"};g.1T={2C:["6m","6n","6q","6s","6u","6v","6w","6x","6y","6z","6B","6C","6D","6E"],2G:["6F","6G","6H","6I","4t","6L","6M","6N","6P","6Q","6R","6S","6T","6U","6V","6W","4t","6X","6Y","6Z","70","71","72","73"]};8 g}(),1K:q(){6(l&&\'1K\'14 l&&\'2F\'14 l.1K&&\'36\'14 l.1K){8 l.1K}q f(n){8 n<10?\'0\'+n:n};2i.Q.1P=q(a){8 5.74()+\'-\'+f(5.75()+1)+\'-\'+f(5.78())+\'T\'+f(5.7a())+\':\'+f(5.7b())+\':\'+f(5.7e())+\'Z\'};1e.Q.1P=7f.Q.1P=7g.Q.1P=q(a){8 5.7h()};9 e=/[\\7i\\3Y\\3Z-\\40\\41\\42\\44\\45-\\46\\47-\\48\\4a-\\4c\\4d\\4e-\\4i]/g,2g=/[\\\\\\"\\7j-\\7k\\7l-\\7m\\3Y\\3Z-\\40\\41\\42\\44\\45-\\46\\47-\\48\\4a-\\4c\\4d\\4e-\\4i]/g,1c,25,4r={\'\\b\':\'\\\\b\',\'\\t\':\'\\\\t\',\'\\n\':\'\\\\n\',\'\\f\':\'\\\\f\',\'\\r\':\'\\\\r\',\'"\':\'\\\\"\',\'\\\\\':\'\\\\\\\\\'},1D;q 27(b){2g.38=0;8 2g.1B(b)?\'"\'+b.K(2g,q(a){9 c=4r[a];6(E c===\'1x\'){8 c}8\'\\\\u\'+(\'4q\'+(+(a.4n(0))).1L(16)).1t(-4)})+\'"\':\'"\'+b+\'"\'};q 21(a,b){9 i,k,v,B,1Z=1c,1h,I=b[a];6(I&&E I===\'O\'&&E I.1P===\'q\'){I=I.1P(a)}6(E 1D===\'q\'){I=1D.2e(b,a,I)}49(E I){1H\'1x\':8 27(I);1H\'1X\':8 7n(I)?1e(I):\'1F\';1H\'7o\':1H\'1F\':8 1e(I);1H\'O\':6(!I){8\'1F\'}1c+=25;1h=[];6(E I.B===\'1X\'&&!(I.7p(\'B\'))){B=I.B;N(i=0;i<B;i+=1){1h[i]=21(i,I)||\'1F\'}v=1h.B===0?\'[]\':1c?\'[\\n\'+1c+1h.2u(\',\\n\'+1c)+\'\\n\'+1Z+\']\':\'[\'+1h.2u(\',\')+\']\';1c=1Z;8 v}6(1D&&E 1D===\'O\'){B=1D.B;N(i=0;i<B;i+=1){k=1D[i];6(E k===\'1x\'){v=21(k,I);6(v){1h.1C(27(k)+(1c?\': \':\':\')+v)}}}}R{N(k 14 I){6(3X.3T.2e(I,k)){v=21(k,I);6(v){1h.1C(27(k)+(1c?\': \':\':\')+v)}}}}v=1h.B===0?\'{}\':1c?\'{\\n\'+1c+1h.2u(\',\\n\'+1c)+\'\\n\'+1Z+\'}\':\'{\'+1h.2u(\',\')+\'}\';1c=1Z;8 v}};8{2F:q(a,b,c){9 i;1c=\'\';25=\'\';6(E c===\'1X\'){N(i=0;i<c;i+=1){25+=\' \'}}R 6(E c===\'1x\'){25=c}1D=b;6(b&&E b!==\'q\'&&(E b!==\'O\'||E b.B!==\'1X\')){1u 1n 7q(\'1K.2F\');}8 21(\'\',{\'\':a})},36:q(c,d){9 j;q 2X(a,b){9 k,v,I=a[b];6(I&&E I===\'O\'){N(k 14 I){6(3X.3T.2e(I,k)){v=2X(I,k);6(v!==1E){I[k]=v}R{26 I[k]}}}}8 d.2e(a,b,I)};e.38=0;6(e.1B(c)){c=c.K(e,q(a){8\'\\\\u\'+(\'4q\'+(+(a.4n(0))).1L(16)).1t(-4)})}6(/^[\\],:{}\\s]*$/.1B(c.K(/\\\\(?:["\\\\\\/7s]|u[0-7t-7u-F]{4})/g,\'@\').K(/"[^"\\\\\\n\\r]*"|1b|V|1F|-?\\d+(?:\\.\\d*)?(?:[7v][+\\-]?\\d+)?/g,\']\').K(/(?:^|:|,)(?:\\s*\\[)+/g,\'\'))){j=7w(\'(\'+c+\')\');8 E d===\'q\'?2X({\'\':j},\'\'):j}1u 1n 4b(\'1K.36\');}}}()}})(5);J=1F;(q(){J=q J(a,b,c){5.1v=V;5.19=b||C.2b();5.18=[];5.17=0;5.1G=[];5.1j=C.2o({3S:(E(C.2b().7x)!=\'1E\'),2z:\'\',2A:1b,3P:1b,2D:1b,3K:\'\',1I:5.2H},c||{});5.1I=5.1j.1I;9 i;N(i=0;i<a.B;++i){5.2I.1m(5,a[i])}9 d=5;5.19[5.1j.2D?\'1Q\':\'7y\']=q 7z(){d.1Q.1m(d,G)}};J.Q.3J=q 3J(a){6(!5.1G[a]){8 V}5.17=a;5.1I(5.1G[5.17]);8 1b};J.Q.3E=q 3E(){6(5.17==0){8 V}--5.17;5.1I(5.1G[5.17]);8 1b};J.Q.3D=q 3D(){6(5.17>=5.1G.B-1){8 V}++5.17;5.1I(5.1G[5.17]);8 1b};J.Q.3x=q 3x(){8 5.1v};J.Q.2I=q 2I(){9 a,W,w,1d;6(G.B==3){a=G[0];W=G[1];w=G[2]}R 6(G.B==2){6(E(G[0])==\'1x\'&&E(G[1])==\'1x\'){a=G[0];W=G[1]}R{W=G[0];w=G[1]}}R 6(G.B==1){W=G[0]}1d={1J:a,W:J.2m(W),w:w||{}};6(!n.3u(1d)){1u m.3s;}6(!n.3p(1d)){1u m.3m+1d.W;}6(!n.3h(1d)){1u m.39+1d.W;}5.18.1C(1d);5.32(1d)};J.33=/[^\\/\\\\]+[\\/\\\\]\\.\\.[\\/\\\\]/;J.2m=q 2m(a){a=a.K(/\\#.+$/,\'\');a=a.K(/\\?.+$/,\'\');a=a.K(/\\/{2,}/g,"/").K(/\\\\\\\\/g,"\\\\").K(/(\\/|\\\\)$/,\'\').K(/\\\\/g,\'/\').K(/^\\//,\'\');2J(a.1l(J.33)){a=a.K(J.33,\'\')}a=a.K(/(\\/17$|^17$)/i,\'\');8 a};9 m={3s:\'34 W 35 37 14 28 1d\',3m:\'34 :O 35 37 14 28 1d: \',39:\'34 :U 35 37 14 28 1d: \',3c:\'2c 2l O 2W 20 2V: \',3B:\'2c 2l U 2W 20 2V: \',3F:\'2c 2l U 3C 20 7A: \',7B:\'2c 2l 7C 1d 2W 20 2V: \',3M:\'7D 20 7E 28 7F: \'};J.7H=m;J.Q.24=q 24(a){6(!a.w.U){a.w.U=\'17\'}6(5.1j.2A){a.w.O=C.1A(a.w.O,1b)}6(a.w.1g){26 a.w.1g}6(!5.2B(a.w.O)){5.1v=m.3c+a.w.O}6(!5.2y(a.w.O,a.w.U)){5.1v=m.3B+a.w.O+\'.\'+a.w.U}6(!5.3V(a.w.O,a.w.U)){5.1v=m.3F+a.w.O+\'.\'+a.w.U}6(5.1v){8 V}R{6(5.1j.2z){a.w.O+=5.1j.2z}8 a}};J.Q.1l=q(a){5.1v=V;a=J.2m((1n 1e(a)).1L());9 b=a.2P(\'/\');9 c=b.B;N(9 i=0;i<5.18.B;++i){9 d=C.1q(5.18[i]);d.w=C.1q(5.18[i].w||{});d.3W=[];6(d.W==a){8 5.24(d)}9 e=d.W.2P(\'/\');9 f=e.B;9 g=1b;6(c<=f||e[e.B-1]==\'*\'){N(9 h=0;h<e.B;++h){9 j=b[h];9 k=e[h];6(k[0]==\'*\'){d.w.W=b.1t(h);8 5.24(d)}R 6(k[0]==\':\'){9 l=k.7I(1);6(j&&d.w.1g&&d.w.1g[l]&&!(E(d.w.1g[l])==\'q\'?d.w.1g[l]((1n 1e(j).1L())):j.1l(d.w.1g[l]))){g=V;2t}R{6(E(j)==\'1E\'&&l!=\'U\'&&l!=\'O\'&&l!=\'2O\'){g=V;2t}R{d.w[l]=j;d.3W.1C(j)}}}R 6(j!=k){g=V;2t}}6(g){8 5.24(d)}}}8 V};J.Q.2R=q 2R(a){9 b;6(E(a)==\'1x\'){b=5.1l(a);6(!b){6(5.1v){1u 5.1v;}R{1u m.3M+a;}}}R{b={w:a}}5.1G.1C(b);5.17=5.1G.B-1;5.1I(b)};J.Q.2H=q 2H(a){5.19[a.w.O][a.w.U](a.w)};9 n={3u:q(a){6(a.W===\'\'){8 1b}R{8!!a.W}},3h:q(a){8!(!a.W.1l(\':U\')&&(!a.w||!a.w.U))},3p:q(a){8!(!a.W.1l(\':O\')&&(!a.w||!a.w.O))}};J.Q.2B=q(a){9 b=!!5.19[a];6(!b&&5.1j.3S){7J{5.19[a]()}7K(e){}b=!!5.19[a]}8 b};J.Q.2Z=q(a,b){6(5.19[a].Q&&5.19[a].Q[b]){8 5.19[a].Q[b]}R{8 5.19[a][b]}};J.Q.2y=q(a,b){8!(!5.2B(a)||!5.2Z(a,b))};J.Q.3V=q(a,b){8(5.2y(a,b)&&(E(5.2Z(a,b))===\'q\'))};J.7L=n;J.Q.2k=q 2k(a,b,c){6(!b.2O){a=a.K(/\\/?\\:2O/,\'\')}6(b.U==\'17\'){a=a.K(/\\/?\\:U/,\'\')}a=a.K(/\\/?17$/,\'\');6(a[0]!=\'/\'){a=\'/\'+a}a=c?a:5.1j.3K+a;8 a};J.2j=q 2j(a,b,c){N(9 p 14 c){6(a.1l(\':\'+p)&&c[p]){6(b.w.1g&&b.w.1g[p]){6(E(b.w.1g[p])==\'q\'&&!b.w.1g[p]((1n 1e(c[p]).1L()))){4g}R 6(!b.w.1g[p]((1n 1e(c[p]).1L()))){4g}}a=a.K(\':\'+p,c[p].1L())}}8 a};J.Q.1Q=q 1Q(a){9 b=V;6(a.4h){b=1b;26 a.4h}6(E(a)==\'1x\'){9 c=V;N(9 i=0;i<5.18.B;++i){6(5.18[i].1J&&5.18[i].1J==a){c=i;2t}}6(c===V){1u m.7M+a;}R{9 d={};9 e=C.1q(5.18[c].w);N(9 f 14 e){d[f]=e[f]}6(E(G[1])==\'O\'){N(9 f 14 G[1]){d[f]=G[1][f]}}8 5.1Q(d)}}6(!a.U){a.U=\'17\'}6(5.1j.3P){a.U=C.1A(a.U,V)}6(5.1j.2A){a.O=C.1A(a.O,1b)}N(9 i=0;i<5.18.B;++i){9 g=C.1q(5.18[i]);g.w=C.1q(5.18[i].w||{});9 h=g.W;6((g.w.U||\'\').1r()==(a.U||\'\').1r()&&(g.w.O||\'\').1r()==(a.O||\'\').1r()){h=J.2j(h,g,a);9 j=5.2k(h,a,b);6(!j.1l(\':\')){8 j}}}N(9 i=0;i<5.18.B;++i){9 g=C.1q(5.18[i]);g.w=C.1q(5.18[i].w||{});9 h=g.W;6(g.w.O==a.O){h=J.2j(h,g,a);9 j=5.2k(h,a,b);6(!j.1l(\':\')){8 j}}}8 V};J.Q.32=q 32(d){9 e=5;6(d.1J){9 f=d.1J+\'7N\';9 g=d.1J+\'7O\';9 h=\'7P\'+d.1J;6(e.1j.2D){f=C.1A(f.K(/\\15/g,\'-\'));g=C.1A(g.K(/\\15/g,\'-\'));h=C.1A(h.K(/\\15/g,\'-\'))}e.19[f]=q 7Q(a){9 b={};N(9 c 14 d.w||{}){b[c]=d.w[c]}N(9 c 14 a){b[c]=a[c]}8 b};e.19[g]=q 7R(a){8 e.1Q(e.19[f](a))};e.19[h]=q 7S(a){8 e.2R(e.19[f](a))}}}})();',62,489,'|||||this|if||return|var|||||||||||||||||function||||||params|||||length|ActiveSupport||typeof||arguments||value|ActiveRoutes|replace|||for|object||prototype|else|||method|false|path|Inflections|Inflector||||||in|_||index|routes|scope||true|gap|route|String||requirements|partial||options|arrayFrom|match|apply|new|ss|pad|clone|toLowerCase||slice|throw|error|yyyy|string||MM|camelize|test|push|rep|undefined|null|history|case|dispatcher|name|JSON|toString|irregular|wrap|HH|toJSON|urlFor|dd|bind|i18n|curry|uncountable|charAt|number|waiting|mind|not|str|mm|es|checkAndCleanRoute|indent|delete|quote|the|plural|yy|getGlobalContext|The|UTC|call|indexOf|escapeable|log|Date|performParamSubstitution|cleanPath|following|normalizePath|100|extend|substring|toUpperCase|TT|Math|break|join|singular|masks|concat|methodExists|classSuffix|camelizeObjectName|objectExists|dayNames|camelizeGeneratedMethods|mmm|stringify|monthNames|defaultDispatcher|addRoute|while|console|mmmm|air|flags|id|split|len|dispatch|Jaxer|parseInt|th|exist|does|walk|ses|getMethod|1es|default|generateMethodsForRoute|normalizePathDotDotRegexp|No|was|parse|specified|lastIndex|NoMethodInRoute|quiz|ox|ObjectDoesNotExist|matr|vert|ind|ch|hasMethod|sh|synchronize|aeiouy|qu|NoObjectInRoute|hive|lr|hasObject|ti|abs|NoPathInRoute|block|hasPath|alias|status|getError|octop|vir|ax|MethodDoesNotExist|is|next|back|MethodNotCallable|Console|ices|Introspector|goToIndex|base|add|UnresolvableUrl|Log|dddd|camelizeMethodName|underscore|ddd|triggerNoSuchMethod|hasOwnProperty|ves|methodCallable|orderedParams|Object|u00ad|u0600|u0604|u070f|u17b4|ordinalize|u17b5|u200c|u200f|u2028|u202f|switch|u2060|SyntaxError|u206f|ufeff|ufff0|st|continue|only_path|uffff|nd|timezoneClip|without|rd|charCodeAt|pluralize|singularize|0000|meta|timezone|May|person|Mountain|SDP|PMCEA|Central|LloSZ|HhMsTt|Eastern|Atlantic|date_format_wrapper|dateFormat|Standard|Daylight|Prevailing|Time|GMT|dA|instanceof|isNaN|invalid|date|getUTC|get|Day|Month|equipment|information|rice|money|species|series|fish|sheep|FullYear|people|Pacific|men|man|children|child|sexes|sex|moves|move|Hours|1ews|ews|Minutes|1um|2sis|he|Seconds|ynop|rogno|arenthe|Milliseconds|iagno|naly|1sis|analy|1fe|tive|getTimezoneOffset|ies|1eries|eries|1ovie|ovies|1ouse|ice|bus|shoe|1is|cris|1us|en|1ex|1ix|hh|zes|99|round|tt|am|us|pm|AM|PM|1ses|pop|bu|1oes|floor|tomat||buffal|um|shortDate|sis|2ves|mediumDate|fe|longDate|1ies|fullDate|shortTime|mediumTime|longTime|isoDate|isoTime|isoDateTime|MySQL|1ices|ex|ix|isoUtcDateTime|Sun|Mon|1ice|ouse|Tue|1en|Wed|1zes|Thu|Fri|Sat|Sunday|Monday|Tuesday|synchronizationWrapper|Wednesday|Thursday|Friday|Saturday|Jan|Feb|Mar|Apr|caller|callee|Jun|Jul|Aug|proc|Sep|Oct|Nov|Dec|January|February|March|April|June|July|August|September|October|November|December|getUTCFullYear|getUTCMonth|keys|wrapped|getUTCDate|curried|getUTCHours|getUTCMinutes|bound|shift|getUTCSeconds|Number|Boolean|valueOf|u0000|x00|x1f|x7f|x9f|isFinite|boolean|propertyIsEnumerable|Error|Array|bfnrt|9a|fA|eE|eval|__noSuchMethod__|url_for|generatedUrlFor|callable|NamedRouteDoesNotExist|named|Could|resolve|url|info|Errors|substr|try|catch|Validations|NamedRouteDoesNotExistError|_params|_url|call_|generated_params_for|generated_url_for|generated_call'.split('|'),0,{}))
+ *     var routes = new ActiveRoutes([
+ *       ['root','/',{object:'Pages',method:'index'}],
+ *       ['contact','/contact',{object:'Pages',method:'contact'}],
+ *       ['blog','/blog',{object:'Blog',method:'index'}],
+ *       ['post','/blog/post/:id',{object:'Blog',method:'post'}],
+ *       ['/pages/*',{object:'Pages',method:'page'}],
+ *       ['/:object/:method']
+ *     ],Application);
+ * 
+ * Catch All Routes
+ * ----------------
+ * If you want to route all requests below a certain path to a given method,
+ * place an asterisk in your route. When a matching path is dispatched to
+ * that route the path components will be available in an array called "path".
+ * 
+ *     route_set.addRoute('/wiki/*',{object:'WikiController',method:'page'})
+ *     route_set.dispatch('/wiki/a/b/c');
+ *     //calls: WikiController.page({object:'WikiController',method:'page',path:['a','b','c']})
+ * 
+ * Route Requirements
+ * ------------------
+ * Each route can take a special "requirements" parameter that will not be
+ * passed in the params passed to the called method. Each requirement
+ * can be a regular expression or a function, which the value of the
+ * parameter will be checked against. Each value checked by a regular
+ * expression or function is always a string.
+ *
+ *     route_set.addRoute('/article/:article_id/:comment_id,{
+ *         article_id: /^\d+$/,
+ *         comment_id: function(comment_id){
+ *             return comment_id.match(/^\d+$/);
+ *         }
+ *     });
+ *
+ * Scope
+ * -----
+ * You can specify what scope an ActiveRoutes instance will look in to call
+ * the specified objects and methods. This defaults to window but can be
+ * specified as the second parameter to the constructor.
+ * 
+ * Generating URLs
+ * ---------------
+ * The method urlFor() is available on every route set, and can generate a
+ * URL from an object. Using the routes declared in the example above:
+ * 
+ *     routes.urlFor({object:'Blog',method:'post',id:5}) == '/blog/post/5';
+ * 
+ * If named routes are given, corresponding methods are generated in the
+ * passed scope to resolve these urls.
+ * 
+ *     Application.postUrl({id: 5}) == '/blog/post/5';
+ * 
+ * To get the params to generate a url, a similar method is generated:
+ * 
+ *     Application.postParams({id: 5}) == {object:'Blog',method:'post',id:5};
+ * 
+ * To call a named route directly without round-tripping to a string and
+ * back to params use:
+ * 
+ *     Application.callPost({id: 5});
+ *
+ * Dispatching
+ * -----------
+ * To call a given method from a URL string, use the dispatch() method.
+ * 
+ *     routes.dispatch('/'); //will call Pages.index()
+ *     routes.dispatch('/blog/post/5'); //will call Blog.post({id: 5});
+ * 
+ * History
+ * -------
+ * Most server side JavaScript implementations will not preserve objects
+ * between requests, so the history is not of use. Client side, after each
+ * dispatch, the route and parameters are recorded. The history itself is
+ * accessible with the "history" property, and is traversable with the
+ * next() and back() methods.
+ */
+ActiveRoutes = function ActiveRoutes(routes,scope,options)
+{
+    this.initialized = false;
+    this.error = false;
+    this.scope = scope || ActiveSupport.getGlobalContext();
+    this.routes = [];
+    this.index = 0;
+    /**
+     * @alias ActiveRoutes.prototype.history
+     * @property {Array}
+     */
+    this.history = [];
+    this.options = ActiveSupport.extend({
+        classSuffix: '',
+        camelizeObjectName: true,
+        camelizeMethodName: true,
+        camelizeGeneratedMethods: true,
+        base: '',
+        dispatcher: this.defaultDispatcher
+    },options || {});
+    this.dispatcher = this.options.dispatcher;
+    var i;
+    for(i = 0; i < routes.length; ++i)
+    {
+        this.addRoute.apply(this,routes[i]);
+    }
+    var current_route_set = this;
+    this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
+        current_route_set.urlFor.apply(current_route_set,arguments);
+    };
+    this.initialized = true;
+};
+
+ActiveRoutes.prototype.goToIndex = function goToIndex(index)
+{
+    if(!this.history[index])
+    {
+        return false;
+    }
+    this.index = index;
+    this.dispatcher(this.history[this.index]);
+    return true;
+};
+
+/**
+ * Calls to the previous dispatched route in the history.
+ * @alias ActiveRoutes.prototype.back
+ * @return {Boolean}
+ */
+ActiveRoutes.prototype.back = function back()
+{
+    if(this.index == 0)
+    {
+        return false;
+    }
+    --this.index;
+    this.dispatcher(this.history[this.index]);
+    return true;
+};
+
+/**
+ * Calls to the next dispatched route in the history if back() has already
+ * been called.
+ * @alias ActiveRoutes.prototype.next
+ * @return {Boolean}
+ */
+ActiveRoutes.prototype.next = function next()
+{
+    if(this.index >= this.history.length - 1)
+    {
+        return false;
+    }
+    ++this.index;
+    this.dispatcher(this.history[this.index]);
+    return true;
+};
+
+/**
+ * If match() returns false, the error it generates can be retrieved with this
+ *  function.
+ * @alias ActiveRoutes.prototype.getError
+ * @return {mixed} String or null
+ */
+ActiveRoutes.prototype.getError = function getError()
+{
+    return this.error;
+};
+
+/**
+ * Add a new route to the route set. When adding routes via the constructor
+ * routes will be pushed onto the array, if called after the route set is
+ * initialized, the route will be unshifted onto the route set (and will
+ * have the highest priority).
+ * @alias ActiveRoutes.prototype.addRoute
+ * @exception {ActiveRoutes.Errors.NoPathInRoute}
+ * @exception {ActiveRoutes.Errors.NoObjectInRoute}
+ * @exception {ActiveRoutes.Errors.NoMethodInRoute}
+ * @example
+ * routes.addRoute('route_name','/route/path',{params});<br/>
+ * routes.addRoute('/route/path',{params});<br/>
+ * routes.addRoute('/route/path');
+ */
+ActiveRoutes.prototype.addRoute = function addRoute()
+{
+    var name,path,params,route;
+    if(arguments.length == 3)
+    {
+        name = arguments[0];
+        path = arguments[1];
+        params = arguments[2];
+    }
+    else if(arguments.length == 2)
+    {
+        if(typeof(arguments[0]) == 'string' && typeof(arguments[1]) == 'string')
+        {
+            name = arguments[0];
+            path = arguments[1];
+        }
+        else
+        {
+            path = arguments[0];
+            params = arguments[1];
+        }
+    }
+    else if(arguments.length == 1)
+    {
+        path = arguments[0];
+    }
+    route = {
+        name: name,
+        path: ActiveRoutes.normalizePath(path),
+        params: params || {}
+    };
+    if(!Validations.hasPath(route))
+    {
+        throw Errors.NoPathInRoute;
+    }
+    if(!Validations.hasObject(route))
+    {
+        throw Errors.NoObjectInRoute + route.path;
+    }
+    if(!Validations.hasMethod(route))
+    {
+        throw Errors.NoMethodInRoute + route.path;
+    }
+    if(this.initialized)
+    {
+        this.routes.unshift(route);
+    }
+    else
+    {
+        this.routes.push(route);
+    }
+    this.generateMethodsForRoute(route);
+};
+
+ActiveRoutes.normalizePathDotDotRegexp = /[^\/\\]+[\/\\]\.\.[\/\\]/;
+ActiveRoutes.normalizePath = function normalizePath(path)
+{
+    //remove hash
+    path = path.replace(/\#.+$/,'');
+    //remove query string
+    path = path.replace(/\?.+$/,'');
+    //remove trailing and starting slashes, replace backslashes, replace multiple slashes with a single slash
+    path = path.replace(/\/{2,}/g,"/").replace(/\\\\/g,"\\").replace(/(\/|\\)$/,'').replace(/\\/g,'/').replace(/^\//,'');
+    while(path.match(ActiveRoutes.normalizePathDotDotRegexp))
+    {
+        path = path.replace(ActiveRoutes.normalizePathDotDotRegexp,'');
+    }
+    //replace /index with /
+    path = path.replace(/(\/index$|^index$)/i,'');
+    return path;
+};
+
+var Errors = {
+    NoPathInRoute: 'No path was specified in the route',
+    NoObjectInRoute: 'No :object was specified in the route: ',
+    NoMethodInRoute: 'No :method was specified in the route: ',
+    ObjectDoesNotExist: 'The following object does not exist: ',
+    MethodDoesNotExist: 'The following method does not exist: ',
+    MethodNotCallable: 'The following method is not callable: ',
+    NamedRouteDoesNotExist: 'The following named route does not exist: ',
+    UnresolvableUrl: 'Could not resolve the url: '
+};
+ActiveRoutes.Errors = Errors;
+
+ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
+{
+    if(!route.params.method)
+    {
+        route.params.method = 'index';
+    }
+    if(this.options.camelizeObjectName)
+    {
+        route.params.object = ActiveSupport.camelize(route.params.object,true);
+    }
+    if(route.params.requirements)
+    {
+        delete route.params.requirements;
+    }
+    if(this.options.classSuffix)
+    {
+        route.params.object += this.options.classSuffix;
+    }
+    if(!this.objectExists(route.params.object))
+    {
+        this.error = Errors.ObjectDoesNotExist + route.params.object;
+    }
+    if(!this.methodExists(route.params.object,route.params.method))
+    {
+        this.error = Errors.MethodDoesNotExist + route.params.object + '.' + route.params.method;
+    }
+    if(!this.methodCallable(route.params.object,route.params.method))
+    {
+        this.error = Errors.MethodNotCallable + route.params.object + '.' + route.params.method;
+    }
+    if(this.error)
+    {
+        return false;
+    }
+    else
+    {
+        return route;
+    }
+};
+
+/**
+ * @alias ActiveRoutes.prototype.match
+ * @param {String} path
+ * @return {mixed} false if no match, otherwise the matching route.
+ * @example
+ * var route = routes.match('/blog/post/5');<br/>
+ * route == {object: 'blog',method: 'post', id: 5};
+ */
+ActiveRoutes.prototype.match = function(path){
+    this.error = false;
+    //make sure the path is a copy
+    path = ActiveRoutes.normalizePath((new String(path)).toString());
+    //handle extension
+    var extension = path.match(/\.([^\.]+)$/);
+    if(extension)
+    {
+        extension = extension[1];
+        path = path.replace(/\.[^\.]+$/,'');
+    }
+    var path_components = path.split('/');
+    var path_length = path_components.length;
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        route.extension = extension;
+        route.orderedParams = [];
+        
+        //exact match
+        if(route.path == path)
+        {
+            return this.checkAndCleanRoute(route);
+        }
+        
+        //perform full match
+        var route_path_components = route.path.split('/');
+        var route_path_length = route_path_components.length;
+        var valid = true;
+        
+        //length of path components must match, but must treat "/blog", "/blog/action", "/blog/action/id" the same
+        if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*'){
+            for(var ii = 0; ii < route_path_components.length; ++ii)
+            {
+                var path_component = path_components[ii];
+                var route_path_component = route_path_components[ii];
+                //catch all
+                if(route_path_component[0] == '*')
+                {
+                    route.params.path = path_components.slice(ii);
+                    return this.checkAndCleanRoute(route); 
+                }
+                //named component
+                else if(route_path_component[0] == ':')
+                {
+                    var key = route_path_component.substr(1);
+                    if(path_component && route.params.requirements && route.params.requirements[key] &&
+                        !(typeof(route.params.requirements[key]) == 'function'
+                            ? route.params.requirements[key]((new String(path_component).toString()))
+                            : path_component.match(route.params.requirements[key])))
+                    {
+                        valid = false;
+                        break;
+                    }
+                    else
+                    {
+                        if(typeof(path_component) == 'undefined' && key != 'method' && key != 'object' && key != 'id')
+                        {
+                            valid = false;
+                            break;
+                        }
+                        else
+                        {
+                            route.params[key] = path_component;
+                            route.orderedParams.push(path_component);
+                        }
+                    }
+                }
+                else if(path_component != route_path_component)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if(valid)
+            {
+                return this.checkAndCleanRoute(route);
+            }
+        }
+    }
+    return false;
+};
+ 
+/**
+ * Will match() the given path and call the dispatcher if one is found.
+ * @alias ActiveRoutes.prototype.dispatch
+ * @param {String} path
+ * @exception {ActiveRoutes.Errors.UnresolvableUrl}
+ * @example
+ * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);<br/>
+ * routes.dispatch('/blog/post/5');<br/>
+ * //by default calls Blog.post({object:'blog',method: 'post',id: 5});
+ */
+ActiveRoutes.prototype.dispatch = function dispatch(path)
+{
+    var route;
+    if(typeof(path) == 'string')
+    {
+        route = this.match(path);
+        if(!route)
+        {
+            if(this.error)
+            {
+                throw this.error;
+            }
+            else
+            {
+                throw Errors.UnresolvableUrl + path;
+            }
+        }
+    }
+    else
+    {
+        route = {
+            params: path
+        };
+    }
+    this.history.push(route);
+    this.index = this.history.length - 1;
+    this.dispatcher(route);
+};
+
+/**
+ * If no "dispatcher" key is passed into the options to contstruct a route set
+ *  this is used. It will call scope.object_name.method_name(route.params)
+ * @property {Function}
+ * @alias ActiveRoutes.prototype.defaultDispatcher
+ */
+ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
+{
+    this.scope[route.params.object][route.params.method](route.params);
+};
+
+var Validations = {
+    hasPath: function(route)
+    {
+        if(route.path === '')
+        {
+            return true;
+        }
+        else
+        {
+            return !!route.path;
+        }
+    },
+    hasMethod: function(route)
+    {
+        return !(!route.path.match(':method') && (!route.params || !route.params.method));
+    },
+    hasObject: function(route)
+    {
+        return !(!route.path.match(':object') && (!route.params || !route.params.object));
+    }
+};
+
+ActiveRoutes.prototype.objectExists = function(object_name)
+{
+    return !!ActiveSupport.getClass(object_name,this.scope);
+};
+
+ActiveRoutes.prototype.getMethod = function(object_name,method_name)
+{
+    if(this.scope[object_name].prototype && this.scope[object_name].prototype[method_name])
+    {
+        return this.scope[object_name].prototype[method_name];
+    }
+    else
+    {
+        return this.scope[object_name][method_name];
+    }
+};
+
+ActiveRoutes.prototype.methodExists = function(object_name,method_name)
+{
+    return !(!this.objectExists(object_name) || !this.getMethod(object_name,method_name));
+};
+
+ActiveRoutes.prototype.methodCallable = function(object_name,method_name)
+{
+    return (this.methodExists(object_name,method_name) && (typeof(this.getMethod(object_name,method_name)) === 'function'));
+};
+
+
+ActiveRoutes.Validations = Validations;
+
+ActiveRoutes.prototype.cleanPath = function cleanPath(path,params,only_path)
+{
+    if(!params.id)
+    {
+        path = path.replace(/\/?\:id/,'');
+    }
+    if(params.method == 'index')
+    {
+        path = path.replace(/\/?\:method/,'');
+    }
+    path = path.replace(/\/?index$/,'');
+    if(path[0] != '/')
+    {
+        path = '/' + path;
+    }
+    path = only_path ? path : this.options.base + path;
+    return path;
+};
+
+ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,route,params)
+{
+    for(var p in params)
+    {
+        if(path.match(':' + p) && params[p])
+        {
+            if(route.params.requirements && route.params.requirements[p]){
+                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p]((new String(params[p]).toString())))
+                {
+                    continue;
+                }
+                else if(!route.params.requirements[p]((new String(params[p]).toString())))
+                {
+                    continue;
+                }
+            }
+            path = path.replace(':' + p,params[p].toString());
+        }
+    }
+    return path;
+};
+
+/**
+ * @alias ActiveRoutes.prototype.urlFor
+ * @param {Object} [params]
+ * @return {String}
+ * @exception {ActiveRoutes.Errors.NamedRouteDoesNotExistError}
+ * @example
+ * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);<br/>
+ * routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';
+ */
+ActiveRoutes.prototype.urlFor = function urlFor(params)
+{
+    var only_path = false;
+    if(params.only_path){
+        only_path = true;
+        delete params.only_path;
+    }
+  
+    //get a named route with no params
+    if(typeof(params) == 'string')
+    {
+        var found = false;
+        for(var i = 0; i < this.routes.length; ++i)
+        {
+            if(this.routes[i].name && this.routes[i].name == params)
+            {
+                found = i;
+                break;
+            }
+        }
+        if(found === false)
+        {
+            throw Errors.NamedRouteDoesNotExistError + params;
+        }
+        else
+        {
+            var final_params = {};
+            var found_params = ActiveSupport.clone(this.routes[found].params);
+            for(var name in found_params)
+            {
+                final_params[name] = found_params[name];
+            }
+            if(typeof(arguments[1]) == 'object')
+            {
+                for(var name in arguments[1])
+                {
+                    final_params[name] = arguments[1][name];
+                }
+            }
+            return this.urlFor(final_params);
+        }
+    }
+    
+    if(!params.method)
+    {
+        params.method = 'index';
+    }
+    
+    if(this.options.camelizeMethodName)
+    {
+        params.method = ActiveSupport.camelize(params.method,false);
+    }
+    
+    if(this.options.camelizeObjectName)
+    {
+        params.object = ActiveSupport.camelize(params.object,true);
+    }
+    
+    //first past for exact match
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var path = route.path;
+        if((route.params.method || '').toLowerCase() == (params.method || '').toLowerCase() && (route.params.object || '').toLowerCase() == (params.object || '').toLowerCase())
+        {
+            path = ActiveRoutes.performParamSubstitution(path,route,params);
+            var cleaned = this.cleanPath(path,params,only_path);
+            if(!cleaned.match(':'))
+            {
+                return cleaned;
+            }
+            
+        }
+    }
+    //match that requires param replacement
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = ActiveSupport.clone(this.routes[i]);
+        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var path = route.path;
+        if(route.params.object == params.object)
+        {
+            path = ActiveRoutes.performParamSubstitution(path,route,params);
+            var cleaned = this.cleanPath(path,params,only_path);
+            if(!cleaned.match(':'))
+            {
+                return cleaned;
+            }
+        }
+    }
+    return false;
+};
+
+ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRoute(route)
+{
+    var current_route_set = this;
+    if(route.name)
+    {
+        var params_for_method_name = route.name + '_params';
+        var url_for_method_name = route.name + '_url';
+        var call_method_name = 'call_' + route.name;
+        if(current_route_set.options.camelizeGeneratedMethods)
+        {
+            params_for_method_name = ActiveSupport.camelize(params_for_method_name.replace(/\_/g,'-'));
+            url_for_method_name = ActiveSupport.camelize(url_for_method_name.replace(/\_/g,'-'));
+            call_method_name = ActiveSupport.camelize(call_method_name.replace(/\_/g,'-'));
+        }
+        
+        current_route_set.scope[params_for_method_name] = function generated_params_for(params){
+            var final_params = {};
+            for(var name in route.params || {})
+            {
+                final_params[name] = route.params[name];
+            }
+            for(var name in params)
+            {
+                final_params[name] = params[name];
+            }
+            return final_params;
+        };
+        
+        current_route_set.scope[url_for_method_name] = function generated_url_for(params){
+            return current_route_set.urlFor(current_route_set.scope[params_for_method_name](params));
+        };
+        
+        current_route_set.scope[call_method_name] = function generated_call(params){
+            return current_route_set.dispatch(current_route_set.scope[params_for_method_name](params));
+        };
+    }
+};
+
+})();

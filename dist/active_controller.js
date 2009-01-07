@@ -44,6 +44,37 @@ ActiveSupport = {
         return global_context;
     },
     /**
+     * Returns a class if it exists. If the context (default window / global
+     * context) does not contain the class, but does have a __noSuchMethod__
+     * property, it will attempt to call context[class_name]() to trigger
+     * the __noSuchMethod__ handler.
+     * @param {String} class_name
+     * @param {Object} context
+     * @return {Mixed}
+     */
+    getClass: function getClass(class_name,context)
+    {
+        context = context || ActiveSupport.getGlobalContext();
+        var klass = context[class_name];
+        if(!klass)
+        {
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            if(trigger_no_such_method)
+            {
+                try
+                {
+                    context[class_name]();
+                    klass = context[class_name];
+                }
+                catch(e)
+                {
+                    return false;
+                }
+            }
+        }
+        return klass;
+    },
+    /**
      * Logs a message to the available logging resource. Accepts a variable
      * number of arguments.
      * @alias ActiveSupport.log
@@ -1491,12 +1522,50 @@ var InstanceMethods = {
     {
         return this.scope;
     },
-    render: function render(content,target,clear)
+    render: function render(params)
     {
-        return ActiveView.render(content,target || this.renderTarget,this,clear);
+        var args = this.renderArgumentsFromRenderParams(params);
+        return args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+    },
+    renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
+    {
+        var args = [null,this.renderTarget,this];
+        for(var flag_name in params || {})
+        {
+            RenderFlags[flag_name](params[flag_name],args);
+        }
+        return args;
     }
 };
 ActiveController.InstanceMethods = InstanceMethods;
+
+var RenderFlags = {
+    view: function view(view_class,args)
+    {
+        if(typeof(view_class) == 'string')
+        {
+            var klass = ActiveSupport.getClass(view_class);
+            if(!klass)
+            {
+                throw Errors.ViewDoesNotExist + view_class;
+            }
+            args[0] = klass;
+        }
+        else
+        {
+            args[0] = view_class;
+        }
+    },
+    target: function target(target,args)
+    {
+        args[1] = target;
+    },
+    scope: function scope(scope,args)
+    {
+        args[2] = scope;
+    }
+};
+ActiveController.RenderFlags = RenderFlags;
 
 var ClassMethods = {
     
@@ -1504,7 +1573,7 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+    ViewDoesNotExist: 'The specified view does not exist: '
 };
 ActiveController.Errors = Errors;
 

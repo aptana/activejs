@@ -44,6 +44,37 @@ ActiveSupport = {
         return global_context;
     },
     /**
+     * Returns a class if it exists. If the context (default window / global
+     * context) does not contain the class, but does have a __noSuchMethod__
+     * property, it will attempt to call context[class_name]() to trigger
+     * the __noSuchMethod__ handler.
+     * @param {String} class_name
+     * @param {Object} context
+     * @return {Mixed}
+     */
+    getClass: function getClass(class_name,context)
+    {
+        context = context || ActiveSupport.getGlobalContext();
+        var klass = context[class_name];
+        if(!klass)
+        {
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            if(trigger_no_such_method)
+            {
+                try
+                {
+                    context[class_name]();
+                    klass = context[class_name];
+                }
+                catch(e)
+                {
+                    return false;
+                }
+            }
+        }
+        return klass;
+    },
+    /**
      * Logs a message to the available logging resource. Accepts a variable
      * number of arguments.
      * @alias ActiveSupport.log
@@ -1539,6 +1570,7 @@ ActiveRoutes = null;
  */
 ActiveRoutes = function ActiveRoutes(routes,scope,options)
 {
+    this.initialized = false;
     this.error = false;
     this.scope = scope || ActiveSupport.getGlobalContext();
     this.routes = [];
@@ -1549,7 +1581,6 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
      */
     this.history = [];
     this.options = ActiveSupport.extend({
-        triggerNoSuchMethod: (typeof(ActiveSupport.getGlobalContext().__noSuchMethod__) != 'undefined'),
         classSuffix: '',
         camelizeObjectName: true,
         camelizeMethodName: true,
@@ -1567,6 +1598,7 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
         current_route_set.urlFor.apply(current_route_set,arguments);
     };
+    this.initialized = true;
 };
 
 ActiveRoutes.prototype.goToIndex = function goToIndex(index)
@@ -1625,7 +1657,10 @@ ActiveRoutes.prototype.getError = function getError()
 };
 
 /**
- * Add a new route to the route set.
+ * Add a new route to the route set. When adding routes via the constructor
+ * routes will be pushed onto the array, if called after the route set is
+ * initialized, the route will be unshifted onto the route set (and will
+ * have the highest priority).
  * @alias ActiveRoutes.prototype.addRoute
  * @exception {ActiveRoutes.Errors.NoPathInRoute}
  * @exception {ActiveRoutes.Errors.NoObjectInRoute}
@@ -1678,7 +1713,14 @@ ActiveRoutes.prototype.addRoute = function addRoute()
     {
         throw Errors.NoMethodInRoute + route.path;
     }
-    this.routes.push(route);
+    if(this.initialized)
+    {
+        this.routes.unshift(route);
+    }
+    else
+    {
+        this.routes.push(route);
+    }
     this.generateMethodsForRoute(route);
 };
 
@@ -1726,6 +1768,10 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     {
         delete route.params.requirements;
     }
+    if(this.options.classSuffix)
+    {
+        route.params.object += this.options.classSuffix;
+    }
     if(!this.objectExists(route.params.object))
     {
         this.error = Errors.ObjectDoesNotExist + route.params.object;
@@ -1744,10 +1790,6 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     else
     {
-        if(this.options.classSuffix)
-        {
-            route.params.object += this.options.classSuffix;
-        }
         return route;
     }
 };
@@ -1764,12 +1806,20 @@ ActiveRoutes.prototype.match = function(path){
     this.error = false;
     //make sure the path is a copy
     path = ActiveRoutes.normalizePath((new String(path)).toString());
+    //handle extension
+    var extension = path.match(/\.([^\.]+)$/);
+    if(extension)
+    {
+        extension = extension[1];
+        path = path.replace(/\.[^\.]+$/,'');
+    }
     var path_components = path.split('/');
     var path_length = path_components.length;
     for(var i = 0; i < this.routes.length; ++i)
     {
         var route = ActiveSupport.clone(this.routes[i]);
         route.params = ActiveSupport.clone(this.routes[i].params || {});
+        route.extension = extension;
         route.orderedParams = [];
         
         //exact match
@@ -1910,20 +1960,7 @@ var Validations = {
 
 ActiveRoutes.prototype.objectExists = function(object_name)
 {
-    var in_scope = !!this.scope[object_name];
-    if(!in_scope && this.options.triggerNoSuchMethod)
-    {
-        try
-        {
-            this.scope[object_name]();
-        }
-        catch(e)
-        {
-            
-        }
-        in_scope = !!this.scope[object_name];
-    }
-    return in_scope;
+    return !!ActiveSupport.getClass(object_name,this.scope);
 };
 
 ActiveRoutes.prototype.getMethod = function(object_name,method_name)
@@ -3683,7 +3720,7 @@ Adapters.JaxerSQLite = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return AcitveSupport.log.apply(AcitveSupport,arguments || {});
+            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
         },
         executeSQL: function executeSQL(sql)
         {
@@ -6232,6 +6269,10 @@ var ClassMethods = {
 
 };
 
+var Errors = {
+    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+};
+
 var ObservableHash = function ObservableHash(object)
 {
     this._object = object || {};
@@ -6604,12 +6645,50 @@ var InstanceMethods = {
     {
         return this.scope;
     },
-    render: function render(content,target,clear)
+    render: function render(params)
     {
-        return ActiveView.render(content,target || this.renderTarget,this,clear);
+        var args = this.renderArgumentsFromRenderParams(params);
+        return args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+    },
+    renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
+    {
+        var args = [null,this.renderTarget,this];
+        for(var flag_name in params || {})
+        {
+            RenderFlags[flag_name](params[flag_name],args);
+        }
+        return args;
     }
 };
 ActiveController.InstanceMethods = InstanceMethods;
+
+var RenderFlags = {
+    view: function view(view_class,args)
+    {
+        if(typeof(view_class) == 'string')
+        {
+            var klass = ActiveSupport.getClass(view_class);
+            if(!klass)
+            {
+                throw Errors.ViewDoesNotExist + view_class;
+            }
+            args[0] = klass;
+        }
+        else
+        {
+            args[0] = view_class;
+        }
+    },
+    target: function target(target,args)
+    {
+        args[1] = target;
+    },
+    scope: function scope(scope,args)
+    {
+        args[2] = scope;
+    }
+};
+ActiveController.RenderFlags = RenderFlags;
 
 var ClassMethods = {
     
@@ -6617,7 +6696,7 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+    ViewDoesNotExist: 'The specified view does not exist: '
 };
 ActiveController.Errors = Errors;
 

@@ -49,20 +49,7 @@ var Validations = {
 
 ActiveRoutes.prototype.objectExists = function(object_name)
 {
-    var in_scope = !!this.scope[object_name];
-    if(!in_scope && this.options.triggerNoSuchMethod)
-    {
-        try
-        {
-            this.scope[object_name]();
-        }
-        catch(e)
-        {
-            
-        }
-        in_scope = !!this.scope[object_name];
-    }
-    return in_scope;
+    return !!ActiveSupport.getClass(object_name,this.scope);
 };
 
 ActiveRoutes.prototype.getMethod = function(object_name,method_name)

@@ -39,6 +39,10 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     {
         delete route.params.requirements;
     }
+    if(this.options.classSuffix)
+    {
+        route.params.object += this.options.classSuffix;
+    }
     if(!this.objectExists(route.params.object))
     {
         this.error = Errors.ObjectDoesNotExist + route.params.object;
@@ -57,10 +61,6 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     else
     {
-        if(this.options.classSuffix)
-        {
-            route.params.object += this.options.classSuffix;
-        }
         return route;
     }
 };
@@ -77,12 +77,20 @@ ActiveRoutes.prototype.match = function(path){
     this.error = false;
     //make sure the path is a copy
     path = ActiveRoutes.normalizePath((new String(path)).toString());
+    //handle extension
+    var extension = path.match(/\.([^\.]+)$/);
+    if(extension)
+    {
+        extension = extension[1];
+        path = path.replace(/\.[^\.]+$/,'');
+    }
     var path_components = path.split('/');
     var path_length = path_components.length;
     for(var i = 0; i < this.routes.length; ++i)
     {
         var route = ActiveSupport.clone(this.routes[i]);
         route.params = ActiveSupport.clone(this.routes[i].params || {});
+        route.extension = extension;
         route.orderedParams = [];
         
         //exact match

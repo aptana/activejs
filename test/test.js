@@ -1303,6 +1303,9 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         match = routes.match('/blog/post/5');
         assert(match.name == 'post' && match.params.id == 5 && match.params.method == 'post','complex match() /blog/post/5');
         
+        match = routes.match('/blog/post/5.xml');
+        assert(match.name == 'post' && match.extension == 'xml' && match.params.id == 5 && match.params.method == 'post','match() with extension /blog/post/5.xml');
+        
         match = routes.match('/blog/edit/5');
         assert(match.params.id == 5 && match.params.method == 'edit','complex match() /blog/edit/5');
         
@@ -1393,6 +1396,9 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(match.params.method == 'index' && match.params.object == 'Welcome','test root "/"');
         
         //test class suffix
+        routes.scope.BlogController = {
+            post: function post(){}
+        };
         var old_suffix = routes.options.classSuffix;
         routes.options.classSuffix = 'Controller';
         match = routes.match('/blog/post/5');
