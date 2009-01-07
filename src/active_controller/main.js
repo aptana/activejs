@@ -96,12 +96,50 @@ var InstanceMethods = {
     {
         return this.scope;
     },
-    render: function render(content,target,clear)
+    render: function render(params)
     {
-        return ActiveView.render(content,target || this.renderTarget,this,clear);
+        var args = this.renderArgumentsFromRenderParams(params);
+        return args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+    },
+    renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
+    {
+        var args = [null,this.renderTarget,this];
+        for(var flag_name in params || {})
+        {
+            RenderFlags[flag_name](params[flag_name],args);
+        }
+        return args;
     }
 };
 ActiveController.InstanceMethods = InstanceMethods;
+
+var RenderFlags = {
+    view: function view(view_class,args)
+    {
+        if(typeof(view_class) == 'string')
+        {
+            var klass = ActiveSupport.getClass(view_class);
+            if(!klass)
+            {
+                throw Errors.ViewDoesNotExist + view_class;
+            }
+            args[0] = klass;
+        }
+        else
+        {
+            args[0] = view_class;
+        }
+    },
+    target: function target(target,args)
+    {
+        args[1] = target;
+    },
+    scope: function scope(scope,args)
+    {
+        args[2] = scope;
+    }
+};
+ActiveController.RenderFlags = RenderFlags;
 
 var ClassMethods = {
     
@@ -109,6 +147,6 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+    ViewDoesNotExist: 'The specified view does not exist: '
 };
 ActiveController.Errors = Errors;

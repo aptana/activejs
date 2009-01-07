@@ -151,3 +151,7 @@ var InstanceMethods = {
 var ClassMethods = {
 
 };
+
+var Errors = {
+    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+};
