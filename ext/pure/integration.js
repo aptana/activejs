@@ -35,18 +35,38 @@ ActiveController.InstanceMethods.directive = function directive(source_element,d
     return ActiveSupport.getGlobalContext().pure.libs.mapDirective(source_element,directives);
 };
 
-ActiveController.InstanceMethods.render = ActiveSupport.wrap(ActiveController.InstanceMethods.render,function pure_render(proceed,source_element,target,clear){
-    if(source_element && source_element.nodeType == 1 && ((target && target.nodeType == 1) || !target))
+ActiveSupport.extend(ActiveController.RenderFlags,{
+    source: function source(source,args)
     {
-        if(!target)
-        {
-            target = source_element;
-        }
-        var directives = clear;
-        return ActiveSupport.getGlobalContext().pure.libs.render(target,this.toObject(),directives,source_element,(typeof(directives) == 'undefined' || !directives));
+        args[0] = source;
+        args.pure = true;
+    },
+    directives: function directives(directives,args)
+    {
+        args.directives = directives;
+    },
+    target: function target(target,args)
+    {
+        args.pure = true;
+        args[1] = target;
+    }
+});
+
+ActiveController.InstanceMethods.render = ActiveSupport.wrap(ActiveController.InstanceMethods.render,function render(proceed,params)
+{
+    var args = this.renderArgumentsFromRenderParams(params);
+    if(args.pure)
+    {
+        return ActiveSupport.getGlobalContext().pure.libs.render(
+            args[1] || args[0],
+            this.toObject(),
+            args.directives,
+            args[0],
+            (typeof(args.directives) == 'undefined' || !args.directives)
+        );
     }
     else
     {
-        return proceed(source_element,target,clear);
-    }
+        return proceed(params);
+    }    
 });
