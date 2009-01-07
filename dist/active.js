@@ -2562,10 +2562,8 @@ ActiveRecord = {
     /**
      * Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models[model_name]. model_name is a singularized, capitalized form of table name.
      * @example
-     * <pre>
-     *      var User = ActiveRecord.create('users');
-     *      var u = User.find(5);
-     * </pre>
+     *     var User = ActiveRecord.create('users');
+     *     var u = User.find(5);
      * @alias ActiveRecord.create
      * @param {String} table_name
      * @param {Array} [methods]
@@ -5202,7 +5200,7 @@ ResultSet.InstanceMethods = {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)
         {
-            items = result_set[i].toObject();
+            items.push(result_set[i].toObject());
         }
         return ActiveSupport.JSON.stringify(items);
     }
