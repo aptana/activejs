@@ -43,7 +43,7 @@ Adapters.JaxerSQLite = function(){
             {
                 arguments[0] = '  ' + arguments[0];
             }
-            return AcitveSupport.log.apply(AcitveSupport,arguments || {});
+            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
         },
         executeSQL: function executeSQL(sql)
         {
