@@ -1,187 +1,26 @@
-<html>
-   <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-      <title>ActiveJS Reference: ActiveRecord.Migrations.Schema</title>
-      <meta http-equiv="cache-control" content="no-cache">
-      <link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script></head>
-   <body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveRecord.Migrations.Schema : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div>
-      </h1>
-      <div class="content">
-         <div class="classDescription">This object is passed to all migrations as the only parameter.</div><a name="ActiveRecord.Migrations.Schema.Functions"></a><h2>Functions</h2>
-         <table cellspacing="2" width="90%">
-            <tr class="compheader" visibility="">
-               <th style="text-align:left">Method</th>
-               <th>Action</th>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.addColumn"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">addColumn</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;column_name, [<i>mixed</i>&nbsp;data_type]) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>column_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>mixed</i></td>
-                           <td width="10%"><b>data_type</b></td>
-                           <td width="80%"><b>(optional)</b></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.addIndex"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">addIndex</a>(<i>String</i>&nbsp;table_name, <i>Array</i>&nbsp;column_names, <i>Object</i>&nbsp;options) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>Array</i></td>
-                           <td width="10%"><b>column_names</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>Object</i></td>
-                           <td width="10%"><b>options</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.createTable"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">createTable</a>(<i>String</i>&nbsp;table_name, <i>Object</i>&nbsp;columns) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>Object</i></td>
-                           <td width="10%"><b>columns</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.dropColumn"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">dropColumn</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;column_name) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>column_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.dropTable"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">dropTable</a>(<i>String</i>&nbsp;table_name) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-            <tr class="item ">
-               <td class="declaration">
-                  <div class="name"><a name="ActiveRecord.Migrations.Schema.removeIndex"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">removeIndex</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;index_name) : <i>
-                        			void
-                        		</i></div>
-                  <div class="description"></div>
-               </td>
-               <td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td>
-            </tr>
-            <tr class="details-method">
-               <td valign="top" colspan="2">
-                  <p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table">
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>table_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                        <tr>
-                           <td width="10%"><i>String</i></td>
-                           <td width="10%"><b>index_name</b></td>
-                           <td width="80%"></td>
-                        </tr>
-                     </table>
-                  </p>
-                  <dl class="details"></dl>
-               </td>
-            </tr>
-         </table>
-      </div>
-      <div style="visibility:hidden;display:none"> aptana_docs</div>
-   </body>
-</html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>ActiveJS Reference: ActiveRecord.Migrations.Schema</title><meta http-equiv="cache-control" content="no-cache"><link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script><link rel="stylesheet" href="sh.css" type="text/css"><script src="showdown.js"></script><script src="sh_main.js"></script><script src="sh_javascript.js"></script><script>
+    $(document).ready(function(){
+      var converter = new Showdown.converter();
+      $('div.example').each(function(){
+        this.innerHTML = converter.makeHtml(this.innerHTML);
+        this.innerHTML = this.innerHTML.replace('&gt;','>');
+        this.innerHTML = this.innerHTML.replace('&lt;','<');
+      });
+      $('pre code').each(function(){
+        $(this.parentNode).addClass('sh_javascript');
+      });
+      sh_highlightDocument();
+    });
+  </script></head><body><img src="aptana.gif" hspace="21" vspace="3"><h1>ActiveRecord.Migrations.Schema : <a href="Object.html">Object</a><div style="font-weight:normal;font-size:70%">Return to: <a href="ActiveJS.index.html">ActiveJS index</a></div></h1><div class="content"><div class="classDescription">This object is passed to all migrations as the only parameter.</div><a name="ActiveRecord.Migrations.Schema.Functions"></a><h2>Functions</h2><table cellspacing="2" width="90%"><tr class="compheader" visibility=""><th style="text-align:left">Method</th><th>Action</th></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.addColumn"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">addColumn</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;column_name, [<i>mixed</i>&nbsp;data_type]) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>String</i></td><td width="10%"><b>column_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>mixed</i></td><td width="10%"><b>data_type</b></td><td width="80%"><b>(optional)</b></td></tr></table></p><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.addIndex"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">addIndex</a>(<i>String</i>&nbsp;table_name, <i>Array</i>&nbsp;column_names, <i>Object</i>&nbsp;options) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>Array</i></td><td width="10%"><b>column_names</b></td><td width="80%"></td></tr><tr><td width="10%"><i>Object</i></td><td width="10%"><b>options</b></td><td width="80%"></td></tr></table></p><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.createTable"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">createTable</a>(<i>String</i>&nbsp;table_name, <i>Object</i>&nbsp;columns) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>Object</i></td><td width="10%"><b>columns</b></td><td width="80%"></td></tr></table></p><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.dropColumn"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">dropColumn</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;column_name) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>String</i></td><td width="10%"><b>column_name</b></td><td width="80%"></td></tr></table></p><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.dropTable"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">dropTable</a>(<i>String</i>&nbsp;table_name) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr></table></p><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRecord.Migrations.Schema.removeIndex"></a>static <a href="javascript:void(0);" onclick="toggleClickDetails(this)">removeIndex</a>(<i>String</i>&nbsp;table_name, <i>String</i>&nbsp;index_name) : <i>
+			void
+		</i></div><div class="description"></div></td><td class="show-details"><a href="javascript:void(0);" onclick="toggleRowDetails(this)" style="color:#FFFFFF;">Show Details</a></td></tr><tr class="details-method"><td valign="top" colspan="2"><p class="padded"><b>Parameters</b><table cellspacing="1" width="90%" class="parameter-table"><tr><td width="10%"><i>String</i></td><td width="10%"><b>table_name</b></td><td width="80%"></td></tr><tr><td width="10%"><i>String</i></td><td width="10%"><b>index_name</b></td><td width="80%"></td></tr></table></p><dl class="details"></dl></td></tr></table></div><div style="visibility:hidden;display:none"> aptana_docs</div></body></html>
