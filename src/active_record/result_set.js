@@ -63,7 +63,7 @@ ResultSet.InstanceMethods = {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)
         {
-            items = result_set[i].toObject();
+            items.push(result_set[i].toObject());
         }
         return ActiveSupport.JSON.stringify(items);
     }
