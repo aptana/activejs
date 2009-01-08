@@ -40,6 +40,10 @@ Adapters.Gears = function(db){
             {
                 return;
             }
+            if(arguments[0])
+            {
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
+            }
             return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)

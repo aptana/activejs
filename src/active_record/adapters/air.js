@@ -42,7 +42,7 @@ Adapters.AIR = function(connection){
             }
             if(arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             if(air.Introspector)
             {

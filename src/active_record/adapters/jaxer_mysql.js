@@ -41,7 +41,7 @@ Adapters.JaxerMySQL = function(){
             }
             if (arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log(ActiveSupport,arguments || []);
         },
