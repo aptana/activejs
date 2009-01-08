@@ -1214,12 +1214,14 @@ passed in the params passed to the called method. Each requirement
 can be a regular expression or a function, which the value of the
 parameter will be checked against. Each value checked by a regular
 expression or function is always a string.
+
     route_set.addRoute('/article/:article_id/:comment_id,{
         article_id: /^\d+$/,
         comment_id: function(comment_id){
             return comment_id.match(/^\d+$/);
         }
     });
+
 Scope
 -----
 You can specify what scope an ActiveRoutes instance will look in to call
@@ -1280,6 +1282,7 @@ next() and back() methods.]]></example>
                 <description>If no &quot;dispatcher&quot; key is passed into the options to contstruct a route set this is used. It will call scope.object_name.method_name(route.params)</description>
             </property>
             <property name="history" access="read-write" scope="instance" type="Array"/>
+            <property name="logging" access="read-write" scope="static" type="Boolean"/>
         </properties>
         <methods>
             <method name="addRoute" scope="instance">

@@ -1,4 +1,4 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>ActiveJS Reference: ActiveRoutes</title><meta http-equiv="cache-control" content="no-cache"><link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript"></script><script src="api.js" type="text/javascript"></script><link rel="stylesheet" href="sh.css" type="text/css"><script src="showdown.js"></script><script src="sh_main.js"></script><script src="sh_javascript.js"></script><script>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>ActiveJS Reference: ActiveRoutes</title><meta http-equiv="cache-control" content="no-cache"><link rel="stylesheet" href="shared.css" type="text/css"><script src="jquery.js" type="text/javascript" runat="both"></script><script src="api.js" type="text/javascript"></script><link rel="stylesheet" href="sh.css" type="text/css"><script src="showdown.js" runat="server"></script><script src="sh_main.js" runat="server"></script><script src="sh_javascript.js" runat="server"></script><script runat="server">
     $(document).ready(function(){
       var converter = new Showdown.converter();
       $('div.example').each(function(){
@@ -69,12 +69,14 @@ passed in the params passed to the called method. Each requirement
 can be a regular expression or a function, which the value of the
 parameter will be checked against. Each value checked by a regular
 expression or function is always a string.
+
     route_set.addRoute('/article/:article_id/:comment_id,{
         article_id: /^\d+$/,
         comment_id: function(comment_id){
             return comment_id.match(/^\d+$/);
         }
     });
+
 Scope
 -----
 You can specify what scope an ActiveRoutes instance will look in to call
@@ -119,6 +121,9 @@ next() and back() methods.</div></p><a name="ActiveRoutes.Constructors"></a><h2>
 						No Details
 					</td></tr><tr class="details-property"><td valign="top" colspan="2"><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRoutes.history"></a>history
 					 : <i>Array</i></div><div class="description"></div></td><td class="no-details">
+						No Details
+					</td></tr><tr class="details-property"><td valign="top" colspan="2"><dl class="details"></dl></td></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRoutes.logging"></a>static logging
+					 : <i>Boolean</i></div><div class="description"></div></td><td class="no-details">
 						No Details
 					</td></tr><tr class="details-property"><td valign="top" colspan="2"><dl class="details"></dl></td></tr></table><a name="ActiveRoutes.Functions"></a><h2>Functions</h2><table cellspacing="2" width="90%"><tr class="compheader" visibility=""><th style="text-align:left">Method</th><th>Action</th></tr><tr class="item "><td class="declaration"><div class="name"><a name="ActiveRoutes.addRoute"></a><a href="javascript:void(0);" onclick="toggleClickDetails(this)">addRoute</a>() : <i>
 			void
