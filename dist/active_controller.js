@@ -1453,6 +1453,8 @@ ActiveController = null;
 
 ActiveController = {};
 
+ActiveController.logging = false;
+
 ActiveController.create = function create(actions,methods)
 {
     var klass = function klass(container,params){

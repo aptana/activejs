@@ -1492,14 +1492,14 @@ ActiveRoutes = null;
  * can be a regular expression or a function, which the value of the
  * parameter will be checked against. Each value checked by a regular
  * expression or function is always a string.
- *
+ * 
  *     route_set.addRoute('/article/:article_id/:comment_id,{
  *         article_id: /^\d+$/,
  *         comment_id: function(comment_id){
  *             return comment_id.match(/^\d+$/);
  *         }
  *     });
- *
+ * 
  * Scope
  * -----
  * You can specify what scope an ActiveRoutes instance will look in to call
@@ -1574,6 +1574,12 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     };
     this.initialized = true;
 };
+
+/**
+ * @alias ActiveRoutes.logging
+ * @property {Boolean}
+ */
+ActiveRoutes.logging = false;
 
 ActiveRoutes.prototype.goToIndex = function goToIndex(index)
 {
@@ -1728,7 +1734,7 @@ var Errors = {
 };
 ActiveRoutes.Errors = Errors;
 
-ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
+ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,original_path)
 {
     if(!route.params.method)
     {
@@ -1760,10 +1766,18 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     if(this.error)
     {
+        if(ActiveRoutes.logging)
+        {
+            ActiveSupport.log('ActiveRoutes: No match for "' + original_path + '" (' + this.error + ')');
+        }
         return false;
     }
     else
     {
+        if(ActiveRoutes.logging)
+        {
+            ActiveSupport.log('ActiveRoutes: matched "' + original_path + '" with "' + (route.name || route.path) + '"');
+        }
         return route;
     }
 };
@@ -1777,6 +1791,7 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
  * route == {object: 'blog',method: 'post', id: 5};
  */
 ActiveRoutes.prototype.match = function(path){
+    var original_path = path;
     this.error = false;
     //make sure the path is a copy
     path = ActiveRoutes.normalizePath((new String(path)).toString());
@@ -1799,7 +1814,7 @@ ActiveRoutes.prototype.match = function(path){
         //exact match
         if(route.path == path)
         {
-            return this.checkAndCleanRoute(route);
+            return this.checkAndCleanRoute(route,original_path);
         }
         
         //perform full match
@@ -1817,7 +1832,7 @@ ActiveRoutes.prototype.match = function(path){
                 if(route_path_component[0] == '*')
                 {
                     route.params.path = path_components.slice(ii);
-                    return this.checkAndCleanRoute(route); 
+                    return this.checkAndCleanRoute(route,original_path); 
                 }
                 //named component
                 else if(route_path_component[0] == ':')
@@ -1853,7 +1868,7 @@ ActiveRoutes.prototype.match = function(path){
             }
             if(valid)
             {
-                return this.checkAndCleanRoute(route);
+                return this.checkAndCleanRoute(route,original_path);
             }
         }
     }
@@ -3596,7 +3611,7 @@ Adapters.JaxerMySQL = function(){
             }
             if (arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log(ActiveSupport,arguments || []);
         },
@@ -3690,7 +3705,7 @@ Adapters.JaxerSQLite = function(){
             }
             if (arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log.apply(ActiveSupport,arguments || {});
         },
@@ -3769,6 +3784,10 @@ Adapters.Gears = function(db){
             if(!ActiveRecord.logging)
             {
                 return;
+            }
+            if(arguments[0])
+            {
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
@@ -3941,7 +3960,7 @@ Adapters.AIR = function(connection){
             }
             if(arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             if(air.Introspector)
             {
@@ -4042,6 +4061,10 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         if(!ActiveRecord.logging)
         {
             return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
         }
         return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
@@ -6547,6 +6570,8 @@ ActiveController = null;
 (function(){
 
 ActiveController = {};
+
+ActiveController.logging = false;
 
 ActiveController.create = function create(actions,methods)
 {

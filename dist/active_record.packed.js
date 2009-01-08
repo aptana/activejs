@@ -2871,7 +2871,7 @@ Adapters.JaxerMySQL = function(){
             }
             if (arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log(ActiveSupport,arguments || []);
         },
@@ -2965,7 +2965,7 @@ Adapters.JaxerSQLite = function(){
             }
             if (arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log.apply(ActiveSupport,arguments || {});
         },
@@ -3044,6 +3044,10 @@ Adapters.Gears = function(db){
             if(!ActiveRecord.logging)
             {
                 return;
+            }
+            if(arguments[0])
+            {
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
@@ -3216,7 +3220,7 @@ Adapters.AIR = function(connection){
             }
             if(arguments[0])
             {
-                arguments[0] = '  ' + arguments[0];
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
             if(air.Introspector)
             {
@@ -3317,6 +3321,10 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         if(!ActiveRecord.logging)
         {
             return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
         }
         return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
