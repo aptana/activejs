@@ -1,3 +1,60 @@
+ActiveController.parseParams = function parseParams(params)
+{
+    var result = {};
+    
+    for (var p in params)
+    {
+        // convert format for easier splitting
+        var dotted_name = p.replace(/\[[^\]]+\]/g, function(a) { return "." + a.substring(1, a.length - 1)});
+        
+        // split into steps
+        var parts = dotted_name.split(".");
+        
+        if (parts.length == 1)
+        {
+            // no index, so use the property value directly
+            result[p] = params[p];
+        }
+        else
+        {
+            // we have indexes, so process each step
+            var current_object = result;
+            var next_part = parts[0];
+            
+            for (var i = 1; i < parts.length; i++)
+            {
+                // update current part that we're processing now
+                var current_part = next_part;
+                
+                // look ahead to next part - needed to determine the type of composite to use for current_part
+                next_part = parts[i];
+                
+                if (current_object.hasOwnProperty(current_part) == false)
+                {
+                    if (next_part.match(/^(?:[0-9]|[1-9][0-9]+)$/))
+                    {
+                        // process as array
+                        current_object[current_part] = [];
+                    }
+                    else
+                    {
+                        // process as object
+                        current_object[current_part] = {};
+                    }
+                }
+                // NOTE: may want else-clause to verify we don't have
+                // conflicting index types (name and number on same object)
+                
+                // update the current object based on the current part
+                current_object = current_object[current_part];
+            }
+            
+            // assign value onto current object using last part
+            current_object[parts[parts.length - 1]] = params[p];
+        }
+    }
+};
+
 ActiveSupport.extend(ActiveController.InstanceMethods,{
     head: function head(status)
     {

@@ -24,7 +24,9 @@ RestController = {
             list: function list()
             {
                 this.render({
-                    json: model.find()
+                    json: model.find({
+                        all: true
+                    })
                 });
             },
             create: function create()
