@@ -92,14 +92,14 @@
  * can be a regular expression or a function, which the value of the
  * parameter will be checked against. Each value checked by a regular
  * expression or function is always a string.
- *
+ * 
  *     route_set.addRoute('/article/:article_id/:comment_id,{
  *         article_id: /^\d+$/,
  *         comment_id: function(comment_id){
  *             return comment_id.match(/^\d+$/);
  *         }
  *     });
- *
+ * 
  * Scope
  * -----
  * You can specify what scope an ActiveRoutes instance will look in to call
@@ -174,6 +174,12 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     };
     this.initialized = true;
 };
+
+/**
+ * @alias ActiveRoutes.logging
+ * @property {Boolean}
+ */
+ActiveRoutes.logging = false;
 
 ActiveRoutes.prototype.goToIndex = function goToIndex(index)
 {

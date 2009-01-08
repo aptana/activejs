@@ -25,7 +25,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
+ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,original_path)
 {
     if(!route.params.method)
     {
@@ -57,10 +57,18 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
     }
     if(this.error)
     {
+        if(ActiveRoutes.logging)
+        {
+            ActiveSupport.log('ActiveRoutes: No match for "' + original_path + '" (' + this.error + ')');
+        }
         return false;
     }
     else
     {
+        if(ActiveRoutes.logging)
+        {
+            ActiveSupport.log('ActiveRoutes: matched "' + original_path + '" with "' + (route.name || route.path) + '"');
+        }
         return route;
     }
 };
@@ -74,6 +82,7 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route)
  * route == {object: 'blog',method: 'post', id: 5};
  */
 ActiveRoutes.prototype.match = function(path){
+    var original_path = path;
     this.error = false;
     //make sure the path is a copy
     path = ActiveRoutes.normalizePath((new String(path)).toString());
@@ -96,7 +105,7 @@ ActiveRoutes.prototype.match = function(path){
         //exact match
         if(route.path == path)
         {
-            return this.checkAndCleanRoute(route);
+            return this.checkAndCleanRoute(route,original_path);
         }
         
         //perform full match
@@ -114,7 +123,7 @@ ActiveRoutes.prototype.match = function(path){
                 if(route_path_component[0] == '*')
                 {
                     route.params.path = path_components.slice(ii);
-                    return this.checkAndCleanRoute(route); 
+                    return this.checkAndCleanRoute(route,original_path); 
                 }
                 //named component
                 else if(route_path_component[0] == ':')
@@ -150,7 +159,7 @@ ActiveRoutes.prototype.match = function(path){
             }
             if(valid)
             {
-                return this.checkAndCleanRoute(route);
+                return this.checkAndCleanRoute(route,original_path);
             }
         }
     }
