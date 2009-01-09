@@ -1487,14 +1487,17 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
     return div;
 };
 
-ActiveController.createAction = function wrapAction(klass,action_name,action)
+ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
         if(this.layout && !this.layoutRendered)
         {
             this.layoutRendered = true;
-            var layout = this.render(this.layout,this.container);
+            var layout = this.render({
+                view: this.layout,
+                target: this.container
+            });
             if(layout && layout.renderTarget)
             {
                 this.renderTarget = layout.renderTarget;
@@ -1531,9 +1534,21 @@ var InstanceMethods = {
     },
     renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
     {
+        if(typeof(params) != 'object')
+        {
+            throw Errors.InvalidRenderParams;
+        }
         var args = [null,this.renderTarget,this];
         for(var flag_name in params || {})
         {
+            if(!RenderFlags[flag_name])
+            {
+                if(ActiveController.logging)
+                {
+                  ActiveSupport.log('ActiveController: render() failed with params:',params);
+                }
+                throw Errors.UnknownRenderFlag + flag_name;
+            }
             RenderFlags[flag_name](params[flag_name],args);
         }
         return args;
@@ -1558,6 +1573,10 @@ var RenderFlags = {
             args[0] = view_class;
         }
     },
+    text: function text(text,args)
+    {
+        args[0] = text;
+    },
     target: function target(target,args)
     {
         args[1] = target;
@@ -1570,11 +1589,16 @@ var RenderFlags = {
 ActiveController.RenderFlags = RenderFlags;
 
 var ClassMethods = {
-    
+    createAction: function wrapAction(action_name,action)
+    {
+        return ActiveController.createAction(this,action_name,action);
+    }
 };
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
+    InvalidRenderParams: 'The parameter passed to render() was not an object.',
+    UnknownRenderFlag: 'The following render flag does not exist: ',
     ViewDoesNotExist: 'The specified view does not exist: '
 };
 ActiveController.Errors = Errors;

@@ -1453,6 +1453,8 @@ ActiveView = null;
 
 ActiveView = {};
 
+ActiveView.logging = false;
+
 ActiveView.create = function create(structure,methods)
 {
     if(typeof(options) == 'function')
@@ -1538,6 +1540,10 @@ var InstanceMethods = {
     {
         this.parent = parent;
         this.scope = scope || {};
+        if(ActiveView.logging)
+        {
+            ActiveSupport.log('ActiveView: initialized with scope:',scope);
+        }
         if(!this.scope.get || typeof(this.scope.get) != 'function')
         {
             this.scope = new ObservableHash(this.scope);

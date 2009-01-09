@@ -65,6 +65,7 @@
 		"files": [
 				  "license.txt"
 				, "src/active_support.js"
+				, "src/active_event.js"
 				, "src/active_routes/header.js"
 				, "src/active_routes/main.js"
 				, "src/active_routes/errors.js"
