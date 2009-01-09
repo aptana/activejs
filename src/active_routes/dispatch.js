@@ -31,9 +31,9 @@
  * @param {String} path
  * @exception {ActiveRoutes.Errors.UnresolvableUrl}
  * @example
- * var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);<br/>
- * routes.dispatch('/blog/post/5');<br/>
- * //by default calls Blog.post({object:'blog',method: 'post',id: 5});
+ *     var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
+ *     routes.dispatch('/blog/post/5');
+ *     //by default calls Blog.post({object:'blog',method: 'post',id: 5});
  */
 ActiveRoutes.prototype.dispatch = function dispatch(path)
 {
@@ -61,7 +61,12 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
     }
     this.history.push(route);
     this.index = this.history.length - 1;
+    if(this.notify('beforeDispatch',route,path) === false)
+    {
+        return false;
+    }
     this.dispatcher(route);
+    this.notify('afterDispatch',route,path);
 };
 
 /**

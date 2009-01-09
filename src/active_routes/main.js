@@ -174,6 +174,7 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     };
     this.initialized = true;
 };
+ActiveEvent.extend(ActiveRoutes);
 
 /**
  * @alias ActiveRoutes.logging
