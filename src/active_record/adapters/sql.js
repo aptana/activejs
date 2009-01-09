@@ -170,7 +170,7 @@ Adapters.SQL = {
             keys = ActiveSupport.keys(fragment);
             for(i = 0; i < keys.length; ++i)
             {
-                where += keys[i] + " = ? AND";
+                where += keys[i] + " = ? AND ";
                 args.push(typeof(fragment[keys[i]]) == 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
             }
             where = ' WHERE ' + where.substring(0,where.length - 4);

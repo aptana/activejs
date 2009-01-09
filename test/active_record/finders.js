@@ -81,6 +81,19 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             assert(typeof(Comment.findByTitle) != 'undefined','findBy#{X} exists.');
             assert(typeof(Comment.findAllByTitle) != 'undefined','findAllBy#{X} exists.');
             assert(Comment.findByTitle('a').title == a.title && Comment.findById(a.id).id == a.id,'findByX works');
+            
+            var d = Comment.create({
+                title: 'd',
+                body: 'dd'
+            });
+            assert(Comment.find({
+              first: true,
+              where: {
+                title: 'd',
+                body: 'dd'
+              }
+            }).id == d.id,'find({where:{}}) with multiple params');
+            
             if(proceed)
                 proceed();
         }
