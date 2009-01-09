@@ -4900,6 +4900,10 @@ Adapters.SQL = {
         {
             return (new String(value)).toString();
         }
+        if(typeof(field) == 'boolean')
+        {
+            return (new String(parseInt(new Number(value)))).toString();
+        }
         //array or object
         if (typeof(value) == 'object' && (typeof(field.length) != 'undefined' || typeof(field.type) == 'undefined'))
         {
@@ -4923,6 +4927,14 @@ Adapters.SQL = {
         if (typeof(field) == 'string')
         {
             return value;
+        }
+        if(typeof(field) == 'boolean')
+        {
+            if(value === '0' || value === 0 || value === 'false')
+            {
+                value = false;
+            }
+            return !!value;
         }
         if (typeof(field) == 'number')
         {

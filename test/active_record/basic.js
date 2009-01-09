@@ -94,6 +94,23 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
 
             Comment.destroy('all');
             assert(Comment.count() == 0,'destroy("all")');
+            
+            var field_test_one = FieldTypeTester.create({
+                string_field: 'a',
+                number_field: 1,
+                boolean_field: true
+            });
+            field_test_one.reload();
+            assert(field_test_one.string_field === 'a' && field_test_one.number_field === 1 && field_test_one.boolean_field === true,'String, Number and Boolean(true) field types preserved.');
+            
+            var field_test_two = FieldTypeTester.create({
+                string_field: 'b',
+                number_field: 2,
+                boolean_field: false
+            });
+            field_test_two.reload();
+            assert(field_test_two.string_field === 'b' && field_test_two.number_field === 2 && field_test_two.boolean_field === false,'String, Number and Boolean(false) field types preserved.');
+            
             if(proceed)
                 proceed();
         }

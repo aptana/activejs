@@ -51,6 +51,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS articles');
         ActiveRecord.execute('DROP TABLE IF EXISTS categories');
         ActiveRecord.execute('DROP TABLE IF EXISTS categorizations');
+        ActiveRecord.execute('DROP TABLE IF EXISTS field_type_testers');
         
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
@@ -151,6 +152,12 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         });
         Categorization.belongsTo('Category',{
             dependent: true
+        });
+        
+        FieldTypeTester = ActiveRecord.define('field_type_testers',{
+            string_field: '',
+            number_field: 0,
+            boolean_field: true
         });
         
         if(proceed)
