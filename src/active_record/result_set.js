@@ -66,5 +66,13 @@ ResultSet.InstanceMethods = {
             items.push(result_set[i].toObject());
         }
         return ActiveSupport.JSON.stringify(items);
+    },
+    /**
+     * @alias ActiveRecord.ResultSet.toXML
+     * @return {String}
+     */
+    toXML: function toXML(result_set,params,model)
+    {
+        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),result_set);
     }
 };

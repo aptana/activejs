@@ -202,6 +202,17 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     toJSON: function toJSON()
     {
         return ActiveSupport.JSON.stringify(this.toObject());
+    },
+    /**
+     * Serializes the record to an XML string. If object_to_inject is passed
+     * that object will override any values of the record.
+     * @alias ActiveRecord.Instance.toXML
+     * @param {Object} [object_to_inject]
+     * @return {String}
+     */
+    toXML: function toXML(object_to_inject)
+    {
+        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toObject(),object_to_inject || {}));
     }
 });
 ActiveSupport.extend(ActiveRecord.ClassMethods,{

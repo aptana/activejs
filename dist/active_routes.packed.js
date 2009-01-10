@@ -505,7 +505,7 @@ ActiveSupport = {
         {
             for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
-                var uncountable = Inflector.Inflections.uncountable[i];
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
                 if (word.toLowerCase == uncountable)
                 {
                     return uncountable;
@@ -694,6 +694,71 @@ ActiveSupport = {
         
         return dateFormat;
     }(),
+    /**
+     * Serializes an object to an XML string.
+     * @alias ActiveSupport.XMLFromObject
+     * @param {String} outer_key_name
+     * @param {Object} object
+     * @return {String} xml
+     */ 
+    XMLFromObject: function(outer_key_name,object)
+    {
+        var indent = 0;
+        
+        var str_repeat = function str_repeat(string,repeat)
+        {
+            var response = '';
+            for(var i = 0; i < repeat; ++i)
+            {
+                response += string;
+            }
+            return response;
+        };
+        
+        var serialize_value = function serialize_value(key_name,value,indent)
+        {
+            var response = '';
+            if(typeof(value) == 'string' || typeof(value) == 'number' || typeof(value) == 'boolean')
+            {
+                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+            }
+            else if(typeof(value) == 'object')
+            {
+                response += String.fromCharCode(10);
+                if('length' in value && 'splice' in value)
+                {
+                    for(var i = 0; i < value.length; ++i)
+                    {
+                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name),value[i],indent + 1);
+                    }
+                }
+                else
+                {
+                    var object = value.toObject && typeof(value.toObject) == 'function' ? value.toObject() : value;
+                    for(key_name in object)
+                    {
+                        response += wrap_value(key_name,object[key_name],indent + 1);
+                    }
+                }
+                response += str_repeat(' ',4 * indent);
+            }
+            return response;
+        };
+        
+        var sanitize_key_name = function sanitize_key_name(key_name)
+        {
+            return key_name.replace(/[\s\_]+/g,'-').toLowerCase();
+        };
+        
+        var wrap_value = function wrap_value(key_name,value,indent)
+        {
+            key_name = sanitize_key_name(key_name);
+            return str_repeat(' ',4 * indent) + '<' + key_name + '>' + serialize_value(key_name,value,indent) + '</' + key_name + '>' + String.fromCharCode(10);
+        };
+        
+        outer_key_name = sanitize_key_name(outer_key_name);
+        return '<' + outer_key_name + '>' + serialize_value(outer_key_name,object,0) + '</' + outer_key_name + '>';
+    },
     /*
         http://www.JSON.org/json2.js
         2008-07-15
