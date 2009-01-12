@@ -30,8 +30,9 @@
  * @alias ActiveRecord.Adapters.Gears
  * @property {ActiveRecord.Adapter}
  */
-Adapters.Gears = function(db){
+Adapters.Gears = function Gears(db){
     this.db = db;
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()

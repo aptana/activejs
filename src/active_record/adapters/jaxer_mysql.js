@@ -30,7 +30,8 @@
  * @alias ActiveRecord.Adapters.JaxerMySQL
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerMySQL = function(){
+Adapters.JaxerMySQL = function JaxerMySQL(){
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{
         log: function log()

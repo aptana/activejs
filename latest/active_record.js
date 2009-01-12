@@ -2039,7 +2039,11 @@ var Errors = {
     /**
      * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
-    MethodDoesNotExist: 'The requested method does not exist.'
+    MethodDoesNotExist: 'The requested method does not exist.',
+    /**
+     * @property {String} Error that will be thrown if an unrecognized field type definition is used.
+     */
+    InvalidFieldType: 'The field type does not exist:'
 };
 
 ActiveRecord.Errors = Errors;
@@ -2612,6 +2616,53 @@ ActiveRecord.execute = function execute()
 * @namespace {ActiveRecord.Adapters}
 */
 var Adapters = {};
+
+Adapters.InstanceMethods = {
+    setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
+    {
+        //no value was passed
+        if (value == null || typeof(value) == 'undefined')
+        {
+            //default value was in field specification
+            if(Migrations.objectIsFieldDefinition(field))
+            {
+                var default_value = this.getDefaultValueFromFieldDefinition(field);
+                if(typeof(default_value) == 'undefined')
+                {
+                    throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
+                }
+                return field.value || default_value;
+            }
+            //default value was set, but was not field specification 
+            else
+            {
+                return field;
+            }
+        }
+        return value;
+    },
+    getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
+    {
+        return key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+    },
+    getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
+    {
+        if (typeof(value) == 'string')
+        {
+            return 'VARCHAR(255)';
+        }
+        if (typeof(value) == 'number')
+        {
+            return 'INT';
+        }
+        return 'TEXT';
+    },
+    getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
+    {
+        return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    }
+};
+
 ActiveRecord.Adapters = Adapters;
 
 Adapters.SQL = {
@@ -2791,8 +2842,17 @@ Adapters.SQL = {
     {
         
     },
+    addColumn: function addColumn(table_name,column_name,data_type)
+    {
+        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+    },
     fieldIn: function fieldIn(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) == 'string')
         {
             return (new String(value)).toString();
@@ -2806,25 +2866,18 @@ Adapters.SQL = {
             return (new String(parseInt(new Number(value)))).toString();
         }
         //array or object
-        if (typeof(value) == 'object' && (typeof(field.length) != 'undefined' || typeof(field.type) == 'undefined'))
+        if (typeof(value) == 'object' && !Migrations.objectIsFieldDefinition(field))
         {
             return ActiveSupport.JSON.stringify(value);
         }
-        //custom type (text, etc)
-        return this.fieldIn(this.typeFromField(field), value);
     },
     fieldOut: function fieldOut(field, value)
     {
-        //field has custom default value
-        if (value == null || typeof(value) == 'undefined' && typeof(field) != 'object')
+        if(Migrations.objectIsFieldDefinition(field))
         {
-            return field;
+            field = this.getDefaultValueFromFieldDefinition(field);
         }
-        if (!value && typeof(field) == 'object' && typeof(field.length) == 'undefined' && ActiveSupport.keys(field).length > 0 && field.value)
-        {
-            return field.value;
-        }
-        //process value
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) == 'string')
         {
             return value;
@@ -2857,59 +2910,6 @@ Adapters.SQL = {
                 return value;
             }
         }
-        //custom type (text, etc)
-        return this.fieldOut(this.typeFromField(field), value);
-    },
-    typeFromField: function typeFromField(field, invert)
-    {
-        if (invert)
-        {
-            if (typeof(field) == 'string')
-            {
-                return 'VARCHAR(255)';
-            }
-            if (typeof(field) == 'number')
-            {
-                return 'INT';
-            }
-            return 'TEXT';
-        }
-        else
-        {
-            return {
-                'tinyint': 0,
-                'smallint': 0,
-                'mediumint': 0,
-                'int': 0,
-                'integer': 0,
-                'bitint': 0,
-                'float': 0,
-                'double': 0,
-                'bouble precision': 0,
-                'real': 0,
-                'decimal': 0,
-                'numeric': 0,
-
-                'date': '',
-                'datetime': '',
-                'timestamp': '',
-                'time': '',
-                'year': '',
-
-                'char': '',
-                'varchar': '',
-                'tinyblob': '',
-                'tinytext': '',
-                'blob': '',
-                'text': '',
-                'mediumblob': '',
-                'longblob': '',
-                'longtext': '',
-
-                'enum': '',
-                'set': ''
-            }[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
-        }
     }
 };
 
@@ -2921,14 +2921,10 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
         }
         fragments.unshift('id INTEGER PRIMARY KEY');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
-    },
-    addColumn: function addColumn(table_name,column_name,data_type)
-    {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + column_name);
     },
     dropColumn: function dropColumn(table_name,column_name)
     {
@@ -2953,15 +2949,11 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
         }
         fragments.unshift('id INT NOT NULL AUTO_INCREMENT');
         fragments.push('PRIMARY KEY(id)');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ') ENGINE=InnoDB');
-    },
-    addColumn: function addColumn(table_name,column_name,data_type)
-    {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
     },
     dropColumn: function dropColumn(table_column,column_name)
     {
@@ -2974,7 +2966,8 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
  * @alias ActiveRecord.Adapters.JaxerMySQL
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerMySQL = function(){
+Adapters.JaxerMySQL = function JaxerMySQL(){
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.MySQL);
     ActiveSupport.extend(this,{
         log: function log()
@@ -3068,7 +3061,8 @@ Adapters.JaxerMySQL.connect = function connect(options)
  * @alias ActiveRecord.Adapters.JaxerSQLite
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerSQLite = function(){
+Adapters.JaxerSQLite = function JaxerSQLite(){
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
@@ -3149,8 +3143,9 @@ Adapters.JaxerSQLite.connect = function connect(path)
  * @alias ActiveRecord.Adapters.Gears
  * @property {ActiveRecord.Adapter}
  */
-Adapters.Gears = function(db){
+Adapters.Gears = function Gears(db){
     this.db = db;
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
@@ -3322,8 +3317,9 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
  * @alias ActiveRecord.Adapters.AIR
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.AIR = function(connection){
+Adapters.AIR = function AIR(connection){
     this.connection = connection;
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
@@ -3420,6 +3416,8 @@ Adapters.InMemory = function InMemory(storage){
     this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
 };
+
+ActiveSupport.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
 
 ActiveSupport.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
@@ -3787,10 +3785,20 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     fieldIn: function fieldIn(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     },
     fieldOut: function fieldOut(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     }
 });
@@ -4987,6 +4995,14 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
  */
 ActiveRecord.define = function define(table_name, fields, methods)
 {
+    //clean field definition
+    for(var field_name in fields)
+    {
+        if(typeof(fields[field_name]) == 'object' && fields[field_name].type && !('value' in fields[field_name]))
+        {
+            fields[field_name].value = null;
+        }
+    }
     var model = ActiveRecord.create(table_name,methods);
     Migrations.Schema.createTable(table_name,fields);
     Migrations.applyTypeConversionCallbacks(model,fields);
@@ -4994,6 +5010,40 @@ ActiveRecord.define = function define(table_name, fields, methods)
 };
 
 var Migrations = {
+    fieldTypesWithDefaultValues: {
+        'tinyint': 0,
+        'smallint': 0,
+        'mediumint': 0,
+        'int': 0,
+        'integer': 0,
+        'bitint': 0,
+        'float': 0,
+        'double': 0,
+        'bouble precision': 0,
+        'real': 0,
+        'decimal': 0,
+        'numeric': 0,
+
+        'date': '',
+        'datetime': '',
+        'timestamp': '',
+        'time': '',
+        'year': '',
+
+        'char': '',
+        'varchar': '',
+        'tinyblob': '',
+        'tinytext': '',
+        'blob': '',
+        'text': '',
+        'mediumtext': '',
+        'mediumblob': '',
+        'longblob': '',
+        'longtext': '',
+        
+        'enum': '',
+        'set': ''
+    },    
     migrations: {},
     /**
      * Migrates a database schema to the given version.
@@ -5173,6 +5223,10 @@ var Migrations = {
         Finders.generateFindByField(model, 'id');
         //illogical, but consistent
         Finders.generateFindAllByField(model, 'id');
+    },
+    objectIsFieldDefinition: function objectIsFieldDefinition(object)
+    {
+        return typeof(object) == 'object' && ActiveSupport.keys(object).length == 2 && ('type' in object) && ('value' in object);
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.

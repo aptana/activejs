@@ -30,8 +30,9 @@
  * @alias ActiveRecord.Adapters.AIR
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.AIR = function(connection){
+Adapters.AIR = function AIR(connection){
     this.connection = connection;
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()

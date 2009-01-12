@@ -98,6 +98,14 @@
  */
 ActiveRecord.define = function define(table_name, fields, methods)
 {
+    //clean field definition
+    for(var field_name in fields)
+    {
+        if(typeof(fields[field_name]) == 'object' && fields[field_name].type && !('value' in fields[field_name]))
+        {
+            fields[field_name].value = null;
+        }
+    }
     var model = ActiveRecord.create(table_name,methods);
     Migrations.Schema.createTable(table_name,fields);
     Migrations.applyTypeConversionCallbacks(model,fields);
@@ -105,6 +113,40 @@ ActiveRecord.define = function define(table_name, fields, methods)
 };
 
 var Migrations = {
+    fieldTypesWithDefaultValues: {
+        'tinyint': 0,
+        'smallint': 0,
+        'mediumint': 0,
+        'int': 0,
+        'integer': 0,
+        'bitint': 0,
+        'float': 0,
+        'double': 0,
+        'bouble precision': 0,
+        'real': 0,
+        'decimal': 0,
+        'numeric': 0,
+
+        'date': '',
+        'datetime': '',
+        'timestamp': '',
+        'time': '',
+        'year': '',
+
+        'char': '',
+        'varchar': '',
+        'tinyblob': '',
+        'tinytext': '',
+        'blob': '',
+        'text': '',
+        'mediumtext': '',
+        'mediumblob': '',
+        'longblob': '',
+        'longtext': '',
+        
+        'enum': '',
+        'set': ''
+    },    
     migrations: {},
     /**
      * Migrates a database schema to the given version.
@@ -284,6 +326,10 @@ var Migrations = {
         Finders.generateFindByField(model, 'id');
         //illogical, but consistent
         Finders.generateFindAllByField(model, 'id');
+    },
+    objectIsFieldDefinition: function objectIsFieldDefinition(object)
+    {
+        return typeof(object) == 'object' && ActiveSupport.keys(object).length == 2 && ('type' in object) && ('value' in object);
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.

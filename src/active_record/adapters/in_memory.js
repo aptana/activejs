@@ -35,6 +35,8 @@ Adapters.InMemory = function InMemory(storage){
     this.lastInsertId = null;
 };
 
+ActiveSupport.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
+
 ActiveSupport.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
     entityMissing: function entityMissing(id){
@@ -401,10 +403,20 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     fieldIn: function fieldIn(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     },
     fieldOut: function fieldOut(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     }
 });

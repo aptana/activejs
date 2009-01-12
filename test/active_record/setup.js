@@ -157,7 +157,15 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         FieldTypeTester = ActiveRecord.define('field_type_testers',{
             string_field: '',
             number_field: 0,
-            boolean_field: true
+            default_value_field: 'DEFAULT',
+            boolean_field: true,
+            custom_type_field: {
+                type: 'MEDIUMTEXT'
+            },
+            custom_type_field_with_default: {
+                type: 'MEDIUMTEXT',
+                value: 'DEFAULT'
+            }
         });
         
         if(proceed)

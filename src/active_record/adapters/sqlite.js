@@ -33,14 +33,10 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.typeFromField(columns[key], true)));
+            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
         }
         fragments.unshift('id INTEGER PRIMARY KEY');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
-    },
-    addColumn: function addColumn(table_name,column_name,data_type)
-    {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + column_name);
     },
     dropColumn: function dropColumn(table_name,column_name)
     {

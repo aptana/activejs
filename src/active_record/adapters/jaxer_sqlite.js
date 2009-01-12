@@ -30,7 +30,8 @@
  * @alias ActiveRecord.Adapters.JaxerSQLite
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerSQLite = function(){
+Adapters.JaxerSQLite = function JaxerSQLite(){
+    ActiveSupport.extend(this,Adapters.InstanceMethods);
     ActiveSupport.extend(this,Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()

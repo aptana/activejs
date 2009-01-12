@@ -202,8 +202,17 @@ Adapters.SQL = {
     {
         
     },
+    addColumn: function addColumn(table_name,column_name,data_type)
+    {
+        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+    },
     fieldIn: function fieldIn(field, value)
     {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) == 'string')
         {
             return (new String(value)).toString();
@@ -217,25 +226,18 @@ Adapters.SQL = {
             return (new String(parseInt(new Number(value)))).toString();
         }
         //array or object
-        if (typeof(value) == 'object' && (typeof(field.length) != 'undefined' || typeof(field.type) == 'undefined'))
+        if (typeof(value) == 'object' && !Migrations.objectIsFieldDefinition(field))
         {
             return ActiveSupport.JSON.stringify(value);
         }
-        //custom type (text, etc)
-        return this.fieldIn(this.typeFromField(field), value);
     },
     fieldOut: function fieldOut(field, value)
     {
-        //field has custom default value
-        if (value == null || typeof(value) == 'undefined' && typeof(field) != 'object')
+        if(Migrations.objectIsFieldDefinition(field))
         {
-            return field;
+            field = this.getDefaultValueFromFieldDefinition(field);
         }
-        if (!value && typeof(field) == 'object' && typeof(field.length) == 'undefined' && ActiveSupport.keys(field).length > 0 && field.value)
-        {
-            return field.value;
-        }
-        //process value
+        value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) == 'string')
         {
             return value;
@@ -267,59 +269,6 @@ Adapters.SQL = {
             {
                 return value;
             }
-        }
-        //custom type (text, etc)
-        return this.fieldOut(this.typeFromField(field), value);
-    },
-    typeFromField: function typeFromField(field, invert)
-    {
-        if (invert)
-        {
-            if (typeof(field) == 'string')
-            {
-                return 'VARCHAR(255)';
-            }
-            if (typeof(field) == 'number')
-            {
-                return 'INT';
-            }
-            return 'TEXT';
-        }
-        else
-        {
-            return {
-                'tinyint': 0,
-                'smallint': 0,
-                'mediumint': 0,
-                'int': 0,
-                'integer': 0,
-                'bitint': 0,
-                'float': 0,
-                'double': 0,
-                'bouble precision': 0,
-                'real': 0,
-                'decimal': 0,
-                'numeric': 0,
-
-                'date': '',
-                'datetime': '',
-                'timestamp': '',
-                'time': '',
-                'year': '',
-
-                'char': '',
-                'varchar': '',
-                'tinyblob': '',
-                'tinytext': '',
-                'blob': '',
-                'text': '',
-                'mediumblob': '',
-                'longblob': '',
-                'longtext': '',
-
-                'enum': '',
-                'set': ''
-            }[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
         }
     }
 };

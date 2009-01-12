@@ -95,6 +95,8 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             Comment.destroy('all');
             assert(Comment.count() == 0,'destroy("all")');
             
+            //field type testing
+            
             var field_test_one = FieldTypeTester.create({
                 string_field: 'a',
                 number_field: 1,
@@ -110,6 +112,12 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             });
             field_test_two.reload();
             assert(field_test_two.string_field === 'b' && field_test_two.number_field === 2 && field_test_two.boolean_field === false,'String, Number and Boolean(false) field types preserved.');
+            
+            var empty_record = FieldTypeTester.create();
+            empty_record.reload();
+            assert(empty_record.default_value_field == 'DEFAULT','Default value is set on simple field type.');
+            assert(empty_record.custom_type_field == '','Empty value is set on custom field type with no default specification.');
+            assert(empty_record.custom_type_field_with_default == 'DEFAULT','Default value is set on custom field type with default specification.');
             
             if(proceed)
                 proceed();
