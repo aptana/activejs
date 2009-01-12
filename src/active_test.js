@@ -49,6 +49,8 @@ ActiveTest = {
             ActiveTest.log((pass ? 'Pass' : 'Fail') + (note ? ': ' + note : ''));
             if(!pass)
             {
+                ActiveTest.log('FAILED')
+                ActiveTest.log('');
                 throw $break;
             }
         }

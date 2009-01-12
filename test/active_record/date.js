@@ -53,7 +53,11 @@ ActiveTest.Tests.ActiveRecord.date = function(proceed)
             a.set('updated','');
             a.save();
             var new_date = a.get('updated');
-            assert(ModelWithDates.find(a.id).get('updated') == new_date,'created and updated persist via date field');
+            var saved_date = ModelWithDates.find(a.id).get('updated');
+            if(saved_date instanceof Date){
+                saved_date = ActiveSupport.dateFormat(saved_date,'yyyy-mm-dd HH:MM:ss',true);
+            }
+            assert(saved_date == new_date,'created and updated persist via date field');
             
             if(proceed)
                 proceed();

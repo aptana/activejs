@@ -4504,7 +4504,7 @@ var Finders = {
      * @param {Object} ActiveRecord.Class
      * @param {String} field_name
      */
-    generateFindAllByField: function(klass, field_name)
+    generateFindAllByField: function generateFindAllByField(klass, field_name)
     {
         klass['findAllBy' + ActiveSupport.camelize(field_name, true)] = ActiveSupport.curry(function generated_find_all_by_field_delegator(klass, field_name, value, options){
             return klass.find(ActiveSupport.extend(Finders.mergeOptions(field_name, value, options), {
