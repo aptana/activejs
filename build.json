@@ -24,7 +24,7 @@
 	
 	{
 		"name": "active_support",
-		"output": "dist/active_support.js",
+		"output": "latest/active_support.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
@@ -32,17 +32,17 @@
 	},
 	{
 		"name": "active_support_packed",
-		"output": "dist/active_support.packed.js",
+		"output": "latest/active_support.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_support.js"
+			"latest/active_support.js"
 		]
 	},
 	
 	{
 		"name": "active_event",
-		"output": "dist/active_event.js",
+		"output": "latest/active_event.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
@@ -51,17 +51,17 @@
 	},
 	{
 		"name": "active_event_packed",
-		"output": "dist/active_event.packed.js",
+		"output": "latest/active_event.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_event.js"
+			"latest/active_event.js"
 		]
 	},
 	
 	{
 		"name": "active_routes",
-		"output": "dist/active_routes.js",
+		"output": "latest/active_routes.js",
 		"files": [
 				  "license.txt"
 				, "src/active_support.js"
@@ -78,17 +78,17 @@
 	},
 	{
 		"name": "active_routes_packed",
-		"output": "dist/active_routes.packed.js",
+		"output": "latest/active_routes.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_routes.js"
+			"latest/active_routes.js"
 		]
 	},
 
 	{
 		"name": "active_record",
-		"output": "dist/active_record.js",
+		"output": "latest/active_record.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
@@ -124,17 +124,17 @@
 	},
 	{
 		"name": "active_record_packed",
-		"output": "dist/active_record.packed.js",
+		"output": "latest/active_record.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_record.js"
+			"latest/active_record.js"
 		]
 	},
 	
 	{
 		"name": "active_view",
-		"output": "dist/active_view.js",
+		"output": "latest/active_view.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
@@ -149,17 +149,17 @@
 	},
 	{
 		"name": "active_view_packed",
-		"output": "dist/active_view.packed.js",
+		"output": "latest/active_view.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_view.js"
+			"latest/active_view.js"
 		]
 	},
 	
 	{
 		"name": "active_controller",
-		"output": "dist/active_controller.js",
+		"output": "latest/active_controller.js",
 		"files": [
 			  "license.txt"
 			, "src/active_support.js"
@@ -171,17 +171,17 @@
 	},
 	{
 		"name": "active_controller_packed",
-		"output": "dist/active_controller.packed.js",
+		"output": "latest/active_controller.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active_controller.js"
+			"latest/active_controller.js"
 		]
 	},
 	
 	{
 		"name": "active_js",
-		"output": "dist/active.js",
+		"output": "latest/active.js",
 		"files": [
 			  "license.txt"
 			  
@@ -240,17 +240,17 @@
 	},
 	{
 		"name": "active_js_packed",
-		"output": "dist/active.packed.js",
+		"output": "latest/active.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active.js"
+			"latest/active.js"
 		]
 	},
 	
 	{
 		"name": "active_js_ext",
-		"output": "dist/active.ext.js",
+		"output": "latest/active.ext.js",
 		"files": [
 			  "license.txt"
 			
@@ -314,11 +314,11 @@
 	},
 	{
 		"name": "active_js_ext_packed",
-		"output": "dist/active.ext.packed.js",
+		"output": "latest/active.ext.packed.js",
 		"compress": true,
 		"compress_prepend": "license.txt",
 		"files": [
-			"dist/active.ext.js"
+			"latest/active.ext.js"
 		]
 	},
 	
