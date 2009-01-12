@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (c) 2009 Aptana, Inc.
+ * Copyright (c) 2008 Aptana, Inc.
  * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -81,19 +81,6 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             assert(typeof(Comment.findByTitle) != 'undefined','findBy#{X} exists.');
             assert(typeof(Comment.findAllByTitle) != 'undefined','findAllBy#{X} exists.');
             assert(Comment.findByTitle('a').title == a.title && Comment.findById(a.id).id == a.id,'findByX works');
-            
-            var d = Comment.create({
-                title: 'd',
-                body: 'dd'
-            });
-            assert(Comment.find({
-              first: true,
-              where: {
-                title: 'd',
-                body: 'dd'
-              }
-            }).id == d.id,'find({where:{}}) with multiple params');
-            
             if(proceed)
                 proceed();
         }
