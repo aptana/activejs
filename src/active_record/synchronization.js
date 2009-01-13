@@ -111,6 +111,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * Once synchronized a found instance will have it's values updated if
      * other records with the same id change in the database.
      * @alias ActiveRecord.Instance.synchronize
+     * @return {null}
      */
     synchronize: function synchronize()
     {
@@ -120,6 +121,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Stops the synchronization of the record with the database.
      * @alias ActiveRecord.Instance.stop
+     * @return {null}
      */
     stop: function stop()
     {
