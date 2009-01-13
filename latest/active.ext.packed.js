@@ -5705,32 +5705,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         if (typeof(table) == 'string' && !params)
         {
             //find by SQL
-            var sql = table;
-            var select = /\s*SELECT\s+.+\s+FROM\s+(\w+)\s+/i;
-            var select_match = sql.match(select); 
-            var table = select_match[1];
-            sql = sql.replace(select,'');
-            var params = {};
-            var fragments = {
-                limit: 'LIMIT\s+',
-                order: 'ORDER\s+BY\s+',
-                where: ''
-            };
-            var where = sql.match(/\s+WHERE\s+(.+)(ORDER\s+BY\s+|LIMIT\s+|$)/i);
-            if(where)
-            {
-                params.where = where[1];
-            }
-            var order = sql.match(/ORDER\s+BY\s+(.+)(LIMIT\s+|$)/i);
-            if(order)
-            {
-                params.order = order[1];
-            }
-            var limit = sql.match(/LIMIT\s+(.+)$/);
-            if(limit)
-            {
-                params.limit = limit[1];
-            }
+            var response = this.paramsFromSQLString(table);
+            table = response[0];
+            params = response[1];
         }
         else if(typeof(params) == 'undefined')
         {
@@ -5771,6 +5748,35 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             entity_array = filters[i](entity_array);
         }
         return this.iterableFromResultSet(entity_array);
+    },
+    paramsFromSQLString: function paramsFromSQLString(sql)
+    {
+        var params = {};
+        var select = /\s*SELECT\s+.+\s+FROM\s+(\w+)\s+/i;
+        var select_match = sql.match(select); 
+        var table = select_match[1];
+        sql = sql.replace(select,'');
+        var fragments = {
+            limit: 'LIMIT\s+',
+            order: 'ORDER\s+BY\s+',
+            where: ''
+        };
+        var where = sql.match(/\s+WHERE\s+(.+)(ORDER\s+BY\s+|LIMIT\s+|$)/i);
+        if(where)
+        {
+            params.where = where[1];
+        }
+        var order = sql.match(/ORDER\s+BY\s+(.+)(LIMIT\s+|$)/i);
+        if(order)
+        {
+            params.order = order[1];
+        }
+        var limit = sql.match(/LIMIT\s+(.+)$/);
+        if(limit)
+        {
+            params.limit = limit[1];
+        }
+        return [table,params];
     },
     transaction: function transaction(proceed)
     {
