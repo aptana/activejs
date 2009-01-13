@@ -6008,7 +6008,7 @@ Adapters.InMemory.MethodCallbacks = (function(){
     {
         methods[math_methods[i]] = (function math_method_generator(i){
             return function generated_math_method(){
-                return Math[math_method[i]].apply(Math.math_method[i],arguments);
+                return Math[math_methods[i]].apply(Math.math_methods[i],arguments);
             };
         })(i);
     }
