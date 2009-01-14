@@ -1510,6 +1510,33 @@ ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,sc
     }
 };
 
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveEvent.ObservableHash = ObservableHash;
+
 })();
 
 ActiveView = null;
@@ -1541,7 +1568,7 @@ ActiveView.create = function create(structure,methods)
 
 ActiveView.defaultStructure = function defaultStructure()
 {
-    return document.createElement('div');
+    return ActiveSupport.getGlobalContext().document.createElement('div');
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -1560,6 +1587,10 @@ ActiveView.render = function render(content,target,scope,clear,execute)
     {
         execute = function render_execute(target,content)
         {
+            if(!content)
+            {
+                throw Errors.InvalidContent;
+            }
             target.appendChild(content);
         };
     }
@@ -1604,40 +1635,42 @@ var InstanceMethods = {
     initialize: function initialize(scope,parent)
     {
         this.parent = parent;
-        this.scope = scope || {};
+        this.setupScope(scope);
         if(ActiveView.logging)
         {
             ActiveSupport.log('ActiveView: initialized with scope:',scope);
         }
-        if(!this.scope.get || typeof(this.scope.get) != 'function')
-        {
-            this.scope = new ObservableHash(this.scope);
-        }
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
-        for(var key in this.scope._object)
-        {
-            if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
-            {
-                ActiveView.makeArrayObservable(this.scope._object[key]);
-            }
-        }
         this.container = this.structure();
+        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        {
+            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+        }
         for(var key in this.scope._object)
         {
             this.scope.set(key,this.scope._object[key]);
         }
     },
+    setupScope: function setupScope(scope)
+    {
+        this.scope = scope || new ActiveEvent.ObservableHash({});
+        for(var key in this.scope._object)
+        {
+            var item = this.scope._object[key];
+            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            {
+                ActiveView.makeArrayObservable(item);
+            }
+        }
+    },
     get: function get(key)
     {
-        this.notify('get',key);
         return this.scope.get(key);
     },
     set: function set(key,value)
     {
-        var response = this.scope.set(key,value);
-        this.notify('set',key,value);
-        return response;
+        return this.scope.set(key,value);
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
     {
@@ -1650,36 +1683,10 @@ var ClassMethods = {
 };
 
 var Errors = {
+    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
     InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
     MismatchedArguments: 'Incorrect argument type passed: '
 };
-
-var ObservableHash = function ObservableHash(object)
-{
-    this._object = object || {};
-};
-
-ObservableHash.prototype.set = function set(key,value)
-{
-    this._object[key] = value;
-    this.notify('set',key,value);
-    return value;
-};
-
-ObservableHash.prototype.get = function get(key)
-{
-    this.notify('get',key);
-    return this._object[key];
-};
-
-ObservableHash.prototype.toObject = function toObject()
-{
-    return this._object;
-};
-
-ActiveEvent.extend(ObservableHash);
-
-ActiveView.ObservableHash = ObservableHash;
 
 var Builder = {
     createElement: function createElement(tag,attributes)
@@ -1958,7 +1965,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }
-                instance.observe('set',function changes_observer(inner_key,value){
+                instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
                         callback(value);

@@ -141,7 +141,6 @@
 			, "src/active_event.js"
 			, "src/active_view/header.js"
 			, "src/active_view/main.js"
-			, "src/active_view/observable_hash.js"
 			, "src/active_view/builder.js"
 			, "src/active_view/binding.js"
 			, "src/active_view/footer.js"
@@ -228,7 +227,6 @@
 			
 			, "src/active_view/header.js"
 			, "src/active_view/main.js"
-			, "src/active_view/observable_hash.js"
 			, "src/active_view/builder.js"
 			, "src/active_view/binding.js"
 			, "src/active_view/footer.js"
@@ -300,7 +298,6 @@
 			
 			, "src/active_view/header.js"
 			, "src/active_view/main.js"
-			, "src/active_view/observable_hash.js"
 			, "src/active_view/builder.js"
 			, "src/active_view/binding.js"
 			, "src/active_view/footer.js"
@@ -353,6 +350,9 @@
 			
 			, "test/active_view/setup.js"
 			, "test/active_view/builder.js"
+			
+			, "test/active_controller/setup.js"
+			, "test/active_controller/scoping.js"
 		]
 	}
 ]

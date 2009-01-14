@@ -1484,6 +1484,33 @@ ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,sc
     }
 };
 
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveEvent.ObservableHash = ObservableHash;
+
 })();
 
 ActiveController = null;
@@ -1505,7 +1532,7 @@ ActiveController.create = function create(actions,methods)
             this.layout = ActiveSupport.bind(this.layout,this);
         }
         this.params = params || {};
-        this.scope = {};
+        this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
     };
     ActiveSupport.extend(klass,ClassMethods);
@@ -1521,8 +1548,13 @@ ActiveController.create = function create(actions,methods)
 
 ActiveController.createDefaultContainer = function createDefaultContainer()
 {
-    var div = document.createElement('div');
-    document.body.appendChild(div);
+    var global_context = ActiveSupport.getGlobalContext();
+    var div = global_context.document.createElement('div');
+    if(!global_context.document.body)
+    {
+        throw Errors.BodyNotAvailable;
+    }
+    global_context.document.body.appendChild(div);
     return div;
 };
 
@@ -1554,22 +1586,17 @@ var InstanceMethods = {
     },
     get: function get(key)
     {
-        return this.scope[key];
+        return this.scope.get(key);
     },
     set: function set(key,value)
     {
-        this.scope[key] = value;
-        this.notify('set',key,value);
-        return value;
-    },
-    toObject: function toObject()
-    {
-        return this.scope;
+        return this.scope.set(key,value);
     },
     render: function render(params)
     {
         var args = this.renderArgumentsFromRenderParams(params);
-        return args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+        var response = args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+        return response;
     },
     renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
     {
@@ -1636,6 +1663,7 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
+    BodyNotAvailable: 'Controller could not attach to a DOM element, no container was passed and document.body is not available',
     InvalidRenderParams: 'The parameter passed to render() was not an object.',
     UnknownRenderFlag: 'The following render flag does not exist: ',
     ViewDoesNotExist: 'The specified view does not exist: '

@@ -193,7 +193,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }
-                instance.observe('set',function changes_observer(inner_key,value){
+                instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
                         callback(value);

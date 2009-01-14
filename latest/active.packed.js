@@ -1484,6 +1484,33 @@ ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,sc
     }
 };
 
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveEvent.ObservableHash = ObservableHash;
+
 })();
  
 ActiveRoutes = null;
@@ -2434,6 +2461,24 @@ ActiveRecord = null;
  *     //users will no longer contain aaron
  *     users.stop(); //result set will no longer be synchronized
  * 
+ * Calculations (count, min, max, etc) can also be synchronized. As a second
+ * parameter to the calculation function, pass a hash with a synchronize
+ * property that contains a function. That function will be called when the
+ * result of the calculation changes. Instead of returning the value of the
+ * calculation the initial call to the calculation function will return a
+ * function that will stop the synchronization.
+ *
+ *     var current_count;
+ *     var stop = User.count({
+ *         synchronize: function(updated_count){
+ *             current_count = updated_count;
+ *         }
+ *     });
+ *     var new_user = User.create({...}); //current_count incremented
+ *     new_user.destroy();  //current_count decremented
+ *     stop();
+ *     User.create({...}); //current_count unchanged
+ *
  * Lifecycle
  * ---------
  * There are 8 currently supported lifecycle events which allow granular control
@@ -6369,7 +6414,7 @@ ActiveView.create = function create(structure,methods)
 
 ActiveView.defaultStructure = function defaultStructure()
 {
-    return document.createElement('div');
+    return ActiveSupport.getGlobalContext().document.createElement('div');
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -6388,6 +6433,10 @@ ActiveView.render = function render(content,target,scope,clear,execute)
     {
         execute = function render_execute(target,content)
         {
+            if(!content)
+            {
+                throw Errors.InvalidContent;
+            }
             target.appendChild(content);
         };
     }
@@ -6432,40 +6481,42 @@ var InstanceMethods = {
     initialize: function initialize(scope,parent)
     {
         this.parent = parent;
-        this.scope = scope || {};
+        this.setupScope(scope);
         if(ActiveView.logging)
         {
             ActiveSupport.log('ActiveView: initialized with scope:',scope);
         }
-        if(!this.scope.get || typeof(this.scope.get) != 'function')
-        {
-            this.scope = new ObservableHash(this.scope);
-        }
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
-        for(var key in this.scope._object)
-        {
-            if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
-            {
-                ActiveView.makeArrayObservable(this.scope._object[key]);
-            }
-        }
         this.container = this.structure();
+        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        {
+            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+        }
         for(var key in this.scope._object)
         {
             this.scope.set(key,this.scope._object[key]);
         }
     },
+    setupScope: function setupScope(scope)
+    {
+        this.scope = scope || new ActiveEvent.ObservableHash({});
+        for(var key in this.scope._object)
+        {
+            var item = this.scope._object[key];
+            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            {
+                ActiveView.makeArrayObservable(item);
+            }
+        }
+    },
     get: function get(key)
     {
-        this.notify('get',key);
         return this.scope.get(key);
     },
     set: function set(key,value)
     {
-        var response = this.scope.set(key,value);
-        this.notify('set',key,value);
-        return response;
+        return this.scope.set(key,value);
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
     {
@@ -6478,36 +6529,10 @@ var ClassMethods = {
 };
 
 var Errors = {
+    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
     InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
     MismatchedArguments: 'Incorrect argument type passed: '
 };
-
-var ObservableHash = function ObservableHash(object)
-{
-    this._object = object || {};
-};
-
-ObservableHash.prototype.set = function set(key,value)
-{
-    this._object[key] = value;
-    this.notify('set',key,value);
-    return value;
-};
-
-ObservableHash.prototype.get = function get(key)
-{
-    this.notify('get',key);
-    return this._object[key];
-};
-
-ObservableHash.prototype.toObject = function toObject()
-{
-    return this._object;
-};
-
-ActiveEvent.extend(ObservableHash);
-
-ActiveView.ObservableHash = ObservableHash;
 
 var Builder = {
     createElement: function createElement(tag,attributes)
@@ -6786,7 +6811,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }
-                instance.observe('set',function changes_observer(inner_key,value){
+                instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
                         callback(value);
@@ -6818,7 +6843,7 @@ ActiveController.create = function create(actions,methods)
             this.layout = ActiveSupport.bind(this.layout,this);
         }
         this.params = params || {};
-        this.scope = {};
+        this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
     };
     ActiveSupport.extend(klass,ClassMethods);
@@ -6834,8 +6859,13 @@ ActiveController.create = function create(actions,methods)
 
 ActiveController.createDefaultContainer = function createDefaultContainer()
 {
-    var div = document.createElement('div');
-    document.body.appendChild(div);
+    var global_context = ActiveSupport.getGlobalContext();
+    var div = global_context.document.createElement('div');
+    if(!global_context.document.body)
+    {
+        throw Errors.BodyNotAvailable;
+    }
+    global_context.document.body.appendChild(div);
     return div;
 };
 
@@ -6867,22 +6897,17 @@ var InstanceMethods = {
     },
     get: function get(key)
     {
-        return this.scope[key];
+        return this.scope.get(key);
     },
     set: function set(key,value)
     {
-        this.scope[key] = value;
-        this.notify('set',key,value);
-        return value;
-    },
-    toObject: function toObject()
-    {
-        return this.scope;
+        return this.scope.set(key,value);
     },
     render: function render(params)
     {
         var args = this.renderArgumentsFromRenderParams(params);
-        return args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+        var response = args.stopped ? null : ActiveView.render.apply(ActiveView,args);
+        return response;
     },
     renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
     {
@@ -6949,6 +6974,7 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
+    BodyNotAvailable: 'Controller could not attach to a DOM element, no container was passed and document.body is not available',
     InvalidRenderParams: 'The parameter passed to render() was not an object.',
     UnknownRenderFlag: 'The following render flag does not exist: ',
     ViewDoesNotExist: 'The specified view does not exist: '
