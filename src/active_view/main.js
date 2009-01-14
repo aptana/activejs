@@ -50,7 +50,7 @@ ActiveView.create = function create(structure,methods)
 
 ActiveView.defaultStructure = function defaultStructure()
 {
-    return document.createElement('div');
+    return ActiveSupport.getGlobalContext().document.createElement('div');
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -69,6 +69,10 @@ ActiveView.render = function render(content,target,scope,clear,execute)
     {
         execute = function render_execute(target,content)
         {
+            if(!content)
+            {
+                throw Errors.InvalidContent;
+            }
             target.appendChild(content);
         };
     }
@@ -113,40 +117,42 @@ var InstanceMethods = {
     initialize: function initialize(scope,parent)
     {
         this.parent = parent;
-        this.scope = scope || {};
+        this.setupScope(scope);
         if(ActiveView.logging)
         {
             ActiveSupport.log('ActiveView: initialized with scope:',scope);
         }
-        if(!this.scope.get || typeof(this.scope.get) != 'function')
-        {
-            this.scope = new ObservableHash(this.scope);
-        }
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
-        for(var key in this.scope._object)
-        {
-            if((this.scope._object[key] != null && typeof this.scope._object[key] == "object" && 'splice' in this.scope._object[key] && 'join' in this.scope._object[key]) && !this.scope._object[key].observe)
-            {
-                ActiveView.makeArrayObservable(this.scope._object[key]);
-            }
-        }
         this.container = this.structure();
+        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        {
+            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+        }
         for(var key in this.scope._object)
         {
             this.scope.set(key,this.scope._object[key]);
         }
     },
+    setupScope: function setupScope(scope)
+    {
+        this.scope = scope || new ActiveEvent.ObservableHash({});
+        for(var key in this.scope._object)
+        {
+            var item = this.scope._object[key];
+            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            {
+                ActiveView.makeArrayObservable(item);
+            }
+        }
+    },
     get: function get(key)
     {
-        this.notify('get',key);
         return this.scope.get(key);
     },
     set: function set(key,value)
     {
-        var response = this.scope.set(key,value);
-        this.notify('set',key,value);
-        return response;
+        return this.scope.set(key,value);
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
     {
@@ -159,6 +165,7 @@ var ClassMethods = {
 };
 
 var Errors = {
+    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
     InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
     MismatchedArguments: 'Incorrect argument type passed: '
 };
