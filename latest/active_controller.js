@@ -1567,7 +1567,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
             {
                 this.renderTarget = layout.renderTarget;
             }
-        }        
+        }
         ActiveSupport.bind(action,this)();
         this.notify('afterCall',action_name,this.params);
     };
@@ -1603,14 +1603,14 @@ var InstanceMethods = {
         {
             throw Errors.InvalidRenderParams;
         }
-        var args = [null,this.renderTarget,this];
+        var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
         {
             if(!RenderFlags[flag_name])
             {
                 if(ActiveController.logging)
                 {
-                  ActiveSupport.log('ActiveController: render() failed with params:',params);
+                    ActiveSupport.log('ActiveController: render() failed with params:',params);
                 }
                 throw Errors.UnknownRenderFlag + flag_name;
             }
