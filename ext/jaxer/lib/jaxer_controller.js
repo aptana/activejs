@@ -53,6 +53,7 @@ ActiveController.parseParams = function parseParams(params)
             current_object[parts[parts.length - 1]] = params[p];
         }
     }
+    return result;
 };
 
 ActiveSupport.extend(ActiveController.InstanceMethods,{
@@ -91,6 +92,10 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         if(typeof(xml) == 'xml')
         {
             xml = xml.toString();
+        }
+        if(xml && typeof(xml.toXML) == 'function')
+        {
+            xml = xml.toXML();
         }
         Jaxer.response.headers['Content-Type'] = 'text/xml';
         Jaxer.response.setContents(xml);
