@@ -29,6 +29,8 @@ ActiveRecord.asynchronous = false; //deprecated until we have HTML5 support
 
 var Synchronization = {};
 
+Synchronization.calculationNotifications = {};
+
 Synchronization.resultSetNotifications = {};
 
 Synchronization.notifications = {};
@@ -76,6 +78,13 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
     }
     else if(event_name == 'afterDestroy' || event_name == 'afterCreate')
     {
+        if(Synchronization.calculationNotifications[record.tableName])
+        {
+            for(var synchronized_calculation_count in Synchronization.calculationNotifications[record.tableName])
+            {
+                Synchronization.calculationNotifications[record.tableName][synchronized_calculation_count]();
+            }
+        }
         if(Synchronization.resultSetNotifications[record.tableName])
         {
             for(var synchronized_result_set_count in Synchronization.resultSetNotifications[record.tableName])
@@ -131,13 +140,36 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     }
 });
 
+Synchronization.synchronizedCalculationCount = 0;
+
+Synchronization.synchronizeCalculation = function synchronizeCalculation(klass,operation,params)
+{
+    ++Synchronization.synchronizedCalculationCount;
+    var callback = params.synchronize;
+    var callback_params = ActiveSupport.clone(params);
+    delete callback_params.synchronize;
+    if(!Synchronization.calculationNotifications[klass.tableName])
+    {
+        Synchronization.calculationNotifications[klass.tableName] = {};
+    }
+    Synchronization.calculationNotifications[klass.tableName][Synchronization.synchronizedCalculationCount] = (function calculation_synchronization_executer_generator(klass,operation,params,callback){
+        return function calculation_synchronization_executer(){
+            callback(klass[operation](callback_params));
+        };
+    })(klass,operation,params,callback);
+    Synchronization.calculationNotifications[klass.tableName][Synchronization.synchronizedCalculationCount]();
+    return (function calculation_synchronization_stop_generator(table_name,synchronized_calculation_count){
+        return function calculation_synchronization_stop(){
+            Synchronization.calculationNotifications[table_name][synchronized_calculation_count] = null;
+            delete Synchronization.calculationNotifications[table_name][synchronized_calculation_count];
+        };
+    })(klass.tableName,Synchronization.synchronizedCalculationCount);
+};
+
 Synchronization.synchronizedResultSetCount = 0;
 
 Synchronization.synchronizeResultSet = function synchronizeResultSet(klass,params,result_set)
 {
-    result_set.synchronize = function synchronize(){
-        
-    };
     ++Synchronization.synchronizedResultSetCount;
     if(!Synchronization.resultSetNotifications[klass.tableName])
     {

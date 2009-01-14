@@ -1031,6 +1031,28 @@ ActiveTest.Tests.ActiveRecord.synchronization = function(proceed)
             
             assert(users_ordered_by_name[2] && users_ordered_by_name[2].name == 'Bailey','result set stop() prevents synchronization');
             
+            //calculation synchronization
+            var count_callback_call_count = 0;
+            var response;
+            var count_synchronization_stopper = User.count({
+                synchronize: function(count){
+                    ++count_callback_call_count;
+                    response = count;
+                }
+            });
+            assert(count_callback_call_count == 1 && response == 2,'count synchronize calls callback with correct value');
+            var egor = User.create({
+                name: 'egor'
+            });
+            assert(count_callback_call_count == 2 && response == 3,'count synchronize calls callback with correct value after create');
+            egor.destroy();
+            assert(count_callback_call_count == 3 && response == 2,'count synchronize calls callback with correct value after destroy');
+            count_synchronization_stopper();
+            User.create({
+                name: 'freddy'
+            });
+            assert(count_callback_call_count == 3 && response == 2,'count synchronize stoppable');
+            
             if(proceed)
                 proceed();
         }

@@ -26,7 +26,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
-    processCalculationParams: function processCalculationParams(params)
+    processCalculationParams: function processCalculationParams(operation,params)
     {
         if(!params)
         {
@@ -40,59 +40,70 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         return params;
     },
+    performCalculation: function performCalculation(operation,params,sql_fragment)
+    {
+        if(params && params.synchronize)
+        {
+            return Synchronization.synchronizeCalculation(this,operation,params);
+        }
+        else
+        {
+            return ActiveRecord.connection.calculateEntities(this.tableName,this.processCalculationParams(operation,params),sql_fragment);
+        }
+    },
     /**
      * options can contain all params that find() can
      * @alias ActiveRecord.Class.count
-     * @param {Object} [options] 
+     * @param {Object} [params] 
      * @return {Number}
      */
-    count: function count(options)
+    count: function count(params)
     {
-        return ActiveRecord.connection.calculateEntities(this.tableName, this.processCalculationParams(options), 'COUNT(*)');
+        return this.performCalculation('count',params,'COUNT(*)');
     },
     /**
      * options can contain all params that find() can
      * @alias ActiveRecord.Class.average
      * @param {String} column_name
-     * @param {Object} [options] 
+     * @param {Object} [params] 
      * @return {Number}
      */
-    average: function average(column_name, options)
+    average: function average(column_name,params)
     {
-        return ActiveRecord.connection.calculateEntities(this.tableName, this.processCalculationParams(options), 'AVG(' + column_name + ')');
+        return this.performCalculation('average',params,'AVG(' + column_name + ')');
     },
     /**
      * options can contain all params that find() can
      * @alias ActiveRecord.Class.max
      * @param {String} column_name
-     * @param {Object} [options] 
+     * @param {Object} [params] 
      * @return {Number}
      */
-    max: function max(column_name, options)
+    max: function max(column_name,params)
     {
-        return ActiveRecord.connection.calculateEntities(this.tableName, this.processCalculationParams(options), 'MAX(' + column_name + ')');
+        return this.performCalculation('max',params,'MAX(' + column_name + ')');
     },
     /**
      * options can contain all params that find() can
      * @alias ActiveRecord.Class.min
      * @param {String} column_name
-     * @param {Object} [options] 
+     * @param {Object} [params] 
      * @return {Number}
      */
-    min: function min(column_name, options)
+    min: function min(column_name,params)
     {
-        return ActiveRecord.connection.calculateEntities(this.tableName, this.processCalculationParams(options), 'MIN(' + column_name + ')');
+        return this.performCalculation('min',params,'MIN(' + column_name + ')');
     },
     /**
      * options can contain all params that find() can
      * @alias ActiveRecord.Class.sum
      * @param {String} column_name
-     * @param {Object} [options]
+     * @param {Object} [params]
      * @return {Number}
      */
-    sum: function sum(column_name, options)
+    sum: function sum(column_name,params)
     {
-        return ActiveRecord.connection.calculateEntities(this.tableName, this.processCalculationParams(options), 'SUM(' + column_name + ')');
+        return this.performCalculation('sum',params,'SUM(' + column_name + ')');
     },
     /**
      * Returns the first record sorted by id.
