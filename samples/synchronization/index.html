@@ -1,0 +1,191 @@
+<html>
+  <head>
+    <script src="../../latest/active.js"></script>
+    <script src="../lib/prototype.js"></script>
+    <script>
+      document.observe('dom:loaded',function(){
+        
+        //list item model
+        ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
+        
+        ListItem = ActiveRecord.define('list_items',{
+          body: ''
+        });
+        (new ObjectRange('a','z')).each(function(body){
+          ListItem.create({body: body});
+        });
+        
+        //view
+        ListView = ActiveView.create(function(){
+          var container;
+          with(this.builder){
+            container = ul();
+          }
+          with(this.binding){
+            update($('current_count')).from('total_count');
+            //collect(PageLinkView).from('pages').into($('pages'));
+            collect(ListItemView).from('list_items').into(container);
+            when('page').changes(function(number){
+              console.log('page changed');
+            });
+          }
+          return container;
+        });
+        
+        ListItemView = ActiveView.create(function(){
+          var container;
+          with(this.builder){
+            container = li(
+              this.delete_link = a({href:'#'},'Delete'),
+              this.body = span()
+            );
+          }
+          with(this.binding){
+            update(this.body).from('body');
+          }
+          this.delete_link.observe('click',function(){
+            ListItem.find(this.get('id')).destroy();
+          }.bind(this));
+          return container;
+        });
+        
+        PageLinkView = ActiveView.create(function(){
+          with(this.builder){
+            var container = span(a({href:'#'},this.get('page')));
+          }
+          if(this.get('current')){
+            container.addClassName('active');
+          }
+          return container;
+        });
+        
+        //controller
+        ListItemController = ActiveController.create({
+          index: function index(){
+            this.set('page_size',5);
+            ListItem.count({
+              synchronize: function(count){
+                this.set('total_count',count);
+                this.set('pages',Array.from(new ObjectRange(1,Math.ceil(count / page_size))).collect(function(number){
+                  return {
+                    page: number,
+                    current: (number == this.get('page'))
+                  };
+                }.bind(this)));
+              }.bind(this)
+            });
+            this.setPage(1);
+            this.render({
+              view: ListView
+            });
+          }
+        },{
+          setPage: function setPage(page){
+            this.set('page',page);
+            this.set('list_items',ListItem.find({
+              all: true,
+              order: 'body',
+              synchronize: true
+            }));
+          }
+        });
+        
+        //generate pagination and total count
+        var page_size = 5;
+        
+        //controller setup
+        var controller = new ListItemController($('list'));
+        controller.index();
+        
+        //setup controls and modifiers
+        $('append_trigger').observe('click',function(){
+          var item = ListItem.find($('append_to_list_item_id').value);
+          item.set('body',item.get('body') + ' ' + $('append_value').value);
+          item.save();
+        });
+        
+        $('insert_trigger').observe('click',function(){
+          ListItem.create({
+            body: $('insert_value').value
+          });
+        });
+        
+      });
+    </script>
+    <style>
+      #controls {
+        float:right;
+        width:350px;
+      }
+      
+      #controls p {
+        border-bottom:1px solid #ccc;
+        padding-bottom:10px;
+        margin-bottom:10px;
+      }
+      
+      #controls input[type=button] {
+        width:75px;
+        margin-left:10px;
+      }
+      
+      #controls select {
+        margin-left:10px;
+      }
+      
+      #controls input[type=text] {
+        width:75px;
+      }
+      
+      li a {
+        margin-right:15px;
+        text-decoration:none;
+      }
+      
+      li a:hover {
+        text-decoration:underline;
+      }
+      
+      .active {
+        background-color:#900;
+      }
+    </style>
+  </head>
+  <body>
+    <p>Total: <span id="current_count"></span></p>
+    <div id="pages"></div>
+    <div id="controls">
+      <p>Append: <input type="text" id="append_value"/> to: <select id="append_to_list_item_id">
+        <option value="1">a</option>
+        <option value="2">b</option>
+        <option value="3">c</option>
+        <option value="4">d</option>
+        <option value="5">e</option>
+        <option value="6">f</option>
+        <option value="7">g</option>
+        <option value="8">h</option>
+        <option value="9">i</option>
+        <option value="10">j</option>
+        <option value="11">k</option>
+        <option value="12">l</option>
+        <option value="13">m</option>
+        <option value="14">n</option>
+        <option value="15">o</option>
+        <option value="16">p</option>
+        <option value="17">q</option>
+        <option value="18">r</option>
+        <option value="19">s</option>
+        <option value="20">t</option>
+        <option value="21">u</option>
+        <option value="22">v</option>
+        <option value="23">w</option>
+        <option value="24">x</option>
+        <option value="25">y</option>
+        <option value="26">z</option>
+      </select><input type="button" id="append_trigger" value="Append"/></p>
+      <p>Insert: <input type="text" id="insert_value"/><input type="button" id="insert_trigger" value="Insert"/></p>
+    </div>
+    <h2>Synchronization Test</h2>
+    <div id="list"></div>
+  </body>
+</html>
