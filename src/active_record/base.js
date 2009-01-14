@@ -196,12 +196,15 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
+     * Serializes the record to an JSON string. If object_to_inject is passed
+     * that object will override any values of the record.
      * @alias ActiveRecord.Instance.toJSON
+     * @param {Object} [object_to_inject]
      * @return {String}
      */
-    toJSON: function toJSON()
+    toJSON: function toJSON(object_to_inject)
     {
-        return ActiveSupport.JSON.stringify(this.toObject());
+        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toObject(),object_to_inject || {}));
     },
     /**
      * Serializes the record to an XML string. If object_to_inject is passed
