@@ -6526,7 +6526,7 @@ var InstanceMethods = {
     },
     setupScope: function setupScope(scope)
     {
-        this.scope = scope || new ActiveEvent.ObservableHash({});
+        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
         for(var key in this.scope._object)
         {
             var item = this.scope._object[key];
@@ -6676,6 +6676,7 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType == 1)
         {
+            console.log(element)
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {

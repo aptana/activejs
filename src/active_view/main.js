@@ -136,7 +136,7 @@ var InstanceMethods = {
     },
     setupScope: function setupScope(scope)
     {
-        this.scope = scope || new ActiveEvent.ObservableHash({});
+        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
         for(var key in this.scope._object)
         {
             var item = this.scope._object[key];

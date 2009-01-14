@@ -32,6 +32,7 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType == 1)
         {
+            console.log(element)
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {
