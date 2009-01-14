@@ -12,8 +12,6 @@ RestController = {
         return ActiveController.create(ActiveSupport.extend({
             rest_dispatcher: function rest_dispatcher()
             {
-                Jaxer.Log.info('EXTENSIONs');
-                Jaxer.Log.info(this.request.extension);
                 switch(this.request.method)
                 {
                     case 'get': return this.params.id ? this.show() : this.list();
