@@ -159,5 +159,6 @@ var ClassMethods = {
 };
 
 var Errors = {
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.'
+    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
+    MismatchedArguments: 'Incorrect argument type passed: '
 };

@@ -30,6 +30,10 @@ ActiveView.generateBinding = function generateBinding(instance)
     instance.binding = {};
     instance.binding.update = function update(element)
     {
+        if(!element || !element.nodeType == 1)
+        {
+            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+        }
         return {
             from: function from(observe_key)
             {
@@ -47,6 +51,10 @@ ActiveView.generateBinding = function generateBinding(instance)
                 
                 var transform = function transform(callback)
                 {
+                    if(!callback || typeof(callback) != 'function')
+                    {
+                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    }
                     transformation = callback;
                     return {
                         when: when
@@ -55,6 +63,10 @@ ActiveView.generateBinding = function generateBinding(instance)
 
                 var when = function when(callback)
                 {
+                    if(!callback || typeof(callback) != 'function')
+                    {
+                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    }
                     condition = callback;
                     return {
                         transform: transform
@@ -81,12 +93,24 @@ ActiveView.generateBinding = function generateBinding(instance)
 
     instance.binding.collect = function collect(view)
     {
+        if(!view)
+        {
+            throw Errors.MismatchedArguments + 'expected string, ActiveView class or function, recieved ' + typeof(view);
+        }
         return {
             from: function from(collection)
             {
+                if(!collection || (typeof(collection) != 'object' && typeof(collection) != 'string'))
+                {
+                    throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
+                }
                 return {
                     into: function into(element)
                     {
+                        if(!element || !element.nodeType == 1)
+                        {
+                            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+                        }
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) == 'string')
                         {
@@ -98,69 +122,61 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
-                            collection = instance.scope.get(collection);
                         }
-                        //loop over the collection when it is passed in to build the view the first time
-                        var collected_elements = [];
-                        for(var i = 0; i < collection.length; ++i)
+                        else
                         {
-                            ActiveView.render(view,element,collection[i],false);
-                            collected_elements.push(element.childNodes[element.childNodes.length - 1]);
-                        }
-                        //these handlers will add or remove elements from the view as the collection changes
-                        if(collection.observe)
-                        {
-                            collection.observe('pop',function pop_observer(){
-                                collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
-                                collected_elements.pop();
-                            });
-                            collection.observe('push',function push_observer(item){
-                                ActiveView.render(view,element,item,false);
+                            //loop over the collection when it is passed in to build the view the first time
+                            var collected_elements = [];
+                            for(var i = 0; i < collection.length; ++i)
+                            {
+                                ActiveView.render(view,element,collection[i],false);
                                 collected_elements.push(element.childNodes[element.childNodes.length - 1]);
-                            });
-                            collection.observe('unshift',function unshift_observer(item){
-                                ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
-                                    element.insertBefore(content,element.firstChild);
+                            }
+                            //these handlers will add or remove elements from the view as the collection changes
+                            if(collection.observe)
+                            {
+                                collection.observe('pop',function pop_observer(){
+                                    collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
+                                    collected_elements.pop();
                                 });
-                                collected_elements.unshift(element.firstChild);
-                            });
-                            collection.observe('shift',function shift_observer(){
-                                element.removeChild(element.firstChild);
-                                collected_elements.shift(element.firstChild);
-                            });
-                            collection.observe('splice',function splice_observer(index,to_remove){
-                                var children = [];
-                                var i;
-                                for(i = 2; i < arguments.length; ++i)
-                                {
-                                    children.push(arguments[i]);
-                                }
-                                if(to_remove)
-                                {
-                                    for(i = index; i < (index + to_remove); ++i)
+                                collection.observe('push',function push_observer(item){
+                                    ActiveView.render(view,element,item,false);
+                                    collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                                });
+                                collection.observe('unshift',function unshift_observer(item){
+                                    ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
+                                        element.insertBefore(content,element.firstChild);
+                                    });
+                                    collected_elements.unshift(element.firstChild);
+                                });
+                                collection.observe('shift',function shift_observer(){
+                                    element.removeChild(element.firstChild);
+                                    collected_elements.shift(element.firstChild);
+                                });
+                                collection.observe('splice',function splice_observer(index,to_remove){
+                                    var children = [];
+                                    var i;
+                                    for(i = 2; i < arguments.length; ++i)
                                     {
-                                        collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                        children.push(arguments[i]);
                                     }
-                                }
-                                for(i = 0; i < children.length; ++i)
-                                {
-                                    if(index == 0 && i == 0)
+                                    if(to_remove)
                                     {
-                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(content,element.firstChild);
-                                            children[i] = element.firstChild;
-                                        });
+                                        for(i = index; i < (index + to_remove); ++i)
+                                        {
+                                            collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                        }
                                     }
-                                    else
+                                    for(i = 0; i < children.length; ++i)
                                     {
                                         ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
                                             element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
-                                            children[i] = element.childNodes[i + 1];
+                                            children[i] = element.childNodes[index + i];
                                         });
                                     }
-                                }
-                                collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
-                            });
+                                    collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
+                                });
+                            }
                         }
                     }
                 };
@@ -173,6 +189,10 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             changes: function changes(callback)
             {
+                if(!callback || typeof(callback) != 'function')
+                {
+                    throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                }
                 instance.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
                     {
