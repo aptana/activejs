@@ -77,6 +77,12 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         Jaxer.response.setContents(text);
         args.stopped = true;
     },
+    html: function html(html,args)
+    {
+        Jaxer.response.headers['Content-Type'] = 'text/html';
+        Jaxer.response.setContents(html);
+        args.stopped = true;
+    },
     json: function json(json,args)
     {
         if(typeof(json) != 'string')
