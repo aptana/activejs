@@ -721,13 +721,23 @@ ActiveSupport = {
         return dateFormat;
     }(),
     /**
+     * Serializes an object to a JSON string.
+     * @alias ActiveSupport.JSONFromObject
+     * @param {Object} object
+     * @return {String} json
+     */ 
+    JSONFromObject: function JSONFromObject(object)
+    {
+        return ActiveSupport.JSON.stringify(object);
+    },
+    /**
      * Serializes an object to an XML string.
      * @alias ActiveSupport.XMLFromObject
      * @param {String} outer_key_name
      * @param {Object} object
      * @return {String} xml
      */ 
-    XMLFromObject: function(outer_key_name,object)
+    XMLFromObject: function XMLFromObject(outer_key_name,object)
     {
         var indent = 0;
         

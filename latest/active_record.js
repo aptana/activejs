@@ -721,13 +721,23 @@ ActiveSupport = {
         return dateFormat;
     }(),
     /**
+     * Serializes an object to a JSON string.
+     * @alias ActiveSupport.JSONFromObject
+     * @param {Object} object
+     * @return {String} json
+     */ 
+    JSONFromObject: function JSONFromObject(object)
+    {
+        return ActiveSupport.JSON.stringify(object);
+    },
+    /**
      * Serializes an object to an XML string.
      * @alias ActiveSupport.XMLFromObject
      * @param {String} outer_key_name
      * @param {Object} object
      * @return {String} xml
      */ 
-    XMLFromObject: function(outer_key_name,object)
+    XMLFromObject: function XMLFromObject(outer_key_name,object)
     {
         var indent = 0;
         
@@ -1891,7 +1901,14 @@ ActiveRecord = null;
  *     var u = User.find(5);
  *     u.getCommentList().length;
  *     u.createComment({title: 'comment title'});
- *     
+ *
+ * You can name the relationship (and thus the generate methods) by passing
+ * a name parameter:
+ * 
+ *     TreeNode.belongsTo(TreeNode,{name: 'parent'});
+ *     TreeNode.hasMany(TreeNode,{name: 'child'});
+ *     //instance now have, getParent(), getChildList(), methods
+ * 
  * Missing Features
  * ----------------
  * ActiveRecord.js will not support all of the advanced features of the Ruby
@@ -2264,12 +2281,15 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
+     * Serializes the record to an JSON string. If object_to_inject is passed
+     * that object will override any values of the record.
      * @alias ActiveRecord.Instance.toJSON
+     * @param {Object} [object_to_inject]
      * @return {String}
      */
-    toJSON: function toJSON()
+    toJSON: function toJSON(object_to_inject)
     {
-        return ActiveSupport.JSON.stringify(this.toObject());
+        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toObject(),object_to_inject || {}));
     },
     /**
      * Serializes the record to an XML string. If object_to_inject is passed
@@ -4684,7 +4704,7 @@ ActiveRecord.Relationships = Relationships;
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
- *      Can contain {String} "foreignKey", {Boolean} "dependent" keys.
+ *      Can contain {String} "foreignKey", {String} "name", {Boolean} "dependent" keys.
  * @example
  * 
  *     User.hasOne(CreditCard);
@@ -4705,10 +4725,11 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
         options = {};
     }
     related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(related_model_name));
     var class_methods = {};
     var instance_methods = {};
-    instance_methods['get' + related_model_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
+    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
         var id = this.get(foreign_key);
         if (id)
         {
@@ -4719,10 +4740,10 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
             return false;
         }
     }, related_model_name, foreign_key);
-    class_methods['build' + related_model_name] = instance_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+    class_methods['build' + relationship_name] = instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
         return ActiveRecord.Models[related_model_name].build(params || {});
     }, related_model_name, foreign_key);
-    instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].create(params || {});
         if(this.get('id'))
         {
@@ -4737,7 +4758,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     if(options.dependent)
     {
         this.observe('afterDestroy',function destroyRelatedDependent(record){
-            var child = record['get' + related_model_name]();
+            var child = record['get' + relationship_name]();
             if(child)
             {
                 child.destroy();
@@ -4752,7 +4773,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
- *      Can contain {String} "foreignKey", {Boolean} "dependent", {String} "order" and {String} "where" keys.
+ *      Can contain {String} "foreignKey", {Sting} "name", {Boolean} "dependent", {String} "order" and {String} "where" keys.
  * @example
  *
  *     User.hasMany('comments',{
@@ -4776,6 +4797,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         options = {};
     }
     related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
     var original_related_model_name = related_model_name;
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(this.modelName));
     var class_methods = {};
@@ -4784,7 +4806,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     if(options.through)
     {
         var through_model_name = Relationships.normalizeModelName(options.through);
-        instance_methods['get' + related_model_name + 'List'] = ActiveSupport.curry(function getRelatedListForThrough(through_model_name, related_model_name, foreign_key, params){
+        instance_methods['get' + relationship_name + 'List'] = ActiveSupport.curry(function getRelatedListForThrough(through_model_name, related_model_name, foreign_key, params){
             var related_list = this['get' + through_model_name + 'List']();
             var ids = [];
             var response = [];
@@ -4795,7 +4817,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             return response;
         }, through_model_name, related_model_name, foreign_key);
         
-        instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
+        instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
             if(!params)
             {
                 params = {};
@@ -4810,7 +4832,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     }
     else
     {
-        instance_methods['destroy' + related_model_name] = class_methods['destroy' + related_model_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
+        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
             var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) == 'function') ? params.get('id') : params);
             if (record)
             {
@@ -4822,7 +4844,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             }
         }, related_model_name, foreign_key);
 
-        instance_methods['get' + related_model_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
+        instance_methods['get' + relationship_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
             if(!params)
             {
                 params = {};
@@ -4844,7 +4866,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             return ActiveRecord.Models[related_model_name].find(params);
         }, related_model_name, foreign_key);
 
-        instance_methods['get' + related_model_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
+        instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
             if(!params)
             {
                 params = {};
@@ -4857,7 +4879,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             return ActiveRecord.Models[related_model_name].count(params);
         }, related_model_name, foreign_key);
 
-        instance_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+        instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
             if(!params)
             {
                 params = {};
@@ -4866,7 +4888,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             return ActiveRecord.Models[related_model_name].build(params);
         }, related_model_name, foreign_key);
 
-        instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+        instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
             if(!params)
             {
                 params = {};
@@ -4883,7 +4905,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     if(options.dependent)
     {
         this.observe('afterDestroy', function destroyDependentChildren(record){
-            var list = record['get' + related_model_name + 'List']();
+            var list = record['get' + relationship_name + 'List']();
             ActiveRecord.connection.log('Relationships.hasMany destroy ' + list.length + ' dependent ' + related_model_name + ' children of ' + record.modelName);
             for(var i = 0; i < list.length; ++i)
             {
@@ -4899,7 +4921,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
- *      Can contain {String} "foreignKey", {String} "counter" keys.
+ *      Can contain {String} "foreignKey", {String} name, {String} "counter" keys.
  * @example
  *
  *     Comment.belongsTo('User',{
@@ -4921,10 +4943,11 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
         options = {};
     }
     related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, related_model_name);
     var class_methods = {};
     var instance_methods = {};
-    instance_methods['get' + related_model_name] = ActiveSupport.curry(function getRelated(related_model_name,foreign_key){
+    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name,foreign_key){
         var id = this.get(foreign_key);
         if (id)
         {
@@ -4935,7 +4958,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             return false;
         }
     }, related_model_name, foreign_key);
-    instance_methods['build' + related_model_name] = class_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+    instance_methods['build' + relationship_name] = class_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].build(params || {});
         if(options.counter)
         {
@@ -4943,7 +4966,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
         }
         return record;
     }, related_model_name, foreign_key);
-    instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = this['build' + related_model_name](params);
         if(record.save() && this.get('id'))
         {
@@ -4958,7 +4981,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
     if(options.counter)
     {
         this.observe('afterDestroy', function decrementBelongsToCounter(record){
-            var child = record['get' + related_model_name]();
+            var child = record['get' + relationship_name]();
             if(child)
             {
                 var current_value = child.get(options.counter);
@@ -4970,7 +4993,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             }
         });
         this.observe('afterCreate', function incrimentBelongsToCounter(record){
-            var child = record['get' + related_model_name]();
+            var child = record['get' + relationship_name]();
             if(child)
             {
                 var current_value = child.get(options.counter);
