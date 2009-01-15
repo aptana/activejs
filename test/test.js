@@ -362,6 +362,9 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             
             //field type testing
             
+            var field_test_zero = new FieldTypeTester();
+            assert(field_test_zero.string_field == '' && field_test_zero.number_field == 0 && field_test_zero.default_value_field == 'DEFAULT' && field_test_zero.custom_type_field_with_default == 'DEFAULT','correct default values are set on initialize()');            
+            
             var field_test_one = FieldTypeTester.create({
                 string_field: 'a',
                 number_field: 1,
