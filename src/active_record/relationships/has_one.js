@@ -31,7 +31,7 @@
  * @param {String} related_model_name
  *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * @param {Object} [options]
- *      Can contain {String} "foreignKey", {Boolean} "dependent" keys.
+ *      Can contain {String} "foreignKey", {String} "name", {Boolean} "dependent" keys.
  * @example
  * 
  *     User.hasOne(CreditCard);
@@ -52,10 +52,11 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
         options = {};
     }
     related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(related_model_name));
     var class_methods = {};
     var instance_methods = {};
-    instance_methods['get' + related_model_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
+    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
         var id = this.get(foreign_key);
         if (id)
         {
@@ -66,10 +67,10 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
             return false;
         }
     }, related_model_name, foreign_key);
-    class_methods['build' + related_model_name] = instance_methods['build' + related_model_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+    class_methods['build' + relationship_name] = instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
         return ActiveRecord.Models[related_model_name].build(params || {});
     }, related_model_name, foreign_key);
-    instance_methods['create' + related_model_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].create(params || {});
         if(this.get('id'))
         {
@@ -84,7 +85,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     if(options.dependent)
     {
         this.observe('afterDestroy',function destroyRelatedDependent(record){
-            var child = record['get' + related_model_name]();
+            var child = record['get' + relationship_name]();
             if(child)
             {
                 child.destroy();

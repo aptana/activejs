@@ -373,7 +373,14 @@
  *     var u = User.find(5);
  *     u.getCommentList().length;
  *     u.createComment({title: 'comment title'});
- *     
+ *
+ * You can name the relationship (and thus the generate methods) by passing
+ * a name parameter:
+ * 
+ *     TreeNode.belongsTo(TreeNode,{name: 'parent'});
+ *     TreeNode.hasMany(TreeNode,{name: 'child'});
+ *     //instance now have, getParent(), getChildList(), methods
+ * 
  * Missing Features
  * ----------------
  * ActiveRecord.js will not support all of the advanced features of the Ruby
