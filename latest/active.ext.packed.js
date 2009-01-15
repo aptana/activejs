@@ -7434,7 +7434,12 @@ var Migrations = {
         model.observe('afterInitialize', function applyFieldOut(record){
             for (var key in fields)
             {
-                record.set(key,ActiveRecord.connection.fieldOut(fields[key], record.get(key)));
+                var value = ActiveRecord.connection.fieldOut(fields[key], record.get(key));
+                if(Migrations.objectIsFieldDefinition(value))
+                {
+                    value = value.value;
+                }
+                record.set(key,value);
             }
         });
         model.observe('beforeSave', function applyFieldIn(record){
