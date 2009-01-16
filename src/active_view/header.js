@@ -25,6 +25,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveView = null;
+var ActiveView = null;
 
 (function(){

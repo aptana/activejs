@@ -68,50 +68,6 @@
  *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
  */
 
-/**
- * If the table for your ActiveRecord does not exist, this will define the
- * ActiveRecord and automatically create the table.
- * @alias ActiveRecord.define
- * @param {String} table_name
- * @param {Object} fields
- *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
- * @param {Object} [methods]
- * @param {Function} [readyCallback]
- *      Must be specified if running in asynchronous mode.
- * @return {Object}
- * @example
- * 
- *     var User = ActiveRecord.define('users',{
- *         name: '',
- *         password: '',
- *         comment_count: 0,
- *         profile: {
- *             type: 'text',
- *             value: ''
- *         },
- *         serializable_field: {}
- *     });
- *     var u = User.create({
- *         name: 'alice',
- *         serializable_field: {a: '1', b: '2'}
- *     }); 
- */
-ActiveRecord.define = function define(table_name, fields, methods)
-{
-    //clean field definition
-    for(var field_name in fields)
-    {
-        if(typeof(fields[field_name]) == 'object' && fields[field_name].type && !('value' in fields[field_name]))
-        {
-            fields[field_name].value = null;
-        }
-    }
-    var model = ActiveRecord.create(table_name,methods);
-    Migrations.Schema.createTable(table_name,fields);
-    Migrations.applyTypeConversionCallbacks(model,fields);
-    return model;
-};
-
 var Migrations = {
     fieldTypesWithDefaultValues: {
         'tinyint': 0,
@@ -155,7 +111,7 @@ var Migrations = {
      */
     migrate: function migrate(target)
     {
-        if(typeof(target) == 'undefined' || target === false)
+        if(typeof(target) === 'undefined' || target === false)
         {
             target = Migrations.max();
         }
@@ -226,16 +182,16 @@ var Migrations = {
      */
     max: function max()
     {
-        var max = 0;
+        var maxVal = 0;
         for(var key_name in Migrations.migrations)
         {
-            key_name = parseInt(key_name);
-            if(key_name > max)
+            key_name = parseInt(key_name, 10);
+            if(key_name > maxVal)
             {
-                max = key_name;
+                maxVal = key_name;
             }
         }
-        return max;
+        return maxVal;
     },
     setup: function setMigrationsTable()
     {
@@ -276,21 +232,21 @@ var Migrations = {
         var keys = [];
         for(var key_name in Migrations.migrations)
         {
-            key_name = parseInt(key_name);
-            if((direction == 'up' && key_name > index) || (direction == 'down' && key_name < index))
+            key_name = parseInt(key_name, 10);
+            if((direction === 'up' && key_name > index) || (direction === 'down' && key_name < index))
             {
                 keys.push(key_name);
             }
         }
         keys = keys.sort();
-        if(direction == 'down')
+        if(direction === 'down')
         {
             keys = keys.reverse();
         }
         var migrations = [];
         for(var i = 0; i < keys.length; ++i)
         {
-            if((direction == 'down' && typeof(target) != 'undefined' && target > keys[i]) || (direction == 'up' && typeof(target) != 'undefined' && target < keys[i]))
+            if((direction === 'down' && typeof(target) !== 'undefined' && target > keys[i]) || (direction === 'up' && typeof(target) !== 'undefined' && target < keys[i]))
             {
                 break;
             }
@@ -334,7 +290,7 @@ var Migrations = {
     },
     objectIsFieldDefinition: function objectIsFieldDefinition(object)
     {
-        return typeof(object) == 'object' && ActiveSupport.keys(object).length == 2 && ('type' in object) && ('value' in object);
+        return typeof(object) === 'object' && ActiveSupport.keys(object).length === 2 && ('type' in object) && ('value' in object);
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
@@ -396,6 +352,50 @@ var Migrations = {
             return ActiveRecord.connection.removeIndex(table_name,index_name);
         }
     }
+};
+
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
+ActiveRecord.define = function define(table_name, fields, methods)
+{
+    //clean field definition
+    for(var field_name in fields)
+    {
+        if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
+        {
+            fields[field_name].value = null;
+        }
+    }
+    var model = ActiveRecord.create(table_name,methods);
+    Migrations.Schema.createTable(table_name,fields);
+    Migrations.applyTypeConversionCallbacks(model,fields);
+    return model;
 };
 
 ActiveRecord.Migrations = Migrations;

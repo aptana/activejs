@@ -25,7 +25,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveController = {};
+var ActiveController = {};
 
 ActiveController.logging = false;
 
@@ -35,7 +35,7 @@ ActiveController.create = function create(actions,methods)
         this.container = container || ActiveController.createDefaultContainer();
         this.renderTarget = this.container;
         this.layoutRendered = false;
-        if(this.layout && typeof(this.layout) == 'function')
+        if(this.layout && typeof(this.layout) === 'function')
         {
             this.layout = ActiveSupport.bind(this.layout,this);
         }
@@ -108,7 +108,7 @@ var InstanceMethods = {
     },
     renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
     {
-        if(typeof(params) != 'object')
+        if(typeof(params) !== 'object')
         {
             throw Errors.InvalidRenderParams;
         }
@@ -133,7 +133,7 @@ ActiveController.InstanceMethods = InstanceMethods;
 var RenderFlags = {
     view: function view(view_class,args)
     {
-        if(typeof(view_class) == 'string')
+        if(typeof(view_class) === 'string')
         {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)

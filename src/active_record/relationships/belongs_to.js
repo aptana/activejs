@@ -95,11 +95,11 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             if(child)
             {
                 var current_value = child.get(options.counter);
-                if(typeof(current_value) == 'undefined')
+                if(typeof(current_value) === 'undefined')
                 {
                     current_value = 0;
                 }
-                child.updateAttribute(options.counter, Math.max(0, parseInt(current_value) - 1));
+                child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
             }
         });
         this.observe('afterCreate', function incrimentBelongsToCounter(record){
@@ -107,11 +107,11 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             if(child)
             {
                 var current_value = child.get(options.counter);
-                if(typeof(current_value) == 'undefined')
+                if(typeof(current_value) === 'undefined')
                 {
                     current_value = 0;
                 }
-                child.updateAttribute(options.counter, parseInt(current_value) + 1);
+                child.updateAttribute(options.counter, parseInt(current_value, 10) + 1);
             }
         });
     }

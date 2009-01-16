@@ -35,7 +35,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     set: function set(key, value)
     {
-        if (typeof(this[key]) != "function")
+        if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
@@ -68,12 +68,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     keys: function keys()
     {
-        var keys = [];
+        var keysArray = [];
         for(var key_name in this._object)
         {
-            keys.push(key_name);
+            keysArray.push(key_name);
         }
-        return keys;
+        return keysArray;
     },
     /**
      * Returns an array of the column values that the instance contains.
@@ -82,12 +82,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     values: function values()
     {
-        var values = [];
+        var valuesArray = [];
         for(var key_name in this._object)
         {
-            values.push(this._object[key_name]);
+            valuesArray.push(this._object[key_name]);
         }
-        return values;
+        return valuesArray;
     },
     /**
      * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
@@ -259,11 +259,12 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     find: function find(params)
     {
+        var result;
         if (!params)
         {
             params = {};
         }
-        if (params.first || typeof(params) == "number" || (typeof(params) == "string" && params.match(/^\d+$/)))
+        if (params.first || typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/)))
         {
             if (params.first)
             {
@@ -279,7 +280,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     }
                 });
             }
-            var result = ActiveRecord.connection.findEntities(this.tableName,params);
+            result = ActiveRecord.connection.findEntities(this.tableName,params);
             if (result && result.iterate && result.iterate(0))
             {
                 return this.build(result.iterate(0));
@@ -291,8 +292,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var result = null;
-            if (typeof(params) == 'string')
+            result = null;
+            if (typeof(params) === 'string')
             {
                 //find by sql
                 result = ActiveRecord.connection.findEntities(params);
@@ -338,7 +339,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter)); //ensure number is a copy
+        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
         return record;
     },
     /**
@@ -377,7 +378,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
-        if(typeof(id.length) != 'undefined')
+        if(typeof(id.length) !== 'undefined')
         {
             var results = [];
             for(var i = 0; i < id.length; ++i)

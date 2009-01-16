@@ -24,6 +24,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
+ 
+ /**
+ * @namespace {ActiveRecord.Adapters}
+ */
+ var Adapters = {};
 
 /**
  * null if no connection is active, or the class that created the connection.
@@ -47,7 +52,7 @@ ActiveRecord.connection = null;
  * @example
  * 
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *     ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite;
  *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
  *     //or you can have ActiveRecord try to auto detect the enviornment
  *     ActiveRecord.connect();
@@ -86,22 +91,17 @@ ActiveRecord.execute = function execute()
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
 
-/**
-* @namespace {ActiveRecord.Adapters}
-*/
-var Adapters = {};
-
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
         //no value was passed
-        if (value == null || typeof(value) == 'undefined')
+        if (value === null || typeof(value) === 'undefined')
         {
             //default value was in field specification
             if(Migrations.objectIsFieldDefinition(field))
             {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
-                if(typeof(default_value) == 'undefined')
+                if(typeof(default_value) === 'undefined')
                 {
                     throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
                 }
@@ -117,15 +117,15 @@ Adapters.InstanceMethods = {
     },
     getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
     {
-        return key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+        return key + ' ' + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
     },
     getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
     {
-        if (typeof(value) == 'string')
+        if (typeof(value) === 'string')
         {
             return 'VARCHAR(255)';
         }
-        if (typeof(value) == 'number')
+        if (typeof(value) === 'number')
         {
             return 'INT';
         }

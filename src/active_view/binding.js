@@ -30,16 +30,16 @@ ActiveView.generateBinding = function generateBinding(instance)
     instance.binding = {};
     instance.binding.update = function update(element)
     {
-        if(!element || !element.nodeType == 1)
+        if(!element || !element.nodeType === 1)
         {
-            console.log(element)
+            console.log(element);
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {
             from: function from(observe_key)
             {
                 var object = instance.scope;
-                if(arguments.length == 2)
+                if(arguments.length === 2)
                 {
                     object = arguments[1];
                     observe_key = arguments[2];
@@ -52,7 +52,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 
                 var transform = function transform(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -64,7 +64,7 @@ ActiveView.generateBinding = function generateBinding(instance)
 
                 var when = function when(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -101,19 +101,19 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             from: function from(collection)
             {
-                if(!collection || (typeof(collection) != 'object' && typeof(collection) != 'string'))
+                if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
                     throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
                 }
                 return {
                     into: function into(element)
                     {
-                        if(!element || !element.nodeType == 1)
+                        if(!element || !element.nodeType === 1)
                         {
                             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
-                        if(typeof(collection) == 'string')
+                        if(typeof(collection) === 'string')
                         {
                             var collection_name = collection;
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
@@ -171,7 +171,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     for(i = 0; i < children.length; ++i)
                                     {
                                         ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            element.insertBefore(typeof(content) === 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
                                             children[i] = element.childNodes[index + i];
                                         });
                                     }
@@ -190,7 +190,7 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             changes: function changes(callback)
             {
-                if(!callback || typeof(callback) != 'function')
+                if(!callback || typeof(callback) !== 'function')
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }

@@ -54,16 +54,17 @@ Synchronization.setupNotifications = function setupNotifications(record)
 
 Synchronization.triggerSynchronizationNotifications = function triggerSynchronizationNotifications(record,event_name)
 {
+    var found_records, internal_count_id;
     if(!Synchronization.setupNotifications(record))
     {
         return false;
     }
-    if(event_name == 'afterSave')
+    if(event_name === 'afterSave')
     {
-        var found_records = Synchronization.notifications[record.tableName][record.id];
-        for(var internal_count_id in found_records)
+        found_records = Synchronization.notifications[record.tableName][record.id];
+        for(internal_count_id in found_records)
         {
-            if(internal_count_id != record.internalCount)
+            if(internal_count_id !== record.internalCount)
             {
                 var found_record = found_records[internal_count_id];
                 var keys = found_record.keys();
@@ -76,7 +77,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
             }
         }
     }
-    else if(event_name == 'afterDestroy' || event_name == 'afterCreate')
+    else if(event_name === 'afterDestroy' || event_name === 'afterCreate')
     {
         if(Synchronization.calculationNotifications[record.tableName])
         {
@@ -93,18 +94,18 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
                 var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
-                for(var i = 0; i < splices.length; ++i)
+                for(var x = 0; i < splices.length; ++i)
                 {
-                    old_result_set.splice.apply(old_result_set,splices[i]);
+                    old_result_set.splice.apply(old_result_set,splices[x]);
                 }
             }
         }
-        if(event_name == 'afterDestroy')
+        if(event_name === 'afterDestroy')
         {
-            var found_records = Synchronization.notifications[record.tableName][record.id];
-            for(var internal_count_id in found_records)
+            found_records = Synchronization.notifications[record.tableName][record.id];
+            for(internal_count_id in found_records)
             {
-                if(internal_count_id != record.internalCount)
+                if(internal_count_id !== record.internalCount)
                 {
                     found_records[internal_count_id].notify('synchronization:afterDestroy');
                     Synchronization.notifications[record.tableName][record.id][internal_count_id] = null;
@@ -198,22 +199,22 @@ Synchronization.synchronizeResultSet = function synchronizeResultSet(klass,param
 Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromResultSetDiff(a,b,event_name)
 {
     var diffs = [];
-    if(event_name == 'afterCreate')
+    if(event_name === 'afterCreate')
     {
         for(var i = 0; i < b.length; ++i)
         {
-            if(!a[i] || (a[i] && (a[i].id != b[i].id)))
+            if(!a[i] || (a[i] && (a[i].id !== b[i].id)))
             {
                 diffs.push([i,null,b[i]]);
                 break;
             }
         }
     }
-    else if(event_name == 'afterDestroy')
+    else if(event_name === 'afterDestroy')
     {
         for(var i = 0; i < a.length; ++i)
         {
-            if(!b[i] || (b[i] && (b[i].id != a[i].id)))
+            if(!b[i] || (b[i] && (b[i].id !== a[i].id)))
             {
                 diffs.push([i,1]);
                 break;

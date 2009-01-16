@@ -36,7 +36,7 @@ var Relationships = {
     {
         var plural = ActiveSupport.underscore(related_model_name).toLowerCase();
         var singular = ActiveSupport.Inflector.singularize(plural);
-        if (!foreign_key || typeof(foreign_key) == 'undefined')
+        if (!foreign_key || typeof(foreign_key) === 'undefined')
         {
             return (singular || plural) + '_id';
         }

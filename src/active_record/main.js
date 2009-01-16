@@ -141,10 +141,10 @@
  * way:
  * 
  *     ActiveRecord.ClassMethods.myClassMethod = function(){
- *         //this == model class
+ *         //this === model class
  *     };
  *     ActiveRecord.InstanceMethods.myInstanceMethod = function(){
- *         // this == model instance
+ *         // this === model instance
  *     };
  * 
  * Getters & Setters
@@ -211,7 +211,7 @@
  *     aaron_clone.set('name','Aaron!');
  *     aaron_clone.save();
  * 
- *     aaron.get('name') == 'Aaron!';
+ *     aaron.get('name') === 'Aaron!';
  *     aaron.stop(); //record will no longer be synchronized
  * 
  *     var users = User.find({
@@ -489,7 +489,7 @@ ActiveRecord = {
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
         //user defined take precedence
-        if(methods && typeof(methods) != 'function')
+        if(methods && typeof(methods) !== 'function')
         {
             ActiveSupport.extend(model.prototype, methods || {});
         }

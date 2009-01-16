@@ -91,7 +91,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     else
     {
         instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
-            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) == 'function') ? params.get('id') : params);
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get('id') : params);
             if (record)
             {
                 return record.destroy();
