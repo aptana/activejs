@@ -25,9 +25,9 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-$break = {};
+var $break = {};
 
-ActiveTest = {
+var ActiveTest = {
     pass: 0,
     fail: 0,
     error: 0,
@@ -44,19 +44,19 @@ ActiveTest = {
     {
         try
         {
-            var pass = !!(typeof(condition) == 'function' ? condition() : condition);
+            var pass = !!(typeof(condition) === 'function' ? condition() : condition);
             ++ActiveTest[pass ? 'pass' : 'fail'];
             ActiveTest.log((pass ? 'Pass' : 'Fail') + (note ? ': ' + note : ''));
             if(!pass)
             {
-                ActiveTest.log('FAILED')
+                ActiveTest.log('FAILED');
                 ActiveTest.log('');
                 throw $break;
             }
         }
         catch(e)
         {
-            if(e == $break)
+            if(e === $break)
             {
                 throw e;
             }
@@ -85,7 +85,7 @@ ActiveTest = {
             }
             for(var test_name in ActiveTest.Tests[group_name])
             {
-                if(test_name != 'setup' && test_name != 'teardown' && test_name != 'cleanup')
+                if(test_name !== 'setup' && test_name !== 'teardown' && test_name !== 'cleanup')
                 {            
                     stack.push(ActiveSupport.curry(function(test_name){
                         ActiveTest.currentTestName = test_name;
@@ -95,7 +95,7 @@ ActiveTest = {
                         }
                         catch(e)
                         {
-                            if(e != $break)
+                            if(e !== $break)
                             {
                                 throw e;
                             }

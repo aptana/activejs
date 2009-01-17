@@ -60,7 +60,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
         {
             result.iterate = function iterate(iterator)
             {
-                if (typeof(iterator) == 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {

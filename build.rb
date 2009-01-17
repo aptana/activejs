@@ -27,7 +27,8 @@ JSON.parse(File.read(File.join(File.dirname(__FILE__),'build.json'))).each do |t
       end
     end
     target_file.close
-    if(target['compress'] && (ARGV[0] && ARGV[0] == 'compress'))
+    #if(target['compress'] && (ARGV[0] && ARGV[0] == 'compress'))
+    if(target['compress'])
       buffer = File.read(File.join(File.dirname(__FILE__),target['output']))
       target_file = File.new(File.join(File.dirname(__FILE__),target['output']),'w+')
       buffer = Packr.pack(buffer, :shrink_vars => true, :base62 => true)
