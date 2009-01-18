@@ -3833,14 +3833,14 @@ ActiveRecord = null;
  * JavaScript does not have true static methods or classes, but in this case any
  * method of the User variable above is refered to as a class method, and any
  * method of a particular user (that the User class would find) is refered to as
- * an instance method. The most important class methods as create() and find():
+ * an instance method. The most important class methods are create() and find():
  * 
  *     var jessica = User.create({
  *         username: 'Jessica',
  *         password: 'rabbit'
  *     });
  * 
- * To add new class or instance methods to all ActiveRecord models in the following
+ * Add new class or instance methods to all ActiveRecord models in the following
  * way:
  * 
  *     ActiveRecord.ClassMethods.myClassMethod = function(){
