@@ -111,7 +111,7 @@
  *     var m = new Message();
  *     
  *     var observer = m.observe('send',function(message,text){
- *         if(text == 'test')
+ *         if(text === 'test')
  *             return false;
  *     });
  *     
@@ -170,7 +170,7 @@
  *       h.set('b','two');
  *   });
  */
-ActiveEvent = null;
+var ActiveEvent = null;
 
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
@@ -247,7 +247,7 @@ ActiveEvent.extend = function extend(object){
      */
     object.observe = function observe(event_name,observer)
     {
-        if(typeof(event_name) == 'string' && typeof(observer) != 'undefined')
+        if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
             if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
@@ -358,7 +358,7 @@ ActiveEvent.extend = function extend(object){
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
             var response;
-            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
             {
                 response = this.options[event_name].apply(this,args);
                 if(response === false)

@@ -32,7 +32,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if(typeof(params) == 'string')
+        if(typeof(params) === 'string')
         {
             params = {
                 where: params

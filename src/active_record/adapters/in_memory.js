@@ -31,7 +31,7 @@
  * @property {ActiveRecord.Adapter}
  */
 Adapters.InMemory = function InMemory(storage){
-    this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
+    this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
 };
 
@@ -71,9 +71,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             for(var id in table_data)
             {
-                if(parseInt(id) >= max)
+                if(parseInt(id, 10) >= max)
                 {
-                    max = parseInt(id) + 1;
+                    max = parseInt(id, 10) + 1;
                 }
             }
             data.id = max;
@@ -119,9 +119,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 var max = 0;
                 for(var i = 0; i < entities.length; ++i)
                 {
-                    if(parseInt(entities[i][column_name]) > max)
+                    if(parseInt(entities[i][column_name], 10) > max)
                     {
-                        max = parseInt(entities[i][column_name]);
+                        max = parseInt(entities[i][column_name], 10);
                     }
                 }
                 return max;
@@ -146,13 +146,13 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 {
                     sum += entities[i][column_name];
                 }
-                return operation_type == 'avg' ? sum / entities.length : sum;
+                return operation_type === 'avg' ? sum / entities.length : sum;
         }
     },
     deleteEntity: function deleteEntity(table, id)
     {
         this.setupTable(table);
-        if(!id || id == 'all')
+        if(!id || id === 'all')
         {
             for(var id_to_be_deleted in this.storage[table])
             {
@@ -171,14 +171,14 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     findEntities: function findEntities(table, params)
     {
-        if (typeof(table) == 'string' && !params)
+        if (typeof(table) === 'string' && !params)
         {
             //find by SQL
             var response = this.paramsFromSQLString(table);
             table = response[0];
             params = response[1];
         }
-        else if(typeof(params) == 'undefined')
+        else if(typeof(params) === 'undefined')
         {
             params = {};
         }
@@ -187,9 +187,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var table_data = this.storage[table];
         if(params && params.where && params.where.id)
         {
-            if(table_data[parseInt(params.where.id)])
+            if(table_data[parseInt(params.where.id, 10)])
             {
-                entity_array.push(table_data[parseInt(params.where.id)]);
+                entity_array.push(table_data[parseInt(params.where.id, 10)]);
             }
         }
         else
@@ -269,7 +269,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         result.iterate = function iterate(iterator)
         {
-            if (typeof(iterator) == 'number')
+            if (typeof(iterator) === 'number')
             {
                 if (this[iterator])
                 {
@@ -300,7 +300,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     createWhere: function createWhere(where)
     {
-        if(typeof(where) == 'string'){
+        if(typeof(where) === 'string'){
             return function json_result_where_processor(result_set)
             {
                 var response = [];
@@ -348,7 +348,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     createOrderBy: function createOrderBy(order_by)
     {
-        if(!order_by || order_by == '')
+        if(!order_by || order_by === '')
         {
             return function json_result_order_by_processor(result_set)
             {
@@ -367,7 +367,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             {
                 var trimmed_order_statements_bits = trimmed_order_statements[i].split(/\s/);
                 var column_name = trimmed_order_statements_bits[0];
-                var reverse = trimmed_order_statements_bits[1] && trimmed_order_statements_bits[1] == 'desc';
+                var reverse = trimmed_order_statements_bits[1] && trimmed_order_statements_bits[1] === 'desc';
                 result_set = result_set.sort(function result_set_sorter(a,b){
                     return a[column_name] < b[column_name] ? -1 : a[column_name] > b[column_name] ? 1 : 0;
                 });

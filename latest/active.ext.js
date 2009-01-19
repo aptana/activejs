@@ -1459,7 +1459,7 @@ scope.Sizzle = Sizzle;
  *  Prototype.js framework, without modifying any built in prototypes to
  *  ensure compatibility and portability.
  */
-ActiveSupport = null;
+var ActiveSupport = null;
 
 (function(global_context){
 ActiveSupport = {
@@ -1487,7 +1487,7 @@ ActiveSupport = {
         var klass = context[class_name];
         if(!klass)
         {
-            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) !== 'undefined');
             if(trigger_no_such_method)
             {
                 try
@@ -1510,15 +1510,15 @@ ActiveSupport = {
      */
     log: function log()
     {
-        if(typeof(Jaxer) != 'undefined')
+        if(typeof(Jaxer) !== 'undefined')
         {
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) != 'undefined')
+        else if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) != 'undefined')
+        else if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
@@ -1553,7 +1553,7 @@ ActiveSupport = {
      */
     indexOf: function indexOf(array,item,i)
     {
-        i || (i = 0);
+        i = i || (0);
         var length = array.length;
         if(i < 0)
         {
@@ -1599,7 +1599,7 @@ ActiveSupport = {
     {
         func.bind = function bind()
         {
-            if (arguments.length < 2 && typeof(arguments[0]) == "undefined")
+            if (arguments.length < 2 && typeof(arguments[0]) === "undefined")
             {
                 return this;
             }
@@ -1673,12 +1673,12 @@ ActiveSupport = {
      */
     keys: function keys(object)
     {
-        var keys = [];
+        var keysArray = [];
         for (var property in object)
         {
-            keys.push(property);
+            keysArray.push(property);
         }
-        return keys;
+        return keysArray;
     },
     /**
      * Emulates Prototype's String.prototype.underscore
@@ -1702,8 +1702,9 @@ ActiveSupport = {
      * @return {String}
      */
     camelize: function camelize(str, capitalize){
-        var parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
-        if (len == 1)
+        var camelized,
+            parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
+        if (len === 1)
         {
             if(capitalize)
             {
@@ -1714,13 +1715,13 @@ ActiveSupport = {
                 return parts[0];
             }
         }
-        if(str.charAt(0) == '-')
+        if(str.charAt(0) === '-')
         {
-            var camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+            camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
         }
         else
         {
-            var camelized = parts[0];
+            camelized = parts[0];
         }
         for (var i = 1; i < len; i++)
         {
@@ -1770,7 +1771,7 @@ ActiveSupport = {
      */
     proc: function proc(proc)
     {
-        return typeof(proc) == 'function' ? proc : function(){return proc;};
+        return typeof(proc) === 'function' ? proc : function(){return proc;};
     },
     
     /**
@@ -1782,7 +1783,7 @@ ActiveSupport = {
      */
     value: function value(value)
     {
-        return typeof(value) == 'function' ? value() : value;
+        return typeof(value) === 'function' ? value() : value;
     },
     
     /**
@@ -1795,7 +1796,7 @@ ActiveSupport = {
      */
     block: function block(args)
     {
-        if(typeof(args) == 'number' || !args)
+        if(typeof(args) === 'number' || !args)
         {
             var up = arguments.callee;
             for(var i = 0; i <= (args || 0); ++i)
@@ -1808,7 +1809,7 @@ ActiveSupport = {
             }
             args = up.arguments;
         }
-        return (args.length == 0 || typeof(args[args.length - 1]) != 'function') ? false : args[args.length - 1];
+        return (args.length === 0 || typeof(args[args.length - 1]) !== 'function') ? false : args[args.length - 1];
     },
     
     /**
@@ -1841,7 +1842,7 @@ ActiveSupport = {
                         delete stack.waiting[i];
                     }
                 }
-                if(all_present && i == stack.length)
+                if(all_present && i === stack.length)
                 {
                     if(finish)
                     {
@@ -1853,7 +1854,7 @@ ActiveSupport = {
             return wrapped;
         };
         execute(stack,scope);
-        if(stack.length == 0 && finish)
+        if(stack.length === 0 && finish)
         {
             finish(scope);
         }
@@ -1935,13 +1936,13 @@ ActiveSupport = {
          */
         ordinalize: function ordinalize(number)
         {
-            if (11 <= parseInt(number) % 100 && parseInt(number) % 100 <= 13)
+            if (11 <= parseInt(number, 10) % 100 && parseInt(number, 10) % 100 <= 13)
             {
                 return number + "th";
             }
             else
             {
-                switch (parseInt(number) % 10)
+                switch (parseInt(number, 10) % 10)
                 {
                     case  1: return number + "st";
                     case  2: return number + "nd";
@@ -1958,24 +1959,25 @@ ActiveSupport = {
          */
         pluralize: function pluralize(word)
         {
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            var i;
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase == uncountable)
+                if (word.toLowerCase === uncountable)
                 {
                     return uncountable;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase == singular) || (word == plural))
+                if ((word.toLowerCase === singular) || (word === plural))
                 {
                     return plural;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
             {
                 var regex = ActiveSupport.Inflector.Inflections.plural[i][0];
                 var replace_string = ActiveSupport.Inflector.Inflections.plural[i][1];
@@ -1992,24 +1994,25 @@ ActiveSupport = {
          * @return {String}
          */
         singularize: function singularize(word) {
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            var i;
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase == uncountable)
+                if (word.toLowerCase === uncountable)
                 {
                     return uncountable;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase == singular) || (word == plural))
+                if ((word.toLowerCase === singular) || (word === plural))
                 {
                     return plural;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
             {
                 var regex = ActiveSupport.Inflector.Inflections.singular[i][0];
                 var replace_string = ActiveSupport.Inflector.Inflections.singular[i][1];
@@ -2042,12 +2045,14 @@ ActiveSupport = {
     dateFormat: function date_format_wrapper()
     {
         var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
-            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
-            timezoneClip = /[^-+\dA-Z]/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[\-\+]\d{4})?)\b/g,
+            timezoneClip = /[^\-\+\dA-Z]/g,
             pad = function (val, len) {
                 val = String(val);
                 len = len || 2;
-                while (val.length < len) val = "0" + val;
+                while (val.length < len) {
+                    val = "0" + val;
+                }
                 return val;
             };
 
@@ -2056,19 +2061,21 @@ ActiveSupport = {
             var dF = dateFormat;
 
             // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
-            if (arguments.length == 1 && (typeof date == "string" || date instanceof String) && !/\d/.test(date)) {
+            if (arguments.length === 1 && (typeof date === "string" || date instanceof String) && !/\d/.test(date)) {
                 mask = date;
                 date = undefined;
             }
 
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
-            if (isNaN(date)) throw new SyntaxError("invalid date");
+            if (isNaN(date)) {
+                throw new SyntaxError("invalid date");
+            }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
 
             // Allow setting the utc argument via the mask
-            if (mask.slice(0, 4) == "UTC:") {
+            if (mask.slice(0, 4) === "UTC:") {
                 mask = mask.slice(4);
                 utc = true;
             }
@@ -2110,7 +2117,7 @@ ActiveSupport = {
                     TT:   H < 12 ? "AM" : "PM",
                     Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
                     o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
-                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 !== 10) * d % 10]
                 };
 
             return mask.replace(token, function ($0) {
@@ -2183,11 +2190,11 @@ ActiveSupport = {
         var serialize_value = function serialize_value(key_name,value,indent)
         {
             var response = '';
-            if(typeof(value) == 'string' || typeof(value) == 'number' || typeof(value) == 'boolean')
+            if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
                 response = '<![CDATA[' + (new String(value)).toString() + ']]>';
             }
-            else if(typeof(value) == 'object')
+            else if(typeof(value) === 'object')
             {
                 response += String.fromCharCode(10);
                 if('length' in value && 'splice' in value)
@@ -2199,7 +2206,7 @@ ActiveSupport = {
                 }
                 else
                 {
-                    var object = value.toObject && typeof(value.toObject) == 'function' ? value.toObject() : value;
+                    var object = value.toObject && typeof(value.toObject) === 'function' ? value.toObject() : value;
                     for(key_name in object)
                     {
                         response += wrap_value(key_name,object[key_name],indent + 1);
@@ -2384,7 +2391,8 @@ ActiveSupport = {
         function f(n) {
             // Format integers to have at least two digits.
             return n < 10 ? '0' + n : n;
-        };
+        }
+        
         Date.prototype.toJSON = function (key) {
             return this.getUTCFullYear()   + '-' +
                  f(this.getUTCMonth() + 1) + '-' +
@@ -2412,6 +2420,7 @@ ActiveSupport = {
                 '\\': '\\\\'
             },
             rep;
+        
         function quote(string) {
             escapeable.lastIndex = 0;
             return escapeable.test(string) ?
@@ -2424,7 +2433,8 @@ ActiveSupport = {
                             (+(a.charCodeAt(0))).toString(16)).slice(-4);
                 }) + '"' :
                 '"' + string + '"';
-        };
+        }
+        
         function str(key, holder) {
             var i,          // The loop counter.
                 k,          // The member key.
@@ -2495,7 +2505,8 @@ ActiveSupport = {
                 gap = mind;
                 return v;
             }
-        };
+        }
+        
         return {
             /**
              * @alias ActiveSupport.JSON.stringify
@@ -2528,6 +2539,7 @@ ActiveSupport = {
              */
             parse: function (text, reviver) {
                 var j;
+                
                 function walk(holder, key) {
                     var k, v, value = holder[key];
                     if (value && typeof value === 'object') {
@@ -2543,7 +2555,8 @@ ActiveSupport = {
                         }
                     }
                     return reviver.call(holder, key, value);
-                };
+                }
+                
                 cx.lastIndex = 0;
                 if (cx.test(text)) {
                     text = text.replace(cx, function (a) {
@@ -2647,7 +2660,7 @@ ActiveSupport = {
  *     var m = new Message();
  *     
  *     var observer = m.observe('send',function(message,text){
- *         if(text == 'test')
+ *         if(text === 'test')
  *             return false;
  *     });
  *     
@@ -2706,7 +2719,7 @@ ActiveSupport = {
  *       h.set('b','two');
  *   });
  */
-ActiveEvent = null;
+var ActiveEvent = null;
 
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
@@ -2783,7 +2796,7 @@ ActiveEvent.extend = function extend(object){
      */
     object.observe = function observe(event_name,observer)
     {
-        if(typeof(event_name) == 'string' && typeof(observer) != 'undefined')
+        if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
             if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
@@ -2894,7 +2907,7 @@ ActiveEvent.extend = function extend(object){
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
             var response;
-            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
             {
                 response = this.options[event_name].apply(this,args);
                 if(response === false)
@@ -3724,7 +3737,7 @@ ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRout
 
 })();
  
-ActiveRecord = null;
+var ActiveRecord = null;
 
 (function() {
 
@@ -3844,10 +3857,10 @@ ActiveRecord = null;
  * way:
  * 
  *     ActiveRecord.ClassMethods.myClassMethod = function(){
- *         //this == model class
+ *         //this === model class
  *     };
  *     ActiveRecord.InstanceMethods.myInstanceMethod = function(){
- *         // this == model instance
+ *         // this === model instance
  *     };
  * 
  * Getters & Setters
@@ -3914,7 +3927,7 @@ ActiveRecord = null;
  *     aaron_clone.set('name','Aaron!');
  *     aaron_clone.save();
  * 
- *     aaron.get('name') == 'Aaron!';
+ *     aaron.get('name') === 'Aaron!';
  *     aaron.stop(); //record will no longer be synchronized
  * 
  *     var users = User.find({
@@ -4192,7 +4205,7 @@ ActiveRecord = {
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
         //user defined take precedence
-        if(methods && typeof(methods) != 'function')
+        if(methods && typeof(methods) !== 'function')
         {
             ActiveSupport.extend(model.prototype, methods || {});
         }
@@ -4242,7 +4255,7 @@ ActiveRecord.observe = function observe(event_name,observer)
 {
     for(var i = 0; i < ActiveRecord.eventNames.length; ++i)
     {
-        if(ActiveRecord.eventNames[i] == event_name)
+        if(ActiveRecord.eventNames[i] === event_name)
         {
             var observers = [];
             var model_observer;
@@ -4295,7 +4308,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     set: function set(key, value)
     {
-        if (typeof(this[key]) != "function")
+        if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
@@ -4328,12 +4341,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     keys: function keys()
     {
-        var keys = [];
+        var keysArray = [];
         for(var key_name in this._object)
         {
-            keys.push(key_name);
+            keysArray.push(key_name);
         }
-        return keys;
+        return keysArray;
     },
     /**
      * Returns an array of the column values that the instance contains.
@@ -4342,12 +4355,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     values: function values()
     {
-        var values = [];
+        var valuesArray = [];
         for(var key_name in this._object)
         {
-            values.push(this._object[key_name]);
+            valuesArray.push(this._object[key_name]);
         }
-        return values;
+        return valuesArray;
     },
     /**
      * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
@@ -4519,11 +4532,12 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     find: function find(params)
     {
+        var result;
         if (!params)
         {
             params = {};
         }
-        if (params.first || typeof(params) == "number" || (typeof(params) == "string" && params.match(/^\d+$/)))
+        if (params.first || typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/)))
         {
             if (params.first)
             {
@@ -4539,7 +4553,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     }
                 });
             }
-            var result = ActiveRecord.connection.findEntities(this.tableName,params);
+            result = ActiveRecord.connection.findEntities(this.tableName,params);
             if (result && result.iterate && result.iterate(0))
             {
                 return this.build(result.iterate(0));
@@ -4551,8 +4565,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var result = null;
-            if (typeof(params) == 'string')
+            result = null;
+            if (typeof(params) === 'string')
             {
                 //find by sql
                 result = ActiveRecord.connection.findEntities(params);
@@ -4598,7 +4612,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter)); //ensure number is a copy
+        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
         return record;
     },
     /**
@@ -4637,7 +4651,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
-        if(typeof(id.length) != 'undefined')
+        if(typeof(id.length) !== 'undefined')
         {
             var results = [];
             for(var i = 0; i < id.length; ++i)
@@ -4704,7 +4718,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if(typeof(params) == 'string')
+        if(typeof(params) === 'string')
         {
             params = {
                 where: params
@@ -4801,6 +4815,11 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         });
     }
 });
+ 
+ /**
+ * @namespace {ActiveRecord.Adapters}
+ */
+ var Adapters = {};
 
 /**
  * null if no connection is active, or the class that created the connection.
@@ -4824,7 +4843,7 @@ ActiveRecord.connection = null;
  * @example
  * 
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *     ActiveRecord.adapter == ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite;
  *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
  *     //or you can have ActiveRecord try to auto detect the enviornment
  *     ActiveRecord.connect();
@@ -4863,22 +4882,17 @@ ActiveRecord.execute = function execute()
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
 
-/**
-* @namespace {ActiveRecord.Adapters}
-*/
-var Adapters = {};
-
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
         //no value was passed
-        if (value == null || typeof(value) == 'undefined')
+        if (value === null || typeof(value) === 'undefined')
         {
             //default value was in field specification
             if(Migrations.objectIsFieldDefinition(field))
             {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
-                if(typeof(default_value) == 'undefined')
+                if(typeof(default_value) === 'undefined')
                 {
                     throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
                 }
@@ -4894,15 +4908,15 @@ Adapters.InstanceMethods = {
     },
     getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
     {
-        return key + ' ' + ((typeof(columns[key]) == 'object' && typeof(columns[key].type) != 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+        return key + ' ' + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
     },
     getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
     {
-        if (typeof(value) == 'string')
+        if (typeof(value) === 'string')
         {
             return 'VARCHAR(255)';
         }
-        if (typeof(value) == 'number')
+        if (typeof(value) === 'number')
         {
             return 'INT';
         }
@@ -4939,7 +4953,7 @@ Adapters.SQL = {
     updateMultitpleEntities: function updateMultitpleEntities(table, updates, conditions)
     {
         var args = [];
-        if(typeof(updates) != 'string')
+        if(typeof(updates) !== 'string')
         {
             var values = [];
             var keys = ActiveSupport.keys(updates).sort();
@@ -4985,16 +4999,17 @@ Adapters.SQL = {
             {
                 return 0;
             }
-            return parseInt(ActiveRecord.connection.iterableFromResultSet(response).iterate(0)['calculation']);
+            return parseInt(ActiveRecord.connection.iterableFromResultSet(response).iterate(0)['calculation'], 10);
         };
         var args = this.buildSQLArguments(table, params, operation);
-        return process_count_query_result(this.executeSQL.apply(this, args))
+        return process_count_query_result(this.executeSQL.apply(this, args));
     },
     deleteEntity: function deleteEntity(table, id)
     {
-        if (id == 'all')
+        var args, response;
+        if (id === 'all')
         {
-            var args = ["DELETE FROM " + table];
+            args = ["DELETE FROM " + table];
             var ids = [];
             var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
             if(!ids_result_set)
@@ -5004,7 +5019,7 @@ Adapters.SQL = {
             this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
                 ids.push(row.id);
             });
-            var response = this.executeSQL.apply(this,args);
+            response = this.executeSQL.apply(this,args);
             for(var i = 0; i < ids.length; ++i)
             {
                 this.notify('destroyed',table,ids[i]);
@@ -5013,21 +5028,22 @@ Adapters.SQL = {
         }
         else
         {
-            var args = ["DELETE FROM " + table + " WHERE id = ?",id];
-            var response = this.executeSQL.apply(this,args);
+            args = ["DELETE FROM " + table + " WHERE id = ?",id];
+            response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
         }
     },
     findEntities: function findEntities(table, params)
     {
-        if (typeof(table) == 'string' && !params)
+        var args;
+        if (typeof(table) === 'string' && !params)
         {
-            var args = [table];
+            args = [table];
         }
         else
         {
-            var args = this.buildSQLArguments(table, params, false);
+            args = this.buildSQLArguments(table, params, false);
         }
         var response = this.executeSQL.apply(this,args);
         if (!response)
@@ -5047,22 +5063,21 @@ Adapters.SQL = {
             (params.joins ? ' ' + params.joins : '') + 
             (params.order ? ' ORDER BY ' + params.order : '') + 
             (params.offset && params.limit ? ' LIMIT ' + params.offset + ',' + params.limit : '') + 
-            (!params.offset && params.limit ? ' LIMIT ' + params.limit : '')
-        ;
+            (!params.offset && params.limit ? ' LIMIT ' + params.limit : '');
         args.unshift(sql);
         return args;
     },
     buildWhereSQLFragment: function buildWhereSQLFragment(fragment, args)
     {
         var where, keys, i;
-        if(fragment && typeof(fragment) != "string")
+        if(fragment && typeof(fragment) !== "string")
         {
             where = '';
             keys = ActiveSupport.keys(fragment);
             for(i = 0; i < keys.length; ++i)
             {
                 where += keys[i] + " = ? AND ";
-                args.push(typeof(fragment[keys[i]]) == 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
+                args.push(typeof(fragment[keys[i]]) === 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
             }
             where = ' WHERE ' + where.substring(0,where.length - 4);
         }
@@ -5104,20 +5119,20 @@ Adapters.SQL = {
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
-        if (typeof(field) == 'string')
+        if (typeof(field) === 'string')
         {
             return (new String(value)).toString();
         }
-        if (typeof(field) == 'number')
+        if (typeof(field) === 'number')
         {
             return (new String(value)).toString();
         }
-        if(typeof(field) == 'boolean')
+        if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value)))).toString();
+            return (new String(parseInt(new Number(value), 10))).toString();
         }
         //array or object
-        if (typeof(value) == 'object' && !Migrations.objectIsFieldDefinition(field))
+        if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
         {
             return ActiveSupport.JSON.stringify(value);
         }
@@ -5129,11 +5144,11 @@ Adapters.SQL = {
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
-        if (typeof(field) == 'string')
+        if (typeof(field) === 'string')
         {
             return value;
         }
-        if(typeof(field) == 'boolean')
+        if(typeof(field) === 'boolean')
         {
             if(value === '0' || value === 0 || value === 'false')
             {
@@ -5141,18 +5156,18 @@ Adapters.SQL = {
             }
             return !!value;
         }
-        if (typeof(field) == 'number')
+        if (typeof(field) === 'number')
         {
             var trim = function(str)
             {
                 return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value));
+            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
-        if ((typeof(value) == 'string' || typeof(value) == 'object') && (typeof(field) == 'object' && (typeof(field.length) != 'undefined' || typeof(field.type) == 'undefined')))
+        if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
         {
-            if (typeof(value) == 'string')
+            if (typeof(value) === 'string')
             {
                 return ActiveSupport.JSON.parse(value);
             }
@@ -5247,7 +5262,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
         {
             result.iterate = function iterate(iterator)
             {
-                if (typeof(iterator) == 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {
@@ -5342,7 +5357,7 @@ Adapters.JaxerSQLite = function JaxerSQLite(){
         {
             result.iterate = function iterate(iterator)
             {
-                if (typeof(iterator) == 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {
@@ -5415,7 +5430,7 @@ Adapters.Gears = function Gears(db){
         {
             var args = ActiveSupport.arrayFrom(arguments);
             var proceed = null;
-            if(typeof(args[args.length - 1]) == 'function')
+            if(typeof(args[args.length - 1]) === 'function')
             {
                 proceed = args.pop();
             }
@@ -5450,7 +5465,7 @@ Adapters.Gears = function Gears(db){
             result.close();
             response.iterate = function(iterator)
             {
-                if(typeof(iterator) == 'number')
+                if(typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {
@@ -5519,7 +5534,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             try
             {
                 gears_factory = new ActiveXObject('Gears.Factory');
-                if(gears_factory.getBuildInfo().indexOf('ie_mobile') != -1)
+                if(gears_factory.getBuildInfo().indexOf('ie_mobile') !== -1)
                 {
                     gears_factory.privateSetGlobalObject(this);
                 }
@@ -5614,7 +5629,7 @@ Adapters.AIR = function AIR(connection){
         {
             result.iterate = function iterate(iterator)
             {
-                if (typeof(iterator) == 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this[iterator])
                     {
@@ -5664,7 +5679,7 @@ Adapters.AIR.connect = function connect(path)
  * @property {ActiveRecord.Adapter}
  */
 Adapters.InMemory = function InMemory(storage){
-    this.storage = typeof(storage) == 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
+    this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
 };
 
@@ -5704,9 +5719,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             for(var id in table_data)
             {
-                if(parseInt(id) >= max)
+                if(parseInt(id, 10) >= max)
                 {
-                    max = parseInt(id) + 1;
+                    max = parseInt(id, 10) + 1;
                 }
             }
             data.id = max;
@@ -5752,9 +5767,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 var max = 0;
                 for(var i = 0; i < entities.length; ++i)
                 {
-                    if(parseInt(entities[i][column_name]) > max)
+                    if(parseInt(entities[i][column_name], 10) > max)
                     {
-                        max = parseInt(entities[i][column_name]);
+                        max = parseInt(entities[i][column_name], 10);
                     }
                 }
                 return max;
@@ -5779,13 +5794,13 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 {
                     sum += entities[i][column_name];
                 }
-                return operation_type == 'avg' ? sum / entities.length : sum;
+                return operation_type === 'avg' ? sum / entities.length : sum;
         }
     },
     deleteEntity: function deleteEntity(table, id)
     {
         this.setupTable(table);
-        if(!id || id == 'all')
+        if(!id || id === 'all')
         {
             for(var id_to_be_deleted in this.storage[table])
             {
@@ -5804,14 +5819,14 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     findEntities: function findEntities(table, params)
     {
-        if (typeof(table) == 'string' && !params)
+        if (typeof(table) === 'string' && !params)
         {
             //find by SQL
             var response = this.paramsFromSQLString(table);
             table = response[0];
             params = response[1];
         }
-        else if(typeof(params) == 'undefined')
+        else if(typeof(params) === 'undefined')
         {
             params = {};
         }
@@ -5820,9 +5835,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var table_data = this.storage[table];
         if(params && params.where && params.where.id)
         {
-            if(table_data[parseInt(params.where.id)])
+            if(table_data[parseInt(params.where.id, 10)])
             {
-                entity_array.push(table_data[parseInt(params.where.id)]);
+                entity_array.push(table_data[parseInt(params.where.id, 10)]);
             }
         }
         else
@@ -5902,7 +5917,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         result.iterate = function iterate(iterator)
         {
-            if (typeof(iterator) == 'number')
+            if (typeof(iterator) === 'number')
             {
                 if (this[iterator])
                 {
@@ -5933,7 +5948,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     createWhere: function createWhere(where)
     {
-        if(typeof(where) == 'string'){
+        if(typeof(where) === 'string'){
             return function json_result_where_processor(result_set)
             {
                 var response = [];
@@ -5981,7 +5996,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     createOrderBy: function createOrderBy(order_by)
     {
-        if(!order_by || order_by == '')
+        if(!order_by || order_by === '')
         {
             return function json_result_order_by_processor(result_set)
             {
@@ -6000,7 +6015,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             {
                 var trimmed_order_statements_bits = trimmed_order_statements[i].split(/\s/);
                 var column_name = trimmed_order_statements_bits[0];
-                var reverse = trimmed_order_statements_bits[1] && trimmed_order_statements_bits[1] == 'desc';
+                var reverse = trimmed_order_statements_bits[1] && trimmed_order_statements_bits[1] === 'desc';
                 result_set = result_set.sort(function result_set_sorter(a,b){
                     return a[column_name] < b[column_name] ? -1 : a[column_name] > b[column_name] ? 1 : 0;
                 });
@@ -6104,7 +6119,7 @@ Adapters.InMemory.connect = function(storage){
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {
-    if(typeof(Jaxer) != 'undefined')
+    if(typeof(Jaxer) !== 'undefined')
     {
         if(Jaxer.DB.connection.constructor == Jaxer.DB.MySQL.Connection)
         {
@@ -6115,7 +6130,7 @@ Adapters.Auto.connect = function connect()
             return Adapters.JaxerSQLite.connect.apply(Adapters.JaxerSQLite.connect,arguments);
         }
     }
-    else if(typeof(air) != 'undefined')
+    else if(typeof(air) !== 'undefined')
     {
         return Adapters.AIR.connect.apply(Adapters.AIR.connect,arguments);
     }
@@ -6135,25 +6150,25 @@ var WhereParser;
 (function() {
 
 // token types
-var $c$ = 0;
-ERROR              = -1;
-AND                = $c$++;
-COMMA              = $c$++;
-EQUAL              = $c$++;
-FALSE              = $c$++;
-GREATER_THAN       = $c$++;
-GREATER_THAN_EQUAL = $c$++;
-IDENTIFIER         = $c$++;
-LESS_THAN          = $c$++;
-LESS_THAN_EQUAL    = $c$++;
-LPAREN             = $c$++;
-NOT_EQUAL          = $c$++;
-NUMBER             = $c$++;
-RPAREN             = $c$++;
-STRING             = $c$++;
-TRUE               = $c$++;
-OR                 = $c$++;
-WHITESPACE         = $c$++;
+var $c$ = 0,
+    ERROR              = -1,
+    AND                = $c$++,
+    COMMA              = $c$++,
+    EQUAL              = $c$++,
+    FALSE              = $c$++,
+    GREATER_THAN       = $c$++,
+    GREATER_THAN_EQUAL = $c$++,
+    IDENTIFIER         = $c$++,
+    LESS_THAN          = $c$++,
+    LESS_THAN_EQUAL    = $c$++,
+    LPAREN             = $c$++,
+    NOT_EQUAL          = $c$++,
+    NUMBER             = $c$++,
+    RPAREN             = $c$++,
+    STRING             = $c$++,
+    TRUE               = $c$++,
+    OR                 = $c$++,
+    WHITESPACE         = $c$++;
 
 // this is here mostly for debugging messages
 var TypeMap = [];
@@ -6220,7 +6235,7 @@ function Lexeme(type, text)
     this.type = type;
     this.typeName = null;
     this.text = text;
-};
+}
 
 /**
  * toString
@@ -6248,7 +6263,7 @@ function WhereLexer()
 {
     // initialize
     this.setSource(null);
-};
+}
 
 /**
  * setSource
@@ -6259,7 +6274,7 @@ WhereLexer.prototype.setSource = function setSource(source)
 {
     this.source = source;
     this.offset = 0;
-    this.length = (source != null) ? source.length : 0;
+    this.length = (source !== null) ? source.length : 0;
 
     currentLexeme = null;
 };
@@ -6282,7 +6297,7 @@ WhereLexer.prototype.advance = function advance()
 
         if (this.offset < this.length) 
         {
-            var match;
+            var match, text, type;
 
             // NOTE: [KEL] Switching on the first character may speed things up
             // here.
@@ -6294,15 +6309,15 @@ WhereLexer.prototype.advance = function advance()
             }
             else if ((match = OPERATOR_PATTERN.exec(this.source)) !== null) 
             {
-                var text = match[0]
-                var type = OperatorMap[text.toLowerCase()];
+                text = match[0];
+                type = OperatorMap[text.toLowerCase()];
 
                 result = new Lexeme(type, text);
             }
             else if ((match = KEYWORD_PATTERN.exec(this.source)) !== null) 
             {
-                var text = match[0]
-                var type = KeywordMap[text.toLowerCase()];
+                text = match[0];
+                type = KeywordMap[text.toLowerCase()];
 
                 result = new Lexeme(type, text);
             }
@@ -6356,7 +6371,7 @@ function BinaryOperatorNode(lhs, operator, rhs)
     this.lhs = lhs;
     this.operator = operator;
     this.rhs = rhs;
-};
+}
 
 /**
  * execute
@@ -6373,11 +6388,11 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
     switch (this.operator)
     {
         case EQUAL:
-            result = (lhs == rhs);
+            result = (lhs === rhs);
             break;
             
         case NOT_EQUAL:
-            result = (lhs != rhs);
+            result = (lhs !== rhs);
             break;
             
         case LESS_THAN:
@@ -6421,7 +6436,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 function IdentifierNode(identifier)
 {
     this.identifier = identifier;
-};
+}
 
 /**
  * execute
@@ -6446,7 +6461,7 @@ function FunctionNode(name, args)
 {
     this.name = name;
     this.args = args;
-};
+}
 
 /**
  * execute
@@ -6519,7 +6534,7 @@ WhereParser.prototype.parse = function parse(source)
     this._lexer.advance();
 
     // parse it
-    while (currentLexeme != null)
+    while (currentLexeme !== null)
     {
         // fast fail
         switch (currentLexeme.type)
@@ -6548,7 +6563,7 @@ WhereParser.prototype.parseOrExpression = function parseOrExpression()
 {
     var result = this.parseAndExpression();
 
-    while (currentLexeme != null && currentLexeme.type == OR) 
+    while (currentLexeme !== null && currentLexeme.type === OR) 
     {
         // advance over 'or' or '||'
         this._lexer.advance();
@@ -6568,7 +6583,7 @@ WhereParser.prototype.parseAndExpression = function parseAndExpression()
 {
     var result = this.parseEqualityExpression();
 
-    while (currentLexeme != null && currentLexeme.type == AND) 
+    while (currentLexeme !== null && currentLexeme.type === AND) 
     {
         // advance over 'and' or '&&'
         this._lexer.advance();
@@ -6588,7 +6603,7 @@ WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression
 {
     var result = this.parseRelationalExpression();
 
-    if (currentLexeme != null) 
+    if (currentLexeme !== null) 
     {
         var type = currentLexeme.type;
 
@@ -6616,7 +6631,7 @@ WhereParser.prototype.parseRelationalExpression = function()
 {
     var result = this.parseMemberExpression();
 
-    if (currentLexeme != null) 
+    if (currentLexeme !== null) 
     {
         var type = currentLexeme.type;
 
@@ -6646,7 +6661,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 {
     var result = null;
 
-    if (currentLexeme != null) 
+    if (currentLexeme !== null) 
     {
         switch (currentLexeme.type)
         {
@@ -6656,7 +6671,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 // advance over identifier
                 this._lexer.advance();
 
-                if (currentLexeme != null && currentLexeme.type == LPAREN) 
+                if (currentLexeme !== null && currentLexeme.type === LPAREN) 
                 {
                     // this is a function
                     var name = result.identifier;
@@ -6666,18 +6681,18 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     this._lexer.advance();
 
                     // process arguments
-                    while (currentLexeme != null && currentLexeme.type != RPAREN) 
+                    while (currentLexeme !== null && currentLexeme.type !== RPAREN) 
                     {
                         args.push(this.parseOrExpression());
 
-                        if (currentLexeme != null && currentLexeme.type == COMMA)
+                        if (currentLexeme !== null && currentLexeme.type === COMMA)
                         {
                             this._lexer.advance();
                         }
                     }
 
                     // advance over ')'
-                    if (currentLexeme != null) 
+                    if (currentLexeme !== null) 
                     {
                         this._lexer.advance();
                         result = new FunctionNode(name, args);
@@ -6725,7 +6740,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 
                 result = this.parseOrExpression();
 
-                if (currentLexeme != null && currentLexeme.type == RPAREN)
+                if (currentLexeme !== null && currentLexeme.type === RPAREN)
                 {
                     // advance over ')'
                     this._lexer.advance();
@@ -6861,7 +6876,7 @@ var Relationships = {
     {
         var plural = ActiveSupport.underscore(related_model_name).toLowerCase();
         var singular = ActiveSupport.Inflector.singularize(plural);
-        if (!foreign_key || typeof(foreign_key) == 'undefined')
+        if (!foreign_key || typeof(foreign_key) === 'undefined')
         {
             return (singular || plural) + '_id';
         }
@@ -7008,7 +7023,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     else
     {
         instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
-            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) == 'function') ? params.get('id') : params);
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get('id') : params);
             if (record)
             {
                 return record.destroy();
@@ -7160,11 +7175,11 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             if(child)
             {
                 var current_value = child.get(options.counter);
-                if(typeof(current_value) == 'undefined')
+                if(typeof(current_value) === 'undefined')
                 {
                     current_value = 0;
                 }
-                child.updateAttribute(options.counter, Math.max(0, parseInt(current_value) - 1));
+                child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
             }
         });
         this.observe('afterCreate', function incrimentBelongsToCounter(record){
@@ -7172,11 +7187,11 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
             if(child)
             {
                 var current_value = child.get(options.counter);
-                if(typeof(current_value) == 'undefined')
+                if(typeof(current_value) === 'undefined')
                 {
                     current_value = 0;
                 }
-                child.updateAttribute(options.counter, parseInt(current_value) + 1);
+                child.updateAttribute(options.counter, parseInt(current_value, 10) + 1);
             }
         });
     }
@@ -7225,50 +7240,6 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
  *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
  */
 
-/**
- * If the table for your ActiveRecord does not exist, this will define the
- * ActiveRecord and automatically create the table.
- * @alias ActiveRecord.define
- * @param {String} table_name
- * @param {Object} fields
- *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
- * @param {Object} [methods]
- * @param {Function} [readyCallback]
- *      Must be specified if running in asynchronous mode.
- * @return {Object}
- * @example
- * 
- *     var User = ActiveRecord.define('users',{
- *         name: '',
- *         password: '',
- *         comment_count: 0,
- *         profile: {
- *             type: 'text',
- *             value: ''
- *         },
- *         serializable_field: {}
- *     });
- *     var u = User.create({
- *         name: 'alice',
- *         serializable_field: {a: '1', b: '2'}
- *     }); 
- */
-ActiveRecord.define = function define(table_name, fields, methods)
-{
-    //clean field definition
-    for(var field_name in fields)
-    {
-        if(typeof(fields[field_name]) == 'object' && fields[field_name].type && !('value' in fields[field_name]))
-        {
-            fields[field_name].value = null;
-        }
-    }
-    var model = ActiveRecord.create(table_name,methods);
-    Migrations.Schema.createTable(table_name,fields);
-    Migrations.applyTypeConversionCallbacks(model,fields);
-    return model;
-};
-
 var Migrations = {
     fieldTypesWithDefaultValues: {
         'tinyint': 0,
@@ -7312,7 +7283,7 @@ var Migrations = {
      */
     migrate: function migrate(target)
     {
-        if(typeof(target) == 'undefined' || target === false)
+        if(typeof(target) === 'undefined' || target === false)
         {
             target = Migrations.max();
         }
@@ -7383,16 +7354,16 @@ var Migrations = {
      */
     max: function max()
     {
-        var max = 0;
+        var maxVal = 0;
         for(var key_name in Migrations.migrations)
         {
-            key_name = parseInt(key_name);
-            if(key_name > max)
+            key_name = parseInt(key_name, 10);
+            if(key_name > maxVal)
             {
-                max = key_name;
+                maxVal = key_name;
             }
         }
-        return max;
+        return maxVal;
     },
     setup: function setMigrationsTable()
     {
@@ -7433,21 +7404,21 @@ var Migrations = {
         var keys = [];
         for(var key_name in Migrations.migrations)
         {
-            key_name = parseInt(key_name);
-            if((direction == 'up' && key_name > index) || (direction == 'down' && key_name < index))
+            key_name = parseInt(key_name, 10);
+            if((direction === 'up' && key_name > index) || (direction === 'down' && key_name < index))
             {
                 keys.push(key_name);
             }
         }
         keys = keys.sort();
-        if(direction == 'down')
+        if(direction === 'down')
         {
             keys = keys.reverse();
         }
         var migrations = [];
         for(var i = 0; i < keys.length; ++i)
         {
-            if((direction == 'down' && typeof(target) != 'undefined' && target > keys[i]) || (direction == 'up' && typeof(target) != 'undefined' && target < keys[i]))
+            if((direction === 'down' && typeof(target) !== 'undefined' && target > keys[i]) || (direction === 'up' && typeof(target) !== 'undefined' && target < keys[i]))
             {
                 break;
             }
@@ -7491,7 +7462,7 @@ var Migrations = {
     },
     objectIsFieldDefinition: function objectIsFieldDefinition(object)
     {
-        return typeof(object) == 'object' && ActiveSupport.keys(object).length == 2 && ('type' in object) && ('value' in object);
+        return typeof(object) === 'object' && ActiveSupport.keys(object).length === 2 && ('type' in object) && ('value' in object);
     },
     /**
      * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
@@ -7555,6 +7526,50 @@ var Migrations = {
     }
 };
 
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
+ActiveRecord.define = function define(table_name, fields, methods)
+{
+    //clean field definition
+    for(var field_name in fields)
+    {
+        if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
+        {
+            fields[field_name].value = null;
+        }
+    }
+    var model = ActiveRecord.create(table_name,methods);
+    Migrations.Schema.createTable(table_name,fields);
+    Migrations.applyTypeConversionCallbacks(model,fields);
+    return model;
+};
+
 ActiveRecord.Migrations = Migrations;
 
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
@@ -7582,7 +7597,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             
         },options || {});
         this.addValidator(function validates_presence_of_callback(){
-            if(!this.get(field) || this.get(field) == '')
+            if(!this.get(field) || this.get(field) === '')
             {
                 this.addError(options.message || (field + ' is not present.'));
             }
@@ -7645,12 +7660,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             validators[i].apply(this);
         }
-        if (typeof(this.valid) == 'function')
+        if (typeof(this.valid) === 'function')
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length == 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
-        return this._errors.length == 0;
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        return this._errors.length === 0;
     },
     _getValidators: function _getValidators()
     {
@@ -7695,16 +7710,17 @@ Synchronization.setupNotifications = function setupNotifications(record)
 
 Synchronization.triggerSynchronizationNotifications = function triggerSynchronizationNotifications(record,event_name)
 {
+    var found_records, internal_count_id;
     if(!Synchronization.setupNotifications(record))
     {
         return false;
     }
-    if(event_name == 'afterSave')
+    if(event_name === 'afterSave')
     {
-        var found_records = Synchronization.notifications[record.tableName][record.id];
-        for(var internal_count_id in found_records)
+        found_records = Synchronization.notifications[record.tableName][record.id];
+        for(internal_count_id in found_records)
         {
-            if(internal_count_id != record.internalCount)
+            if(internal_count_id !== record.internalCount)
             {
                 var found_record = found_records[internal_count_id];
                 var keys = found_record.keys();
@@ -7717,7 +7733,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
             }
         }
     }
-    else if(event_name == 'afterDestroy' || event_name == 'afterCreate')
+    else if(event_name === 'afterDestroy' || event_name === 'afterCreate')
     {
         if(Synchronization.calculationNotifications[record.tableName])
         {
@@ -7734,18 +7750,18 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
                 var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
-                for(var i = 0; i < splices.length; ++i)
+                for(var x = 0; i < splices.length; ++i)
                 {
-                    old_result_set.splice.apply(old_result_set,splices[i]);
+                    old_result_set.splice.apply(old_result_set,splices[x]);
                 }
             }
         }
-        if(event_name == 'afterDestroy')
+        if(event_name === 'afterDestroy')
         {
-            var found_records = Synchronization.notifications[record.tableName][record.id];
-            for(var internal_count_id in found_records)
+            found_records = Synchronization.notifications[record.tableName][record.id];
+            for(internal_count_id in found_records)
             {
-                if(internal_count_id != record.internalCount)
+                if(internal_count_id !== record.internalCount)
                 {
                     found_records[internal_count_id].notify('synchronization:afterDestroy');
                     Synchronization.notifications[record.tableName][record.id][internal_count_id] = null;
@@ -7839,22 +7855,22 @@ Synchronization.synchronizeResultSet = function synchronizeResultSet(klass,param
 Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromResultSetDiff(a,b,event_name)
 {
     var diffs = [];
-    if(event_name == 'afterCreate')
+    if(event_name === 'afterCreate')
     {
         for(var i = 0; i < b.length; ++i)
         {
-            if(!a[i] || (a[i] && (a[i].id != b[i].id)))
+            if(!a[i] || (a[i] && (a[i].id !== b[i].id)))
             {
                 diffs.push([i,null,b[i]]);
                 break;
             }
         }
     }
-    else if(event_name == 'afterDestroy')
+    else if(event_name === 'afterDestroy')
     {
         for(var i = 0; i < a.length; ++i)
         {
-            if(!b[i] || (b[i] && (b[i].id != a[i].id)))
+            if(!b[i] || (b[i] && (b[i].id !== a[i].id)))
             {
                 diffs.push([i,1]);
                 break;
@@ -7868,7 +7884,7 @@ ActiveRecord.Synchronization = Synchronization;
 
 })();
 
-ActiveView = null;
+var ActiveView = null;
 
 (function(){
 
@@ -7878,7 +7894,7 @@ ActiveView.logging = false;
 
 ActiveView.create = function create(structure,methods)
 {
-    if(typeof(options) == 'function')
+    if(typeof(options) === 'function')
     {
         options = {
             structure: options
@@ -7936,7 +7952,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         target.innerHTML = content;
         return content;
     }
-    else if(content && content.nodeType == 1)
+    else if(content && content.nodeType === 1)
     {
         execute(target,content);
         return content;
@@ -7972,7 +7988,7 @@ var InstanceMethods = {
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
         this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
             throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
         }
@@ -7987,7 +8003,7 @@ var InstanceMethods = {
         for(var key in this.scope._object)
         {
             var item = this.scope._object[key];
-            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
             {
                 ActiveView.makeArrayObservable(item);
             }
@@ -8040,13 +8056,13 @@ var Builder = {
             htmlFor:   'for'
         };
         var attributes = {};
-        if(typeof name == 'object')
+        if(typeof name === 'object')
         {
             attributes = name;
         }
         else
         {
-            attributes[name] = typeof(value) == 'undefined' ? true : value;
+            attributes[name] = typeof(value) === 'undefined' ? true : value;
         }
         for(var attribute_name in attributes)
         {
@@ -8086,7 +8102,7 @@ var Builder = {
         var tag = tags[t];
         (function tag_iterator(tag){
             Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
-                var i, argument, attributes, elements, element;
+                var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
                 for(i = 0; i < arguments.length; ++i)
@@ -8096,19 +8112,19 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) == 'function')
+                    if(typeof(argument) === 'function')
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
-                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
                     {
                         elements = argument;
                     }
-                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
                     {
                         elements.push(argument);
                     }
@@ -8116,7 +8132,7 @@ var Builder = {
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
                 }
                 return element;
             };
@@ -8131,16 +8147,16 @@ ActiveView.generateBinding = function generateBinding(instance)
     instance.binding = {};
     instance.binding.update = function update(element)
     {
-        if(!element || !element.nodeType == 1)
+        if(!element || !element.nodeType === 1)
         {
-            console.log(element)
+            console.log(element);
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {
             from: function from(observe_key)
             {
                 var object = instance.scope;
-                if(arguments.length == 2)
+                if(arguments.length === 2)
                 {
                     object = arguments[1];
                     observe_key = arguments[2];
@@ -8153,7 +8169,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 
                 var transform = function transform(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -8165,7 +8181,7 @@ ActiveView.generateBinding = function generateBinding(instance)
 
                 var when = function when(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -8202,19 +8218,19 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             from: function from(collection)
             {
-                if(!collection || (typeof(collection) != 'object' && typeof(collection) != 'string'))
+                if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
                     throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
                 }
                 return {
                     into: function into(element)
                     {
-                        if(!element || !element.nodeType == 1)
+                        if(!element || !element.nodeType === 1)
                         {
                             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
-                        if(typeof(collection) == 'string')
+                        if(typeof(collection) === 'string')
                         {
                             var collection_name = collection;
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
@@ -8272,7 +8288,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     for(i = 0; i < children.length; ++i)
                                     {
                                         ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            element.insertBefore(typeof(content) === 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
                                             children[i] = element.childNodes[index + i];
                                         });
                                     }
@@ -8291,7 +8307,7 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             changes: function changes(callback)
             {
-                if(!callback || typeof(callback) != 'function')
+                if(!callback || typeof(callback) !== 'function')
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }
@@ -8308,11 +8324,11 @@ ActiveView.generateBinding = function generateBinding(instance)
 
 })();
 
-ActiveController = null;
+var ActiveController = null;
 
 (function(){
 
-ActiveController = {};
+var ActiveController = {};
 
 ActiveController.logging = false;
 
@@ -8322,7 +8338,7 @@ ActiveController.create = function create(actions,methods)
         this.container = container || ActiveController.createDefaultContainer();
         this.renderTarget = this.container;
         this.layoutRendered = false;
-        if(this.layout && typeof(this.layout) == 'function')
+        if(this.layout && typeof(this.layout) === 'function')
         {
             this.layout = ActiveSupport.bind(this.layout,this);
         }
@@ -8395,7 +8411,7 @@ var InstanceMethods = {
     },
     renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
     {
-        if(typeof(params) != 'object')
+        if(typeof(params) !== 'object')
         {
             throw Errors.InvalidRenderParams;
         }
@@ -8420,7 +8436,7 @@ ActiveController.InstanceMethods = InstanceMethods;
 var RenderFlags = {
     view: function view(view_class,args)
     {
-        if(typeof(view_class) == 'string')
+        if(typeof(view_class) === 'string')
         {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)

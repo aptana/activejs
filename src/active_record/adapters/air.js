@@ -76,7 +76,7 @@ Adapters.AIR = function AIR(connection){
         {
             result.iterate = function iterate(iterator)
             {
-                if (typeof(iterator) == 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this[iterator])
                     {

@@ -51,7 +51,7 @@ Adapters.Gears = function Gears(db){
         {
             var args = ActiveSupport.arrayFrom(arguments);
             var proceed = null;
-            if(typeof(args[args.length - 1]) == 'function')
+            if(typeof(args[args.length - 1]) === 'function')
             {
                 proceed = args.pop();
             }
@@ -86,7 +86,7 @@ Adapters.Gears = function Gears(db){
             result.close();
             response.iterate = function(iterator)
             {
-                if(typeof(iterator) == 'number')
+                if(typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {
@@ -155,7 +155,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             try
             {
                 gears_factory = new ActiveXObject('Gears.Factory');
-                if(gears_factory.getBuildInfo().indexOf('ie_mobile') != -1)
+                if(gears_factory.getBuildInfo().indexOf('ie_mobile') !== -1)
                 {
                     gears_factory.privateSetGlobalObject(this);
                 }

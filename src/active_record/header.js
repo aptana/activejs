@@ -25,7 +25,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
  
-ActiveRecord = null;
+var ActiveRecord = null;
 
 (function() {
 

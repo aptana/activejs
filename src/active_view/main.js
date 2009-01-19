@@ -31,7 +31,7 @@ ActiveView.logging = false;
 
 ActiveView.create = function create(structure,methods)
 {
-    if(typeof(options) == 'function')
+    if(typeof(options) === 'function')
     {
         options = {
             structure: options
@@ -89,7 +89,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         target.innerHTML = content;
         return content;
     }
-    else if(content && content.nodeType == 1)
+    else if(content && content.nodeType === 1)
     {
         execute(target,content);
         return content;
@@ -125,7 +125,7 @@ var InstanceMethods = {
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
         this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
             throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
         }
@@ -140,7 +140,7 @@ var InstanceMethods = {
         for(var key in this.scope._object)
         {
             var item = this.scope._object[key];
-            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
             {
                 ActiveView.makeArrayObservable(item);
             }

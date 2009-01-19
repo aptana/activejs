@@ -50,7 +50,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             
         },options || {});
         this.addValidator(function validates_presence_of_callback(){
-            if(!this.get(field) || this.get(field) == '')
+            if(!this.get(field) || this.get(field) === '')
             {
                 this.addError(options.message || (field + ' is not present.'));
             }
@@ -113,12 +113,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             validators[i].apply(this);
         }
-        if (typeof(this.valid) == 'function')
+        if (typeof(this.valid) === 'function')
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length == 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
-        return this._errors.length == 0;
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        return this._errors.length === 0;
     },
     _getValidators: function _getValidators()
     {

@@ -48,13 +48,13 @@ var Builder = {
             htmlFor:   'for'
         };
         var attributes = {};
-        if(typeof name == 'object')
+        if(typeof name === 'object')
         {
             attributes = name;
         }
         else
         {
-            attributes[name] = typeof(value) == 'undefined' ? true : value;
+            attributes[name] = typeof(value) === 'undefined' ? true : value;
         }
         for(var attribute_name in attributes)
         {
@@ -94,7 +94,7 @@ var Builder = {
         var tag = tags[t];
         (function tag_iterator(tag){
             Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
-                var i, argument, attributes, elements, element;
+                var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
                 for(i = 0; i < arguments.length; ++i)
@@ -104,19 +104,19 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) == 'function')
+                    if(typeof(argument) === 'function')
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
-                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
                     {
                         elements = argument;
                     }
-                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
                     {
                         elements.push(argument);
                     }
@@ -124,7 +124,7 @@ var Builder = {
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
                 }
                 return element;
             };

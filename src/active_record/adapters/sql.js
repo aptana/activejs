@@ -48,7 +48,7 @@ Adapters.SQL = {
     updateMultitpleEntities: function updateMultitpleEntities(table, updates, conditions)
     {
         var args = [];
-        if(typeof(updates) != 'string')
+        if(typeof(updates) !== 'string')
         {
             var values = [];
             var keys = ActiveSupport.keys(updates).sort();
@@ -94,16 +94,17 @@ Adapters.SQL = {
             {
                 return 0;
             }
-            return parseInt(ActiveRecord.connection.iterableFromResultSet(response).iterate(0)['calculation']);
+            return parseInt(ActiveRecord.connection.iterableFromResultSet(response).iterate(0)['calculation'], 10);
         };
         var args = this.buildSQLArguments(table, params, operation);
-        return process_count_query_result(this.executeSQL.apply(this, args))
+        return process_count_query_result(this.executeSQL.apply(this, args));
     },
     deleteEntity: function deleteEntity(table, id)
     {
-        if (id == 'all')
+        var args, response;
+        if (id === 'all')
         {
-            var args = ["DELETE FROM " + table];
+            args = ["DELETE FROM " + table];
             var ids = [];
             var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
             if(!ids_result_set)
@@ -113,7 +114,7 @@ Adapters.SQL = {
             this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
                 ids.push(row.id);
             });
-            var response = this.executeSQL.apply(this,args);
+            response = this.executeSQL.apply(this,args);
             for(var i = 0; i < ids.length; ++i)
             {
                 this.notify('destroyed',table,ids[i]);
@@ -122,21 +123,22 @@ Adapters.SQL = {
         }
         else
         {
-            var args = ["DELETE FROM " + table + " WHERE id = ?",id];
-            var response = this.executeSQL.apply(this,args);
+            args = ["DELETE FROM " + table + " WHERE id = ?",id];
+            response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
         }
     },
     findEntities: function findEntities(table, params)
     {
-        if (typeof(table) == 'string' && !params)
+        var args;
+        if (typeof(table) === 'string' && !params)
         {
-            var args = [table];
+            args = [table];
         }
         else
         {
-            var args = this.buildSQLArguments(table, params, false);
+            args = this.buildSQLArguments(table, params, false);
         }
         var response = this.executeSQL.apply(this,args);
         if (!response)
@@ -156,22 +158,21 @@ Adapters.SQL = {
             (params.joins ? ' ' + params.joins : '') + 
             (params.order ? ' ORDER BY ' + params.order : '') + 
             (params.offset && params.limit ? ' LIMIT ' + params.offset + ',' + params.limit : '') + 
-            (!params.offset && params.limit ? ' LIMIT ' + params.limit : '')
-        ;
+            (!params.offset && params.limit ? ' LIMIT ' + params.limit : '');
         args.unshift(sql);
         return args;
     },
     buildWhereSQLFragment: function buildWhereSQLFragment(fragment, args)
     {
         var where, keys, i;
-        if(fragment && typeof(fragment) != "string")
+        if(fragment && typeof(fragment) !== "string")
         {
             where = '';
             keys = ActiveSupport.keys(fragment);
             for(i = 0; i < keys.length; ++i)
             {
                 where += keys[i] + " = ? AND ";
-                args.push(typeof(fragment[keys[i]]) == 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
+                args.push(typeof(fragment[keys[i]]) === 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
             }
             where = ' WHERE ' + where.substring(0,where.length - 4);
         }
@@ -213,20 +214,20 @@ Adapters.SQL = {
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
-        if (typeof(field) == 'string')
+        if (typeof(field) === 'string')
         {
             return (new String(value)).toString();
         }
-        if (typeof(field) == 'number')
+        if (typeof(field) === 'number')
         {
             return (new String(value)).toString();
         }
-        if(typeof(field) == 'boolean')
+        if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value)))).toString();
+            return (new String(parseInt(new Number(value), 10))).toString();
         }
         //array or object
-        if (typeof(value) == 'object' && !Migrations.objectIsFieldDefinition(field))
+        if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
         {
             return ActiveSupport.JSON.stringify(value);
         }
@@ -238,11 +239,11 @@ Adapters.SQL = {
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
-        if (typeof(field) == 'string')
+        if (typeof(field) === 'string')
         {
             return value;
         }
-        if(typeof(field) == 'boolean')
+        if(typeof(field) === 'boolean')
         {
             if(value === '0' || value === 0 || value === 'false')
             {
@@ -250,18 +251,18 @@ Adapters.SQL = {
             }
             return !!value;
         }
-        if (typeof(field) == 'number')
+        if (typeof(field) === 'number')
         {
             var trim = function(str)
             {
                 return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value));
+            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
-        if ((typeof(value) == 'string' || typeof(value) == 'object') && (typeof(field) == 'object' && (typeof(field.length) != 'undefined' || typeof(field.type) == 'undefined')))
+        if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
         {
-            if (typeof(value) == 'string')
+            if (typeof(value) === 'string')
             {
                 return ActiveSupport.JSON.parse(value);
             }

@@ -60,7 +60,7 @@ ActiveRecord.observe = function observe(event_name,observer)
 {
     for(var i = 0; i < ActiveRecord.eventNames.length; ++i)
     {
-        if(ActiveRecord.eventNames[i] == event_name)
+        if(ActiveRecord.eventNames[i] === event_name)
         {
             var observers = [];
             var model_observer;

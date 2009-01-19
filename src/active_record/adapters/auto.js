@@ -34,7 +34,7 @@
 Adapters.Auto = {};
 Adapters.Auto.connect = function connect()
 {
-    if(typeof(Jaxer) != 'undefined')
+    if(typeof(Jaxer) !== 'undefined')
     {
         if(Jaxer.DB.connection.constructor == Jaxer.DB.MySQL.Connection)
         {
@@ -45,7 +45,7 @@ Adapters.Auto.connect = function connect()
             return Adapters.JaxerSQLite.connect.apply(Adapters.JaxerSQLite.connect,arguments);
         }
     }
-    else if(typeof(air) != 'undefined')
+    else if(typeof(air) !== 'undefined')
     {
         return Adapters.AIR.connect.apply(Adapters.AIR.connect,arguments);
     }

@@ -30,7 +30,7 @@
  *  Prototype.js framework, without modifying any built in prototypes to
  *  ensure compatibility and portability.
  */
-ActiveSupport = null;
+var ActiveSupport = null;
 
 (function(global_context){
 ActiveSupport = {
@@ -58,7 +58,7 @@ ActiveSupport = {
         var klass = context[class_name];
         if(!klass)
         {
-            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) !== 'undefined');
             if(trigger_no_such_method)
             {
                 try
@@ -81,15 +81,15 @@ ActiveSupport = {
      */
     log: function log()
     {
-        if(typeof(Jaxer) != 'undefined')
+        if(typeof(Jaxer) !== 'undefined')
         {
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) != 'undefined')
+        else if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) != 'undefined')
+        else if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
@@ -124,7 +124,7 @@ ActiveSupport = {
      */
     indexOf: function indexOf(array,item,i)
     {
-        i || (i = 0);
+        i = i || (0);
         var length = array.length;
         if(i < 0)
         {
@@ -170,7 +170,7 @@ ActiveSupport = {
     {
         func.bind = function bind()
         {
-            if (arguments.length < 2 && typeof(arguments[0]) == "undefined")
+            if (arguments.length < 2 && typeof(arguments[0]) === "undefined")
             {
                 return this;
             }
@@ -244,12 +244,12 @@ ActiveSupport = {
      */
     keys: function keys(object)
     {
-        var keys = [];
+        var keysArray = [];
         for (var property in object)
         {
-            keys.push(property);
+            keysArray.push(property);
         }
-        return keys;
+        return keysArray;
     },
     /**
      * Emulates Prototype's String.prototype.underscore
@@ -273,8 +273,9 @@ ActiveSupport = {
      * @return {String}
      */
     camelize: function camelize(str, capitalize){
-        var parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
-        if (len == 1)
+        var camelized,
+            parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
+        if (len === 1)
         {
             if(capitalize)
             {
@@ -285,13 +286,13 @@ ActiveSupport = {
                 return parts[0];
             }
         }
-        if(str.charAt(0) == '-')
+        if(str.charAt(0) === '-')
         {
-            var camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+            camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
         }
         else
         {
-            var camelized = parts[0];
+            camelized = parts[0];
         }
         for (var i = 1; i < len; i++)
         {
@@ -341,7 +342,7 @@ ActiveSupport = {
      */
     proc: function proc(proc)
     {
-        return typeof(proc) == 'function' ? proc : function(){return proc;};
+        return typeof(proc) === 'function' ? proc : function(){return proc;};
     },
     
     /**
@@ -353,7 +354,7 @@ ActiveSupport = {
      */
     value: function value(value)
     {
-        return typeof(value) == 'function' ? value() : value;
+        return typeof(value) === 'function' ? value() : value;
     },
     
     /**
@@ -366,7 +367,7 @@ ActiveSupport = {
      */
     block: function block(args)
     {
-        if(typeof(args) == 'number' || !args)
+        if(typeof(args) === 'number' || !args)
         {
             var up = arguments.callee;
             for(var i = 0; i <= (args || 0); ++i)
@@ -379,7 +380,7 @@ ActiveSupport = {
             }
             args = up.arguments;
         }
-        return (args.length == 0 || typeof(args[args.length - 1]) != 'function') ? false : args[args.length - 1];
+        return (args.length === 0 || typeof(args[args.length - 1]) !== 'function') ? false : args[args.length - 1];
     },
     
     /**
@@ -412,7 +413,7 @@ ActiveSupport = {
                         delete stack.waiting[i];
                     }
                 }
-                if(all_present && i == stack.length)
+                if(all_present && i === stack.length)
                 {
                     if(finish)
                     {
@@ -424,7 +425,7 @@ ActiveSupport = {
             return wrapped;
         };
         execute(stack,scope);
-        if(stack.length == 0 && finish)
+        if(stack.length === 0 && finish)
         {
             finish(scope);
         }
@@ -506,13 +507,13 @@ ActiveSupport = {
          */
         ordinalize: function ordinalize(number)
         {
-            if (11 <= parseInt(number) % 100 && parseInt(number) % 100 <= 13)
+            if (11 <= parseInt(number, 10) % 100 && parseInt(number, 10) % 100 <= 13)
             {
                 return number + "th";
             }
             else
             {
-                switch (parseInt(number) % 10)
+                switch (parseInt(number, 10) % 10)
                 {
                     case  1: return number + "st";
                     case  2: return number + "nd";
@@ -529,24 +530,25 @@ ActiveSupport = {
          */
         pluralize: function pluralize(word)
         {
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            var i;
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase == uncountable)
+                if (word.toLowerCase === uncountable)
                 {
                     return uncountable;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase == singular) || (word == plural))
+                if ((word.toLowerCase === singular) || (word === plural))
                 {
                     return plural;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
             {
                 var regex = ActiveSupport.Inflector.Inflections.plural[i][0];
                 var replace_string = ActiveSupport.Inflector.Inflections.plural[i][1];
@@ -563,24 +565,25 @@ ActiveSupport = {
          * @return {String}
          */
         singularize: function singularize(word) {
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            var i;
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase == uncountable)
+                if (word.toLowerCase === uncountable)
                 {
                     return uncountable;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase == singular) || (word == plural))
+                if ((word.toLowerCase === singular) || (word === plural))
                 {
                     return plural;
                 }
             }
-            for (var i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
             {
                 var regex = ActiveSupport.Inflector.Inflections.singular[i][0];
                 var replace_string = ActiveSupport.Inflector.Inflections.singular[i][1];
@@ -613,12 +616,14 @@ ActiveSupport = {
     dateFormat: function date_format_wrapper()
     {
         var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
-            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
-            timezoneClip = /[^-+\dA-Z]/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[\-\+]\d{4})?)\b/g,
+            timezoneClip = /[^\-\+\dA-Z]/g,
             pad = function (val, len) {
                 val = String(val);
                 len = len || 2;
-                while (val.length < len) val = "0" + val;
+                while (val.length < len) {
+                    val = "0" + val;
+                }
                 return val;
             };
 
@@ -627,19 +632,21 @@ ActiveSupport = {
             var dF = dateFormat;
 
             // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
-            if (arguments.length == 1 && (typeof date == "string" || date instanceof String) && !/\d/.test(date)) {
+            if (arguments.length === 1 && (typeof date === "string" || date instanceof String) && !/\d/.test(date)) {
                 mask = date;
                 date = undefined;
             }
 
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
-            if (isNaN(date)) throw new SyntaxError("invalid date");
+            if (isNaN(date)) {
+                throw new SyntaxError("invalid date");
+            }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
 
             // Allow setting the utc argument via the mask
-            if (mask.slice(0, 4) == "UTC:") {
+            if (mask.slice(0, 4) === "UTC:") {
                 mask = mask.slice(4);
                 utc = true;
             }
@@ -681,7 +688,7 @@ ActiveSupport = {
                     TT:   H < 12 ? "AM" : "PM",
                     Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
                     o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
-                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 !== 10) * d % 10]
                 };
 
             return mask.replace(token, function ($0) {
@@ -754,11 +761,11 @@ ActiveSupport = {
         var serialize_value = function serialize_value(key_name,value,indent)
         {
             var response = '';
-            if(typeof(value) == 'string' || typeof(value) == 'number' || typeof(value) == 'boolean')
+            if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
                 response = '<![CDATA[' + (new String(value)).toString() + ']]>';
             }
-            else if(typeof(value) == 'object')
+            else if(typeof(value) === 'object')
             {
                 response += String.fromCharCode(10);
                 if('length' in value && 'splice' in value)
@@ -770,7 +777,7 @@ ActiveSupport = {
                 }
                 else
                 {
-                    var object = value.toObject && typeof(value.toObject) == 'function' ? value.toObject() : value;
+                    var object = value.toObject && typeof(value.toObject) === 'function' ? value.toObject() : value;
                     for(key_name in object)
                     {
                         response += wrap_value(key_name,object[key_name],indent + 1);
@@ -955,7 +962,8 @@ ActiveSupport = {
         function f(n) {
             // Format integers to have at least two digits.
             return n < 10 ? '0' + n : n;
-        };
+        }
+        
         Date.prototype.toJSON = function (key) {
             return this.getUTCFullYear()   + '-' +
                  f(this.getUTCMonth() + 1) + '-' +
@@ -983,6 +991,7 @@ ActiveSupport = {
                 '\\': '\\\\'
             },
             rep;
+        
         function quote(string) {
             escapeable.lastIndex = 0;
             return escapeable.test(string) ?
@@ -995,7 +1004,8 @@ ActiveSupport = {
                             (+(a.charCodeAt(0))).toString(16)).slice(-4);
                 }) + '"' :
                 '"' + string + '"';
-        };
+        }
+        
         function str(key, holder) {
             var i,          // The loop counter.
                 k,          // The member key.
@@ -1066,7 +1076,8 @@ ActiveSupport = {
                 gap = mind;
                 return v;
             }
-        };
+        }
+        
         return {
             /**
              * @alias ActiveSupport.JSON.stringify
@@ -1099,6 +1110,7 @@ ActiveSupport = {
              */
             parse: function (text, reviver) {
                 var j;
+                
                 function walk(holder, key) {
                     var k, v, value = holder[key];
                     if (value && typeof value === 'object') {
@@ -1114,7 +1126,8 @@ ActiveSupport = {
                         }
                     }
                     return reviver.call(holder, key, value);
-                };
+                }
+                
                 cx.lastIndex = 0;
                 if (cx.test(text)) {
                     text = text.replace(cx, function (a) {
@@ -1218,7 +1231,7 @@ ActiveSupport = {
  *     var m = new Message();
  *     
  *     var observer = m.observe('send',function(message,text){
- *         if(text == 'test')
+ *         if(text === 'test')
  *             return false;
  *     });
  *     
@@ -1277,7 +1290,7 @@ ActiveSupport = {
  *       h.set('b','two');
  *   });
  */
-ActiveEvent = null;
+var ActiveEvent = null;
 
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
@@ -1354,7 +1367,7 @@ ActiveEvent.extend = function extend(object){
      */
     object.observe = function observe(event_name,observer)
     {
-        if(typeof(event_name) == 'string' && typeof(observer) != 'undefined')
+        if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
             if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
@@ -1465,7 +1478,7 @@ ActiveEvent.extend = function extend(object){
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
             var response;
-            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
             {
                 response = this.options[event_name].apply(this,args);
                 if(response === false)
@@ -1549,7 +1562,7 @@ ActiveEvent.ObservableHash = ObservableHash;
 
 })();
 
-ActiveView = null;
+var ActiveView = null;
 
 (function(){
 
@@ -1559,7 +1572,7 @@ ActiveView.logging = false;
 
 ActiveView.create = function create(structure,methods)
 {
-    if(typeof(options) == 'function')
+    if(typeof(options) === 'function')
     {
         options = {
             structure: options
@@ -1617,7 +1630,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         target.innerHTML = content;
         return content;
     }
-    else if(content && content.nodeType == 1)
+    else if(content && content.nodeType === 1)
     {
         execute(target,content);
         return content;
@@ -1653,7 +1666,7 @@ var InstanceMethods = {
         this.builder = ActiveView.Builder;
         ActiveView.generateBinding(this);
         this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
             throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
         }
@@ -1668,7 +1681,7 @@ var InstanceMethods = {
         for(var key in this.scope._object)
         {
             var item = this.scope._object[key];
-            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
             {
                 ActiveView.makeArrayObservable(item);
             }
@@ -1721,13 +1734,13 @@ var Builder = {
             htmlFor:   'for'
         };
         var attributes = {};
-        if(typeof name == 'object')
+        if(typeof name === 'object')
         {
             attributes = name;
         }
         else
         {
-            attributes[name] = typeof(value) == 'undefined' ? true : value;
+            attributes[name] = typeof(value) === 'undefined' ? true : value;
         }
         for(var attribute_name in attributes)
         {
@@ -1767,7 +1780,7 @@ var Builder = {
         var tag = tags[t];
         (function tag_iterator(tag){
             Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
-                var i, argument, attributes, elements, element;
+                var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
                 for(i = 0; i < arguments.length; ++i)
@@ -1777,19 +1790,19 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) == 'function')
+                    if(typeof(argument) === 'function')
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
-                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
                     {
                         elements = argument;
                     }
-                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
                     {
                         elements.push(argument);
                     }
@@ -1797,7 +1810,7 @@ var Builder = {
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
                 }
                 return element;
             };
@@ -1812,16 +1825,16 @@ ActiveView.generateBinding = function generateBinding(instance)
     instance.binding = {};
     instance.binding.update = function update(element)
     {
-        if(!element || !element.nodeType == 1)
+        if(!element || !element.nodeType === 1)
         {
-            console.log(element)
+            console.log(element);
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {
             from: function from(observe_key)
             {
                 var object = instance.scope;
-                if(arguments.length == 2)
+                if(arguments.length === 2)
                 {
                     object = arguments[1];
                     observe_key = arguments[2];
@@ -1834,7 +1847,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 
                 var transform = function transform(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -1846,7 +1859,7 @@ ActiveView.generateBinding = function generateBinding(instance)
 
                 var when = function when(callback)
                 {
-                    if(!callback || typeof(callback) != 'function')
+                    if(!callback || typeof(callback) !== 'function')
                     {
                         throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                     }
@@ -1883,19 +1896,19 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             from: function from(collection)
             {
-                if(!collection || (typeof(collection) != 'object' && typeof(collection) != 'string'))
+                if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
                     throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
                 }
                 return {
                     into: function into(element)
                     {
-                        if(!element || !element.nodeType == 1)
+                        if(!element || !element.nodeType === 1)
                         {
                             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
-                        if(typeof(collection) == 'string')
+                        if(typeof(collection) === 'string')
                         {
                             var collection_name = collection;
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
@@ -1953,7 +1966,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     for(i = 0; i < children.length; ++i)
                                     {
                                         ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            element.insertBefore(typeof(content) === 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
                                             children[i] = element.childNodes[index + i];
                                         });
                                     }
@@ -1972,7 +1985,7 @@ ActiveView.generateBinding = function generateBinding(instance)
         return {
             changes: function changes(callback)
             {
-                if(!callback || typeof(callback) != 'function')
+                if(!callback || typeof(callback) !== 'function')
                 {
                     throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
                 }

@@ -25,6 +25,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveController = null;
+var ActiveController = null;
 
 (function(){
