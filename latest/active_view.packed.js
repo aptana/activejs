@@ -1,27 +1,1964 @@
-/* ***** BEGIN LICENSE BLOCK *****
+ 
+/**
+ * @namespace {ActiveSupport} Provides a number of methods from the
+ *  Prototype.js framework, without modifying any built in prototypes to
+ *  ensure compatibility and portability.
+ */
+ActiveSupport = null;
+
+(function(global_context){
+ActiveSupport = {
+    /**
+     * Returns the global context object (window in most implementations).
+     * @alias ActiveSupport.getGlobalContext
+     * @return {Object}
+     */
+    getGlobalContext: function getGlobalContext()
+    {
+        return global_context;
+    },
+    /**
+     * Returns a class if it exists. If the context (default window / global
+     * context) does not contain the class, but does have a __noSuchMethod__
+     * property, it will attempt to call context[class_name]() to trigger
+     * the __noSuchMethod__ handler.
+     * @param {String} class_name
+     * @param {Object} context
+     * @return {Mixed}
+     */
+    getClass: function getClass(class_name,context)
+    {
+        context = context || ActiveSupport.getGlobalContext();
+        var klass = context[class_name];
+        if(!klass)
+        {
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) != 'undefined');
+            if(trigger_no_such_method)
+            {
+                try
+                {
+                    context[class_name]();
+                    klass = context[class_name];
+                }
+                catch(e)
+                {
+                    return false;
+                }
+            }
+        }
+        return klass;
+    },
+    /**
+     * Logs a message to the available logging resource. Accepts a variable
+     * number of arguments.
+     * @alias ActiveSupport.log
+     */
+    log: function log()
+    {
+        if(typeof(Jaxer) != 'undefined')
+        {
+            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
+        }
+        else if(typeof(air) != 'undefined')
+        {
+            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
+        }
+        else if(typeof(console) != 'undefined')
+        {
+            console.log.apply(console,arguments || []);
+        }
+    },
+    /**
+     * Returns an array from an array or array like object.
+     * @alias ActiveSupport.arrayFrom
+     * @param {Object} object
+     *      Any iterable object (Array, NodeList, arguments)
+     * @return {Array}
+     */
+    arrayFrom: function arrayFrom(object)
+    {
+        if(!object)
+        {
+            return [];
+        }
+        var length = object.length || 0;
+        var results = new Array(length);
+        while (length--)
+        {
+            results[length] = object[length];
+        }
+        return results;
+    },
+    /**
+     * Emulates Array.indexOf for implementations that do not support it.
+     * @alias ActiveSupport.indexOf
+     * @param {Array} array
+     * @param {mixed} item
+     * @return {Number}
+     */
+    indexOf: function indexOf(array,item,i)
+    {
+        i || (i = 0);
+        var length = array.length;
+        if(i < 0)
+        {
+            i = length + i;
+        }
+        for(; i < length; i++)
+        {
+            if(array[i] === item)
+            {
+                return i;
+            }
+        }
+        return -1;
+    },
+    /**
+     * Returns an array without the given item.
+     * @alias ActiveSupport.without
+     * @param {Array} arr
+     * @param {mixed} item to remove
+     * @return {Array}
+     */
+    without: function without(arr){
+        var values = ActiveSupport.arrayFrom(arguments).slice(1);
+        var response = [];
+        for(var i = 0 ; i < arr.length; i++)
+        {
+            if(!(ActiveSupport.indexOf(values,arr[i]) > -1))
+            {
+                response.push(arr[i]);
+            }
+        }
+        return response;
+    },
+    /**
+     * Emulates Prototype's Function.prototype.bind
+     * @alias ActiveSupport.bind
+     * @param {Function} func
+     * @param {Object} object
+     *      object will be in scope as "this" when func is called.
+     * @return {Function}
+     */
+    bind: function bind(func, object)
+    {
+        func.bind = function bind()
+        {
+            if (arguments.length < 2 && typeof(arguments[0]) == "undefined")
+            {
+                return this;
+            }
+            var __method = this;
+            var args = ActiveSupport.arrayFrom(arguments);
+            var object = args.shift();
+            return function bound()
+            {
+                return __method.apply(object, args.concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.bind(object);
+    },
+    /**
+     * Emulates Prototype's Function.prototype.curry.
+     * @alias ActiveSupport.curry
+     * @param {Function} func
+     * @return {Function}
+     */
+    curry: function curry(func)
+    {
+        func.curry = function curry()
+        {
+            if (!arguments.length)
+            {
+                return this;
+            }
+            var __method = this;
+            var args = ActiveSupport.arrayFrom(arguments);
+            return function curried()
+            {
+                return __method.apply(this, args.concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.curry.apply(func, ActiveSupport.arrayFrom(arguments).slice(1));
+    },
+    /**
+     * Returns a function wrapped around the original function.
+     * @alias ActiveSupport.wrap
+     * @param {Function} func
+     * @param {Function} wrapper
+     * @return {Function} wrapped
+     * @example
+     *
+     *     String.prototype.capitalize = String.prototype.capitalize.wrap( 
+     *     function(proceed, eachWord) { 
+     *         if (eachWord && this.include(" ")) {
+     *             // capitalize each word in the string
+     *             return this.split(" ").invoke("capitalize").join(" ");
+     *         } else {
+     *             // proceed using the original function
+     *             return proceed(); 
+     *         }
+     *     });
+     */
+    wrap: function wrap(func,wrapper)
+    {
+        func.wrap = function wrap(wrapper){
+            var __method = this;
+            return function wrapped(){
+                return wrapper.apply(this,[ActiveSupport.bind(__method,this)].concat(ActiveSupport.arrayFrom(arguments)));
+            };
+        };
+        return func.wrap(wrapper);
+    },
+    /**
+     * Returns an array of keys from an object.
+     * @alias ActiveSupport.keys
+     * @param {Object} object
+     * @return {Array}
+     */
+    keys: function keys(object)
+    {
+        var keys = [];
+        for (var property in object)
+        {
+            keys.push(property);
+        }
+        return keys;
+    },
+    /**
+     * Emulates Prototype's String.prototype.underscore
+     * @alias ActiveSupport.underscore
+     * @param {String} str
+     * @return {String}
+     */
+    underscore: function underscore(str)
+    {
+        return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            return match[0] + '_' + match[1];
+        }).replace(/([a-z\d])([A-Z])/g, function(match){
+            return match[0] + '_' + match[1];
+        }).replace(/-/g, '_').toLowerCase();
+    },
+    /**
+     * Emulates Prototype's String.prototype.camelize
+     * @alias ActiveSupport.camelize
+     * @param {String} str
+     * @param {Boolean} [capitalize]
+     * @return {String}
+     */
+    camelize: function camelize(str, capitalize){
+        var parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
+        if (len == 1)
+        {
+            if(capitalize)
+            {
+                return parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+            }
+            else
+            {
+                return parts[0];
+            }
+        }
+        if(str.charAt(0) == '-')
+        {
+            var camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+        }
+        else
+        {
+            var camelized = parts[0];
+        }
+        for (var i = 1; i < len; i++)
+        {
+            camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
+        }
+        if(capitalize)
+        {
+            return camelized.charAt(0).toUpperCase() + camelized.substring(1);
+        }
+        else
+        {
+            return camelized;
+        }
+    },
+    /**
+     * Emulates Prototype's Object.extend
+     * @alias ActiveSupport.extend
+     * @param {Object} destination
+     * @param {Object} source
+     * @return {Object}
+     */
+    extend: function extend(destination, source)
+    {
+        for (var property in source)
+        {
+            destination[property] = source[property];
+        }
+        return destination;
+    },
+    /**
+     * Emulates Prototype's Object.clone
+     * @alias ActiveSupport.clone
+     * @param {Object} object
+     * @return {Object}
+     */
+    clone: function clone(object)
+    {
+        return ActiveSupport.extend({}, object);
+    },
+    
+    /**
+     * If the value passed is a function the value passed will be returned,
+     * otherwise a function returning the value passed will be returned.
+     * @alias ActiveSupport.proc
+     * @param {mixed} proc
+     * @return {Function}
+     */
+    proc: function proc(proc)
+    {
+        return typeof(proc) == 'function' ? proc : function(){return proc;};
+    },
+    
+    /**
+     * If the value passed is a function, the function is called and the value
+     * returned, otherwise the value passed in is returned.
+     * @alias ActiveSupport.value
+     * @param {mixed} value
+     * @return {scalar}
+     */
+    value: function value(value)
+    {
+        return typeof(value) == 'function' ? value() : value;
+    },
+    
+    /**
+     * If it is the last argument of current function is a function, it will be
+     * returned. You can optionally specify the number of calls in the stack to
+     * look up.
+     * @alias ActiveSupport.block
+     * @param {Number} [levels]
+     * @return {mixed}
+     */
+    block: function block(args)
+    {
+        if(typeof(args) == 'number' || !args)
+        {
+            var up = arguments.callee;
+            for(var i = 0; i <= (args || 0); ++i)
+            {
+                up = up.caller;
+                if(!up)
+                {
+                    return false;
+                }
+            }
+            args = up.arguments;
+        }
+        return (args.length == 0 || typeof(args[args.length - 1]) != 'function') ? false : args[args.length - 1];
+    },
+    
+    /**
+     * @alias ActiveSupport.synchronize
+     */
+    synchronize: function synchronize(execute,finish)
+    {
+        var scope = {};
+        var stack = [];
+        stack.waiting = {};
+        stack.add = function add(callback){
+            var wrapped = ActiveSupport.wrap(callback || function(){},function synchronizationWrapper(proceed){
+                var i = null;
+                var index = ActiveSupport.indexOf(stack,wrapped);
+                stack.waiting[index] = [proceed,ActiveSupport.arrayFrom(arguments)];
+                var all_present = true;
+                for(i = 0; i < stack.length; ++i)
+                {
+                    if(!stack.waiting[i])
+                    {
+                        all_present = false;
+                    }
+                }
+                if(all_present)
+                {
+                    for(i = 0; i < stack.length; ++i)
+                    {
+                        var item = stack.waiting[i];
+                        item[0].apply(item[0],item[1]);
+                        delete stack.waiting[i];
+                    }
+                }
+                if(all_present && i == stack.length)
+                {
+                    if(finish)
+                    {
+                        finish(scope);
+                    }
+                }
+            });
+            stack.push(wrapped);
+            return wrapped;
+        };
+        execute(stack,scope);
+        if(stack.length == 0 && finish)
+        {
+            finish(scope);
+        }
+    },
+    
+    /**
+     * @namespace {ActiveSupport.Inflector} A port of Rails Inflector class.
+     */
+    Inflector: {
+        Inflections: {
+            plural: [
+                [/(quiz)$/i,               "$1zes"  ],
+                [/^(ox)$/i,                "$1en"   ],
+                [/([m|l])ouse$/i,          "$1ice"  ],
+                [/(matr|vert|ind)ix|ex$/i, "$1ices" ],
+                [/(x|ch|ss|sh)$/i,         "$1es"   ],
+                [/([^aeiouy]|qu)y$/i,      "$1ies"  ],
+                [/(hive)$/i,               "$1s"    ],
+                [/(?:([^f])fe|([lr])f)$/i, "$1$2ves"],
+                [/sis$/i,                  "ses"    ],
+                [/([ti])um$/i,             "$1a"    ],
+                [/(buffal|tomat)o$/i,      "$1oes"  ],
+                [/(bu)s$/i,                "$1ses"  ],
+                [/(alias|status)$/i,       "$1es"   ],
+                [/(octop|vir)us$/i,        "$1i"    ],
+                [/(ax|test)is$/i,          "$1es"   ],
+                [/s$/i,                    "s"      ],
+                [/$/,                      "s"      ]
+            ],
+            singular: [
+                [/(quiz)zes$/i,                                                    "$1"     ],
+                [/(matr)ices$/i,                                                   "$1ix"   ],
+                [/(vert|ind)ices$/i,                                               "$1ex"   ],
+                [/^(ox)en/i,                                                       "$1"     ],
+                [/(alias|status)es$/i,                                             "$1"     ],
+                [/(octop|vir)i$/i,                                                 "$1us"   ],
+                [/(cris|ax|test)es$/i,                                             "$1is"   ],
+                [/(shoe)s$/i,                                                      "$1"     ],
+                [/(o)es$/i,                                                        "$1"     ],
+                [/(bus)es$/i,                                                      "$1"     ],
+                [/([m|l])ice$/i,                                                   "$1ouse" ],
+                [/(x|ch|ss|sh)es$/i,                                               "$1"     ],
+                [/(m)ovies$/i,                                                     "$1ovie" ],
+                [/(s)eries$/i,                                                     "$1eries"],
+                [/([^aeiouy]|qu)ies$/i,                                            "$1y"    ],
+                [/([lr])ves$/i,                                                    "$1f"    ],
+                [/(tive)s$/i,                                                      "$1"     ],
+                [/(hive)s$/i,                                                      "$1"     ],
+                [/([^f])ves$/i,                                                    "$1fe"   ],
+                [/(^analy)ses$/i,                                                  "$1sis"  ],
+                [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, "$1$2sis"],
+                [/([ti])a$/i,                                                      "$1um"   ],
+                [/(n)ews$/i,                                                       "$1ews"  ],
+                [/s$/i,                                                            ""       ]
+            ],
+            irregular: [
+                ['move',   'moves'   ],
+                ['sex',    'sexes'   ],
+                ['child',  'children'],
+                ['man',    'men'     ],
+                ['person', 'people'  ]
+            ],
+            uncountable: [
+                "sheep",
+                "fish",
+                "series",
+                "species",
+                "money",
+                "rice",
+                "information",
+                "equipment"
+            ]
+        },
+        /**
+         * Generates an orginalized version of a number as a string (9th, 2nd, etc)
+         * @alias ActiveSupport.Inflector.ordinalize
+         * @param {Number} number
+         * @return {String}
+         */
+        ordinalize: function ordinalize(number)
+        {
+            if (11 <= parseInt(number) % 100 && parseInt(number) % 100 <= 13)
+            {
+                return number + "th";
+            }
+            else
+            {
+                switch (parseInt(number) % 10)
+                {
+                    case  1: return number + "st";
+                    case  2: return number + "nd";
+                    case  3: return number + "rd";
+                    default: return number + "th";
+                }
+            }
+        },
+        /**
+         * Generates a plural version of an english word.
+         * @alias ActiveSupport.Inflector.pluralize
+         * @param {String} word
+         * @return {String}
+         */
+        pluralize: function pluralize(word)
+        {
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
+                if (word.toLowerCase == uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((word.toLowerCase == singular) || (word == plural))
+                {
+                    return plural;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.plural[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.plural[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+        },
+        /**
+         * Generates a singular version of an english word.
+         * @alias ActiveSupport.Inflector.singularize
+         * @param {String} word
+         * @return {String}
+         */
+        singularize: function singularize(word) {
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
+                if (word.toLowerCase == uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((word.toLowerCase == singular) || (word == plural))
+                {
+                    return plural;
+                }
+            }
+            for (var i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.singular[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.singular[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+        }
+    },
+    /*
+     * Date Format 1.2.2
+     * (c) 2007-2008 Steven Levithan <stevenlevithan.com>
+     * MIT license
+     * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
+     *
+     * Accepts a date, a mask, or a date and a mask.
+     * Returns a formatted version of the given date.
+     * The date defaults to the current date/time.
+     * The mask defaults to dateFormat.masks.default.
+     */
+     
+    /**
+     * @alias ActiveSupport.dateFormat
+     * @param {Date} date
+     * @param {String} format
+     * @param {Boolean} utc
+     * @return {String}
+     */
+    dateFormat: function date_format_wrapper()
+    {
+        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[-+]\d{4})?)\b/g,
+            timezoneClip = /[^-+\dA-Z]/g,
+            pad = function (val, len) {
+                val = String(val);
+                len = len || 2;
+                while (val.length < len) val = "0" + val;
+                return val;
+            };
+
+        // Regexes and supporting functions are cached through closure
+        var dateFormat = function dateFormat(date, mask, utc) {
+            var dF = dateFormat;
+
+            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+            if (arguments.length == 1 && (typeof date == "string" || date instanceof String) && !/\d/.test(date)) {
+                mask = date;
+                date = undefined;
+            }
+
+            // Passing date through Date applies Date.parse, if necessary
+            date = date ? new Date(date) : new Date();
+            if (isNaN(date)) throw new SyntaxError("invalid date");
+
+            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+            // Allow setting the utc argument via the mask
+            if (mask.slice(0, 4) == "UTC:") {
+                mask = mask.slice(4);
+                utc = true;
+            }
+
+            var _ = utc ? "getUTC" : "get",
+                d = date[_ + "Date"](),
+                D = date[_ + "Day"](),
+                m = date[_ + "Month"](),
+                y = date[_ + "FullYear"](),
+                H = date[_ + "Hours"](),
+                M = date[_ + "Minutes"](),
+                s = date[_ + "Seconds"](),
+                L = date[_ + "Milliseconds"](),
+                o = utc ? 0 : date.getTimezoneOffset(),
+                flags = {
+                    d:    d,
+                    dd:   pad(d),
+                    ddd:  dF.i18n.dayNames[D],
+                    dddd: dF.i18n.dayNames[D + 7],
+                    m:    m + 1,
+                    mm:   pad(m + 1),
+                    mmm:  dF.i18n.monthNames[m],
+                    mmmm: dF.i18n.monthNames[m + 12],
+                    yy:   String(y).slice(2),
+                    yyyy: y,
+                    h:    H % 12 || 12,
+                    hh:   pad(H % 12 || 12),
+                    H:    H,
+                    HH:   pad(H),
+                    M:    M,
+                    MM:   pad(M),
+                    s:    s,
+                    ss:   pad(s),
+                    l:    pad(L, 3),
+                    L:    pad(L > 99 ? Math.round(L / 10) : L),
+                    t:    H < 12 ? "a"  : "p",
+                    tt:   H < 12 ? "am" : "pm",
+                    T:    H < 12 ? "A"  : "P",
+                    TT:   H < 12 ? "AM" : "PM",
+                    Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                    o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 != 10) * d % 10]
+                };
+
+            return mask.replace(token, function ($0) {
+                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+            });
+        };
+        
+        // Some common format strings
+        dateFormat.masks = {
+            "default":      "ddd mmm dd yyyy HH:MM:ss",
+            shortDate:      "m/d/yy",
+            mediumDate:     "mmm d, yyyy",
+            longDate:       "mmmm d, yyyy",
+            fullDate:       "dddd, mmmm d, yyyy",
+            shortTime:      "h:MM TT",
+            mediumTime:     "h:MM:ss TT",
+            longTime:       "h:MM:ss TT Z",
+            isoDate:        "yyyy-mm-dd",
+            isoTime:        "HH:MM:ss",
+            isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+            MySQL:          "yyyy-mm-dd HH:MM:ss",
+            isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+        };
+
+        // Internationalization strings
+        dateFormat.i18n = {
+            dayNames: [
+                "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+                "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+            ],
+            monthNames: [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+            ]
+        };
+        
+        return dateFormat;
+    }(),
+    /**
+     * Serializes an object to a JSON string.
+     * @alias ActiveSupport.JSONFromObject
+     * @param {Object} object
+     * @return {String} json
+     */ 
+    JSONFromObject: function JSONFromObject(object)
+    {
+        return ActiveSupport.JSON.stringify(object);
+    },
+    /**
+     * Serializes an object to an XML string.
+     * @alias ActiveSupport.XMLFromObject
+     * @param {String} outer_key_name
+     * @param {Object} object
+     * @return {String} xml
+     */ 
+    XMLFromObject: function XMLFromObject(outer_key_name,object)
+    {
+        var indent = 0;
+        
+        var str_repeat = function str_repeat(string,repeat)
+        {
+            var response = '';
+            for(var i = 0; i < repeat; ++i)
+            {
+                response += string;
+            }
+            return response;
+        };
+        
+        var serialize_value = function serialize_value(key_name,value,indent)
+        {
+            var response = '';
+            if(typeof(value) == 'string' || typeof(value) == 'number' || typeof(value) == 'boolean')
+            {
+                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+            }
+            else if(typeof(value) == 'object')
+            {
+                response += String.fromCharCode(10);
+                if('length' in value && 'splice' in value)
+                {
+                    for(var i = 0; i < value.length; ++i)
+                    {
+                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name),value[i],indent + 1);
+                    }
+                }
+                else
+                {
+                    var object = value.toObject && typeof(value.toObject) == 'function' ? value.toObject() : value;
+                    for(key_name in object)
+                    {
+                        response += wrap_value(key_name,object[key_name],indent + 1);
+                    }
+                }
+                response += str_repeat(' ',4 * indent);
+            }
+            return response;
+        };
+        
+        var sanitize_key_name = function sanitize_key_name(key_name)
+        {
+            return key_name.replace(/[\s\_]+/g,'-').toLowerCase();
+        };
+        
+        var wrap_value = function wrap_value(key_name,value,indent)
+        {
+            key_name = sanitize_key_name(key_name);
+            return str_repeat(' ',4 * indent) + '<' + key_name + '>' + serialize_value(key_name,value,indent) + '</' + key_name + '>' + String.fromCharCode(10);
+        };
+        
+        outer_key_name = sanitize_key_name(outer_key_name);
+        return '<' + outer_key_name + '>' + serialize_value(outer_key_name,object,0) + '</' + outer_key_name + '>';
+    },
+    /*
+        http://www.JSON.org/json2.js
+        2008-07-15
+
+        Public Domain.
+
+        NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+        See http://www.JSON.org/js.html
+
+        This file creates a global JSON object containing two methods: stringify
+        and parse.
+
+            JSON.stringify(value, replacer, space)
+                value       any JavaScript value, usually an object or array.
+
+                replacer    an optional parameter that determines how object
+                            values are stringified for objects. It can be a
+                            function or an array.
+
+                space       an optional parameter that specifies the indentation
+                            of nested structures. If it is omitted, the text will
+                            be packed without extra whitespace. If it is a number,
+                            it will specify the number of spaces to indent at each
+                            level. If it is a string (such as '\t' or '&nbsp;'),
+                            it contains the characters used to indent at each level.
+
+                This method produces a JSON text from a JavaScript value.
+
+                When an object value is found, if the object contains a toJSON
+                method, its toJSON method will be called and the result will be
+                stringified. A toJSON method does not serialize: it returns the
+                value represented by the name/value pair that should be serialized,
+                or undefined if nothing should be serialized. The toJSON method
+                will be passed the key associated with the value, and this will be
+                bound to the object holding the key.
+
+                For example, this would serialize Dates as ISO strings.
+
+                    Date.prototype.toJSON = function (key) {
+                        function f(n) {
+                            // Format integers to have at least two digits.
+                            return n < 10 ? '0' + n : n;
+                        }
+
+                        return this.getUTCFullYear()   + '-' +
+                             f(this.getUTCMonth() + 1) + '-' +
+                             f(this.getUTCDate())      + 'T' +
+                             f(this.getUTCHours())     + ':' +
+                             f(this.getUTCMinutes())   + ':' +
+                             f(this.getUTCSeconds())   + 'Z';
+                    };
+
+                You can provide an optional replacer method. It will be passed the
+                key and value of each member, with this bound to the containing
+                object. The value that is returned from your method will be
+                serialized. If your method returns undefined, then the member will
+                be excluded from the serialization.
+
+                If the replacer parameter is an array, then it will be used to
+                select the members to be serialized. It filters the results such
+                that only members with keys listed in the replacer array are
+                stringified.
+
+                Values that do not have JSON representations, such as undefined or
+                functions, will not be serialized. Such values in objects will be
+                dropped; in arrays they will be replaced with null. You can use
+                a replacer function to replace those with JSON values.
+                JSON.stringify(undefined) returns undefined.
+
+                The optional space parameter produces a stringification of the
+                value that is filled with line breaks and indentation to make it
+                easier to read.
+
+                If the space parameter is a non-empty string, then that string will
+                be used for indentation. If the space parameter is a number, then
+                the indentation will be that many spaces.
+
+                Example:
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}]);
+                // text is '["e",{"pluribus":"unum"}]'
+
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+                // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+                text = JSON.stringify([new Date()], function (key, value) {
+                    return this[key] instanceof Date ?
+                        'Date(' + this[key] + ')' : value;
+                });
+                // text is '["Date(---current time---)"]'
+
+
+            JSON.parse(text, reviver)
+                This method parses a JSON text to produce an object or array.
+                It can throw a SyntaxError exception.
+
+                The optional reviver parameter is a function that can filter and
+                transform the results. It receives each of the keys and values,
+                and its return value is used instead of the original value.
+                If it returns what it received, then the structure is not modified.
+                If it returns undefined then the member is deleted.
+
+                Example:
+
+                // Parse the text. Values that look like ISO date strings will
+                // be converted to Date objects.
+
+                myData = JSON.parse(text, function (key, value) {
+                    var a;
+                    if (typeof value === 'string') {
+                        a =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                        if (a) {
+                            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                                +a[5], +a[6]));
+                        }
+                    }
+                    return value;
+                });
+
+                myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+                    var d;
+                    if (typeof value === 'string' &&
+                            value.slice(0, 5) === 'Date(' &&
+                            value.slice(-1) === ')') {
+                        d = new Date(value.slice(5, -1));
+                        if (d) {
+                            return d;
+                        }
+                    }
+                    return value;
+                });
+
+
+        This is a reference implementation. You are free to copy, modify, or
+        redistribute.
+
+        This code should be minified before deployment.
+        See http://javascript.crockford.com/jsmin.html
+
+        USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+        NOT CONTROL.
+    */
+    
+    /**
+     * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     */
+    JSON: function()
+    {
+        //use native support if available
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
+        {
+          return global_context.JSON;
+        }
+        
+        function f(n) {
+            // Format integers to have at least two digits.
+            return n < 10 ? '0' + n : n;
+        };
+        Date.prototype.toJSON = function (key) {
+            return this.getUTCFullYear()   + '-' +
+                 f(this.getUTCMonth() + 1) + '-' +
+                 f(this.getUTCDate())      + 'T' +
+                 f(this.getUTCHours())     + ':' +
+                 f(this.getUTCMinutes())   + ':' +
+                 f(this.getUTCSeconds())   + 'Z';
+        };
+        String.prototype.toJSON =
+        Number.prototype.toJSON =
+        Boolean.prototype.toJSON = function (key) {
+            return this.valueOf();
+        };
+        var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            gap,
+            indent,
+            meta = {    // table of character substitutions
+                '\b': '\\b',
+                '\t': '\\t',
+                '\n': '\\n',
+                '\f': '\\f',
+                '\r': '\\r',
+                '"' : '\\"',
+                '\\': '\\\\'
+            },
+            rep;
+        function quote(string) {
+            escapeable.lastIndex = 0;
+            return escapeable.test(string) ?
+                '"' + string.replace(escapeable, function (a) {
+                    var c = meta[a];
+                    if (typeof c === 'string') {
+                        return c;
+                    }
+                    return '\\u' + ('0000' +
+                            (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                }) + '"' :
+                '"' + string + '"';
+        };
+        function str(key, holder) {
+            var i,          // The loop counter.
+                k,          // The member key.
+                v,          // The member value.
+                length,
+                mind = gap,
+                partial,
+                value = holder[key];
+            if (value && typeof value === 'object' &&
+                    typeof value.toJSON === 'function') {
+                value = value.toJSON(key);
+            }
+            if (typeof rep === 'function') {
+                value = rep.call(holder, key, value);
+            }
+            switch (typeof value) {
+            case 'string':
+                return quote(value);
+            case 'number':
+                return isFinite(value) ? String(value) : 'null';
+            case 'boolean':
+            case 'null':
+                return String(value);
+            case 'object':
+                if (!value) {
+                    return 'null';
+                }
+                gap += indent;
+                partial = [];
+                if (typeof value.length === 'number' &&
+                        !(value.propertyIsEnumerable('length'))) {
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+                    v = partial.length === 0 ? '[]' :
+                        gap ? '[\n' + gap +
+                                partial.join(',\n' + gap) + '\n' +
+                                    mind + ']' :
+                              '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        k = rep[i];
+                        if (typeof k === 'string') {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                } else {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                v = partial.length === 0 ? '{}' :
+                    gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                            mind + '}' : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+            }
+        };
+        return {
+            /**
+             * @alias ActiveSupport.JSON.stringify
+             * @param {Object} value
+             * @return {String}
+             */
+            stringify: function (value, replacer, space) {
+                var i;
+                gap = '';
+                indent = '';
+                if (typeof space === 'number') {
+                    for (i = 0; i < space; i += 1) {
+                        indent += ' ';
+                    }
+                } else if (typeof space === 'string') {
+                    indent = space;
+                }
+                rep = replacer;
+                if (replacer && typeof replacer !== 'function' &&
+                        (typeof replacer !== 'object' ||
+                         typeof replacer.length !== 'number')) {
+                    throw new Error('JSON.stringify');
+                }
+                return str('', {'': value});
+            },
+            /**
+             * @alias ActiveSupport.JSON.parse
+             * @param {String} text
+             * @return {Object}
+             */
+            parse: function (text, reviver) {
+                var j;
+                function walk(holder, key) {
+                    var k, v, value = holder[key];
+                    if (value && typeof value === 'object') {
+                        for (k in value) {
+                            if (Object.hasOwnProperty.call(value, k)) {
+                                v = walk(value, k);
+                                if (v !== undefined) {
+                                    value[k] = v;
+                                } else {
+                                    delete value[k];
+                                }
+                            }
+                        }
+                    }
+                    return reviver.call(holder, key, value);
+                };
+                cx.lastIndex = 0;
+                if (cx.test(text)) {
+                    text = text.replace(cx, function (a) {
+                        return '\\u' + ('0000' +
+                                (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                    });
+                }
+                if (/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+                    j = eval('(' + text + ')');
+                    return typeof reviver === 'function' ?
+                        walk({'': j}, '') : j;
+                }
+                throw new SyntaxError('JSON.parse');
+            }
+        };
+    }()
+};
+
+})(this);
+
+/**
+ * @namespace {ActiveEvent}
+ * @example
+ * ActiveEvent allows you to create observable events, and attach event
+ * handlers to any class or object.
+ *
+ * Setup
+ * -----
+ * Before you can use ActiveEvent you must call extend a given class or object
+ * with ActiveEvent's methods. If you extend a class, both the class itself
+ * will become observable, as well as all of it's instances.
+ *
+ *     ActiveEvent.extend(MyClass); //class and all instances are observable
+ *     ActiveEvent.extend(my_object); //this object becomes observable
  * 
- * Copyright (c) 2009 Aptana, Inc.
+ * Creating Events
+ * ---------------
+ * You can create an event inside any method of your class or object by calling
+ * the notify() method with name of the event followed by any arguments to be
+ * passed to observers. You can also have an existing method fire an event with
+ * the same name as the method using makeObservable().
  * 
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ *     var Message = function(){};
+ *     Message.prototype.send = function(text){
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *     };
+ *     ActiveEvent.extend(Message);
  * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ *     //make an existing method observable
+ *     var observable_hash = new Hash({});
+ *     ActiveEvent.extend(observable_hash);
+ *     observable_hash.makeObservable('set');
  * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * Observing Events
+ * ----------------
+ * To observe an event call the observe() method with the name of the event you
+ * want to observe, and the observer function. The observer function will
+ * receive any additional arguments passed to notify(). If observing a class,
+ * the instance that triggered the event will always be the first argument
+ * passed to the observer. observeOnce() works just like observe() in every
+ * way, but is only called once.
  * 
- * ***** END LICENSE BLOCK ***** */
-eval(function(p,a,c,k,e,r){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--)r[e(c)]=k[c]||e(c);k=[function(e){return r[e]}];e=function(){return'\\w+'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('C=19;(5(p){C={26:5 26(){8 p},4w:5 4w(a,b){b=b||C.26();6 c=b[a];9(!c){6 d=(w(b.9G)!=\'1u\');9(d){9E{b[a]();c=b[a]}9D(e){8 Y}}}8 c},1Z:5 1Z(){9(w(3j)!=\'1u\'){3j.3p.9y.X(3j.3p,K||[])}O 9(w(3m)!=\'1u\'){3m.3t.3o.1Z.X(3m.3t.3o,K||[])}O 9(w(2D)!=\'1u\'){2D.1Z.X(2D,K||[])}},1d:5 1d(a){9(!a){8[]}6 b=a.E||0;6 c=1l 9m(b);3B(b--){c[b]=a[b]}8 c},2a:5 2a(a,b,i){i||(i=0);6 c=a.E;9(i<0){i=c+i}G(;i<c;i++){9(a[i]===b){8 i}}8-1},3c:5 3c(a){6 b=C.1d(K).1k(1);6 c=[];G(6 i=0;i<a.E;i++){9(!(C.2a(b,a[i])>-1)){c.14(a[i])}}8 c},1X:5 1X(d,e){d.1X=5 1X(){9(K.E<2&&w(K[0])=="1u"){8 q}6 a=q;6 b=C.1d(K);6 c=b.2G();8 5 98(){8 a.X(c,b.2L(C.1d(K)))}};8 d.1X(e)},2i:5 2i(c){c.2i=5 2i(){9(!K.E){8 q}6 a=q;6 b=C.1d(K);8 5 95(){8 a.X(q,b.2L(C.1d(K)))}};8 c.2i.X(c,C.1d(K).1k(1))},1L:5 1L(c,d){c.1L=5 1L(a){6 b=q;8 5 93(){8 a.X(q,[C.1X(b,q)].2L(C.1d(K)))}};8 c.1L(d)},92:5 b(a){6 b=[];G(6 c V a){b.14(c)}8 b},4s:5 4s(b){8 b.1b(/::/g,\'/\').1b(/([A-Z]+)([A-Z][a-z])/g,5(a){8 a[0]+\'1h\'+a[1]}).1b(/([a-z\\d])([A-Z])/g,5(a){8 a[0]+\'1h\'+a[1]}).1b(/-/g,\'1h\').1G()},3Z:5 3Z(a,b){6 c=a.1b(/\\1h/g,\'-\').3r(\'-\'),3l=c.E;9(3l==1){9(b){8 c[0].2j(0).2z()+c[0].2y(1)}O{8 c[0]}}9(a.2j(0)==\'-\'){6 d=c[0].2j(0).2z()+c[0].2y(1)}O{6 d=c[0]}G(6 i=1;i<3l;i++){d+=c[i].2j(0).2z()+c[i].2y(1)}9(b){8 d.2j(0).2z()+d.2y(1)}O{8 d}},1n:5 1n(a,b){G(6 c V b){a[c]=b[c]}8 a},3A:5 3A(a){8 C.1n({},a)},8L:5 a(a){8 w(a)==\'5\'?a:5(){8 a}},J:5 a(a){8 w(a)==\'5\'?a():a},3V:5 3V(a){9(w(a)==\'1J\'||!a){6 b=K.8H;G(6 i=0;i<=(a||0);++i){b=b.8G;9(!b){8 Y}}a=b.K}8(a.E==0||w(a[a.E-1])!=\'5\')?Y:a[a.E-1]},40:5 40(g,h){6 j={};6 k=[];k.2c={};k.4J=5 4J(e){6 f=C.1L(e||5(){},5 8y(a){6 i=19;6 b=C.2a(k,f);k.2c[b]=[a,C.1d(K)];6 c=22;G(i=0;i<k.E;++i){9(!k.2c[i]){c=Y}}9(c){G(i=0;i<k.E;++i){6 d=k.2c[i];d[0].X(d[0],d[1]);3i k.2c[i]}}9(c&&i==k.E){9(h){h(j)}}});k.14(f);8 f};g(k,j);9(k.E==0&&h){h(j)}},15:{18:{2O:[[/(4L)$/i,"$8r"],[/^(4K)$/i,"$8p"],[/([m|l])8m$/i,"$8l"],[/(4H|4G|4B)8h|8g$/i,"$8f"],[/(x|4x|1v|4t)$/i,"$2Y"],[/([^4p]|4m)y$/i,"$86"],[/(4k)$/i,"$1s"],[/(?:([^f])84|([4i])f)$/i,"$1$82"],[/81$/i,"32"],[/([4g])7Y$/i,"$1a"],[/(7X|7W)o$/i,"$7V"],[/(7U)s$/i,"$7S"],[/(3R|3M)$/i,"$2Y"],[/(3L|3K)7N$/i,"$1i"],[/(3I|1N)7K$/i,"$2Y"],[/s$/i,"s"],[/$/,"s"]],2r:[[/(4L)7I$/i,"$1"],[/(4H)3w$/i,"$7G"],[/(4G|4B)3w$/i,"$7F"],[/^(4K)7E/i,"$1"],[/(3R|3M)2m$/i,"$1"],[/(3L|3K)i$/i,"$7C"],[/(7B|3I|1N)2m$/i,"$7A"],[/(7z)s$/i,"$1"],[/(o)2m$/i,"$1"],[/(7y)2m$/i,"$1"],[/([m|l])7x$/i,"$7w"],[/(x|4x|1v|4t)2m$/i,"$1"],[/(m)7v$/i,"$7u"],[/(s)7t$/i,"$7s"],[/([^4p]|4m)7r$/i,"$1y"],[/([4i])3q$/i,"$1f"],[/(7p)s$/i,"$1"],[/(4k)s$/i,"$1"],[/([^f])3q$/i,"$7o"],[/(^7n)32$/i,"$7m"],[/((a)7l|(b)a|(d)7k|(p)7j|(p)7i|(s)7h|(t)7f)32$/i,"$1$7e"],[/([4g])a$/i,"$7d"],[/(n)7b$/i,"$7a"],[/s$/i,""]],1S:[[\'78\',\'77\'],[\'76\',\'75\'],[\'74\',\'73\'],[\'72\',\'71\'],[\'70\',\'6Z\']],2e:["6X","6W","6V","6U","6T","6S","6R","6Q"]},3u:5 3u(a){9(11<=3d(a)%2F&&3d(a)%2F<=13){8 a+"2P"}O{3Y(3d(a)%10){1F 1:8 a+"4q";1F 2:8 a+"4D";1F 3:8 a+"4u";2W:8 a+"2P"}}},4h:5 4h(a){G(6 i=0;i<C.15.18.2e.E;i++){6 b=C.15.18.2e[i];9(a.1G==b){8 b}}G(6 i=0;i<C.15.18.1S.E;i++){6 c=C.15.18.1S[i][0];6 d=C.15.18.1S[i][1];9((a.1G==c)||(a==d)){8 d}}G(6 i=0;i<C.15.18.2O.E;i++){6 e=C.15.18.2O[i][0];6 f=C.15.18.2O[i][1];9(e.1N(a)){8 a.1b(e,f)}}},34:5 34(a){G(6 i=0;i<C.15.18.2e.E;i++){6 b=C.15.18.2e[i];9(a.1G==b){8 b}}G(6 i=0;i<C.15.18.1S.E;i++){6 c=C.15.18.1S[i][0];6 d=C.15.18.1S[i][1];9((a.1G==c)||(a==d)){8 d}}G(6 i=0;i<C.15.18.2r.E;i++){6 e=C.15.18.2r[i][0];6 f=C.15.18.2r[i][1];9(e.1N(a)){8 a.1b(e,f)}}}},6B:5 6A(){6 f=/d{1,4}|m{1,4}|2u(?:2u)?|([6x])\\1?|[6w]|"[^"]*"|\'[^\']*\'/g,3v=/\\b(?:[6u][6t]T|(?:6r|6q|6p|6o|6n) (?:6m|6l|6k) 6j|(?:6i|2s)(?:[-+]\\d{4})?)\\b/g,3y=/[^-+\\6g-Z]/g,1z=5(a,b){a=1m(a);b=b||2;3B(a.E<b)a="0"+a;8 a};6 g=5 g(a,b,c){6 e=g;9(K.E==1&&(w a=="1e"||a 6d 1m)&&!/\\d/.1N(a)){b=a;a=1u}a=a?1l 2q(a):1l 2q();9(6b(a))1j 1l 3X("68 67");b=1m(e.36[b]||b||e.36["2W"]);9(b.1k(0,4)=="2s:"){b=b.1k(4);c=22}6 1h=c?"65":"1V",d=a[1h+"2q"](),D=a[1h+"62"](),m=a[1h+"61"](),y=a[1h+"5Z"](),H=a[1h+"5X"](),M=a[1h+"5V"](),s=a[1h+"5U"](),L=a[1h+"5S"](),o=c?0:a.5R(),30={d:d,23:1z(d),4l:e.2d.2Z[D],4o:e.2d.2Z[D+7],m:m+1,29:1z(m+1),2T:e.2d.2S[m],2R:e.2d.2S[m+12],2u:1m(y).1k(2),1D:y,h:H%12||12,5E:1z(H%12||12),H:H,24:1z(H),M:M,1B:1z(M),s:s,1v:1z(s),l:1z(L,3),L:1z(L>99?2K.5A(L/10):L),t:H<12?"a":"p",5z:H<12?"5y":"5x",T:H<12?"A":"P",2g:H<12?"5u":"5t",Z:c?"2s":(1m(a).5s(3v)||[""]).2N().1b(3y,""),o:(o>0?"-":"+")+1z(2K.5q(2K.4M(o)/60)*2F+2K.4M(o)%60,4),S:["2P","4q","4D","4u"][d%10>3?0:(d%2F-d%10!=10)*d%10]};8 b.1b(f,5($0){8 $0 V 30?30[$0]:$0.1k(1,$0.E-1)})};g.36={"2W":"4l 2T 23 1D 24:1B:1v",5m:"m/d/2u",5l:"2T d, 1D",5k:"2R d, 1D",5j:"4o, 2R d, 1D",5i:"h:1B 2g",5h:"h:1B:1v 2g",5g:"h:1B:1v 2g Z",5f:"1D-29-23",5e:"24:1B:1v",5d:"1D-29-23\'T\'24:1B:1v",5c:"1D-29-23 24:1B:1v",5b:"2s:1D-29-23\'T\'24:1B:1v\'Z\'"};g.2d={2Z:["5a","59","58","57","56","55","54","53","52","51","50","4Z","4Y","4X"],2S:["4W","4V","4U","4T","4N","4R","4Q","4P","63","4S","5n","5o","5p","5r","5v","5w","4N","5B","5C","5D","5F","5G","5H","5I"]};8 g}(),4C:5 4C(a){8 C.1P.2H(a)},4A:5 4A(f,g){6 h=0;6 j=5 j(a,b){6 c=\'\';G(6 i=0;i<b;++i){c+=a}8 c};6 k=5 k(a,b,c){6 d=\'\';9(w(b)==\'1e\'||w(b)==\'1J\'||w(b)==\'4z\'){d=\'<![5J[\'+(1l 1m(b)).2E()+\']]>\'}O 9(w(b)==\'1t\'){d+=1m.4v(10);9(\'E\'V b&&\'1Y\'V b){G(6 i=0;i<b.E;++i){d+=m(C.15.34(a),b[i],c+1)}}O{6 e=b.28&&w(b.28)==\'5\'?b.28():b;G(a V e){d+=m(a,e[a],c+1)}}d+=j(\' \',4*c)}8 d};6 l=5 l(a){8 a.1b(/[\\s\\1h]+/g,\'-\').1G()};6 m=5 m(a,b,c){a=l(a);8 j(\' \',4*c)+\'<\'+a+\'>\'+k(a,b,c)+\'</\'+a+\'>\'+1m.4v(10)};f=l(f);8\'<\'+f+\'>\'+k(f,g,0)+\'</\'+f+\'>\'},1P:5(){9(p&&\'1P\'V p&&\'2H\'V p.1P&&\'2X\'V p.1P){8 p.1P}5 f(n){8 n<10?\'0\'+n:n};2q.R.25=5(a){8 q.5K()+\'-\'+f(q.5L()+1)+\'-\'+f(q.5M())+\'T\'+f(q.5N())+\':\'+f(q.5O())+\':\'+f(q.5P())+\'Z\'};1m.R.25=5Q.R.25=5T.R.25=5(a){8 q.5W()};6 e=/[\\5Y\\4f\\4e-\\4d\\4c\\4b\\4a\\49-\\48\\47-\\46\\45-\\44\\43\\42-\\41]/g,2A=/[\\\\\\"\\4O-\\64\\66-\\69\\4f\\4e-\\4d\\4c\\4b\\4a\\49-\\48\\47-\\46\\45-\\44\\43\\42-\\41]/g,1g,2k,3U={\'\\b\':\'\\\\b\',\'\\t\':\'\\\\t\',\'\\n\':\'\\\\n\',\'\\f\':\'\\\\f\',\'\\r\':\'\\\\r\',\'"\':\'\\\\"\',\'\\\\\':\'\\\\\\\\\'},1O;5 2x(b){2A.3Q=0;8 2A.1N(b)?\'"\'+b.1b(2A,5(a){6 c=3U[a];9(w c===\'1e\'){8 c}8\'\\\\u\'+(\'3O\'+(+(a.3N(0))).2E(16)).1k(-4)})+\'"\':\'"\'+b+\'"\'};5 2l(a,b){6 i,k,v,E,2n=1g,1p,J=b[a];9(J&&w J===\'1t\'&&w J.25===\'5\'){J=J.25(a)}9(w 1O===\'5\'){J=1O.2t(b,a,J)}3Y(w J){1F\'1e\':8 2x(J);1F\'1J\':8 6a(J)?1m(J):\'19\';1F\'4z\':1F\'19\':8 1m(J);1F\'1t\':9(!J){8\'19\'}1g+=2k;1p=[];9(w J.E===\'1J\'&&!(J.6c(\'E\'))){E=J.E;G(i=0;i<E;i+=1){1p[i]=2l(i,J)||\'19\'}v=1p.E===0?\'[]\':1g?\'[\\n\'+1g+1p.1T(\',\\n\'+1g)+\'\\n\'+2n+\']\':\'[\'+1p.1T(\',\')+\']\';1g=2n;8 v}9(1O&&w 1O===\'1t\'){E=1O.E;G(i=0;i<E;i+=1){k=1O[i];9(w k===\'1e\'){v=2l(k,J);9(v){1p.14(2x(k)+(1g?\': \':\':\')+v)}}}}O{G(k V J){9(3E.3D.2t(J,k)){v=2l(k,J);9(v){1p.14(2x(k)+(1g?\': \':\':\')+v)}}}}v=1p.E===0?\'{}\':1g?\'{\\n\'+1g+1p.1T(\',\\n\'+1g)+\'\\n\'+2n+\'}\':\'{\'+1p.1T(\',\')+\'}\';1g=2n;8 v}};8{2H:5(a,b,c){6 i;1g=\'\';2k=\'\';9(w c===\'1J\'){G(i=0;i<c;i+=1){2k+=\' \'}}O 9(w c===\'1e\'){2k=c}1O=b;9(b&&w b!==\'5\'&&(w b!==\'1t\'||w b.E!==\'1J\')){1j 1l 6e(\'1P.2H\');}8 2l(\'\',{\'\':a})},2X:5(c,d){6 j;5 3f(a,b){6 k,v,J=a[b];9(J&&w J===\'1t\'){G(k V J){9(3E.3D.2t(J,k)){v=3f(J,k);9(v!==1u){J[k]=v}O{3i J[k]}}}}8 d.2t(a,b,J)};e.3Q=0;9(e.1N(c)){c=c.1b(e,5(a){8\'\\\\u\'+(\'3O\'+(+(a.3N(0))).2E(16)).1k(-4)})}9(/^[\\],:{}\\s]*$/.1N(c.1b(/\\\\(?:["\\\\\\/6f]|u[0-9a-6h-F]{4})/g,\'@\').1b(/"[^"\\\\\\n\\r]*"|22|Y|19|-?\\d+(?:\\.\\d*)?(?:[6s][+\\-]?\\d+)?/g,\']\').1b(/(?:^|:|,)(?:\\s*\\[)+/g,\'\'))){j=6v(\'(\'+c+\')\');8 w d===\'5\'?3f({\'\':j},\'\'):j}1j 1l 3X(\'1P.2X\');}}}()}})(q);1r=19;(5(){1r={};1r.1n=5 1n(f){f.1w=5 1w(d){9(q[d]){q.1x(d);q[d]=C.1L(q[d],5 6y(a){6 b=C.1d(K).1k(1);6 c=a.X(q,b);b.20(d);q.1E.X(q,b);8 c})}9(q.R){q.R.1w(d)}};f.2B=5 2B(a,b,c){8 1l 1r.3n([[q,a]],b,c)};f.1x=5 1x(a){q.17=q.17||{};q.17[a]=q.17[a]||[]};f.1c=5 1c(a,b){9(w(a)==\'1e\'&&w(b)!=\'1u\'){q.1x(a);9(!(C.2a(q.17[a],b)>-1)){q.17[a].14(b)}}O{G(6 e V a){q.1c(e,a[e])}}8 b};f.2h=5 2h(a,b){q.1x(a);9(a&&b){q.17[a]=C.3c(q.17[a],b)}O 9(a){q.17[a]=[]}O{q.17={}}};f.2C=5 2C(a,b){6 c=C.1X(5 6z(){b.X(q,K);q.2h(a,c)},q);q.1x(a);q.17[a].14(c);8 c};f.1E=5 1E(a){q.1x(a);6 b=[];6 c=C.1d(K).1k(1);G(6 i=0;i<q.17[a].E;++i){6 d=q.17[a][i].X(q.17[a][i],c);9(d===Y){8 Y}O{b.14(d)}}8 b};9(f.R){f.R.1w=f.1w;f.R.2B=f.2B;f.R.1x=f.1x;f.R.1c=f.1c;f.R.2h=f.2h;f.R.2C=f.2C;f.R.1E=5 1E(a){9(f.1E){6 b=C.1d(K).1k(1);b.20(q);b.20(a);f.1E.X(f,b)}q.1x(a);6 b=C.1d(K).1k(1);6 c=[];6 d;9(q.1Q&&q.1Q[a]&&w(q.1Q[a])==\'5\'){d=q.1Q[a].X(q,b);9(d===Y){8 Y}O{c.14(d)}}G(6 i=0;i<q.17[a].E;++i){d=q.17[a][i].X(q.17[a][i],b);9(d===Y){8 Y}O{c.14(d)}}8 c}}};1r.3n=5 3n(c,d,e){q.3g=5 3g(){G(6 i=0;i<q.1q.E;++i){q.1q[i][0][q.1q[i][1]]=q.3e[i]}};q.1q=c;q.3e=[];G(6 i=0;i<q.1q.E;++i){q.3e.14(q.1q[i][0][q.1q[i][1]]);q.1q[i][0][q.1q[i][1]]=C.1L(q.1q[i][0][q.1q[i][1]],5(a){6 b=C.1d(K).1k(1);d.X(q,b);8 a.X(q,b)})}9(e){e();q.3g()}};6 g=5 g(a){q.1K=a||{}};g.R.1A=5 1A(a,b){q.1K[a]=b;q.1E(\'1A\',a,b);8 b};g.R.1V=5 1V(a){q.1E(\'1V\',a);8 q.1K[a]};g.R.28=5 28(){8 q.1K};1r.1n(g);1r.3b=g})();W=19;(5(){W={};W.3P=Y;W.3T=5 3T(a,b){9(w(1Q)==\'5\'){1Q={2b:1Q}}6 c=5 c(){q.38.X(q,K)};C.1n(c,n);C.1n(c.R,b||{});C.1n(c.R,m);c.R.2b=a||W.37;1r.1n(c);8 c};W.37=5 37(){8 C.26().2J.2f(\'6C\')};W.33=5 33(a){1r.1n(a);a.1w(\'2G\');a.1w(\'20\');a.1w(\'2N\');a.1w(\'14\');a.1w(\'1Y\')};W.1W=5 1W(c,d,e,f,g){9(!g){g=5 6D(a,b){9(!b){1j o.31;}a.4j(b)}}9(w(c)===\'5\'&&!c.R.2b){c=c(e)}9(f!==Y){d.2M=\'\'}9(w(c)===\'1e\'){d.2M=c;8 c}O 9(c&&c.1M==1){g(d,c);8 c}O 9(c&&c.1I){g(d,c.1I);8 h}O 9(c&&c.R&&c.R.2b){6 h=1l c(e);g(d,h.1I);8 h}O{1j o.31;}};6 m={38:5 38(a,b){q.6E=b;q.2V(a);9(W.3P){C.1Z(\'W: 6F 6G 1o:\',a)}q.6H=W.4E;W.2Q(q);q.1I=q.2b();9(!q.1I||!q.1I.1M||q.1I.1M!=1){1j o.3J+w(q.1I);}G(6 c V q.1o.1K){q.1o.1A(c,q.1o.1K[c])}},2V:5 2V(a){q.1o=(a?(a.28?a:1l 1r.3b(a)):1l 1r.3b({}));G(6 b V q.1o.1K){6 c=q.1o.1K[b];9((c!=19&&w c=="1t"&&\'1Y\'V c&&\'1T\'V c)&&!c.1c){W.33(c)}}},1V:5 1V(a){8 q.1o.1V(a)},1A:5 1A(a,b){8 q.1o.1A(a,b)},4y:5 4y(a,b,c){q.6I.14([a,b,c])}};6 n={};6 o={3J:\'4n 6J 6K 6L 8 a 3W 27. 6M: \',31:\'4n 6N 6O 1W 6P 6Y a 1e, 3W 27 3s W.\',1H:\'79 N 7c 7g: \'};6 p={2f:5 2f(a,b){6 c=C.26();6 d=!!(c.7q&&!c.7D);b=b||{};a=a.1G();9(d&&b.2v){a=\'<\'+a+\' 2v="\'+b.2v+\'">\';3i b.2v}6 e=c.2J.2f(a);p.3k(e,b);8 e},3k:5 3k(a,b,c){6 d={7H:\'3x\',7J:\'G\'};6 e={};9(w b==\'1t\'){e=b}O{e[b]=w(c)==\'1u\'?22:c}G(6 f V e){b=d[f]||f;c=e[f];9(c===Y||c===19){a.7L(b)}O 9(c===22){a.3G(b,b)}O{a.3G(b,c)}}8 a},3H:5 3H(a){C.1n(p,a||{})}};(5 7M(){6 b=("A 7O 7P 7Q 7R 7T B 7Z 80 83 85 87 88 "+"89 8a 8b 8c 8d 8e 8i 8j 8k 8n 8o 8q 8s 8t 8u 8v 8w "+"8x 8z 8A 8B 8C 8D 8E 8F 8I 8J 8K 8M 8N I 8O 8P 8Q 8R 8S "+"8T 8U 8V 8W 8X 8Y 8Z 90 91 94 96 97 9b 9c P "+"9d 9e Q S 9f 9g 9h 9i 9j 9k 9l 9n 9o 9p 9q 9r 9s "+"9t 9u 9v 9w 9x 9z 2g U 9A 9B").3r(/\\s+/);6 c=C.26();G(6 t=0;t<b.E;++t){6 d=b[t];(5 9C(a){p[a.1G()]=p[a]=5 9F(){6 i,N,3h,1C,27;9H=[];1C=[];G(i=0;i<K.E;++i){N=K[i];9(w(N)===\'1u\'||N===19||N===Y){9I}9(w(N)==\'5\'){N=N()}9(w(N)!=\'1e\'&&w(N)!=\'1J\'&&!(N!=19&&w N=="1t"&&\'1Y\'V N&&\'1T\'V N)&&!(N&&N.1M==1)){3h=N}O 9(N!=19&&w N=="1t"&&\'1Y\'V N&&\'1T\'V N){1C=N}O 9((N&&N.1M==1)||w(N)==\'1e\'||w(N)==\'1J\'){1C.14(N)}}27=p.2f(a,3h);G(i=0;i<1C.E;++i){27.4j((1C[i]&&1C[i].1M==1)?1C[i]:c.2J.3z((1l 1m(1C[i])).2E()))}8 27}})(d)}})();W.4E=p;W.2Q=5 2Q(l){l.2o={};l.2o.3C=5 3C(i){9(!i||!i.1M==1){2D.1Z(i)1j o.1H+\'1R 3F, 1U \'+w(i);}8{2p:5 2p(c){6 d=l.1o;9(K.E==2){d=K[1];c=K[2]}6 e=19;6 f=5 9J(){8 22};6 g=5 g(a){9(!a||w(a)!=\'5\'){1j o.1H+\'1R 3a, 1U \'+w(a);}e=a;8{2w:h}};6 h=5 h(a){9(!a||w(a)!=\'5\'){1j o.1H+\'1R 3a, 1U \'+w(a);}f=a;8{3S:g}};d.1c(\'1A\',5 9K(a,b){9(c==a){9(f()){i.2M=e?e(b):b}}});8{3S:g,2w:h}}}};l.2o.39=5 39(k){9(!k){1j o.1H+\'1R 1e, W 3x 3s 5, 1U \'+w(k);}8{2p:5 2p(j){9(!j||(w(j)!=\'1t\'&&w(j)!=\'1e\')){1j o.1H+\'1R 9L, 1U \'+w(j);}8{35:5 35(f){9(!f||!f.1M==1){1j o.1H+\'1R 3F, 1U \'+w(f);}9(w(j)==\'1e\'){6 g=j;l.1o.1c(\'1A\',5 9M(a,b){9(a==g){f.2M=\'\';l.2o.39(k).2p(b).35(f)}})}O{6 h=[];G(6 i=0;i<j.E;++i){W.1W(k,f,j[i],Y);h.14(f.21[f.21.E-1])}9(j.1c){j.1c(\'2N\',5 9N(){h[h.E-1].4r.2U(h[h.E-1]);h.2N()});j.1c(\'14\',5 9O(a){W.1W(k,f,a,Y);h.14(f.21[f.21.E-1])});j.1c(\'20\',5 9P(c){W.1W(k,f,c,Y,5 9Q(a,b){a.4F(b,a.2I)});h.20(f.2I)});j.1c(\'2G\',5 9R(){f.2U(f.2I);h.2G(f.2I)});j.1c(\'1Y\',5 9S(c,d){6 e=[];6 i;G(i=2;i<K.E;++i){e.14(K[i])}9(d){G(i=c;i<(c+d);++i){h[i].4r.2U(h[i])}}G(i=0;i<e.E;++i){W.1W(k,f,e[i],Y,5 9T(a,b){a.4F(w(b)==\'1e\'?2J.3z(b):b,a.21[c+i]);e[i]=a.21[c+i]})}h.1Y.X(h,[c,d].2L(e))})}}}}}}};l.2o.2w=5 2w(d){8{4I:5 4I(c){9(!c||w(c)!=\'5\'){1j o.1H+\'1R 3a, 1U \'+w(c);}l.1o.1c(\'1A\',5 9U(a,b){9(d==a){c(b)}})}}}}})();',62,615,'|||||function|var||return|if|||||||||||||||||this||||||typeof||||||ActiveSupport||length||for|||value|arguments|||argument|else|||prototype||||in|ActiveView|apply|false||||||push|Inflector||_observers|Inflections|null||replace|observe|arrayFrom|string||gap|_||throw|slice|new|String|extend|scope|partial|methods|ActiveEvent||object|undefined|ss|makeObservable|_objectEventSetup||pad|set|MM|elements|yyyy|notify|case|toLowerCase|MismatchedArguments|container|number|_object|wrap|nodeType|test|rep|JSON|options|expected|irregular|join|recieved|get|render|bind|splice|log|unshift|childNodes|true|dd|HH|toJSON|getGlobalContext|element|toObject|mm|indexOf|structure|waiting|i18n|uncountable|createElement|TT|stopObserving|curry|charAt|indent|str|es|mind|binding|from|Date|singular|UTC|call|yy|name|when|quote|substring|toUpperCase|escapeable|observeMethod|observeOnce|console|toString|100|shift|stringify|firstChild|document|Math|concat|innerHTML|pop|plural|th|generateBinding|mmmm|monthNames|mmm|removeChild|setupScope|default|parse|1es|dayNames|flags|InvalidContent|ses|makeArrayObservable|singularize|into|masks|defaultStructure|initialize|collect|Function|ObservableHash|without|parseInt|originals|walk|stop|attributes|delete|Jaxer|writeAttribute|len|air|MethodCallObserver|Console|Log|ves|split|or|Introspector|ordinalize|timezone|ices|class|timezoneClip|createTextNode|clone|while|update|hasOwnProperty|Object|Element|setAttribute|addMethods|ax|ViewDoesNotReturnContainer|vir|octop|status|charCodeAt|0000|logging|lastIndex|alias|transform|create|meta|block|DOM|SyntaxError|switch|camelize|synchronize|uffff|ufff0|ufeff|u206f|u2060|u202f|u2028|u200f|u200c|u17b5|u17b4|u070f|u0604|u0600|u00ad|ti|pluralize|lr|appendChild|hive|ddd|qu|The|dddd|aeiouy|st|parentNode|underscore|sh|rd|fromCharCode|getClass|ch|registerEventHandler|boolean|XMLFromObject|ind|JSONFromObject|nd|Builder|insertBefore|vert|matr|changes|add|ox|quiz|abs|May|x00|Aug|Jul|Jun|Oct|Apr|Mar|Feb|Jan|Saturday|Friday|Thursday|Wednesday|Tuesday|Monday|Sunday|Sat|Fri|Thu|Wed|Tue|Mon|Sun|isoUtcDateTime|MySQL|isoDateTime|isoTime|isoDate|longTime|mediumTime|shortTime|fullDate|longDate|mediumDate|shortDate|Nov|Dec|January|floor|February|match|PM|AM|March|April|pm|am|tt|round|June|July|August|hh|September|October|November|December|CDATA|getUTCFullYear|getUTCMonth|getUTCDate|getUTCHours|getUTCMinutes|getUTCSeconds|Number|getTimezoneOffset|Milliseconds|Boolean|Seconds|Minutes|valueOf|Hours|u0000|FullYear||Month|Day|Sep|x1f|getUTC|x7f|date|invalid|x9f|isFinite|isNaN|propertyIsEnumerable|instanceof|Error|bfnrt|dA|fA|GMT|Time|Prevailing|Daylight|Standard|Atlantic|Eastern|Central|Mountain|Pacific|eE|SDP|PMCEA|eval|LloSZ|HhMsTt|wrapped_observer|bound_inner_observer|date_format_wrapper|dateFormat|div|render_execute|parent|initialized|with|builder|eventHandlers|view|constructor|must|Returned|content|to|was|equipment|information|rice|money|species|series|fish|sheep|not|people|person|men|man|children|child|sexes|sex|moves|move|Incorrect|1ews|ews|type|1um|2sis|he|passed|ynop|rogno|arenthe|iagno|naly|1sis|analy|1fe|tive|attachEvent|ies|1eries|eries|1ovie|ovies|1ouse|ice|bus|shoe|1is|cris|1us|opera|en|1ex|1ix|className|zes|htmlFor|is|removeAttribute|builder_generator|us|ABBR|ACRONYM|ADDRESS|APPLET|1ses|AREA|bu|1oes|tomat|buffal|um|BASE|BASEFONT|sis|2ves|BDO|fe|BIG|1ies|BLOCKQUOTE|BODY|BR|BUTTON|CAPTION|CENTER|CITE|CODE|1ices|ex|ix|COL|COLGROUP|DD|1ice|ouse|DEL|DFN|1en|DIR|1zes|DIV|DL|DT|EM|FIELDSET|FONT|synchronizationWrapper|FORM|FRAME|FRAMESET|H1|H2|H3|H4|caller|callee|H5|H6|HEAD|proc|HR|HTML|IFRAME|IMG|INPUT|INS|ISINDEX|KBD|LABEL|LEGEND|LI|LINK|MAP|MENU|META|NOFRAMES|keys|wrapped|NOSCRIPT|curried|OBJECT|OL|bound|||OPTGROUP|OPTION|PARAM|PRE|SAMP|SCRIPT|SELECT|SMALL|SPAN|STRIKE|STRONG|Array|STYLE|SUB|SUP|TABLE|TBODY|TD|TEXTAREA|TFOOT|TH|THEAD|TITLE|info|TR|UL|VAR|tag_iterator|catch|try|tag_generator|__noSuchMethod__|text_nodes|continue|default_condition|update_from_observer|array|collection_key_change_observer|pop_observer|push_observer|unshift_observer|unshift_observer_render_executor|shift_observer|splice_observer|splice_observer_render_executor|changes_observer'.split('|'),0,{}))
+ *     Message.observe('sent',function(message,text){
+ *         //responds to all sent messages
+ *     });
+ * 
+ *     var m = new Message();
+ *     m.observe('sent',function(text){
+ *         //this will only be called when "m" is sent
+ *     });
+ * 
+ *     observable_hash.observe('set',function(key,value){
+ *         console.log('observable_hash.set: ' + key + '=' + value);
+ *     });
+ *     observable_hash.observeOnce(function(key,value){
+ *         //this will only be called once
+ *     });
+ * 
+ * Control Flow
+ * ------------
+ * When notify() is called, if any of the registered observers for that event
+ * return false, no other observers will be called and notify() will return
+ * false. Returning null or not calling return will not stop the event.
+ *
+ * Otherwise notify() will return an array of the
+ * collected return values from any registered observer functions. Observers
+ * can be unregistered with the stopObserving() method. If no observer is
+ * passed, all observers of that object or class with the given event name
+ * will be unregistered. If no event name and no observer is passed, all
+ * observers of that object or class will be unregistered.
+ *
+ *     Message.prototype.send = function(text){
+ *         if(this.notify('send',text) === false)
+ *             return false;
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *         return true;
+ *     };
+ * 
+ *     var m = new Message();
+ *     
+ *     var observer = m.observe('send',function(message,text){
+ *         if(text == 'test')
+ *             return false;
+ *     });
+ *     
+ *     m.send('my message'); //returned true
+ *     m.send('test'); //returned false
+ *     
+ *     m.stopObserving('send',observer);
+ *     
+ *     m.send('test'); //returned true</code></pre>
+ * 
+ * Object.options
+ * --------------
+ * If an object has an options property that contains a callable function with
+ * the same name as an event triggered with <b>notify()</b>, it will be
+ * treated just like an instance observer. So the falling code is equivalent.
+ *
+ *     var rating_one = new Control.Rating('rating_one',{  
+ *         afterChange: function(new_value){}    
+ *     });  
+ *     
+ *     var rating_two = new Control.Rating('rating_two');  
+ *     rating_two.observe('afterChange',function(new_value){});</code></pre>
+ * 
+ * MethodCallObserver
+ * ------------------
+ * The makeObservable() method permanently modifies the method that will
+ * become observable. If you need to temporarily observe a method call without
+ * permanently modifying it, use the observeMethod(). Pass the name of the
+ * method to observe and the observer function will receive all of the
+ * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
+ * returned from the call to observeMethod(), which has a stop() method on it.
+ * Once stop() is called, the method is returned to it's original state. You
+ * can optionally pass another function to observeMethod(), if you do the
+ * MethodCallObserver will be automatically stopped when that function
+ * finishes executing.
+ *
+ *   var h = new Hash({});
+ *   ActiveEvent.extend(h);
+ *   
+ *   var observer = h.observeMethod('set',function(key,value){
+ *       console.log(key + '=' + value);
+ *   });
+ *   h.set('a','one');
+ *   h.set('a','two');
+ *   observer.stop();
+ *   
+ *   //console now contains:
+ *   //"a = one"
+ *   //"b = two"
+ *   
+ *   //the following does the same as above
+ *   h.observeMethod('set',function(key,value){
+ *       console.log(key + '=' + value);
+ *   },function(){
+ *       h.set('a','one');
+ *       h.set('b','two');
+ *   });
+ */
+ActiveEvent = null;
+
+/**
+ * @namespace {ActiveEvent.ObservableObject} After calling
+ *  ActiveEvent.extend(object), the given object will inherit the
+ *  methods in this namespace. If the given object has a prototype
+ *  (is a class constructor), the object's prototype will inherit
+ *  these methods as well.
+ */
+
+(function(){
+
+ActiveEvent = {};
+
+/**
+ * After extending a given object, it will inherit the methods described in
+ *  ActiveEvent.ObservableObject.
+ * @alias ActiveEvent.extend
+ * @param {Object} object
+ */
+ActiveEvent.extend = function extend(object){
+    
+    /**
+     * Wraps the given method_name with a function that will call the method,
+     *  then trigger an event with the same name as the method. This can
+     *  safely be applied to virtually any method, including built in
+     *  Objects (Array.pop, etc), but cannot be undone.
+     * @alias ActiveEvent.ObservableObject.makeObservable
+     * @param {String} method_name
+     */
+    object.makeObservable = function makeObservable(method_name)
+    {
+        if(this[method_name])
+        {
+            this._objectEventSetup(method_name);
+            this[method_name] = ActiveSupport.wrap(this[method_name],function wrapped_observer(proceed){
+                var args = ActiveSupport.arrayFrom(arguments).slice(1);
+                var response = proceed.apply(this,args);
+                args.unshift(method_name);
+                this.notify.apply(this,args);
+                return response;
+            });
+        }
+        if(this.prototype)
+        {
+            this.prototype.makeObservable(method_name);
+        }
+    };
+    
+    /**
+     * Similiar to makeObservable(), but after the callback is called, the
+     *  method will be returned to it's original state and will no longer
+     *  be observable.
+     * @alias ActiveEvent.ObservableObject.observeMethod
+     * @param {String} method_name
+     * @param {Function} observe
+     * @param {Function} [callback]
+     */
+    object.observeMethod = function observeMethod(method_name,observer,scope)
+    {
+        return new ActiveEvent.MethodCallObserver([[this,method_name]],observer,scope);
+    };
+    
+    object._objectEventSetup = function _objectEventSetup(event_name)
+    {
+        this._observers = this._observers || {};
+        this._observers[event_name] = this._observers[event_name] || [];
+    };
+    
+    /**
+     * @alias ActiveEvent.ObservableObject.observe
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} observer
+     */
+    object.observe = function observe(event_name,observer)
+    {
+        if(typeof(event_name) == 'string' && typeof(observer) != 'undefined')
+        {
+            this._objectEventSetup(event_name);
+            if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
+            {
+                this._observers[event_name].push(observer);
+            }
+        }
+        else
+        {
+            for(var e in event_name)
+            {
+                this.observe(e,event_name[e]);
+            }
+        }
+        return observer;
+    };
+    
+    /**
+     * Removes a given observer. If no observer is passed, removes all
+     *   observers of that event. If no event is passed, removes all
+     *   observers of the object.
+     * @alias ActiveEvent.ObservableObject.stopObserving
+     * @param {String} [event_name]
+     * @param {Function} [observer]
+     */
+    object.stopObserving = function stopObserving(event_name,observer)
+    {
+        this._objectEventSetup(event_name);
+        if(event_name && observer)
+        {
+            this._observers[event_name] = ActiveSupport.without(this._observers[event_name],observer);
+        }
+        else if(event_name)
+        {
+            this._observers[event_name] = [];
+        }
+        else
+        {
+            this._observers = {};
+        }
+    };
+    
+    /**
+     * Works exactly like observe(), but will stopObserving() after the next
+     *   time the event is fired.
+     * @alias ActiveEvent.ObservableObject.observeOnce
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} The observer that was passed in will be wrapped,
+     *  this generated / wrapped observer is returned.
+     */
+    object.observeOnce = function observeOnce(event_name,outer_observer)
+    {
+        var inner_observer = ActiveSupport.bind(function bound_inner_observer(){
+            outer_observer.apply(this,arguments);
+            this.stopObserving(event_name,inner_observer);
+        },this);
+        this._objectEventSetup(event_name);
+        this._observers[event_name].push(inner_observer);
+        return inner_observer;
+    };
+    
+    /**
+     * Triggers event_name with the passed arguments.
+     * @alias ActiveEvent.ObservableObject.notify
+     * @param {String} event_name
+     * @param {mixed} [args]
+     * @return {mixed} Array of return values, or false if the event was
+     *  stopped by an observer.
+     */
+    object.notify = function notify(event_name){
+        this._objectEventSetup(event_name);
+        var collected_return_values = [];
+        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        for(var i = 0; i < this._observers[event_name].length; ++i)
+        {
+            var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+            if(response === false)
+            {
+                return false;
+            }
+            else
+            {
+                collected_return_values.push(response);
+            }
+        }
+        return collected_return_values;
+    };
+    if(object.prototype)
+    {
+        object.prototype.makeObservable = object.makeObservable;
+        object.prototype.observeMethod = object.observeMethod;
+        object.prototype._objectEventSetup = object._objectEventSetup;
+        object.prototype.observe = object.observe;
+        object.prototype.stopObserving = object.stopObserving;
+        object.prototype.observeOnce = object.observeOnce;
+        
+        object.prototype.notify = function notify(event_name)
+        {
+            if(object.notify)
+            {
+                var args = ActiveSupport.arrayFrom(arguments).slice(1);
+                args.unshift(this);
+                args.unshift(event_name);
+                object.notify.apply(object,args);
+            }
+            this._objectEventSetup(event_name);
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var collected_return_values = [];
+            var response;
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) == 'function')
+            {
+                response = this.options[event_name].apply(this,args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
+            }
+            for(var i = 0; i < this._observers[event_name].length; ++i)
+            {
+                response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
+            }
+            return collected_return_values;
+        };
+    }
+};
+
+ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,scope)
+{
+    this.stop = function stop(){
+        for(var i = 0; i < this.methods.length; ++i)
+        {
+            this.methods[i][0][this.methods[i][1]] = this.originals[i];
+        }
+    };
+    this.methods = methods;
+    this.originals = [];
+    for(var i = 0; i < this.methods.length; ++i)
+    {
+        this.originals.push(this.methods[i][0][this.methods[i][1]]);
+        this.methods[i][0][this.methods[i][1]] = ActiveSupport.wrap(this.methods[i][0][this.methods[i][1]],function(proceed){
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            observer.apply(this,args);
+            return proceed.apply(this,args);
+        });
+    }
+    if(scope)
+    {
+        scope();
+        this.stop();
+    }
+};
+
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveEvent.ObservableHash = ObservableHash;
+
+})();
+
+ActiveView = null;
+
+(function(){
+
+ActiveView = {};
+
+ActiveView.logging = false;
+
+ActiveView.create = function create(structure,methods)
+{
+    if(typeof(options) == 'function')
+    {
+        options = {
+            structure: options
+        };
+    }
+    var klass = function klass(){
+        this.initialize.apply(this,arguments);
+    };
+    ActiveSupport.extend(klass,ClassMethods);
+    ActiveSupport.extend(klass.prototype,methods || {});
+    ActiveSupport.extend(klass.prototype,InstanceMethods);
+    klass.prototype.structure = structure || ActiveView.defaultStructure;
+    ActiveEvent.extend(klass);
+    return klass;
+};
+
+ActiveView.defaultStructure = function defaultStructure()
+{
+    return ActiveSupport.getGlobalContext().document.createElement('div');
+};
+
+ActiveView.makeArrayObservable = function makeArrayObservable(array)
+{
+    ActiveEvent.extend(array);
+    array.makeObservable('shift');
+    array.makeObservable('unshift');
+    array.makeObservable('pop');
+    array.makeObservable('push');
+    array.makeObservable('splice');
+};
+
+ActiveView.render = function render(content,target,scope,clear,execute)
+{
+    if(!execute)
+    {
+        execute = function render_execute(target,content)
+        {
+            if(!content)
+            {
+                throw Errors.InvalidContent;
+            }
+            target.appendChild(content);
+        };
+    }
+    if(typeof(content) === 'function' && !content.prototype.structure)
+    {
+        content = content(scope);
+    }
+    if(clear !== false)
+    {
+        target.innerHTML = '';
+    }
+    if(typeof(content) === 'string')
+    {
+        target.innerHTML = content;
+        return content;
+    }
+    else if(content && content.nodeType == 1)
+    {
+        execute(target,content);
+        return content;
+    }
+    else if(content && content.container)
+    {
+      //is ActiveView instance
+      execute(target,content.container);
+      return view;
+    }
+    else if(content && content.prototype && content.prototype.structure)
+    {
+        //is ActiveView class
+        var view = new content(scope);
+        execute(target,view.container);
+        return view;
+    }
+    else
+    {
+        throw Errors.InvalidContent;
+    }
+};
+
+var InstanceMethods = {
+    initialize: function initialize(scope,parent)
+    {
+        this.parent = parent;
+        this.setupScope(scope);
+        if(ActiveView.logging)
+        {
+            ActiveSupport.log('ActiveView: initialized with scope:',scope);
+        }
+        this.builder = ActiveView.Builder;
+        ActiveView.generateBinding(this);
+        this.container = this.structure();
+        if(!this.container || !this.container.nodeType || this.container.nodeType != 1)
+        {
+            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+        }
+        for(var key in this.scope._object)
+        {
+            this.scope.set(key,this.scope._object[key]);
+        }
+    },
+    setupScope: function setupScope(scope)
+    {
+        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
+        for(var key in this.scope._object)
+        {
+            var item = this.scope._object[key];
+            if((item != null && typeof item == "object" && 'splice' in item && 'join' in item) && !item.observe)
+            {
+                ActiveView.makeArrayObservable(item);
+            }
+        }
+    },
+    get: function get(key)
+    {
+        return this.scope.get(key);
+    },
+    set: function set(key,value)
+    {
+        return this.scope.set(key,value);
+    },
+    registerEventHandler: function registerEventHandler(element,event_name,observer)
+    {
+      this.eventHandlers.push([element,event_name,observer]);
+    }
+};
+
+var ClassMethods = {
+
+};
+
+var Errors = {
+    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
+    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
+    MismatchedArguments: 'Incorrect argument type passed: '
+};
+
+var Builder = {
+    createElement: function createElement(tag,attributes)
+    {
+        var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
+        attributes = attributes || {};
+        tag = tag.toLowerCase();
+        if(ie && attributes.name)
+        {
+            tag = '<' + tag + ' name="' + attributes.name + '">';
+            delete attributes.name;
+        }
+        var element = global_context.document.createElement(tag);
+        Builder.writeAttribute(element,attributes);
+        return element;
+    },
+    writeAttribute: function writeAttribute(element,name,value)
+    {
+        var transitions = {
+            className: 'class',
+            htmlFor:   'for'
+        };
+        var attributes = {};
+        if(typeof name == 'object')
+        {
+            attributes = name;
+        }
+        else
+        {
+            attributes[name] = typeof(value) == 'undefined' ? true : value;
+        }
+        for(var attribute_name in attributes)
+        {
+            name = transitions[attribute_name] || attribute_name;
+            value = attributes[attribute_name];
+            if(value === false || value === null)
+            {
+                element.removeAttribute(name);
+            }
+            else if(value === true)
+            {
+                element.setAttribute(name,name);
+            }
+            else
+            {
+                element.setAttribute(name,value);
+            }
+        }
+        return element;
+    },
+    addMethods: function addMethods(methods)
+    {
+        ActiveSupport.extend(Builder,methods || {});
+    }
+};
+
+(function builder_generator(){
+    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
+        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
+        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
+        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
+        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
+        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+    var global_context = ActiveSupport.getGlobalContext();
+    for(var t = 0; t < tags.length; ++t)
+    {
+        var tag = tags[t];
+        (function tag_iterator(tag){
+            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+                var i, argument, attributes, elements, element;
+                text_nodes = [];
+                elements = [];
+                for(i = 0; i < arguments.length; ++i)
+                {
+                    argument = arguments[i];
+                    if(typeof(argument) === 'undefined' || argument === null || argument === false)
+                    {
+                        continue;
+                    }
+                    if(typeof(argument) == 'function')
+                    {
+                        argument = argument();
+                    }
+                    if(typeof(argument) != 'string' && typeof(argument) != 'number' && !(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType == 1))
+                    {
+                        attributes = argument;
+                    }
+                    else if(argument != null && typeof argument == "object" && 'splice' in argument && 'join' in argument)
+                    {
+                        elements = argument;
+                    }
+                    else if((argument && argument.nodeType == 1) || typeof(argument) == 'string' || typeof(argument) == 'number')
+                    {
+                        elements.push(argument);
+                    }
+                }
+                element = Builder.createElement(tag,attributes);
+                for(i = 0; i < elements.length; ++i)
+                {
+                    element.appendChild((elements[i] && elements[i].nodeType == 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                }
+                return element;
+            };
+        })(tag);
+    }
+})();
+
+ActiveView.Builder = Builder;
+
+ActiveView.generateBinding = function generateBinding(instance)
+{
+    instance.binding = {};
+    instance.binding.update = function update(element)
+    {
+        if(!element || !element.nodeType == 1)
+        {
+            console.log(element)
+            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+        }
+        return {
+            from: function from(observe_key)
+            {
+                var object = instance.scope;
+                if(arguments.length == 2)
+                {
+                    object = arguments[1];
+                    observe_key = arguments[2];
+                }
+                
+                var transformation = null;
+                var condition = function default_condition(){
+                    return true;
+                };
+                
+                var transform = function transform(callback)
+                {
+                    if(!callback || typeof(callback) != 'function')
+                    {
+                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    }
+                    transformation = callback;
+                    return {
+                        when: when
+                    };
+                };
+
+                var when = function when(callback)
+                {
+                    if(!callback || typeof(callback) != 'function')
+                    {
+                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    }
+                    condition = callback;
+                    return {
+                        transform: transform
+                    };
+                };
+
+                object.observe('set',function update_from_observer(set_key,value){
+                    if(observe_key == set_key)
+                    {
+                        if(condition())
+                        {
+                            element.innerHTML = transformation ? transformation(value) : value;
+                        }
+                    }
+                });
+                
+                return {
+                    transform: transform,
+                    when: when
+                };
+            }
+        };
+    };
+
+    instance.binding.collect = function collect(view)
+    {
+        if(!view)
+        {
+            throw Errors.MismatchedArguments + 'expected string, ActiveView class or function, recieved ' + typeof(view);
+        }
+        return {
+            from: function from(collection)
+            {
+                if(!collection || (typeof(collection) != 'object' && typeof(collection) != 'string'))
+                {
+                    throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
+                }
+                return {
+                    into: function into(element)
+                    {
+                        if(!element || !element.nodeType == 1)
+                        {
+                            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+                        }
+                        //if a string is passed make sure that the view is re-built when the key is set
+                        if(typeof(collection) == 'string')
+                        {
+                            var collection_name = collection;
+                            instance.scope.observe('set',function collection_key_change_observer(key,value){
+                                if(key == collection_name)
+                                {
+                                    element.innerHTML = '';
+                                    instance.binding.collect(view).from(value).into(element);
+                                }
+                            });
+                        }
+                        else
+                        {
+                            //loop over the collection when it is passed in to build the view the first time
+                            var collected_elements = [];
+                            for(var i = 0; i < collection.length; ++i)
+                            {
+                                ActiveView.render(view,element,collection[i],false);
+                                collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                            }
+                            //these handlers will add or remove elements from the view as the collection changes
+                            if(collection.observe)
+                            {
+                                collection.observe('pop',function pop_observer(){
+                                    collected_elements[collected_elements.length - 1].parentNode.removeChild(collected_elements[collected_elements.length - 1]);
+                                    collected_elements.pop();
+                                });
+                                collection.observe('push',function push_observer(item){
+                                    ActiveView.render(view,element,item,false);
+                                    collected_elements.push(element.childNodes[element.childNodes.length - 1]);
+                                });
+                                collection.observe('unshift',function unshift_observer(item){
+                                    ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
+                                        element.insertBefore(content,element.firstChild);
+                                    });
+                                    collected_elements.unshift(element.firstChild);
+                                });
+                                collection.observe('shift',function shift_observer(){
+                                    element.removeChild(element.firstChild);
+                                    collected_elements.shift(element.firstChild);
+                                });
+                                collection.observe('splice',function splice_observer(index,to_remove){
+                                    var children = [];
+                                    var i;
+                                    for(i = 2; i < arguments.length; ++i)
+                                    {
+                                        children.push(arguments[i]);
+                                    }
+                                    if(to_remove)
+                                    {
+                                        for(i = index; i < (index + to_remove); ++i)
+                                        {
+                                            collected_elements[i].parentNode.removeChild(collected_elements[i]);
+                                        }
+                                    }
+                                    for(i = 0; i < children.length; ++i)
+                                    {
+                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
+                                            element.insertBefore(typeof(content) == 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
+                                            children[i] = element.childNodes[index + i];
+                                        });
+                                    }
+                                    collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
+                                });
+                            }
+                        }
+                    }
+                };
+            }
+        };
+    };
+
+    instance.binding.when = function when(outer_key)
+    {
+        return {
+            changes: function changes(callback)
+            {
+                if(!callback || typeof(callback) != 'function')
+                {
+                    throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                }
+                instance.scope.observe('set',function changes_observer(inner_key,value){
+                    if(outer_key == inner_key)
+                    {
+                        callback(value);
+                    }
+                });
+            }
+        };
+    };
+};
+
+})();
