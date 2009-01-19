@@ -1566,7 +1566,7 @@ var ActiveController = null;
 
 (function(){
 
-var ActiveController = {};
+ActiveController = {};
 
 ActiveController.logging = false;
 

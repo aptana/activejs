@@ -70,7 +70,10 @@ ActiveRecord.connect = function connect(adapter)
         ActiveRecord.connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
     }
     ActiveEvent.extend(ActiveRecord.connection);
-    ActiveRecord.notify('connected');
+    if(!ActiveRecord.connection.preventConnectedNotification)
+    {
+        ActiveRecord.notify('connected');
+    }
 };
 
 /**

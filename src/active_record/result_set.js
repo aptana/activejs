@@ -63,7 +63,7 @@ ResultSet.InstanceMethods = {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)
         {
-            items.push(result_set[i].toObject());
+            items.push(result_set[i].toSerializableObject());
         }
         return ActiveSupport.JSON.stringify(items);
     },
@@ -73,6 +73,11 @@ ResultSet.InstanceMethods = {
      */
     toXML: function toXML(result_set,params,model)
     {
-        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),result_set);
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items.push(result_set[i].toSerializableObject());
+        }
+        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),items);
     }
 };

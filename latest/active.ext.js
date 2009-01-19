@@ -3756,7 +3756,7 @@ var ActiveRecord = null;
  * Setup
  * -----
  * To begin using ActiveRecord.js, you will need to include the
- * activerecord.js file and establish a connection, if you do not specify
+ * activerecord.js file and establish a connection. If you do not specify
  * a connection type, one will be automatically chosen.
  * 
  *     ActiveRecord.connect();
@@ -3811,7 +3811,7 @@ var ActiveRecord = null;
  * Defining Your Model
  * -------------------
  * The only rule for all ActiveRecord classes is that the related table in the
- * database must have an auto incrimenting 'id' property. If you are working
+ * database must have an auto incrementing 'id' property. If you are working
  * with a database table that already exists, you can create a model psuedo-class
  * using the create() method, passing the table name as the first parameter, and
  * any methods you want to define on that class as the second paramter:
@@ -3822,7 +3822,7 @@ var ActiveRecord = null;
  *         }
  *     });
  * 
- * This both returns the class, and stores it inside ActiveRecord.Models.Post. If
+ * This both returns the class and stores it inside ActiveRecord.Models.Post. If
  * the table for your model does not yet exist you can use the define() method
  * which takes the desired table as the first argument, the fields as the second
  * and the methods as the third:
@@ -3846,14 +3846,14 @@ var ActiveRecord = null;
  * JavaScript does not have true static methods or classes, but in this case any
  * method of the User variable above is refered to as a class method, and any
  * method of a particular user (that the User class would find) is refered to as
- * an instance method. The most important class methods as create() and find():
+ * an instance method. The most important class methods are create() and find():
  * 
  *     var jessica = User.create({
  *         username: 'Jessica',
  *         password: 'rabbit'
  *     });
  * 
- * To add new class or instance methods to all ActiveRecord models in the following
+ * Add new class or instance methods to all ActiveRecord models in the following
  * way:
  * 
  *     ActiveRecord.ClassMethods.myClassMethod = function(){
@@ -3889,7 +3889,7 @@ var ActiveRecord = null;
  * persisted to the database, even if changes have been made. Calling save() may
  * add an "id" property to the record if it does not exist, but if there are no
  * errors, it's state will otherwise be unchanged. You can call refresh() on any
- * record to ensure it is not out of synch with your DB at any time.
+ * record to ensure it is not out of synch with your database at any time.
  * 
  * Finding Records
  * ---------------
@@ -3916,7 +3916,7 @@ var ActiveRecord = null;
  * synchronize: true to find(), all objects will have their values synchronized,
  * and in addition the result set itself will update as objects are destroyed or
  * created. Both features are relatively expensive operations, and are not
- * automatically garbage collected / stopped when the record or result set goes
+ * automatically garbage collected/stopped when the record or result set goes
  * out of scope, so you will need to explicitly stop both record and result set
  * synchronization.
  * 
@@ -4076,7 +4076,7 @@ var ActiveRecord = null;
  * 
  * Each relationship adds various instance methods to each instance of that
  * model. This differs significantly from the Rails "magical array" style of
- * handling relatioship logic:
+ * handling relationship logic:
  * 
  * Rails:
  * 
@@ -4469,6 +4469,18 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
+     * toJSON and toXML will call this instead of toObject() to get the
+     * data they will serialize. By default this calls toObject(), but 
+     * you can override this method to easily create custom JSON and XML
+     * output.
+     * @alias ActiveRecord.Instance.toSerializableObject
+     * @return {Object}
+     */
+    toSerializableObject: function toSerializableObject()
+    {
+        return this.toObject();
+    },
+    /**
      * Serializes the record to an JSON string. If object_to_inject is passed
      * that object will override any values of the record.
      * @alias ActiveRecord.Instance.toJSON
@@ -4477,7 +4489,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toJSON: function toJSON(object_to_inject)
     {
-        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toObject(),object_to_inject || {}));
+        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
     },
     /**
      * Serializes the record to an XML string. If object_to_inject is passed
@@ -4488,7 +4500,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toXML: function toXML(object_to_inject)
     {
-        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toObject(),object_to_inject || {}));
+        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
     }
 });
 ActiveSupport.extend(ActiveRecord.ClassMethods,{
@@ -4861,7 +4873,10 @@ ActiveRecord.connect = function connect(adapter)
         ActiveRecord.connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
     }
     ActiveEvent.extend(ActiveRecord.connection);
-    ActiveRecord.notify('connected');
+    if(!ActiveRecord.connection.preventConnectedNotification)
+    {
+        ActiveRecord.notify('connected');
+    }
 };
 
 /**
@@ -5516,7 +5531,7 @@ Adapters.Gears = function Gears(db){
         }
     });
 };
-Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find an HTML5 compliant or Google Gears database to connect to.';
+Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
 Adapters.Gears.connect = function connect(name, version, display_name, size)
 {
     var global_context = ActiveSupport.getGlobalContext();
@@ -5546,12 +5561,12 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
         {
-            gears_factory = document.createElement("object");
+            gears_factory = ActiveSupport.getGlobalContext().document.createElement("object");
             gears_factory.style.display = "none";
             gears_factory.width = 0;
             gears_factory.height = 0;
             gears_factory.type = "application/x-googlegears";
-            document.documentElement.appendChild(gears_factory);
+            ActiveSupport.getGlobalContext().document.documentElement.appendChild(gears_factory);
         }
         
         if(!gears_factory)
@@ -6851,7 +6866,7 @@ ResultSet.InstanceMethods = {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)
         {
-            items.push(result_set[i].toObject());
+            items.push(result_set[i].toSerializableObject());
         }
         return ActiveSupport.JSON.stringify(items);
     },
@@ -6861,7 +6876,12 @@ ResultSet.InstanceMethods = {
      */
     toXML: function toXML(result_set,params,model)
     {
-        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),result_set);
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items.push(result_set[i].toSerializableObject());
+        }
+        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),items);
     }
 };
 
@@ -7750,7 +7770,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
                 var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
-                for(var x = 0; i < splices.length; ++i)
+                for(var x = 0; x < splices.length; ++x)
                 {
                     old_result_set.splice.apply(old_result_set,splices[x]);
                 }
@@ -8328,7 +8348,7 @@ var ActiveController = null;
 
 (function(){
 
-var ActiveController = {};
+ActiveController = {};
 
 ActiveController.logging = false;
 

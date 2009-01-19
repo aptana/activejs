@@ -196,6 +196,18 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
+     * toJSON and toXML will call this instead of toObject() to get the
+     * data they will serialize. By default this calls toObject(), but 
+     * you can override this method to easily create custom JSON and XML
+     * output.
+     * @alias ActiveRecord.Instance.toSerializableObject
+     * @return {Object}
+     */
+    toSerializableObject: function toSerializableObject()
+    {
+        return this.toObject();
+    },
+    /**
      * Serializes the record to an JSON string. If object_to_inject is passed
      * that object will override any values of the record.
      * @alias ActiveRecord.Instance.toJSON
@@ -204,7 +216,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toJSON: function toJSON(object_to_inject)
     {
-        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toObject(),object_to_inject || {}));
+        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
     },
     /**
      * Serializes the record to an XML string. If object_to_inject is passed
@@ -215,7 +227,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toXML: function toXML(object_to_inject)
     {
-        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toObject(),object_to_inject || {}));
+        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
     }
 });
 ActiveSupport.extend(ActiveRecord.ClassMethods,{

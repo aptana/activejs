@@ -25,7 +25,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var ActiveController = {};
+ActiveController = {};
 
 ActiveController.logging = false;
 

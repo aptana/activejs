@@ -94,7 +94,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
                 var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
-                for(var x = 0; i < splices.length; ++i)
+                for(var x = 0; x < splices.length; ++x)
                 {
                     old_result_set.splice.apply(old_result_set,splices[x]);
                 }

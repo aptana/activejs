@@ -137,7 +137,7 @@ Adapters.Gears = function Gears(db){
         }
     });
 };
-Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find an HTML5 compliant or Google Gears database to connect to.';
+Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
 Adapters.Gears.connect = function connect(name, version, display_name, size)
 {
     var global_context = ActiveSupport.getGlobalContext();
@@ -167,12 +167,12 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
         {
-            gears_factory = document.createElement("object");
+            gears_factory = ActiveSupport.getGlobalContext().document.createElement("object");
             gears_factory.style.display = "none";
             gears_factory.width = 0;
             gears_factory.height = 0;
             gears_factory.type = "application/x-googlegears";
-            document.documentElement.appendChild(gears_factory);
+            ActiveSupport.getGlobalContext().document.documentElement.appendChild(gears_factory);
         }
         
         if(!gears_factory)

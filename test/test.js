@@ -24,14 +24,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
-var $break = {};
-
+ 
 var ActiveTest = {
     pass: 0,
     fail: 0,
     error: 0,
+    currentGroupName: null,
     currentTestName: null,
+    summary: [],
+    lastNote: '',
     log: function log(msg)
     {
         if(ActiveTest.currentTestName)
@@ -42,30 +43,18 @@ var ActiveTest = {
     },
     assert: function assert(condition,note)
     {
+        ActiveTest.lastNote = note;
         try
         {
             var pass = !!(typeof(condition) === 'function' ? condition() : condition);
             ++ActiveTest[pass ? 'pass' : 'fail'];
             ActiveTest.log((pass ? 'Pass' : 'Fail') + (note ? ': ' + note : ''));
-            if(!pass)
-            {
-                ActiveTest.log('FAILED');
-                ActiveTest.log('');
-                throw $break;
-            }
         }
         catch(e)
         {
-            if(e === $break)
-            {
-                throw e;
-            }
-            else
-            {
-                ++ActiveTest.error;
-                ActiveTest.log('Error' + (note ? ': ' + note : ''));
-                ActiveTest.log(e);
-            }
+            ++ActiveTest.error;
+            ActiveTest.log('Error' + (note ? ': ' + note : ''));
+            ActiveTest.log(e);
         }
     },
     run: function run()
@@ -95,10 +84,12 @@ var ActiveTest = {
                         }
                         catch(e)
                         {
-                            if(e !== $break)
-                            {
-                                throw e;
-                            }
+                            ++ActiveTest.error;
+                            ActiveTest.log('Error' + (ActiveTest.lastNote ? ': ' + ActiveTest.lastNote : ''));
+                            ActiveTest.log(e);
+                            var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
+                            ActiveTest.summary.push(output);
+                            ActiveTest.log(output);
                         }
                     },test_name));
                     if(ActiveTest.Tests[group_name].cleanup)
@@ -117,10 +108,18 @@ var ActiveTest = {
             }
             stack.push(function(){
                 ActiveTest.currentTestName = null;
-                ActiveTest.log('[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']');
+                var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
+                ActiveTest.summary.push(output);
+                ActiveTest.log(output);
             });
             stack.shift()();
-        }        
+        }
+        ActiveTest.log('SUMMARY');
+        ActiveTest.log('-------');
+        for(var i = 0; i < ActiveTest.summary.length; ++i)
+        {
+            ActiveTest.log(ActiveTest.summary[i]);
+        }
     }
 };
 
