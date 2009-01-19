@@ -40,7 +40,7 @@
  * Setup
  * -----
  * To begin using ActiveRecord.js, you will need to include the
- * activerecord.js file and establish a connection, if you do not specify
+ * activerecord.js file and establish a connection. If you do not specify
  * a connection type, one will be automatically chosen.
  * 
  *     ActiveRecord.connect();
@@ -95,7 +95,7 @@
  * Defining Your Model
  * -------------------
  * The only rule for all ActiveRecord classes is that the related table in the
- * database must have an auto incrimenting 'id' property. If you are working
+ * database must have an auto incrementing 'id' property. If you are working
  * with a database table that already exists, you can create a model psuedo-class
  * using the create() method, passing the table name as the first parameter, and
  * any methods you want to define on that class as the second paramter:
@@ -106,7 +106,7 @@
  *         }
  *     });
  * 
- * This both returns the class, and stores it inside ActiveRecord.Models.Post. If
+ * This both returns the class and stores it inside ActiveRecord.Models.Post. If
  * the table for your model does not yet exist you can use the define() method
  * which takes the desired table as the first argument, the fields as the second
  * and the methods as the third:
@@ -173,7 +173,7 @@
  * persisted to the database, even if changes have been made. Calling save() may
  * add an "id" property to the record if it does not exist, but if there are no
  * errors, it's state will otherwise be unchanged. You can call refresh() on any
- * record to ensure it is not out of synch with your DB at any time.
+ * record to ensure it is not out of synch with your database at any time.
  * 
  * Finding Records
  * ---------------
@@ -200,7 +200,7 @@
  * synchronize: true to find(), all objects will have their values synchronized,
  * and in addition the result set itself will update as objects are destroyed or
  * created. Both features are relatively expensive operations, and are not
- * automatically garbage collected / stopped when the record or result set goes
+ * automatically garbage collected/stopped when the record or result set goes
  * out of scope, so you will need to explicitly stop both record and result set
  * synchronization.
  * 
@@ -360,7 +360,7 @@
  * 
  * Each relationship adds various instance methods to each instance of that
  * model. This differs significantly from the Rails "magical array" style of
- * handling relatioship logic:
+ * handling relationship logic:
  * 
  * Rails:
  * 
