@@ -96,6 +96,14 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
                 for(var x = 0; x < splices.length; ++x)
                 {
+                    if(event_name == 'afterCreate')
+                    {
+                        var to_synchronize = splices[x].slice(2);
+                        for(var s = 0; s < to_synchronize.length; ++s)
+                        {
+                            to_synchronize[s].synchronize();
+                        }
+                    }
                     old_result_set.splice.apply(old_result_set,splices[x]);
                 }
             }
@@ -125,8 +133,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     synchronize: function synchronize()
     {
-        Synchronization.setupNotifications(this);
-        Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        if(!this.isSynchronized)
+        {
+            this.isSynchronized = true;
+            Synchronization.setupNotifications(this);
+            Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        }
     },
     /**
      * Stops the synchronization of the record with the database.
