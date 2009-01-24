@@ -2,7 +2,7 @@ RestController = {
     underscoreString: function underscoreString(string)
     {
         return string.replace(/([a-z])([A-Z])/,function(){
-            return args[1] + '_' + args[2].toLowerCase();
+            return arguments[1] + '_' + arguments[2].toLowerCase();
         }).toLowerCase()
     },
     create: function create(model_name,actions,methods)
@@ -137,7 +137,7 @@ RestController.Introspection = {
         function json_string_from_object(controller_method,model_name,object)
         {
             var json = object.toJSON ? object.toJSON() : ActiveSupport.JSONFromObject(object);
-            var response = json.replace(/","/g,'",\n    "').replace(/^\{/,"{\n    ").replace(/\}$/,"\n}");
+            var response = json.replace(/,/g,',\n    ').replace(/^\{/,"{\n    ").replace(/\}$/,"\n}");
             return modify_response_for_method(controller_method,'json',model_name,response);
         };
         function xml_string_from_object(controller_method,model_name,object)
@@ -171,16 +171,20 @@ RestController.Introspection = {
             update: 'PUT',
             destroy: 'DELETE'
         };
-        var output = '<h2>REST Service API</h2><table><tr><th>Model</th><th>Called Method</th><th>HTTP Method</th><th>URI</th><th>Expected POST Format</th><th>Response Format</th></tr>';
+        var output = '<h2>REST Service API</h2><table cellpadding="5" border="1"><tr><th>Model</th><th>Called Method</th><th>HTTP Method</th><th>URI</th><th>POST/PUT Key</th><th>Response Format</th></tr>';
         for(var i = 0; i < RestController.Introspection.serviceDescription.length; ++i)
         {
             var description = RestController.Introspection.serviceDescription[i];
-            var sample_record = description.sample_record || ActiveRecord.Models[description.model_name].build();
             for(var m = 0; m < description.methods.length; ++m)
             {
                 var controller_method = description.methods[m];
+                var sample_record = description.sample_record || ActiveRecord.Models[description.model_name].build();
                 for(var f = 0; f < description.formats.length; ++f)
                 {
+                    if(controller_method == 'show' || controller_method == 'create' || controller_method == 'update' || controller_method == 'list')
+                    {
+                        sample_record.set('id','');
+                    }
                     var format = description.formats[f];
                     output += '<tr><td>' + [
                         description.model_name,
@@ -188,10 +192,10 @@ RestController.Introspection = {
                         method_mapping[controller_method],
                         (controller_method == 'list' ? description.route.replace(/\/\:id$/,'') : description.route) + '.' + format,
                         controller_method == 'create' || controller_method == 'update' ? description.post_param_name : '[NONE]',
-                        '<pre>' + (format == 'json'
+                        '<pre>' + (controller_method == 'destroy' ? 'HEAD (OK)' : (format == 'json'
                             ? json_string_from_object(controller_method,description.model_name,sample_record)
                             : xml_string_from_object(controller_method,description.model_name,sample_record)
-                        ) + '</pre>'
+                        )) + '</pre>'
                     ].join('</td><td>') + '</td></tr>';
                 }
             }

@@ -66,10 +66,39 @@ ActiveSupport.extend(ActiveController.InstanceMethods,{
     }
 });
 
-ActiveSupport.extend(ActiveController.RenderFlags,{
-    file: function file(file)
+ActiveController.Errors.FileDoesNotExist = 'Could not find the file to render: ';
+
+ActiveController.InstanceMethods.applyLayout = function applyLayout()
+{
+    if(this.layout && !this.layoutRendered && this.layout.file)
     {
-        
+        var layout_file = Jaxer.request.app.configPath + '/app/views/' + this.layout.file;
+        if(!Jaxer.File.exists(layout_file))
+        {
+            ActiveController.Errors.FileDoesNotExist + layout_file;
+        }
+        this.layoutRendered = true;
+        this.set('content',new EJS({
+            text: Jaxer.File.read(layout_file)
+        }).render(this.scope._object));
+    }
+};
+
+ActiveSupport.extend(ActiveController.RenderFlags,{
+    file: function file(file,args)
+    {
+        file = Jaxer.request.app.configPath + '/app/views/' + file;
+        if(!Jaxer.File.exists(file))
+        {
+            ActiveController.Errors.FileDoesNotExist + file;
+        }
+        Jaxer.response.headers['Content-Type'] = 'text/html';
+        this.set('content',new EJS({
+            text: Jaxer.File.read(file)
+        }).render(this.scope._object));
+        this.applyLayout();
+        Jaxer.response.setContents(this.get('content'));
+        args.stopped = true;
     },
     text: function text(text,args)
     {
@@ -80,7 +109,9 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
     html: function html(html,args)
     {
         Jaxer.response.headers['Content-Type'] = 'text/html';
-        Jaxer.response.setContents(html);
+        this.set('content',html);
+        this.applyLayout();
+        Jaxer.response.setContents(this.get('content'));
         args.stopped = true;
     },
     json: function json(json,args)
@@ -133,6 +164,18 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         }
     }
 });
+
+EjsView.prototype.render = function render(params,scope)
+{
+  file = Jaxer.request.app.configPath + '/app/views/' + params.partial;
+  if(!Jaxer.File.exists(file))
+  {
+      ActiveController.Errors.FileDoesNotExist + file;
+  }
+  return new EJS({
+      text: Jaxer.File.read(file)
+  }).render(scope || {});
+};
 
 ActiveController.StatusCodes = {
     100: "Continue",
