@@ -252,8 +252,7 @@
 		"files": [
 			  "license.txt"
 			
-			, "ext/pure/pure.js"
-			, "ext/pure/sizzle.js"
+			, "ext/ejs/ejs.js"
 			
 			, "src/active_support.js"
 			
@@ -306,7 +305,7 @@
 			, "src/active_controller/main.js"
 			, "src/active_controller/footer.js"
 			
-			, "ext/pure/integration.js"
+			, "ext/ejs/integration.js"
 		]
 	},
 	{
