@@ -2188,7 +2188,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return valuesArray;
     },
     /**
-     * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
+     * Sets a given key on the object and immediately persists that change to the database triggering any callbacks or validation .
      * @alias ActiveRecord.Instance.updateAttribute
      * @param {String} key
      * @param {mixed} value
@@ -2196,7 +2196,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     updateAttribute: function updateAttribute(key, value)
     {
         this.set(key, value);
-        ActiveRecord.connection.updateAttribute(this.tableName, this.id, key, value);
+        return this.save();
     },
     /**
      * Updates all of the passed attributes on the record and then calls save().
@@ -2430,14 +2430,36 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.
+     * Deletes a given id (if it exists) calling any callbacks or validations
+     * on the record. If "all" is passed as the ids, all records will be found
+     * and destroyed.
      * @alias ActiveRecord.Class.destroy
      * @param {Number} id 
      * @return {Boolean}
      */
     destroy: function destroy(id)
     {
-        return ActiveRecord.connection.deleteEntity(this.tableName,id);
+        if(id == 'all')
+        {
+            var instances = this.find({
+                all: true
+            });
+            var responses = [];
+            for(var i = 0; i < instances.length; ++i)
+            {
+                responses.push(instances[i].destroy());
+            }
+            return responses;
+        }
+        else
+        {
+            var instance = this.find(id);
+            if(!instance)
+            {
+                return false;
+            }
+            return instance.destroy();
+        }
     },
     /**
      * Identical to calling create(), but does not save the record.
@@ -5597,6 +5619,14 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
                 for(var x = 0; x < splices.length; ++x)
                 {
+                    if(event_name == 'afterCreate')
+                    {
+                        var to_synchronize = splices[x].slice(2);
+                        for(var s = 0; s < to_synchronize.length; ++s)
+                        {
+                            to_synchronize[s].synchronize();
+                        }
+                    }
                     old_result_set.splice.apply(old_result_set,splices[x]);
                 }
             }
@@ -5626,8 +5656,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     synchronize: function synchronize()
     {
-        Synchronization.setupNotifications(this);
-        Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        if(!this.isSynchronized)
+        {
+            this.isSynchronized = true;
+            Synchronization.setupNotifications(this);
+            Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        }
     },
     /**
      * Stops the synchronization of the record with the database.

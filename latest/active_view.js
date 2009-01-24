@@ -1606,51 +1606,63 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
 
 ActiveView.render = function render(content,target,scope,clear,execute)
 {
-    if(!execute)
+    if(content && typeof(content) == 'object' && 'length' in content && 'splice' in content && 'join' in content)
     {
-        execute = function render_execute(target,content)
+        var responses = [];
+        for(var i = 0; i < content.length; ++i)
         {
-            if(!content)
-            {
-                throw Errors.InvalidContent;
-            }
-            target.appendChild(content);
-        };
-    }
-    if(typeof(content) === 'function' && !content.prototype.structure)
-    {
-        content = content(scope);
-    }
-    if(clear !== false)
-    {
-        target.innerHTML = '';
-    }
-    if(typeof(content) === 'string')
-    {
-        target.innerHTML = content;
-        return content;
-    }
-    else if(content && content.nodeType === 1)
-    {
-        execute(target,content);
-        return content;
-    }
-    else if(content && content.container)
-    {
-      //is ActiveView instance
-      execute(target,content.container);
-      return view;
-    }
-    else if(content && content.prototype && content.prototype.structure)
-    {
-        //is ActiveView class
-        var view = new content(scope);
-        execute(target,view.container);
-        return view;
+            responses.push(ActiveView.render(content[i],target,scope,clear,execute));
+        }
+        return responses;
     }
     else
     {
-        throw Errors.InvalidContent;
+        if(!execute)
+        {
+            execute = function render_execute(target,content)
+            {
+                if(!content)
+                {
+                    throw Errors.InvalidContent;
+                }
+                target.appendChild(content);
+            };
+        }
+        if(typeof(content) === 'function' && !content.prototype.structure)
+        {
+            content = content(scope);
+        }
+        if(clear !== false)
+        {
+            target.innerHTML = '';
+        }
+        if(typeof(content) === 'string')
+        {
+            target.innerHTML = content;
+            return content;
+        }
+        else if(content && content.nodeType === 1)
+        {
+            execute(target,content);
+            return content;
+        }
+        else if(content && content.container)
+        {
+          //is ActiveView instance
+          execute(target,content.container);
+          return view;
+        }
+        else if(content && content.prototype && content.prototype.structure)
+        {
+            //is ActiveView class
+            var view = new content(scope);
+            execute(target,view.container);
+            return view;
+        }
+        else
+        {
+            throw Errors.InvalidContent;
+        }
     }
 };
 
@@ -1693,6 +1705,10 @@ var InstanceMethods = {
     },
     set: function set(key,value)
     {
+        if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+        {
+            ActiveView.makeArrayObservable(value);
+        }
         return this.scope.set(key,value);
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
@@ -1827,7 +1843,6 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType === 1)
         {
-            console.log(element);
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {

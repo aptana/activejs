@@ -1576,9 +1576,9 @@ ActiveController.create = function create(actions,methods)
         this.container = container || ActiveController.createDefaultContainer();
         this.renderTarget = this.container;
         this.layoutRendered = false;
-        if(this.layout && typeof(this.layout) === 'function')
+        if(this.layout && typeof(this.layout.view) === 'function')
         {
-            this.layout = ActiveSupport.bind(this.layout,this);
+            this.layout.view = ActiveSupport.bind(this.layout.view,this);
         }
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
@@ -1587,7 +1587,15 @@ ActiveController.create = function create(actions,methods)
     ActiveSupport.extend(klass,ClassMethods);
     for(var action_name in actions || {})
     {
-        ActiveController.createAction(klass,action_name,actions[action_name]);
+        if(typeof(actions[action_name]) == 'function')
+        {
+            ActiveController.createAction(klass,action_name,actions[action_name]);
+        }
+        else
+        {
+            //plain old property
+            klass.prototype[action_name] = actions[action_name];
+        }
     }
     ActiveSupport.extend(klass.prototype,InstanceMethods);
     ActiveSupport.extend(klass.prototype,methods || {});
@@ -1611,13 +1619,11 @@ ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
-        if(this.layout && !this.layoutRendered)
+        if(this.layout && !this.layoutRendered && this.layout.view)
         {
             this.layoutRendered = true;
-            var layout = this.render({
-                view: this.layout,
-                target: this.container
-            });
+            this.layout.target = this.container;
+            var layout = this.render(this.layout);
             if(layout && layout.renderTarget)
             {
                 this.renderTarget = layout.renderTarget;
@@ -1664,7 +1670,7 @@ var InstanceMethods = {
                 }
                 throw Errors.UnknownRenderFlag + flag_name;
             }
-            RenderFlags[flag_name](params[flag_name],args);
+            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
         }
         return args;
     }

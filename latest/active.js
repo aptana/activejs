@@ -2934,7 +2934,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         return valuesArray;
     },
     /**
-     * Sets a given key on the object and immediately persists that change to the database without triggering callbacks or validation .
+     * Sets a given key on the object and immediately persists that change to the database triggering any callbacks or validation .
      * @alias ActiveRecord.Instance.updateAttribute
      * @param {String} key
      * @param {mixed} value
@@ -2942,7 +2942,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     updateAttribute: function updateAttribute(key, value)
     {
         this.set(key, value);
-        ActiveRecord.connection.updateAttribute(this.tableName, this.id, key, value);
+        return this.save();
     },
     /**
      * Updates all of the passed attributes on the record and then calls save().
@@ -3176,14 +3176,36 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * Deletes a given id (if it exists) WITHOUT calling any callbacks or validations on the record.
+     * Deletes a given id (if it exists) calling any callbacks or validations
+     * on the record. If "all" is passed as the ids, all records will be found
+     * and destroyed.
      * @alias ActiveRecord.Class.destroy
      * @param {Number} id 
      * @return {Boolean}
      */
     destroy: function destroy(id)
     {
-        return ActiveRecord.connection.deleteEntity(this.tableName,id);
+        if(id == 'all')
+        {
+            var instances = this.find({
+                all: true
+            });
+            var responses = [];
+            for(var i = 0; i < instances.length; ++i)
+            {
+                responses.push(instances[i].destroy());
+            }
+            return responses;
+        }
+        else
+        {
+            var instance = this.find(id);
+            if(!instance)
+            {
+                return false;
+            }
+            return instance.destroy();
+        }
     },
     /**
      * Identical to calling create(), but does not save the record.
@@ -6343,6 +6365,14 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
                 for(var x = 0; x < splices.length; ++x)
                 {
+                    if(event_name == 'afterCreate')
+                    {
+                        var to_synchronize = splices[x].slice(2);
+                        for(var s = 0; s < to_synchronize.length; ++s)
+                        {
+                            to_synchronize[s].synchronize();
+                        }
+                    }
                     old_result_set.splice.apply(old_result_set,splices[x]);
                 }
             }
@@ -6372,8 +6402,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     synchronize: function synchronize()
     {
-        Synchronization.setupNotifications(this);
-        Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        if(!this.isSynchronized)
+        {
+            this.isSynchronized = true;
+            Synchronization.setupNotifications(this);
+            Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+        }
     },
     /**
      * Stops the synchronization of the record with the database.
@@ -6519,51 +6553,63 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
 
 ActiveView.render = function render(content,target,scope,clear,execute)
 {
-    if(!execute)
+    if(content && typeof(content) == 'object' && 'length' in content && 'splice' in content && 'join' in content)
     {
-        execute = function render_execute(target,content)
+        var responses = [];
+        for(var i = 0; i < content.length; ++i)
         {
-            if(!content)
-            {
-                throw Errors.InvalidContent;
-            }
-            target.appendChild(content);
-        };
-    }
-    if(typeof(content) === 'function' && !content.prototype.structure)
-    {
-        content = content(scope);
-    }
-    if(clear !== false)
-    {
-        target.innerHTML = '';
-    }
-    if(typeof(content) === 'string')
-    {
-        target.innerHTML = content;
-        return content;
-    }
-    else if(content && content.nodeType === 1)
-    {
-        execute(target,content);
-        return content;
-    }
-    else if(content && content.container)
-    {
-      //is ActiveView instance
-      execute(target,content.container);
-      return view;
-    }
-    else if(content && content.prototype && content.prototype.structure)
-    {
-        //is ActiveView class
-        var view = new content(scope);
-        execute(target,view.container);
-        return view;
+            responses.push(ActiveView.render(content[i],target,scope,clear,execute));
+        }
+        return responses;
     }
     else
     {
-        throw Errors.InvalidContent;
+        if(!execute)
+        {
+            execute = function render_execute(target,content)
+            {
+                if(!content)
+                {
+                    throw Errors.InvalidContent;
+                }
+                target.appendChild(content);
+            };
+        }
+        if(typeof(content) === 'function' && !content.prototype.structure)
+        {
+            content = content(scope);
+        }
+        if(clear !== false)
+        {
+            target.innerHTML = '';
+        }
+        if(typeof(content) === 'string')
+        {
+            target.innerHTML = content;
+            return content;
+        }
+        else if(content && content.nodeType === 1)
+        {
+            execute(target,content);
+            return content;
+        }
+        else if(content && content.container)
+        {
+          //is ActiveView instance
+          execute(target,content.container);
+          return view;
+        }
+        else if(content && content.prototype && content.prototype.structure)
+        {
+            //is ActiveView class
+            var view = new content(scope);
+            execute(target,view.container);
+            return view;
+        }
+        else
+        {
+            throw Errors.InvalidContent;
+        }
     }
 };
 
@@ -6606,6 +6652,10 @@ var InstanceMethods = {
     },
     set: function set(key,value)
     {
+        if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+        {
+            ActiveView.makeArrayObservable(value);
+        }
         return this.scope.set(key,value);
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
@@ -6740,7 +6790,6 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType === 1)
         {
-            console.log(element);
             throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
         }
         return {
@@ -6929,9 +6978,9 @@ ActiveController.create = function create(actions,methods)
         this.container = container || ActiveController.createDefaultContainer();
         this.renderTarget = this.container;
         this.layoutRendered = false;
-        if(this.layout && typeof(this.layout) === 'function')
+        if(this.layout && typeof(this.layout.view) === 'function')
         {
-            this.layout = ActiveSupport.bind(this.layout,this);
+            this.layout.view = ActiveSupport.bind(this.layout.view,this);
         }
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
@@ -6940,7 +6989,15 @@ ActiveController.create = function create(actions,methods)
     ActiveSupport.extend(klass,ClassMethods);
     for(var action_name in actions || {})
     {
-        ActiveController.createAction(klass,action_name,actions[action_name]);
+        if(typeof(actions[action_name]) == 'function')
+        {
+            ActiveController.createAction(klass,action_name,actions[action_name]);
+        }
+        else
+        {
+            //plain old property
+            klass.prototype[action_name] = actions[action_name];
+        }
     }
     ActiveSupport.extend(klass.prototype,InstanceMethods);
     ActiveSupport.extend(klass.prototype,methods || {});
@@ -6964,13 +7021,11 @@ ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
-        if(this.layout && !this.layoutRendered)
+        if(this.layout && !this.layoutRendered && this.layout.view)
         {
             this.layoutRendered = true;
-            var layout = this.render({
-                view: this.layout,
-                target: this.container
-            });
+            this.layout.target = this.container;
+            var layout = this.render(this.layout);
             if(layout && layout.renderTarget)
             {
                 this.renderTarget = layout.renderTarget;
@@ -7017,7 +7072,7 @@ var InstanceMethods = {
                 }
                 throw Errors.UnknownRenderFlag + flag_name;
             }
-            RenderFlags[flag_name](params[flag_name],args);
+            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
         }
         return args;
     }
