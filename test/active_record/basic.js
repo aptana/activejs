@@ -54,7 +54,7 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
                 title: 'c',
                 body: 'cc'
             });
-            assert(c.id == b.id + 1,'Record incrimented id.');
+            assert(c.id == b.id + 1,'Record incremented id.');
             assert(Comment.find(c.id).title == 'c','Record persisted.');
             assert(Comment.count() == 2,'Record count is correct.');
             assert(Comment.count({

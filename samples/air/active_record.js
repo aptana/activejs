@@ -1586,7 +1586,7 @@ ActiveRecord = null;
  * Defining Your Model
  * -------------------
  * The only rule for all ActiveRecord classes is that the related table in the
- * database must have an auto incrimenting 'id' property. If you are working
+ * database must have an auto incrementing 'id' property. If you are working
  * with a database table that already exists, you can create a model psuedo-class
  * using the create() method, passing the table name as the first parameter, and
  * any methods you want to define on that class as the second paramter:
@@ -4913,7 +4913,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
                 child.updateAttribute(options.counter, Math.max(0, parseInt(current_value) - 1));
             }
         });
-        this.observe('afterCreate', function incrimentBelongsToCounter(record){
+        this.observe('afterCreate', function incrementBelongsToCounter(record){
             var child = record['get' + related_model_name]();
             if(child)
             {

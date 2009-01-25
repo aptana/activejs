@@ -102,7 +102,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
                 child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
             }
         });
-        this.observe('afterCreate', function incrimentBelongsToCounter(record){
+        this.observe('afterCreate', function incrementBelongsToCounter(record){
             var child = record['get' + relationship_name]();
             if(child)
             {

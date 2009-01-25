@@ -34,7 +34,7 @@ ActiveTest.Tests.Routes.dispatch = function(proceed)
         assert(routes.history.length == 0,'history starts empty');
         
         routes.dispatch('/address/wa/98103');
-        assert(routes.history.length == 1,'history incrimented');
+        assert(routes.history.length == 1,'history incremented');
         assert(routes.history[routes.history.length - 1].params.zip == '98103' == 1,'history contains params');
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '98103' && last_action.method == 'address','dispatcher called action from string');

@@ -260,8 +260,10 @@ ActiveSupport = {
     underscore: function underscore(str)
     {
         return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/-/g, '_').toLowerCase();
     },

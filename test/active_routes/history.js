@@ -38,11 +38,11 @@ ActiveTest.Tests.Routes.history = function(proceed)
         routes.dispatch('/address/wa/98104');
         routes.dispatch('/address/wa/98105');
         
-        assert(routes.history.length == 3,'history incrimented');
-        assert(routes.index == 2,'index incrimented');
+        assert(routes.history.length == 3,'history incremented');
+        assert(routes.index == 2,'index incremented');
         
         var back_response = routes.back();
-        assert(routes.history.length == 3,'history not incrimented by back()');
+        assert(routes.history.length == 3,'history not incremented by back()');
         assert(routes.index == 1,'index decrimented by back()');
         last_action = logged_actions.pop()[0];
         assert(back_response && last_action.zip == '98104','back() calls correct action');
@@ -53,8 +53,8 @@ ActiveTest.Tests.Routes.history = function(proceed)
         
         routes.next();
         routes.next();
-        assert(routes.history.length == 3,'history not incrimented by next()');
-        assert(routes.index == 2,'index incrimented by next()');
+        assert(routes.history.length == 3,'history not incremented by next()');
+        assert(routes.index == 2,'index incremented by next()');
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '98105','next() calls correct action');
         
