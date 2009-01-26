@@ -57,7 +57,7 @@ ActiveTest.Tests.ActiveRecord.transactions = function(proceed)
                 });
                 
             }catch(e){
-                assert(Comment.count() == count + 2 && e == 'error','Transaction ROLLBACK without handler');
+                assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK without handler');
             }
             Comment.transaction(function(){
                 var c = Comment.create({
@@ -68,7 +68,7 @@ ActiveTest.Tests.ActiveRecord.transactions = function(proceed)
                 });
                 throw 'error';
             },function(e){
-                assert(Comment.count() == count + 2 && e == 'error','Transaction ROLLBACK with handler');
+                assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK with handler');
             });
             if(proceed)
                 proceed();

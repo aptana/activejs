@@ -466,7 +466,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             }
             else
             {
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     }

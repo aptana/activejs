@@ -449,7 +449,7 @@ ActiveRecord = {
     {
         if (!ActiveRecord.connection)
         {
-            throw ActiveRecord.Errors.ConnectionNotEstablished;
+            return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
         }
 
         //determine proper model name

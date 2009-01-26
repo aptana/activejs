@@ -95,6 +95,50 @@ ActiveSupport = {
         }
     },
     /**
+     * Creates an Error object (but does not throw it).
+     * @alias ActiveSupport.createError
+     * @param {String} message
+     * @return {null}
+     */
+    createError: function createError(message)
+    {
+        return new Error(message);
+    },
+    /**
+     * @alias ActiveSupport.logErrors
+     * @property {Boolean}
+     */
+    logErrors: true,
+    /**
+     * @alias ActiveSupport.throwErrors
+     * @property {Boolean}
+     */
+    throwErrors: true,
+    /**
+     * Accepts a variable number of arguments, that may be logged and thrown.
+     * @alias ActiveSupport.throwError
+     * @param {Error} error
+     * @return {null}
+     */
+    throwError: function throwError(error)
+    {
+        if(typeof(error) == 'string')
+        {
+            error = new Error(error);
+        }
+        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
+        if(ActiveSupport.logErrors)
+        {
+            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
+        }
+        if(ActiveSupport.throwErrors)
+        {
+            var e = ActiveSupport.clone(error);
+            e.message = e.message + error_arguments.join(',')
+            throw e;
+        }
+    },
+    /**
      * Returns an array from an array or array like object.
      * @alias ActiveSupport.arrayFrom
      * @param {Object} object
@@ -260,8 +304,10 @@ ActiveSupport = {
     underscore: function underscore(str)
     {
         return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/-/g, '_').toLowerCase();
     },
@@ -640,7 +686,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                throw new SyntaxError("invalid date");
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -1099,7 +1145,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    throw new Error('JSON.stringify');
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1140,7 +1186,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                throw new SyntaxError('JSON.parse');
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
@@ -1623,7 +1669,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
             {
                 if(!content)
                 {
-                    throw Errors.InvalidContent;
+                    return ActiveSupport.throwError(Errors.InvalidContent);
                 }
                 target.appendChild(content);
             };
@@ -1661,7 +1707,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         }
         else
         {
-            throw Errors.InvalidContent;
+            return ActiveSupport.throwError(Errors.InvalidContent);
         }
     }
 };
@@ -1680,7 +1726,7 @@ var InstanceMethods = {
         this.container = this.structure();
         if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
-            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
         }
         for(var key in this.scope._object)
         {
@@ -1722,9 +1768,9 @@ var ClassMethods = {
 };
 
 var Errors = {
-    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
-    MismatchedArguments: 'Incorrect argument type passed: '
+    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: '),
+    InvalidContent: ActiveSupport.createError('The content to render was not a string, DOM element or ActiveView.'),
+    MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: ')
 };
 
 var Builder = {
@@ -1843,7 +1889,7 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType === 1)
         {
-            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
         }
         return {
             from: function from(observe_key)
@@ -1864,7 +1910,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     transformation = callback;
                     return {
@@ -1876,7 +1922,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     condition = callback;
                     return {
@@ -1906,21 +1952,21 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!view)
         {
-            throw Errors.MismatchedArguments + 'expected string, ActiveView class or function, recieved ' + typeof(view);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected string, ActiveView class or function, recieved ',typeof(view),view);
         }
         return {
             from: function from(collection)
             {
                 if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
-                    throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected array, recieved ',typeof(collection),collection);
                 }
                 return {
                     into: function into(element)
                     {
                         if(!element || !element.nodeType === 1)
                         {
-                            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+                            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) === 'string')
@@ -2002,7 +2048,7 @@ ActiveView.generateBinding = function generateBinding(instance)
             {
                 if(!callback || typeof(callback) !== 'function')
                 {
-                    throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                 }
                 instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)

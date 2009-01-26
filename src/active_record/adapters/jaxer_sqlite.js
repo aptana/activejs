@@ -94,7 +94,7 @@ Adapters.JaxerSQLite = function JaxerSQLite(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });

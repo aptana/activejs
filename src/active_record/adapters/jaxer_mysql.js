@@ -94,7 +94,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });

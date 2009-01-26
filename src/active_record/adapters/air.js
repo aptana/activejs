@@ -108,7 +108,7 @@ Adapters.AIR = function AIR(connection){
             catch(e)
             {
                 this.connection.rollback();
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });

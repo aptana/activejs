@@ -82,7 +82,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
             {
                 if(!content)
                 {
-                    throw Errors.InvalidContent;
+                    return ActiveSupport.throwError(Errors.InvalidContent);
                 }
                 target.appendChild(content);
             };
@@ -120,7 +120,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         }
         else
         {
-            throw Errors.InvalidContent;
+            return ActiveSupport.throwError(Errors.InvalidContent);
         }
     }
 };
@@ -139,7 +139,7 @@ var InstanceMethods = {
         this.container = this.structure();
         if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
-            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
         }
         for(var key in this.scope._object)
         {
@@ -181,7 +181,7 @@ var ClassMethods = {
 };
 
 var Errors = {
-    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
-    MismatchedArguments: 'Incorrect argument type passed: '
+    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: '),
+    InvalidContent: ActiveSupport.createError('The content to render was not a string, DOM element or ActiveView.'),
+    MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: ')
 };

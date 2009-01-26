@@ -32,7 +32,7 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType === 1)
         {
-            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
         }
         return {
             from: function from(observe_key)
@@ -53,7 +53,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     transformation = callback;
                     return {
@@ -65,7 +65,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     condition = callback;
                     return {
@@ -95,21 +95,21 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!view)
         {
-            throw Errors.MismatchedArguments + 'expected string, ActiveView class or function, recieved ' + typeof(view);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected string, ActiveView class or function, recieved ',typeof(view),view);
         }
         return {
             from: function from(collection)
             {
                 if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
-                    throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected array, recieved ',typeof(collection),collection);
                 }
                 return {
                     into: function into(element)
                     {
                         if(!element || !element.nodeType === 1)
                         {
-                            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+                            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) === 'string')
@@ -191,7 +191,7 @@ ActiveView.generateBinding = function generateBinding(instance)
             {
                 if(!callback || typeof(callback) !== 'function')
                 {
-                    throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                 }
                 instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)

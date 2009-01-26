@@ -301,7 +301,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
             break;
             
         default:
-            throw new Error("Unknown operator type: " + this.operator);
+            return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
     }
     
     return result;
@@ -430,7 +430,7 @@ WhereParser.prototype.parse = function parse(source)
                 break;
 
             default:
-                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
+                return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
 
@@ -580,7 +580,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     }
                     else 
                     {
-                        throw new Error("Function argument list was not closed with a right parenthesis.");
+                        return ActiveSupport.throwError(new Error("Function argument list was not closed with a right parenthesis."));
                     }
                 }
                 break;
@@ -628,7 +628,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 }
                 else
                 {
-                    throw new Error("Missing closing right parenthesis: " + currentLexeme);
+                    return ActiveSupport.throwError(new Error("Missing closing right parenthesis: " + currentLexeme));
                 }
                 break;
         }

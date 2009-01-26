@@ -95,6 +95,50 @@ ActiveSupport = {
         }
     },
     /**
+     * Creates an Error object (but does not throw it).
+     * @alias ActiveSupport.createError
+     * @param {String} message
+     * @return {null}
+     */
+    createError: function createError(message)
+    {
+        return new Error(message);
+    },
+    /**
+     * @alias ActiveSupport.logErrors
+     * @property {Boolean}
+     */
+    logErrors: true,
+    /**
+     * @alias ActiveSupport.throwErrors
+     * @property {Boolean}
+     */
+    throwErrors: true,
+    /**
+     * Accepts a variable number of arguments, that may be logged and thrown.
+     * @alias ActiveSupport.throwError
+     * @param {Error} error
+     * @return {null}
+     */
+    throwError: function throwError(error)
+    {
+        if(typeof(error) == 'string')
+        {
+            error = new Error(error);
+        }
+        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
+        if(ActiveSupport.logErrors)
+        {
+            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
+        }
+        if(ActiveSupport.throwErrors)
+        {
+            var e = ActiveSupport.clone(error);
+            e.message = e.message + error_arguments.join(',')
+            throw e;
+        }
+    },
+    /**
      * Returns an array from an array or array like object.
      * @alias ActiveSupport.arrayFrom
      * @param {Object} object
@@ -260,8 +304,10 @@ ActiveSupport = {
     underscore: function underscore(str)
     {
         return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/-/g, '_').toLowerCase();
     },
@@ -640,7 +686,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                throw new SyntaxError("invalid date");
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -1099,7 +1145,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    throw new Error('JSON.stringify');
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1140,7 +1186,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                throw new SyntaxError('JSON.parse');
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
@@ -1990,7 +2036,7 @@ ActiveRecord = {
     {
         if (!ActiveRecord.connection)
         {
-            throw ActiveRecord.Errors.ConnectionNotEstablished;
+            return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
         }
 
         //determine proper model name
@@ -2110,15 +2156,15 @@ var Errors = {
     /**
      * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
-    ConnectionNotEstablished: 'No ActiveRecord connection is active.',
+    ConnectionNotEstablished: ActiveSupport.createError('No ActiveRecord connection is active.'),
     /**
      * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
-    MethodDoesNotExist: 'The requested method does not exist.',
+    MethodDoesNotExist: ActiveSupport.createError('The requested method does not exist.'),
     /**
      * @property {String} Error that will be thrown if an unrecognized field type definition is used.
      */
-    InvalidFieldType: 'The field type does not exist:'
+    InvalidFieldType: ActiveSupport.createError('The field type does not exist:')
 };
 
 ActiveRecord.Errors = Errors;
@@ -2564,7 +2610,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             }
             else
             {
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     }
@@ -2739,7 +2785,7 @@ ActiveRecord.execute = function execute()
 {
     if (!ActiveRecord.connection)
     {
-        throw ActiveRecord.Errors.ConnectionNotEstablished;
+        return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
     }
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
@@ -2756,7 +2802,7 @@ Adapters.InstanceMethods = {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
                 if(typeof(default_value) === 'undefined')
                 {
-                    throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
+                    return ActiveSupport.throwError(Errors.InvalidFieldType,(field ? (field.type || '[object]') : 'false'));
                 }
                 return field.value || default_value;
             }
@@ -3158,7 +3204,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -3253,7 +3299,7 @@ Adapters.JaxerSQLite = function JaxerSQLite(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -3373,7 +3419,7 @@ Adapters.Gears = function Gears(db){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -3389,7 +3435,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         var gears_factory = null;
         if('GearsFactory' in global_context)
         {
-          gears_factory = new GearsFactory();
+            gears_factory = new GearsFactory();
         }
         else if('ActiveXObject' in global_context)
         {
@@ -3403,7 +3449,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             }
             catch(e)
             {
-                throw Adapters.Gears.DatabaseUnavailableError;
+                return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
             }
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
@@ -3418,14 +3464,14 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         
         if(!gears_factory)
         {
-          throw Adapters.Gears.DatabaseUnavailableError;
+            return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
         }
-    
+        
         if(!('google' in global_context))
         {
-          google = {};
+            google = {};
         }
-
+        
         if(!('gears' in google))
         {
             google.gears = {
@@ -3523,7 +3569,7 @@ Adapters.AIR = function AIR(connection){
             catch(e)
             {
                 this.connection.rollback();
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -3771,7 +3817,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         catch(e)
         {
             this.storage = backup;
-            throw e;
+            return ActiveSupport.throwError(e);
         }
     },
     /* PRVIATE */
@@ -3947,7 +3993,7 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
     }
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
-        throw Errors.MethodDoesNotExist;
+        return ActiveSupport.throwError(Errors.MethodDoesNotExist);
     }
     else
     {
@@ -4282,7 +4328,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
             break;
             
         default:
-            throw new Error("Unknown operator type: " + this.operator);
+            return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
     }
     
     return result;
@@ -4411,7 +4457,7 @@ WhereParser.prototype.parse = function parse(source)
                 break;
 
             default:
-                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
+                return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
 
@@ -4561,7 +4607,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     }
                     else 
                     {
-                        throw new Error("Function argument list was not closed with a right parenthesis.");
+                        return ActiveSupport.throwError(new Error("Function argument list was not closed with a right parenthesis."));
                     }
                 }
                 break;
@@ -4609,7 +4655,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 }
                 else
                 {
-                    throw new Error("Missing closing right parenthesis: " + currentLexeme);
+                    return ActiveSupport.throwError(new Error("Missing closing right parenthesis: " + currentLexeme));
                 }
                 break;
         }
@@ -5049,7 +5095,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
                 child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
             }
         });
-        this.observe('afterCreate', function incrimentBelongsToCounter(record){
+        this.observe('afterCreate', function incrementBelongsToCounter(record){
             var child = record['get' + relationship_name]();
             if(child)
             {

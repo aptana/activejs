@@ -29,15 +29,15 @@ var Errors = {
     /**
      * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
-    ConnectionNotEstablished: 'No ActiveRecord connection is active.',
+    ConnectionNotEstablished: ActiveSupport.createError('No ActiveRecord connection is active.'),
     /**
      * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
-    MethodDoesNotExist: 'The requested method does not exist.',
+    MethodDoesNotExist: ActiveSupport.createError('The requested method does not exist.'),
     /**
      * @property {String} Error that will be thrown if an unrecognized field type definition is used.
      */
-    InvalidFieldType: 'The field type does not exist:'
+    InvalidFieldType: ActiveSupport.createError('The field type does not exist:')
 };
 
 ActiveRecord.Errors = Errors;

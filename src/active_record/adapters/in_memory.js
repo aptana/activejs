@@ -261,7 +261,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         catch(e)
         {
             this.storage = backup;
-            throw e;
+            return ActiveSupport.throwError(e);
         }
     },
     /* PRVIATE */
@@ -437,7 +437,7 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
     }
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
-        throw Errors.MethodDoesNotExist;
+        return ActiveSupport.throwError(Errors.MethodDoesNotExist);
     }
     else
     {

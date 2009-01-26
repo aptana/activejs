@@ -132,7 +132,7 @@ Adapters.Gears = function Gears(db){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -148,7 +148,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         var gears_factory = null;
         if('GearsFactory' in global_context)
         {
-          gears_factory = new GearsFactory();
+            gears_factory = new GearsFactory();
         }
         else if('ActiveXObject' in global_context)
         {
@@ -162,7 +162,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             }
             catch(e)
             {
-                throw Adapters.Gears.DatabaseUnavailableError;
+                return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
             }
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
@@ -177,14 +177,14 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         
         if(!gears_factory)
         {
-          throw Adapters.Gears.DatabaseUnavailableError;
+            return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
         }
-    
+        
         if(!('google' in global_context))
         {
-          google = {};
+            google = {};
         }
-
+        
         if(!('gears' in google))
         {
             google.gears = {

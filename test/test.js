@@ -318,7 +318,7 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
                 title: 'c',
                 body: 'cc'
             });
-            assert(c.id == b.id + 1,'Record incrimented id.');
+            assert(c.id == b.id + 1,'Record incremented id.');
             assert(Comment.find(c.id).title == 'c','Record persisted.');
             assert(Comment.count() == 2,'Record count is correct.');
             assert(Comment.count({
@@ -1093,7 +1093,7 @@ ActiveTest.Tests.ActiveRecord.transactions = function(proceed)
                 });
                 
             }catch(e){
-                assert(Comment.count() == count + 2 && e == 'error','Transaction ROLLBACK without handler');
+                assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK without handler');
             }
             Comment.transaction(function(){
                 var c = Comment.create({
@@ -1104,7 +1104,7 @@ ActiveTest.Tests.ActiveRecord.transactions = function(proceed)
                 });
                 throw 'error';
             },function(e){
-                assert(Comment.count() == count + 2 && e == 'error','Transaction ROLLBACK with handler');
+                assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK with handler');
             });
             if(proceed)
                 proceed();
@@ -1488,7 +1488,7 @@ ActiveTest.Tests.Routes.dispatch = function(proceed)
         assert(routes.history.length == 0,'history starts empty');
         
         routes.dispatch('/address/wa/98103');
-        assert(routes.history.length == 1,'history incrimented');
+        assert(routes.history.length == 1,'history incremented');
         assert(routes.history[routes.history.length - 1].params.zip == '98103' == 1,'history contains params');
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '98103' && last_action.method == 'address','dispatcher called action from string');
@@ -1518,11 +1518,11 @@ ActiveTest.Tests.Routes.history = function(proceed)
         routes.dispatch('/address/wa/98104');
         routes.dispatch('/address/wa/98105');
         
-        assert(routes.history.length == 3,'history incrimented');
-        assert(routes.index == 2,'index incrimented');
+        assert(routes.history.length == 3,'history incremented');
+        assert(routes.index == 2,'index incremented');
         
         var back_response = routes.back();
-        assert(routes.history.length == 3,'history not incrimented by back()');
+        assert(routes.history.length == 3,'history not incremented by back()');
         assert(routes.index == 1,'index decrimented by back()');
         last_action = logged_actions.pop()[0];
         assert(back_response && last_action.zip == '98104','back() calls correct action');
@@ -1533,8 +1533,8 @@ ActiveTest.Tests.Routes.history = function(proceed)
         
         routes.next();
         routes.next();
-        assert(routes.history.length == 3,'history not incrimented by next()');
-        assert(routes.index == 2,'index incrimented by next()');
+        assert(routes.history.length == 3,'history not incremented by next()');
+        assert(routes.index == 2,'index incremented by next()');
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '98105','next() calls correct action');
         

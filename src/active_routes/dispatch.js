@@ -45,11 +45,11 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
         {
             if(this.error)
             {
-                throw this.error;
+                return ActiveSupport.throwError(this.error);
             }
             else
             {
-                throw Errors.UnresolvableUrl + path;
+                return ActiveSupport.throwError(Errors.UnresolvableUrl,path);
             }
         }
     }

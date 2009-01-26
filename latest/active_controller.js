@@ -95,6 +95,50 @@ ActiveSupport = {
         }
     },
     /**
+     * Creates an Error object (but does not throw it).
+     * @alias ActiveSupport.createError
+     * @param {String} message
+     * @return {null}
+     */
+    createError: function createError(message)
+    {
+        return new Error(message);
+    },
+    /**
+     * @alias ActiveSupport.logErrors
+     * @property {Boolean}
+     */
+    logErrors: true,
+    /**
+     * @alias ActiveSupport.throwErrors
+     * @property {Boolean}
+     */
+    throwErrors: true,
+    /**
+     * Accepts a variable number of arguments, that may be logged and thrown.
+     * @alias ActiveSupport.throwError
+     * @param {Error} error
+     * @return {null}
+     */
+    throwError: function throwError(error)
+    {
+        if(typeof(error) == 'string')
+        {
+            error = new Error(error);
+        }
+        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
+        if(ActiveSupport.logErrors)
+        {
+            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
+        }
+        if(ActiveSupport.throwErrors)
+        {
+            var e = ActiveSupport.clone(error);
+            e.message = e.message + error_arguments.join(',')
+            throw e;
+        }
+    },
+    /**
      * Returns an array from an array or array like object.
      * @alias ActiveSupport.arrayFrom
      * @param {Object} object
@@ -260,8 +304,10 @@ ActiveSupport = {
     underscore: function underscore(str)
     {
         return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/-/g, '_').toLowerCase();
     },
@@ -640,7 +686,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                throw new SyntaxError("invalid date");
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -1099,7 +1145,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    throw new Error('JSON.stringify');
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1140,7 +1186,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                throw new SyntaxError('JSON.parse');
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
@@ -1609,7 +1655,7 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
     var div = global_context.document.createElement('div');
     if(!global_context.document.body)
     {
-        throw Errors.BodyNotAvailable;
+        return ActiveSupport.throwError(Errors.BodyNotAvailable);
     }
     global_context.document.body.appendChild(div);
     return div;
@@ -1657,7 +1703,7 @@ var InstanceMethods = {
     {
         if(typeof(params) !== 'object')
         {
-            throw Errors.InvalidRenderParams;
+            return ActiveSupport.throwError(Errors.InvalidRenderParams);
         }
         var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
@@ -1668,7 +1714,7 @@ var InstanceMethods = {
                 {
                     ActiveSupport.log('ActiveController: render() failed with params:',params);
                 }
-                throw Errors.UnknownRenderFlag + flag_name;
+                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
             }
             ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
         }
@@ -1685,7 +1731,7 @@ var RenderFlags = {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)
             {
-                throw Errors.ViewDoesNotExist + view_class;
+                return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
             }
             args[0] = klass;
         }
@@ -1718,10 +1764,10 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    BodyNotAvailable: 'Controller could not attach to a DOM element, no container was passed and document.body is not available',
-    InvalidRenderParams: 'The parameter passed to render() was not an object.',
-    UnknownRenderFlag: 'The following render flag does not exist: ',
-    ViewDoesNotExist: 'The specified view does not exist: '
+    BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
+    InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
+    UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: '),
+    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: ')
 };
 ActiveController.Errors = Errors;
 

@@ -89,7 +89,7 @@ ActiveRecord.execute = function execute()
 {
     if (!ActiveRecord.connection)
     {
-        throw ActiveRecord.Errors.ConnectionNotEstablished;
+        return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
     }
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
@@ -106,7 +106,7 @@ Adapters.InstanceMethods = {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
                 if(typeof(default_value) === 'undefined')
                 {
-                    throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
+                    return ActiveSupport.throwError(Errors.InvalidFieldType,(field ? (field.type || '[object]') : 'false'));
                 }
                 return field.value || default_value;
             }

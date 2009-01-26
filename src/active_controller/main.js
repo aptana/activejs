@@ -68,7 +68,7 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
     var div = global_context.document.createElement('div');
     if(!global_context.document.body)
     {
-        throw Errors.BodyNotAvailable;
+        return ActiveSupport.throwError(Errors.BodyNotAvailable);
     }
     global_context.document.body.appendChild(div);
     return div;
@@ -116,7 +116,7 @@ var InstanceMethods = {
     {
         if(typeof(params) !== 'object')
         {
-            throw Errors.InvalidRenderParams;
+            return ActiveSupport.throwError(Errors.InvalidRenderParams);
         }
         var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
@@ -127,7 +127,7 @@ var InstanceMethods = {
                 {
                     ActiveSupport.log('ActiveController: render() failed with params:',params);
                 }
-                throw Errors.UnknownRenderFlag + flag_name;
+                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
             }
             ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
         }
@@ -144,7 +144,7 @@ var RenderFlags = {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)
             {
-                throw Errors.ViewDoesNotExist + view_class;
+                return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
             }
             args[0] = klass;
         }
@@ -177,9 +177,9 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    BodyNotAvailable: 'Controller could not attach to a DOM element, no container was passed and document.body is not available',
-    InvalidRenderParams: 'The parameter passed to render() was not an object.',
-    UnknownRenderFlag: 'The following render flag does not exist: ',
-    ViewDoesNotExist: 'The specified view does not exist: '
+    BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
+    InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
+    UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: '),
+    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: ')
 };
 ActiveController.Errors = Errors;

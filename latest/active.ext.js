@@ -558,6 +558,50 @@ ActiveSupport = {
         }
     },
     /**
+     * Creates an Error object (but does not throw it).
+     * @alias ActiveSupport.createError
+     * @param {String} message
+     * @return {null}
+     */
+    createError: function createError(message)
+    {
+        return new Error(message);
+    },
+    /**
+     * @alias ActiveSupport.logErrors
+     * @property {Boolean}
+     */
+    logErrors: true,
+    /**
+     * @alias ActiveSupport.throwErrors
+     * @property {Boolean}
+     */
+    throwErrors: true,
+    /**
+     * Accepts a variable number of arguments, that may be logged and thrown.
+     * @alias ActiveSupport.throwError
+     * @param {Error} error
+     * @return {null}
+     */
+    throwError: function throwError(error)
+    {
+        if(typeof(error) == 'string')
+        {
+            error = new Error(error);
+        }
+        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
+        if(ActiveSupport.logErrors)
+        {
+            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
+        }
+        if(ActiveSupport.throwErrors)
+        {
+            var e = ActiveSupport.clone(error);
+            e.message = e.message + error_arguments.join(',')
+            throw e;
+        }
+    },
+    /**
      * Returns an array from an array or array like object.
      * @alias ActiveSupport.arrayFrom
      * @param {Object} object
@@ -723,8 +767,10 @@ ActiveSupport = {
     underscore: function underscore(str)
     {
         return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
             return match[0] + '_' + match[1];
         }).replace(/-/g, '_').toLowerCase();
     },
@@ -1103,7 +1149,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                throw new SyntaxError("invalid date");
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -1562,7 +1608,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    throw new Error('JSON.stringify');
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1603,7 +1649,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                throw new SyntaxError('JSON.parse');
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
@@ -2288,15 +2334,15 @@ ActiveRoutes.prototype.addRoute = function addRoute()
     };
     if(!Validations.hasPath(route))
     {
-        throw Errors.NoPathInRoute;
+        return ActiveSupport.throwError(Errors.NoPathInRoute);
     }
     if(!Validations.hasObject(route))
     {
-        throw Errors.NoObjectInRoute + route.path;
+        return ActiveSupport.throwError(Errors.NoObjectInRoute,route.path);
     }
     if(!Validations.hasMethod(route))
     {
-        throw Errors.NoMethodInRoute + route.path;
+        return ActiveSupport.throwError(Errors.NoMethodInRoute,route.path);
     }
     if(this.initialized)
     {
@@ -2328,14 +2374,14 @@ ActiveRoutes.normalizePath = function normalizePath(path)
 };
 
 var Errors = {
-    NoPathInRoute: 'No path was specified in the route',
-    NoObjectInRoute: 'No :object was specified in the route: ',
-    NoMethodInRoute: 'No :method was specified in the route: ',
-    ObjectDoesNotExist: 'The following object does not exist: ',
-    MethodDoesNotExist: 'The following method does not exist: ',
-    MethodNotCallable: 'The following method is not callable: ',
-    NamedRouteDoesNotExist: 'The following named route does not exist: ',
-    UnresolvableUrl: 'Could not resolve the url: '
+    NoPathInRoute: ActiveSupport.createError('No path was specified in the route'),
+    NoObjectInRoute: ActiveSupport.createError('No :object was specified in the route: '),
+    NoMethodInRoute: ActiveSupport.createError('No :method was specified in the route: '),
+    ObjectDoesNotExist: ActiveSupport.createError('The following object does not exist: '),
+    MethodDoesNotExist: ActiveSupport.createError('The following method does not exist: '),
+    MethodNotCallable: ActiveSupport.createError('The following method is not callable: '),
+    NamedRouteDoesNotExist: ActiveSupport.createError('The following named route does not exist: '),
+    UnresolvableUrl: ActiveSupport.createError('Could not resolve the url: ')
 };
 ActiveRoutes.Errors = Errors;
 
@@ -2500,11 +2546,11 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
         {
             if(this.error)
             {
-                throw this.error;
+                return ActiveSupport.throwError(this.error);
             }
             else
             {
-                throw Errors.UnresolvableUrl + path;
+                return ActiveSupport.throwError(Errors.UnresolvableUrl,path);
             }
         }
     }
@@ -2659,7 +2705,7 @@ ActiveRoutes.prototype.urlFor = function urlFor(params)
         }
         if(found === false)
         {
-            throw Errors.NamedRouteDoesNotExistError + params;
+            return ActiveSupport.throwError(Errors.NamedRouteDoesNotExistError,params);
         }
         else
         {
@@ -3199,7 +3245,7 @@ ActiveRecord = {
     {
         if (!ActiveRecord.connection)
         {
-            throw ActiveRecord.Errors.ConnectionNotEstablished;
+            return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
         }
 
         //determine proper model name
@@ -3319,15 +3365,15 @@ var Errors = {
     /**
      * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
      */
-    ConnectionNotEstablished: 'No ActiveRecord connection is active.',
+    ConnectionNotEstablished: ActiveSupport.createError('No ActiveRecord connection is active.'),
     /**
      * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
      */
-    MethodDoesNotExist: 'The requested method does not exist.',
+    MethodDoesNotExist: ActiveSupport.createError('The requested method does not exist.'),
     /**
      * @property {String} Error that will be thrown if an unrecognized field type definition is used.
      */
-    InvalidFieldType: 'The field type does not exist:'
+    InvalidFieldType: ActiveSupport.createError('The field type does not exist:')
 };
 
 ActiveRecord.Errors = Errors;
@@ -3773,7 +3819,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             }
             else
             {
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     }
@@ -3948,7 +3994,7 @@ ActiveRecord.execute = function execute()
 {
     if (!ActiveRecord.connection)
     {
-        throw ActiveRecord.Errors.ConnectionNotEstablished;
+        return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
     }
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
@@ -3965,7 +4011,7 @@ Adapters.InstanceMethods = {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
                 if(typeof(default_value) === 'undefined')
                 {
-                    throw Errors.InvalidFieldType + (field ? (field.type || '[object]') : 'false');
+                    return ActiveSupport.throwError(Errors.InvalidFieldType,(field ? (field.type || '[object]') : 'false'));
                 }
                 return field.value || default_value;
             }
@@ -4367,7 +4413,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -4462,7 +4508,7 @@ Adapters.JaxerSQLite = function JaxerSQLite(){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -4582,7 +4628,7 @@ Adapters.Gears = function Gears(db){
             catch(e)
             {
                 ActiveRecord.connection.executeSQL('ROLLBACK');
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -4598,7 +4644,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         var gears_factory = null;
         if('GearsFactory' in global_context)
         {
-          gears_factory = new GearsFactory();
+            gears_factory = new GearsFactory();
         }
         else if('ActiveXObject' in global_context)
         {
@@ -4612,7 +4658,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             }
             catch(e)
             {
-                throw Adapters.Gears.DatabaseUnavailableError;
+                return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
             }
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
@@ -4627,14 +4673,14 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         
         if(!gears_factory)
         {
-          throw Adapters.Gears.DatabaseUnavailableError;
+            return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
         }
-    
+        
         if(!('google' in global_context))
         {
-          google = {};
+            google = {};
         }
-
+        
         if(!('gears' in google))
         {
             google.gears = {
@@ -4732,7 +4778,7 @@ Adapters.AIR = function AIR(connection){
             catch(e)
             {
                 this.connection.rollback();
-                throw e;
+                return ActiveSupport.throwError(e);
             }
         }
     });
@@ -4980,7 +5026,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         catch(e)
         {
             this.storage = backup;
-            throw e;
+            return ActiveSupport.throwError(e);
         }
     },
     /* PRVIATE */
@@ -5156,7 +5202,7 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
     }
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
-        throw Errors.MethodDoesNotExist;
+        return ActiveSupport.throwError(Errors.MethodDoesNotExist);
     }
     else
     {
@@ -5491,7 +5537,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
             break;
             
         default:
-            throw new Error("Unknown operator type: " + this.operator);
+            return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
     }
     
     return result;
@@ -5620,7 +5666,7 @@ WhereParser.prototype.parse = function parse(source)
                 break;
 
             default:
-                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
+                return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
 
@@ -5770,7 +5816,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     }
                     else 
                     {
-                        throw new Error("Function argument list was not closed with a right parenthesis.");
+                        return ActiveSupport.throwError(new Error("Function argument list was not closed with a right parenthesis."));
                     }
                 }
                 break;
@@ -5818,7 +5864,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 }
                 else
                 {
-                    throw new Error("Missing closing right parenthesis: " + currentLexeme);
+                    return ActiveSupport.throwError(new Error("Missing closing right parenthesis: " + currentLexeme));
                 }
                 break;
         }
@@ -6258,7 +6304,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
                 child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
             }
         });
-        this.observe('afterCreate', function incrimentBelongsToCounter(record){
+        this.observe('afterCreate', function incrementBelongsToCounter(record){
             var child = record['get' + relationship_name]();
             if(child)
             {
@@ -7033,7 +7079,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
             {
                 if(!content)
                 {
-                    throw Errors.InvalidContent;
+                    return ActiveSupport.throwError(Errors.InvalidContent);
                 }
                 target.appendChild(content);
             };
@@ -7071,7 +7117,7 @@ ActiveView.render = function render(content,target,scope,clear,execute)
         }
         else
         {
-            throw Errors.InvalidContent;
+            return ActiveSupport.throwError(Errors.InvalidContent);
         }
     }
 };
@@ -7090,7 +7136,7 @@ var InstanceMethods = {
         this.container = this.structure();
         if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
         {
-            throw Errors.ViewDoesNotReturnContainer + typeof(this.container);
+            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
         }
         for(var key in this.scope._object)
         {
@@ -7132,9 +7178,9 @@ var ClassMethods = {
 };
 
 var Errors = {
-    ViewDoesNotReturnContainer: 'The view constructor must return a DOM element. Returned: ',
-    InvalidContent: 'The content to render was not a string, DOM element or ActiveView.',
-    MismatchedArguments: 'Incorrect argument type passed: '
+    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: '),
+    InvalidContent: ActiveSupport.createError('The content to render was not a string, DOM element or ActiveView.'),
+    MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: ')
 };
 
 var Builder = {
@@ -7253,7 +7299,7 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!element || !element.nodeType === 1)
         {
-            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
         }
         return {
             from: function from(observe_key)
@@ -7274,7 +7320,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     transformation = callback;
                     return {
@@ -7286,7 +7332,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                 {
                     if(!callback || typeof(callback) !== 'function')
                     {
-                        throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                        return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                     }
                     condition = callback;
                     return {
@@ -7316,21 +7362,21 @@ ActiveView.generateBinding = function generateBinding(instance)
     {
         if(!view)
         {
-            throw Errors.MismatchedArguments + 'expected string, ActiveView class or function, recieved ' + typeof(view);
+            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected string, ActiveView class or function, recieved ',typeof(view),view);
         }
         return {
             from: function from(collection)
             {
                 if(!collection || (typeof(collection) !== 'object' && typeof(collection) !== 'string'))
                 {
-                    throw Errors.MismatchedArguments + 'expected array, recieved ' + typeof(collection);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected array, recieved ',typeof(collection),collection);
                 }
                 return {
                     into: function into(element)
                     {
                         if(!element || !element.nodeType === 1)
                         {
-                            throw Errors.MismatchedArguments + 'expected Element, recieved ' + typeof(element);
+                            return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
                         }
                         //if a string is passed make sure that the view is re-built when the key is set
                         if(typeof(collection) === 'string')
@@ -7412,7 +7458,7 @@ ActiveView.generateBinding = function generateBinding(instance)
             {
                 if(!callback || typeof(callback) !== 'function')
                 {
-                    throw Errors.MismatchedArguments + 'expected Function, recieved ' + typeof(callback);
+                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                 }
                 instance.scope.observe('set',function changes_observer(inner_key,value){
                     if(outer_key == inner_key)
@@ -7474,7 +7520,7 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
     var div = global_context.document.createElement('div');
     if(!global_context.document.body)
     {
-        throw Errors.BodyNotAvailable;
+        return ActiveSupport.throwError(Errors.BodyNotAvailable);
     }
     global_context.document.body.appendChild(div);
     return div;
@@ -7522,7 +7568,7 @@ var InstanceMethods = {
     {
         if(typeof(params) !== 'object')
         {
-            throw Errors.InvalidRenderParams;
+            return ActiveSupport.throwError(Errors.InvalidRenderParams);
         }
         var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
@@ -7533,7 +7579,7 @@ var InstanceMethods = {
                 {
                     ActiveSupport.log('ActiveController: render() failed with params:',params);
                 }
-                throw Errors.UnknownRenderFlag + flag_name;
+                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
             }
             ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
         }
@@ -7550,7 +7596,7 @@ var RenderFlags = {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)
             {
-                throw Errors.ViewDoesNotExist + view_class;
+                return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
             }
             args[0] = klass;
         }
@@ -7583,10 +7629,10 @@ var ClassMethods = {
 ActiveController.ClassMethods = ClassMethods;
 
 var Errors = {
-    BodyNotAvailable: 'Controller could not attach to a DOM element, no container was passed and document.body is not available',
-    InvalidRenderParams: 'The parameter passed to render() was not an object.',
-    UnknownRenderFlag: 'The following render flag does not exist: ',
-    ViewDoesNotExist: 'The specified view does not exist: '
+    BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
+    InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
+    UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: '),
+    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: ')
 };
 ActiveController.Errors = Errors;
 
