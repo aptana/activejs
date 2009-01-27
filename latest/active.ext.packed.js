@@ -4148,6 +4148,7 @@ Adapters.SQL = {
         var sql = 'SELECT ' + (calculation ? (calculation + ' AS calculation') : (params.select ? params.select.join(',') : '*')) + ' FROM ' + table +
             this.buildWhereSQLFragment(params.where, args) +
             (params.joins ? ' ' + params.joins : '') + 
+            (params.group ? ' GROUP BY ' + params.group : '') + 
             (params.order ? ' ORDER BY ' + params.order : '') + 
             (params.offset && params.limit ? ' LIMIT ' + params.offset + ',' + params.limit : '') + 
             (!params.offset && params.limit ? ' LIMIT ' + params.limit : '');
@@ -4935,6 +4936,10 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             }
         }
         var filters = [];
+        if(params && params.group)
+        {
+            filters.push(this.createGroupBy(params.group));
+        }
         if(params && params.where)
         {
             filters.push(this.createWhere(params.where));
@@ -4961,14 +4966,20 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var table = select_match[1];
         sql = sql.replace(select,'');
         var fragments = {
+            group: 'GROUP\s+BY\s+',
             limit: 'LIMIT\s+',
             order: 'ORDER\s+BY\s+',
             where: ''
         };
-        var where = sql.match(/\s+WHERE\s+(.+)(ORDER\s+BY\s+|LIMIT\s+|$)/i);
+        var where = sql.match(/\s+WHERE\s+(.+)(GROUP\s+BY\s+|ORDER\s+BY\s+|LIMIT\s+|$)/i);
         if(where)
         {
             params.where = where[1];
+        }
+        var group = sql.match(/GROUP\s+BY\s+(.+)(ORDER\s+BY\s+|LIMIT\s+|$)/i);
+        if(group)
+        {
+            params.group = group[1].replace(/\s+.+/,'');
         }
         var order = sql.match(/ORDER\s+BY\s+(.+)(LIMIT\s+|$)/i);
         if(order)
@@ -5080,6 +5091,31 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             return result_set.slice(offset || 0,limit);
         };
+    },
+    createGroupBy: function createGroupBy(group_by)
+    {
+        if(!group_by || group_by == '')
+        {
+            return function json_result_group_by_processor(result_set)
+            {
+                return result_set;
+            }
+        }
+        var group_key = group_by.replace(/(^[\s]+|[\s]+$)/g,'');
+        return function json_result_group_by_processor(result_set)
+        {
+            var response = [];
+            var indexed_by_group = {};
+            for(var i = 0; i < result_set.length; ++i)
+            {
+                indexed_by_group[result_set[i][group_key]] = result_set[i];
+            }
+            for(var group_key_value in indexed_by_group)
+            {
+                response.push(indexed_by_group[group_key_value]);
+            }
+            return response;
+        }
     },
     createOrderBy: function createOrderBy(order_by)
     {

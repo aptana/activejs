@@ -156,6 +156,7 @@ Adapters.SQL = {
         var sql = 'SELECT ' + (calculation ? (calculation + ' AS calculation') : (params.select ? params.select.join(',') : '*')) + ' FROM ' + table +
             this.buildWhereSQLFragment(params.where, args) +
             (params.joins ? ' ' + params.joins : '') + 
+            (params.group ? ' GROUP BY ' + params.group : '') + 
             (params.order ? ' ORDER BY ' + params.order : '') + 
             (params.offset && params.limit ? ' LIMIT ' + params.offset + ',' + params.limit : '') + 
             (!params.offset && params.limit ? ' LIMIT ' + params.limit : '');

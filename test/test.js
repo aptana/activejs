@@ -544,6 +544,21 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             assert(typeof(Comment.findByTitle) != 'undefined','findBy#{X} exists.');
             assert(typeof(Comment.findAllByTitle) != 'undefined','findAllBy#{X} exists.');
             assert(Comment.findByTitle('a').title == a.title && Comment.findById(a.id).id == a.id,'findByX works');
+            
+            
+            //test GROUP BY
+            Comment.destroy('all');
+            var one = Comment.create({title: 'a'});
+            var two = Comment.create({title: 'a'});
+            var three = Comment.create({title: 'b'});
+            var result = Comment.find({
+                group: 'title',
+                order: 'id ASC'
+            });
+            assert(result[0].title == 'a' && result[1].title == 'b','GROUP BY clause via params works');
+            var result = Comment.find('SELECT * FROM comments GROUP BY title ORDER BY id ASC');
+            assert(result[0].title == 'a' && result[1].title == 'b','GROUP BY clause via SQL works');
+            
             if(proceed)
                 proceed();
         }
