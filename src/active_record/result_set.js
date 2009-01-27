@@ -33,13 +33,6 @@
  */
 var ResultSet = {};
 
-ResultSet.extend = function extend(result_set,params,model){
-    for(var method_name in ResultSet.InstanceMethods)
-    {
-        result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,model);
-    }
-};
-
 ResultSet.InstanceMethods = {
     /**
      * Re-runs the query that generated the result set. This modifies the

@@ -2464,12 +2464,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                     response.push(this.build(row));
                 }, this));
             }
-            ResultSet.extend(response,params,this);
+            this.resultSetFromArray(response,params);
             this.notify('afterFind',response,params);
-            if(params.synchronize)
-            {
-                Synchronization.synchronizeResultSet(this,params,response);
-            }
             return response;
         }
     },
@@ -2611,6 +2607,36 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
                 return ActiveSupport.throwError(e);
             }
         }
+    },
+    /**
+     * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
+     * the construction of custom result set objects from arrays where result 
+     * sets are expected. This will modify the array that is passed in and
+     * return the same array object.
+     * @alias ActiveRecord.Class.resultSetFromArray
+     * @param {Array} result_set
+     * @param {Object} [params]
+     * @return {Array}
+     * @example
+     *     var one = Comment.find(1);
+     *     var two = Comment.find(2);
+     *     var result_set = Comment.resultSetFromArray([one,two],{synchronize: true});
+     */
+    resultSetFromArray: function resultSetFromArray(result_set,params)
+    {
+        if(!params)
+        {
+            params = {};
+        }
+        for(var method_name in ResultSet.InstanceMethods)
+        {
+            result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,this);
+        }
+        if(params.synchronize)
+        {
+            Synchronization.synchronizeResultSet(this,params,result_set);
+        }
+        return result_set;
     }
 });
 
@@ -4814,13 +4840,6 @@ ActiveRecord.Finders = Finders;
  * @namespace {ActiveRecord.ResultSet}
  */
 var ResultSet = {};
-
-ResultSet.extend = function extend(result_set,params,model){
-    for(var method_name in ResultSet.InstanceMethods)
-    {
-        result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,model);
-    }
-};
 
 ResultSet.InstanceMethods = {
     /**
