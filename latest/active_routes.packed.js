@@ -89,7 +89,7 @@ ActiveSupport = {
      */
     throwErrors: true,
     /**
-     * Accepts a variable number of arguments, that may be logged and thrown.
+     * Accepts a variable number of arguments, that may be logged and thrown in
      * @alias ActiveSupport.throwError
      * @param {Error} error
      * @return {null}
@@ -660,7 +660,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                return ActiveSupport.throwError(new SyntaxError("invalid date"));
+                ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -992,11 +992,6 @@ ActiveSupport = {
                  f(this.getUTCMinutes())   + ':' +
                  f(this.getUTCSeconds())   + 'Z';
         };
-        String.prototype.toJSON =
-        Number.prototype.toJSON =
-        Boolean.prototype.toJSON = function (key) {
-            return this.valueOf();
-        };
         var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
             escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
             gap,
@@ -1043,10 +1038,11 @@ ActiveSupport = {
             }
             switch (typeof value) {
             case 'string':
-                return quote(value);
+                return quote(value.valueOf());
             case 'number':
-                return isFinite(value) ? String(value) : 'null';
+                return isFinite(value) ? String(value.valueOf()) : 'null';
             case 'boolean':
+                return String(value.valueOf());
             case 'null':
                 return String(value);
             case 'object':
@@ -1119,7 +1115,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    return ActiveSupport.throwError(new Error('JSON.stringify'));
+                    ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1160,7 +1156,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
+                ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
