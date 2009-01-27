@@ -185,7 +185,20 @@ Adapters.SQL = {
             for(i = 0; i < keys.length; ++i)
             {
                 where += keys[i] + " = ? AND ";
-                args.push(typeof(fragment[keys[i]]) === 'number' ? (fragment[keys[i]]) : (new String(fragment[keys[i]]).toString()));
+                var value;
+                if(typeof(fragment[keys[i]]) === 'number')
+                {
+                    value = fragment[keys[i]];
+                }
+                else if(typeof(fragment[keys[i]]) == 'boolean')
+                {
+                    value = parseInt(new Number(fragment[keys[i]]));
+                }
+                else
+                {
+                    value = new String(fragment[keys[i]]).toString();
+                }
+                args.push(value);
             }
             where = ' WHERE ' + where.substring(0,where.length - 4);
         }

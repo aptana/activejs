@@ -386,6 +386,23 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             assert(empty_record.custom_type_field == '','Empty value is set on custom field type with no default specification.');
             assert(empty_record.custom_type_field_with_default == 'DEFAULT','Default value is set on custom field type with default specification.');
             
+            //should find one false
+            assert(FieldTypeTester.find({
+                where: {
+                    boolean_field: false
+                }
+            })[0].id == field_test_two.id,'find({where: {boolean_field: false}})');
+            
+            //should find two true (since true is the default value and we created an empty record)
+            assert(FieldTypeTester.find({
+                where: {
+                    boolean_field: true
+                }
+            })[0].id == field_test_one.id,'find({where: {boolean_field: true}})');
+            
+            assert(FieldTypeTester.findByBooleanField(true).id == field_test_one.id,'findByBooleanField(true)');
+            assert(FieldTypeTester.findByBooleanField(false).id == field_test_two.id,'findByBooleanField(false)');
+            
             if(proceed)
                 proceed();
         }
