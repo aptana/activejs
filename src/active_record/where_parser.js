@@ -361,7 +361,7 @@ FunctionNode.prototype.execute = function execute(row, functionProvider)
     }
 
     // evaluate function and return result
-    return functionProvider(this.name, args);
+    return functionProvider(this.name, row, args);
 };
 
 // Scalar node
@@ -433,7 +433,6 @@ WhereParser.prototype.parse = function parse(source)
                 return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
-
     return result;
 };
 
@@ -548,7 +547,6 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
         {
             case IDENTIFIER:
                 result = new IdentifierNode(currentLexeme.text);
-
                 // advance over identifier
                 this._lexer.advance();
 

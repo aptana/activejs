@@ -129,12 +129,24 @@ Adapters.SQL = {
             return response;
         }
     },
+    findEntitiesById: function findEntityById(table, ids)
+    {
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE id IN (' + ids.join(',') + ')']);
+        if (!response)
+        {
+            return false;
+        }
+        else
+        {
+            return ActiveRecord.connection.iterableFromResultSet(response);
+        }
+    },
     findEntities: function findEntities(table, params)
     {
         var args;
-        if (typeof(table) === 'string' && !params)
+        if (typeof(table) === 'string' && !table.match(/^\d+$/) && typeof(params) != 'object')
         {
-            args = [table];
+            args = arguments;
         }
         else
         {

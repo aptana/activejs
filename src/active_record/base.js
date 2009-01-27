@@ -276,23 +276,19 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if (params.first || typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/)))
+        if (params.first || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
         {
             if (params.first)
             {
                 //find first
                 params.limit = 1;
+                result = ActiveRecord.connection.findEntities(this.tableName,params);
             }
             else
             {
-                //find by id
-                params = ActiveSupport.extend(arguments[1] || {},{
-                    where: {
-                        id: params
-                    }
-                });
+                //single id
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,[params]);
             }
-            result = ActiveRecord.connection.findEntities(this.tableName,params);
             if (result && result.iterate && result.iterate(0))
             {
                 return this.build(result.iterate(0));
@@ -305,10 +301,16 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         else
         {
             result = null;
-            if (typeof(params) === 'string')
+            if (typeof(params) === 'string' && !params.match(/^\d+$/))
             {
                 //find by sql
-                result = ActiveRecord.connection.findEntities(params);
+                result = ActiveRecord.connection.findEntities.apply(ActiveRecord.connection,arguments);
+            }
+            else if (params && ((typeof(params) == 'object' && 'length' in params && 'slice' in params) || ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1)))
+            {
+                //find by multiple ids
+                var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,ids);
             }
             else
             {

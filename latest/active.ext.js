@@ -3625,23 +3625,19 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if (params.first || typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/)))
+        if (params.first || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
         {
             if (params.first)
             {
                 //find first
                 params.limit = 1;
+                result = ActiveRecord.connection.findEntities(this.tableName,params);
             }
             else
             {
-                //find by id
-                params = ActiveSupport.extend(arguments[1] || {},{
-                    where: {
-                        id: params
-                    }
-                });
+                //single id
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,[params]);
             }
-            result = ActiveRecord.connection.findEntities(this.tableName,params);
             if (result && result.iterate && result.iterate(0))
             {
                 return this.build(result.iterate(0));
@@ -3654,10 +3650,16 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         else
         {
             result = null;
-            if (typeof(params) === 'string')
+            if (typeof(params) === 'string' && !params.match(/^\d+$/))
             {
                 //find by sql
-                result = ActiveRecord.connection.findEntities(params);
+                result = ActiveRecord.connection.findEntities.apply(ActiveRecord.connection,arguments);
+            }
+            else if (params && ((typeof(params) == 'object' && 'length' in params && 'slice' in params) || ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1)))
+            {
+                //find by multiple ids
+                var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,ids);
             }
             else
             {
@@ -4147,12 +4149,24 @@ Adapters.SQL = {
             return response;
         }
     },
+    findEntitiesById: function findEntityById(table, ids)
+    {
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE id IN (' + ids.join(',') + ')']);
+        if (!response)
+        {
+            return false;
+        }
+        else
+        {
+            return ActiveRecord.connection.iterableFromResultSet(response);
+        }
+    },
     findEntities: function findEntities(table, params)
     {
         var args;
-        if (typeof(table) === 'string' && !params)
+        if (typeof(table) === 'string' && !table.match(/^\d+$/) && typeof(params) != 'object')
         {
-            args = [table];
+            args = arguments;
         }
         else
         {
@@ -4931,12 +4945,37 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         }
         return false;
     },
+    findEntitiesById: function findEntitiesById(table, ids)
+    {
+        var table_data = this.storage[table];
+        var response = [];
+        for(var i = 0; i < ids.length; ++i)
+        {
+            var id = parseInt(ids[i],10);
+            if(table_data[id])
+            {
+                response.push(table_data[id]);
+            }
+        }
+        return this.iterableFromResultSet(response);
+    },
     findEntities: function findEntities(table, params)
     {
-        if (typeof(table) === 'string' && !params)
+        if (typeof(table) === 'string' && !table.match(/^\d+$/) && typeof(params) != 'object')
         {
             //find by SQL
-            var response = this.paramsFromSQLString(table);
+
+            //replace ? in SQL strings
+            var sql = table;
+            var sql_args = ActiveSupport.arrayFrom(arguments).slice(1);
+            for(var i = 0; i < sql_args.length; ++i)
+            {
+                sql = sql.replace(/\?/,typeof(sql_args[i]) == 'number'
+                    ? sql_args[i]
+                    : '"' + (new String(sql_args[i])).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + '"'
+                );
+            }
+            var response = this.paramsFromSQLString(sql);
             table = response[0];
             params = response[1];
         }
@@ -4991,31 +5030,22 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var select_match = sql.match(select); 
         var table = select_match[1];
         sql = sql.replace(select,'');
-        var fragments = {
-            group: 'GROUP\s+BY\s+',
-            limit: 'LIMIT\s+',
-            order: 'ORDER\s+BY\s+',
-            where: ''
-        };
-        var where = sql.match(/\s+WHERE\s+(.+)(GROUP\s+BY\s+|ORDER\s+BY\s+|LIMIT\s+|$)/i);
-        if(where)
+        var fragments = [
+            ['limit',/(^|\s+)LIMIT\s+(.+)$/i],
+            ['order',/(^|\s+)ORDER\s+BY\s+(.+)$/i],
+            ['group',/(^|\s+)GROUP\s+BY\s+(.+)$/i],
+            ['where',/(^|\s+)WHERE\s+(.+)$/i]
+        ];
+        for(var i = 0; i < fragments.length; ++i)
         {
-            params.where = where[1];
-        }
-        var group = sql.match(/GROUP\s+BY\s+(.+)(ORDER\s+BY\s+|LIMIT\s+|$)/i);
-        if(group)
-        {
-            params.group = group[1].replace(/\s+.+/,'');
-        }
-        var order = sql.match(/ORDER\s+BY\s+(.+)(LIMIT\s+|$)/i);
-        if(order)
-        {
-            params.order = order[1];
-        }
-        var limit = sql.match(/LIMIT\s+(.+)$/);
-        if(limit)
-        {
-            params.limit = limit[1];
+            var param_name = fragments[i][0];
+            var matcher = fragments[i][1];
+            var match = sql.match(matcher);
+            if(match)
+            {
+                params[param_name] = match[2];
+                sql = sql.replace(matcher,'');
+            }
         }
         return [table,params];
     },
@@ -5224,7 +5254,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     }
 });
 
-Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
+Adapters.InMemory.method_call_handler = function method_call_handler(name,row,args)
 {
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
@@ -5238,17 +5268,30 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,args)
     }
     else
     {
-        return Adapters.InMemory.MethodCallbacks[name].apply(Adapters.InMemory.MethodCallbacks[name],args);
+        return Adapters.InMemory.MethodCallbacks[name].apply(Adapters.InMemory.MethodCallbacks[name],[row].concat(args || []));
     }
 };
 Adapters.InMemory.MethodCallbacks = (function(){
     var methods = {};
+    
+    //BUG: currently only supports "id" column
+    methods['in'] = function _in(row){
+        for(var i = 1; i < arguments.length; ++i)
+        {
+            if(row.id == arguments[i])
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+    
     var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
     for(var i = 0; i < math_methods.length; ++i)
     {
         methods[math_methods[i]] = (function math_method_generator(i){
             return function generated_math_method(){
-                return Math[math_methods[i]].apply(Math.math_methods[i],arguments);
+                return Math[math_methods[i]].apply(Math.math_methods[i],ActiveSupport.arrayFrom(arguments).slice(1));
             };
         })(i);
     }
@@ -5629,7 +5672,7 @@ FunctionNode.prototype.execute = function execute(row, functionProvider)
     }
 
     // evaluate function and return result
-    return functionProvider(this.name, args);
+    return functionProvider(this.name, row, args);
 };
 
 // Scalar node
@@ -5701,7 +5744,6 @@ WhereParser.prototype.parse = function parse(source)
                 return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
-
     return result;
 };
 
@@ -5816,7 +5858,6 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
         {
             case IDENTIFIER:
                 result = new IdentifierNode(currentLexeme.text);
-
                 // advance over identifier
                 this._lexer.advance();
 
