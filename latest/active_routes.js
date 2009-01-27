@@ -134,7 +134,7 @@ ActiveSupport = {
         if(ActiveSupport.throwErrors)
         {
             var e = ActiveSupport.clone(error);
-            e.message = e.message + error_arguments.join(',')
+            e.message = e.message + error_arguments.join(',');
             throw e;
         }
     },
@@ -686,7 +686,7 @@ ActiveSupport = {
             // Passing date through Date applies Date.parse, if necessary
             date = date ? new Date(date) : new Date();
             if (isNaN(date)) {
-                ActiveSupport.throwError(new SyntaxError("invalid date"));
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
             }
 
             mask = String(dF.masks[mask] || mask || dF.masks["default"]);
@@ -1141,7 +1141,7 @@ ActiveSupport = {
                 if (replacer && typeof replacer !== 'function' &&
                         (typeof replacer !== 'object' ||
                          typeof replacer.length !== 'number')) {
-                    ActiveSupport.throwError(new Error('JSON.stringify'));
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
                 }
                 return str('', {'': value});
             },
@@ -1182,7 +1182,7 @@ ActiveSupport = {
                     return typeof reviver === 'function' ?
                         walk({'': j}, '') : j;
                 }
-                ActiveSupport.throwError(new SyntaxError('JSON.parse'));
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
             }
         };
     }()
