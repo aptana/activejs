@@ -1002,7 +1002,7 @@ ActiveSupport = {
         //use native support if available
         if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
         {
-          return global_context.JSON;
+            return global_context.JSON;
         }
         
         function f(n) {

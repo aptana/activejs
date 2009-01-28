@@ -53,7 +53,7 @@ ResultSet.InstanceMethods = {
      * @alias ActiveRecord.ResultSet.toArray
      * @return {Array}
      */
-    toArray: function toArray(result_set)
+    toArray: function toArray(result_set,params,model)
     {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)

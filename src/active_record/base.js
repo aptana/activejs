@@ -480,7 +480,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * @example
      *     var one = Comment.find(1);
      *     var two = Comment.find(2);
-     *     var result_set = Comment.resultSetFromArray([one,two],{synchronize: true});
+     *     var result_set = Comment.resultSetFromArray([one,two]);
      */
     resultSetFromArray: function resultSetFromArray(result_set,params)
     {

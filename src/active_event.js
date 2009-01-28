@@ -318,7 +318,12 @@ ActiveEvent.extend = function extend(object){
      * @return {mixed} Array of return values, or false if the event was
      *  stopped by an observer.
      */
-    object.notify = function notify(event_name){
+    object.notify = function notify(event_name)
+    {
+        if(!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+        {
+            return [];
+        }
         this._objectEventSetup(event_name);
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
@@ -347,15 +352,23 @@ ActiveEvent.extend = function extend(object){
         
         object.prototype.notify = function notify(event_name)
         {
+            if(
+              (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&
+              (!this.options || !this.options[event_name]) &&
+              (!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+            )
+            {
+                return [];
+            }
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
             if(object.notify)
             {
-                var args = ActiveSupport.arrayFrom(arguments).slice(1);
-                args.unshift(this);
-                args.unshift(event_name);
-                object.notify.apply(object,args);
+                object_args = ActiveSupport.arrayFrom(arguments).slice(1);
+                object_args.unshift(this);
+                object_args.unshift(event_name);
+                object.notify.apply(object,object_args);
             }
             this._objectEventSetup(event_name);
-            var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
             var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')

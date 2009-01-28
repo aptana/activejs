@@ -1002,7 +1002,7 @@ ActiveSupport = {
         //use native support if available
         if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
         {
-          return global_context.JSON;
+            return global_context.JSON;
         }
         
         function f(n) {
@@ -1480,7 +1480,12 @@ ActiveEvent.extend = function extend(object){
      * @return {mixed} Array of return values, or false if the event was
      *  stopped by an observer.
      */
-    object.notify = function notify(event_name){
+    object.notify = function notify(event_name)
+    {
+        if(!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+        {
+            return [];
+        }
         this._objectEventSetup(event_name);
         var collected_return_values = [];
         var args = ActiveSupport.arrayFrom(arguments).slice(1);
@@ -1509,15 +1514,23 @@ ActiveEvent.extend = function extend(object){
         
         object.prototype.notify = function notify(event_name)
         {
+            if(
+              (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&
+              (!this.options || !this.options[event_name]) &&
+              (!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+            )
+            {
+                return [];
+            }
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
             if(object.notify)
             {
-                var args = ActiveSupport.arrayFrom(arguments).slice(1);
-                args.unshift(this);
-                args.unshift(event_name);
-                object.notify.apply(object,args);
+                object_args = ActiveSupport.arrayFrom(arguments).slice(1);
+                object_args.unshift(this);
+                object_args.unshift(event_name);
+                object.notify.apply(object,object_args);
             }
             this._objectEventSetup(event_name);
-            var args = ActiveSupport.arrayFrom(arguments).slice(1);
             var collected_return_values = [];
             var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
@@ -2797,7 +2810,11 @@ ActiveRecord = {
                 this.set(key, data[key]);
             }
             this._errors = [];
+            
+            //performance optimization if no observers
             this.notify('afterInitialize', data);
+            
+            //this needs to be set explicitly and not in an observer
             if('created' in this._object)
             {
                 this.observe('beforeCreate',ActiveSupport.bind(function set_created_date(){
@@ -3366,7 +3383,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * @example
      *     var one = Comment.find(1);
      *     var two = Comment.find(2);
-     *     var result_set = Comment.resultSetFromArray([one,two],{synchronize: true});
+     *     var result_set = Comment.resultSetFromArray([one,two]);
      */
     resultSetFromArray: function resultSetFromArray(result_set,params)
     {
@@ -5607,7 +5624,7 @@ ResultSet.InstanceMethods = {
      * @alias ActiveRecord.ResultSet.toArray
      * @return {Array}
      */
-    toArray: function toArray(result_set)
+    toArray: function toArray(result_set,params,model)
     {
         var items = [];
         for(var i = 0; i < result_set.length; ++i)

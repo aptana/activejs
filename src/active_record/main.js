@@ -468,7 +468,11 @@ ActiveRecord = {
                 this.set(key, data[key]);
             }
             this._errors = [];
+            
+            //performance optimization if no observers
             this.notify('afterInitialize', data);
+            
+            //this needs to be set explicitly and not in an observer
             if('created' in this._object)
             {
                 this.observe('beforeCreate',ActiveSupport.bind(function set_created_date(){
