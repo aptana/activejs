@@ -444,6 +444,14 @@ ObservableHash.prototype.get = function get(key)
     return this._object[key];
 };
 
+ObservableHash.prototype.unset = function unset(key)
+{
+    this.notify('unset',key);
+    var value = this._object[key];
+    delete this._object[key];
+    return value;
+};
+
 ObservableHash.prototype.toObject = function toObject()
 {
     return this._object;
