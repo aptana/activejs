@@ -3,26 +3,41 @@ require 'ftools'
 require 'json'
 require 'packr'
 
-JSON.parse(File.read(File.join(File.dirname(__FILE__),'build.json'))).each do |target|
+def append_file_contents_to_target_file_without_license(file_contents,target_file)
+  lines = file_contents.split(/\n/)
+  license_block_start_line = 0
+  license_block_finish_line = 0
+  lines.each_with_index do |line,i|
+    license_block_start_line = i if(line['***** LICENSE BLOCK *****'])
+    license_block_finish_line = i if(line['***** END LICENSE BLOCK *****'])
+  end
+  if license_block_start_line == 0 && license_block_finish_line == 0
+    target_file.write(file_contents + "\n")
+  else
+    target_file.write(lines[license_block_finish_line + 1,lines.length].join("\n") + "\n")
+  end
+end
+
+parsed_json = JSON.parse(File.read(File.join(File.dirname(__FILE__),'build.json')))
+
+parsed_json.each do |target|
   if(target['output'])
     puts "Building: #{target['name']}"
     target_file = File.new(File.join(File.dirname(__FILE__),target['output']),'w')
     target['files'].each do |filename|
-      file_contents = File.read(File.join(File.dirname(__FILE__),filename))
-      if filename == 'license.txt'
-        target_file.write(file_contents)
-      else
-        lines = file_contents.split(/\n/)
-        license_block_start_line = 0
-        license_block_finish_line = 0
-        lines.each_with_index do |line,i|
-          license_block_start_line = i if(line['***** LICENSE BLOCK *****'])
-          license_block_finish_line = i if(line['***** END LICENSE BLOCK *****'])
+      if !File.exists?(File.join(File.dirname(__FILE__),filename))
+        include_target = parsed_json.find{|item| item['name'] && item['name'] == filename}
+        raise "unknown file or include: #{filename}" if !include_target
+        include_target['build'].each do |include_target_filename|
+          file_contents = File.read(File.join(File.dirname(__FILE__),include_target_filename))
+          append_file_contents_to_target_file_without_license(file_contents,target_file)
         end
-        if license_block_start_line == 0 && license_block_finish_line == 0
-          target_file.write(file_contents + "\n")
+      else
+        file_contents = File.read(File.join(File.dirname(__FILE__),filename))
+        if filename == 'license.txt'
+          target_file.write(file_contents)
         else
-          target_file.write(lines[license_block_finish_line + 1,lines.length].join("\n") + "\n")
+          append_file_contents_to_target_file_without_license(file_contents,target_file)
         end
       end
     end
