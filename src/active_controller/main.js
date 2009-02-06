@@ -31,14 +31,11 @@ ActiveController.logging = false;
 
 ActiveController.create = function create(actions,methods)
 {
-    var klass = function klass(container,params){
-        this.container = container || ActiveController.createDefaultContainer();
-        this.renderTarget = this.container;
-        this.layoutRendered = false;
-        if(this.layout && typeof(this.layout.view) === 'function')
-        {
-            this.layout.view = ActiveSupport.bind(this.layout.view,this);
-        }
+    var klass = function klass(container,parent,params){
+        this.container = container;
+        this.setRenderTarget(this.container);
+        this.parent = parent;
+        this.children = [];
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
@@ -65,7 +62,7 @@ ActiveController.create = function create(actions,methods)
 ActiveController.createDefaultContainer = function createDefaultContainer()
 {
     var global_context = ActiveSupport.getGlobalContext();
-    var div = global_context.document.createElement('div');
+    var div = ActiveView.Builder.div();
     if(!global_context.document.body)
     {
         return ActiveSupport.throwError(Errors.BodyNotAvailable);
@@ -78,16 +75,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
-        if(this.layout && !this.layoutRendered && this.layout.view)
-        {
-            this.layoutRendered = true;
-            this.layout.target = this.container;
-            var layout = this.render(this.layout);
-            if(layout && layout.renderTarget)
-            {
-                this.renderTarget = layout.renderTarget;
-            }
-        }
+        this.renderLayout();
         ActiveSupport.bind(action,this)();
         this.notify('afterCall',action_name,this.params);
     };
@@ -108,17 +96,10 @@ var InstanceMethods = {
     },
     render: function render(params)
     {
-        var args = this.renderArgumentsFromRenderParams(params);
-        var response = args.stopped ? null : ActiveView.render.apply(ActiveView,args);
-        return response;
-    },
-    renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
-    {
         if(typeof(params) !== 'object')
         {
             return ActiveSupport.throwError(Errors.InvalidRenderParams);
         }
-        var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
         {
             if(!RenderFlags[flag_name])
@@ -129,15 +110,32 @@ var InstanceMethods = {
                 }
                 return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
             }
-            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
+            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
         }
-        return args;
+        return params;
+    },
+    getRenderTarget: function getRenderTarget()
+    {
+        return this.renderTarget;
+    },
+    setRenderTarget: function setRenderTarget(target)
+    {
+        this.renderTarget = target;
+    },
+    renderLayout: function renderLayout()
+    {
+        if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+        {
+            this.layoutRendered = true;
+            this.container.innerHtml = '';
+            this.container.appendChild(this.layout.bind(this)());
+        }
     }
 };
 ActiveController.InstanceMethods = InstanceMethods;
 
 var RenderFlags = {
-    view: function view(view_class,args)
+    view: function view(view_class,params)
     {
         if(typeof(view_class) === 'string')
         {
@@ -146,24 +144,34 @@ var RenderFlags = {
             {
                 return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
             }
-            args[0] = klass;
         }
         else
         {
-            args[0] = view_class;
+            klass = view_class;
+        }
+        var response = ActiveView.render(klass,params.scope || this.scope);
+        var container = params.target || this.getRenderTarget();
+        if(container)
+        {
+            container.innerHTML = '';
+            container.appendChild(response);
         }
     },
-    text: function text(text,args)
+    text: function text(text,params)
     {
-        args[0] = text;
+        var container = params.target || this.getRenderTarget();
+        if(container)
+        {
+            container.innerHTML = text;
+        }
     },
-    target: function target(target,args)
+    target: function target(target,params)
     {
-        args[1] = target;
+        //target only available for text + view, needs no processing
     },
-    scope: function scope(scope,args)
+    scope: function scope(scope,params)
     {
-        args[2] = scope;
+        //scope only available for text + view, needs no processing
     }
 };
 ActiveController.RenderFlags = RenderFlags;
