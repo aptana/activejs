@@ -1,3 +1,30 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * 
+ * Copyright (c) 2009 Aptana, Inc.
+ * 
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+
 (function boot(scope){
     var __DIR__ = Jaxer.request.currentFolder + '/app';
     
@@ -35,26 +62,19 @@
         dispatcher: function dispatcher(route){
             var controller = new this.scope[route.params.object]();
             controller.params = {};
-            ActiveSupport.extend(controller.params,ActiveController.parseParams(Jaxer.request.data || {})); //post
-            ActiveSupport.extend(controller.params,ActiveController.parseParams(Jaxer.request.parsedUrl.queryParts)); //get
+            ActiveSupport.extend(controller.params,ActiveController.Server.parseParams(Jaxer.request.data || {})); //post
+            ActiveSupport.extend(controller.params,ActiveController.Server.parseParams(Jaxer.request.parsedUrl.queryParts)); //get
             ActiveSupport.extend(controller.params,route.params);
-            controller.request = Jaxer.request;
             //handles request method (GET,PUT,etc) not method name
             if(controller.params._method)
             {
-                controller.request.method = controller.params._method.toLowerCase();
                 delete controller.params._method;
             }
-            else
-            {
-                controller.request.method = controller.request.action.toLowerCase();
-            }
-            controller.request.extension = route.extension;
             
             if(ActiveController.logging)
             {
                 ActiveSupport.log(''); //put space before each request
-                ActiveSupport.log('ActiveController: ' + route.params.object + '#' + route.params.method + ' [' + controller.request.method.toUpperCase() + ' ' + Jaxer.request.uri + '] <params:' + uneval(controller.params) + '>');
+                ActiveSupport.log('ActiveController: ' + route.params.object + '#' + route.params.method + ' [' + ActiveController.Server.Request.getMethod().toUpperCase() + ' ' + ActiveController.Server.Request.getURI() + '] <params:' + uneval(controller.params) + '>');
             }
             controller[route.params.method]();
         }
