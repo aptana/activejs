@@ -24,16 +24,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
+
+(function(){
+
 /**
  * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
  * @alias ActiveRecord.Adapters.Gears
  * @property {ActiveRecord.Adapter}
  */
-Adapters.Gears = function Gears(db){
+ActiveRecord.Adapters.Gears = function Gears(db){
     this.db = db;
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
@@ -137,8 +139,8 @@ Adapters.Gears = function Gears(db){
         }
     });
 };
-Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
-Adapters.Gears.connect = function connect(name, version, display_name, size)
+ActiveRecord.Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
+ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_name, size)
 {
     var global_context = ActiveSupport.getGlobalContext();
     var db = null;
@@ -162,7 +164,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
             }
             catch(e)
             {
-                return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
+                return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
             }
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
@@ -177,7 +179,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
         
         if(!gears_factory)
         {
-            return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
+            return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
         }
         
         if(!('google' in global_context))
@@ -196,5 +198,7 @@ Adapters.Gears.connect = function connect(name, version, display_name, size)
     db = google.gears.factory.create('beta.database');
     db.open(name || 'ActiveRecord');
         
-    return new Adapters.Gears(db);
+    return new ActiveRecord.Adapters.Gears(db);
 };
+
+})();

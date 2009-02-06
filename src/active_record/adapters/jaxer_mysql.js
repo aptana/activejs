@@ -24,15 +24,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+(function(){
+  
 /**
  * Adapter for Jaxer configured with MySQL.
  * @alias ActiveRecord.Adapters.JaxerMySQL
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerMySQL = function JaxerMySQL(){
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.MySQL);
+ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.MySQL);
     ActiveSupport.extend(this,{
         log: function log()
         {
@@ -100,7 +102,7 @@ Adapters.JaxerMySQL = function JaxerMySQL(){
     });
 };
 
-Adapters.JaxerMySQL.connect = function connect(options)
+ActiveRecord.Adapters.JaxerMySQL.connect = function connect(options)
 {
     if(!options)
     {
@@ -117,5 +119,7 @@ Adapters.JaxerMySQL.connect = function connect(options)
         PASS: '',
         NAME: 'jaxer'
     },options));
-    return new Adapters.JaxerMySQL();
+    return new ActiveRecord.Adapters.JaxerMySQL();
 };
+
+})();

@@ -24,16 +24,18 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
+
+(function(){
+
 /**
  * Adapter for Adobe AIR.
  * @alias ActiveRecord.Adapters.AIR
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.AIR = function AIR(connection){
+ActiveRecord.Adapters.AIR = function AIR(connection){
     this.connection = connection;
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
@@ -113,9 +115,11 @@ Adapters.AIR = function AIR(connection){
         }
     });
 };
-Adapters.AIR.connect = function connect(path)
+ActiveRecord.Adapters.AIR.connect = function connect(path)
 {
     var connection = new air.SQLConnection();
     connection.open(air.File.applicationDirectory.resolvePath(path || 'ActiveRecord'),air.SQLMode.CREATE);
-    return new Adapters.AIR(connection);
+    return new ActiveRecord.Adapters.AIR(connection);
 };
+
+})();

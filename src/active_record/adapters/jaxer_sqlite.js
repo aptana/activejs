@@ -24,15 +24,17 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
+
+(function(){
+
 /**
  * Adapter for Jaxer configured with SQLite
  * @alias ActiveRecord.Adapters.JaxerSQLite
  * @property {ActiveRecord.Adapter}
  */ 
-Adapters.JaxerSQLite = function JaxerSQLite(){
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
+ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
@@ -99,10 +101,12 @@ Adapters.JaxerSQLite = function JaxerSQLite(){
         }
     });
 };
-Adapters.JaxerSQLite.connect = function connect(path)
+ActiveRecord.Adapters.JaxerSQLite.connect = function connect(path)
 {
     Jaxer.DB.connection = new Jaxer.DB.SQLite.createDB({
         PATH: Jaxer.Dir.resolve(path || 'ActiveRecord.sqlite')
     });
-    return new Adapters.JaxerSQLite();
+    return new ActiveRecord.Adapters.JaxerSQLite();
 };
+
+})();

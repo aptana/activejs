@@ -132,6 +132,10 @@ Adapters.InstanceMethods = {
         {
             return 'INT';
         }
+        if (typeof(value) == 'boolean')
+        {
+            return 'TINYINT(1)';
+        }
         return 'TEXT';
     },
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
