@@ -129,7 +129,8 @@ ActiveView.generateBinding = function generateBinding(instance)
                             var collected_elements = [];
                             for(var i = 0; i < collection.length; ++i)
                             {
-                                ActiveView.render(view,element,collection[i],false);
+                                var generated_element = ActiveView.render(view,collection[i]);
+                                element.appendChild(generated_element);
                                 collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                             }
                             //these handlers will add or remove elements from the view as the collection changes
@@ -140,13 +141,13 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     collected_elements.pop();
                                 });
                                 collection.observe('push',function push_observer(item){
-                                    ActiveView.render(view,element,item,false);
+                                    var generated_element = ActiveView.render(view,item);
+                                    element.appendChild(generated_element);
                                     collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                                 });
                                 collection.observe('unshift',function unshift_observer(item){
-                                    ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
-                                        element.insertBefore(content,element.firstChild);
-                                    });
+                                    var generated_element = ActiveView.render(view,item);
+                                    element.insertBefore(generated_element,element.firstChild);
                                     collected_elements.unshift(element.firstChild);
                                 });
                                 collection.observe('shift',function shift_observer(){
@@ -169,10 +170,12 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     }
                                     for(i = 0; i < children.length; ++i)
                                     {
-                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(typeof(content) === 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
-                                            children[i] = element.childNodes[index + i];
-                                        });
+                                        var generated_element = ActiveView.render(view,children[i]);
+                                        element.insertBefore((typeof(generated_element) === 'string'
+                                            ? document.createTextNode(generated_element)
+                                            : generated_element
+                                        ),element.childNodes[index + i]);
+                                        children[i] = element.childNodes[index + i];
                                     }
                                     collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
                                 });
@@ -186,6 +189,19 @@ ActiveView.generateBinding = function generateBinding(instance)
 
     instance.binding.when = function when(outer_key)
     {
+        var outer_keys;
+        if(arguments.length > 1)
+        {
+            outer_keys = ActiveSupport.arrayFrom(arguments);
+        }
+        else if(ActiveSupport.isArray(outer_key))
+        {
+            outer_keys = outer_key;
+        }
+        else
+        {
+            outer_keys = [outer_key];
+        }
         return {
             changes: function changes(callback)
             {
@@ -194,9 +210,12 @@ ActiveView.generateBinding = function generateBinding(instance)
                     return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                 }
                 instance.scope.observe('set',function changes_observer(inner_key,value){
-                    if(outer_key == inner_key)
+                    for(var i = 0; i < outer_keys.length; ++i)
                     {
-                        callback(value);
+                        if(outer_keys[i] == inner_key)
+                        {
+                            callback(value);
+                        }
                     }
                 });
             }

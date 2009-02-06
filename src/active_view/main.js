@@ -50,7 +50,7 @@ ActiveView.create = function create(structure,methods)
 
 ActiveView.defaultStructure = function defaultStructure()
 {
-    return ActiveSupport.getGlobalContext().document.createElement('div');
+    return ActiveView.Builder.div();
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -63,66 +63,49 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
     array.makeObservable('splice');
 };
 
-ActiveView.render = function render(content,target,scope,clear,execute)
+/**
+ * This method is not usually called directly but is utilized by data
+ * bindings and ActiveControllers.
+ * 
+ * This method is normalizes or renders a variety of inputs. Strings or
+ * Element objects are returned untouched, ActiveView instances will have
+ * their DOM container returned, ActiveView classes will be rendered and
+ * the DOM container returned. If a function is passed in it will be called
+ * with the passed scope. That function should return a string or Element.
+ * 
+ * @alias ActiveView.render
+ * @param {mixed} content
+ * @param {Object} [scope]
+ * @return {mixed}
+ */
+ActiveView.render = function render(content,scope)
 {
-    if(content && typeof(content) == 'object' && 'length' in content && 'splice' in content && 'join' in content)
+    if(!scope)
     {
-        var responses = [];
-        for(var i = 0; i < content.length; ++i)
-        {
-            responses.push(ActiveView.render(content[i],target,scope,clear,execute));
-        }
-        return responses;
+        scope = {};
     }
-    else
+    
+    //if content is a function, that function can return nodes or an ActiveView class or instance
+    if(typeof(content) === 'function' && !content.prototype.structure)
     {
-        if(!execute)
-        {
-            execute = function render_execute(target,content)
-            {
-                if(!content)
-                {
-                    return ActiveSupport.throwError(Errors.InvalidContent);
-                }
-                target.appendChild(content);
-            };
-        }
-        if(typeof(content) === 'function' && !content.prototype.structure)
-        {
-            content = content(scope);
-        }
-        if(clear !== false)
-        {
-            target.innerHTML = '';
-        }
-        if(typeof(content) === 'string')
-        {
-            target.innerHTML = content;
-            return content;
-        }
-        else if(content && content.nodeType === 1)
-        {
-            execute(target,content);
-            return content;
-        }
-        else if(content && content.container)
-        {
-          //is ActiveView instance
-          execute(target,content.container);
-          return view;
-        }
-        else if(content && content.prototype && content.prototype.structure)
-        {
-            //is ActiveView class
-            var view = new content(scope);
-            execute(target,view.container);
-            return view;
-        }
-        else
-        {
-            return ActiveSupport.throwError(Errors.InvalidContent);
-        }
+        content = content(scope);
     }
+    
+    if(content && (typeof(content) == 'string' || content.nodeType == 1))
+    {
+        return content;
+    }
+    else if(content && content.container && content.container.nodeType == 1)
+    {
+        //is ActiveView instance
+        return content.container;
+    }
+    else if(content && content.prototype && content.prototype.structure)
+    {
+        //is ActiveView class
+        return new content(scope).container;
+    }
+    return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
 var InstanceMethods = {
