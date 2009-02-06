@@ -24,469 +24,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-/*--------------------------------------------------------------------------
- *  EJS - Embedded JavaScript, version 0.1.0
- *  Copyright (c) 2007 Edward Benson
- *  http://www.edwardbenson.com/projects/ejs
- *  ------------------------------------------------------------------------
- *
- *  EJS is freely distributable under the terms of an MIT-style license.
- *
- *  EJS is a client-side preprocessing engine written in and for JavaScript.
- *  If you have used PHP, ASP, JSP, or ERB then you get the idea: code embedded
- *  in <% // Code here %> tags will be executed, and code embedded in <%= .. %> 
- *  tags will be evaluated and appended to the output. 
- * 
- *  This is essentially a direct JavaScript port of Masatoshi Seki's erb.rb 
- *  from the Ruby Core, though it contains a subset of ERB's functionality. 
- * 
- *  Requirements:
- *      prototype.js
- * 
- *  Usage:
- *      // source should be either a string or a DOM node whose innerHTML
- *      // contains EJB source.
- *  	var source = "<% var ejb="EJB"; %><h1>Hello, <%= ejb %>!</h1>"; 
- *      var compiler = new EjsCompiler(source);		
- *	    compiler.compile();	
- *	    var output = eval(compiler.out);
- *      alert(output); // -> "<h1>Hello, EJB!</h1>"
- *       
- *  For a demo:      see demo.html
- *  For the license: see license.txt
- *
- *--------------------------------------------------------------------------*/
-
-/* Make a split function like Ruby's: "abc".split(/b/) -> ['a', 'b', 'c'] */
-String.prototype.rsplit = function(regex) {
-	var item = this;
-	var result = regex.exec(item);
-	var retArr = new Array();
-	while (result != null)
-	{
-		var first_idx = result.index;
-		var last_idx = regex.lastIndex;
-		if ((first_idx) != 0)
-		{
-			var first_bit = item.substring(0,first_idx);
-			retArr.push(item.substring(0,first_idx));
-			item = item.slice(first_idx);
-		}		
-		retArr.push(result[0]);
-		item = item.slice(result[0].length);
-		result = regex.exec(item);	
-	}
-	if (! item == '')
-	{
-		retArr.push(item);
-	}
-	return retArr;
-};
-
-/* Chop is nice to have too */
-String.prototype.chop = function() {
-	return this.substr(0, this.length - 1);
-}
-
-/* Adaptation from the Scanner of erb.rb  */
-var EjsScanner = function(source, left, right) {
-	this.left_delimiter = 	left +'%'	//<%
-	this.right_delimiter = 	'%'+right	//>
-	this.double_left = 		left+'%%'
-	this.double_right = 	'%%'+right
-	this.left_equal = 		left+'%='
-	this.left_comment = 	left+'%#'
-	if(left=='[')
-		this.SplitRegexp = /(\[%%)|(%%\])|(\[%=)|(\[%#)|(\[%)|(%\]\n)|(%\])|(\n)/;
-	else
-		this.SplitRegexp = new RegExp('('+this.double_left+')|(%%'+this.double_right+')|('+this.left_equal+')|('+this.left_comment+')|('+this.left_delimiter+')|('+this.right_delimiter+'\n)|('+this.right_delimiter+')|(\n)') 
-	
-	this.source = source;
-	this.stag = null;
-	this.lines = 0;
-};
-EjsView = function(data){
-	this.data = data
-}
-EjsView.prototype.partial = function(options, data){
-	if(!data) data = this.data;
-	return new EJS(options).render(data);
-}
-
-EjsScanner.to_text = function(input){
-	if(input == null || input === undefined)
-        return '';
-    if(input instanceof Date)
-		return input.toDateString();
-	if(input.toString) 
-        return input.toString()
-	return '';
-}
-
-EjsScanner.prototype = {
-
-  /* For each line, scan! */
-  scan: function(block) {
-     scanline = this.scanline;
-	 regex = this.SplitRegexp;
-	 if (! this.source == '')
-	 {
-	 	 var source_split = this.source.rsplit(/\n/);
-	 	 for(var i=0; i<source_split.length; i++) {
-		 	 var item = source_split[i];
-			 this.scanline(item, regex, block);
-		 }
-	 }
-  },
-  
-  /* For each token, block! */
-  scanline: function(line, regex, block) {
-	 this.lines++
-	 var line_split = line.rsplit(regex);
- 	 for(var i=0; i<line_split.length; i++) {
-	   var token = line_split[i];
-       if (token != null) {
-		   	try{
-	         	block(token, this);
-		 	}catch(e){
-				throw {type: 'EjsScanner', line: this.lines}
-			}
-       }
-	 }
-  }
-};
-
-/* Adaptation from the Buffer of erb.rb  */
-var EjsBuffer = function(pre_cmd, post_cmd) {
-	this.line = new Array();
-	this.script = "";
-	this.pre_cmd = pre_cmd;
-	this.post_cmd = post_cmd;
-	
-	for (var i=0; i<this.pre_cmd.length; i++)
-	{
-		this.push(pre_cmd[i]);
-	}
-}
-EjsBuffer.prototype = {
-	
-  push: function(cmd) {
-	this.line.push(cmd);
-  },
-
-  cr: function() {
-	this.script = this.script + this.line.join('; ');
-	this.line = new Array();
-	this.script = this.script + "\n";
-  },
-
-  close: function() {
-	if (this.line.length > 0)
-	{
-		for (var i=0; i<this.post_cmd.length; i++)
-		{
-			this.push(pre_cmd[i]);
-		}
-		this.script = this.script + this.line.join('; ');
-		line = null;
-	}
-  }
- 	
-};
-
-/* Adaptation from the Compiler of erb.rb  */
-EjsCompiler = function(source, left) {
-	this.pre_cmd = ['___ejsO = "";'];
-	this.post_cmd = new Array();
-	this.source = ' ';	
-	if (source != null)
-	{
-		if (typeof source == 'string')
-		{
-		    source = source.replace(/\r\n/g, "\n");
-            source = source.replace(/\r/g,   "\n");
-			this.source = source;
-		}
-		else if (source.innerHTML)
-		{
-			this.source = source.innerHTML;
-		} 
-		if (typeof this.source != 'string')
-		{
-			this.source = "";
-		}
-	}
-	left = left || '<'
-	var right = '>'
-	switch(left) {
-		case '[':
-			right = ']'
-			break;
-		case '<':
-			break;
-		default:
-			throw left+' is not a supported deliminator'
-			break;
-	}
-	this.scanner = new EjsScanner(this.source, left, right);
-	this.out = '';
-}
-EjsCompiler.prototype = {
-  compile: function(options) {
-  	options = options || {};
-	this.out = '';
-	var put_cmd = "___ejsO += ";
-	var insert_cmd = put_cmd;
-	var buff = new EjsBuffer(this.pre_cmd, this.post_cmd);		
-	var content = '';
-	var clean = function(content)
-	{
-	    content = content.replace(/\\/g, '\\\\');
-        content = content.replace(/\n/g, '\\n');
-        content = content.replace(/"/g,  '\\"');
-        return content;
-	} 
-	this.scanner.scan(function(token, scanner) {
-		if (scanner.stag == null)
-		{
-			//alert(token+'|'+(token == "\n"))
-			switch(token) {
-				case '\n':
-					content = content + "\n";
-					buff.push(put_cmd + '"' + clean(content) + '";');
-					buff.cr()
-					content = '';
-					break;
-				case scanner.left_delimiter:
-				case scanner.left_equal:
-				case scanner.left_comment:
-					scanner.stag = token;
-					if (content.length > 0)
-					{
-						// Chould be content.dump in Ruby
-						
-						buff.push(put_cmd + '"' + clean(content) + '"');
-					}
-					content = '';
-					break;
-				case scanner.double_left:
-					content = content + scanner.left_delimiter;
-					break;
-				default:
-					content = content + token;
-					break;
-			}
-		}
-		else {
-			switch(token) {
-				case scanner.right_delimiter:
-					switch(scanner.stag) {
-						case scanner.left_delimiter:
-							if (content[content.length - 1] == '\n')
-							{
-								content = content.chop();
-								buff.push(content);
-								buff.cr();
-							}
-							else {
-								buff.push(content);
-							}
-							break;
-						case scanner.left_equal:
-							buff.push(insert_cmd + "(EjsScanner.to_text(" + content + "))");
-							break;
-					}
-					scanner.stag = null;
-					content = '';
-					break;
-				case scanner.double_right:
-					content = content + scanner.right_delimiter;
-					break;
-				default:
-					content = content + token;
-					break;
-			}
-		}
-	});
-	if (content.length > 0)
-	{
-		// Chould be content.dump in Ruby
-		buff.push(put_cmd + '"' + clean(content) + '"');
-	}
-	buff.close();
-	this.out = buff.script + ";";
-	var to_be_evaled = 'this.process = function(_CONTEXT,_VIEW) { try { with(_VIEW) { with (_CONTEXT) {'+this.out+" return ___ejsO;}}}catch(e){e.lineNumber=null;throw e;}};";
-	
-	try{
-		eval(to_be_evaled);
-	}catch(e){
-		if(typeof JSLINT != 'undefined'){
-			JSLINT(this.out)
-			for(var i = 0; i < JSLINT.errors.length; i++){
-				var error = JSLINT.errors[i];
-				if(error.reason != "Unnecessary semicolon."){
-					error.line++;
-					var e = new Error();
-					e.lineNumber = error.line;
-					e.message = error.reason;
-					if(options.url)
-						e.fileName = options.url;
-					throw e;
-				}
-			}
-		}else{
-			throw e;
-		}
-	}
-  }
-}
-
-
-//type, cache, folder
-EJS = function( options ){
-	this.set_options(options)
-	
-	if(options.url){
-		var template = EJS.get(options.url, this.cache)
-		if (template) return template;
-	    if (template == EJS.INVALID_PATH) return null;
-		this.text = EJS.request(options.url)
-		if(this.text == null){
-			//EJS.update(options.url, this.INVALID_PATH);
-			throw 'There is no template at '+options.url
-		}
-		this.name = options.url
-	}else if(options.element)
-	{
-		if(typeof options.element == 'string'){
-			var name = options.element
-			options.element = document.getElementById(  options.element )
-			if(options.element == null) throw name+'does not exist!'
-		}
-		if(options.element.value){
-			this.text = options.element.value
-		}else{
-			this.text = options.element.innerHTML
-		}
-		this.name = options.element.id
-		this.type = '['
-	}
-	var template = new EjsCompiler(this.text, this.type);
-
-	template.compile(options);
-
-	
-	EJS.update(this.name, this);
-	this.template = template
-}
-EJS.config = function(options){
-	EJS.cache = options.cache != null ? options.cache : EJS.cache
-	EJS.type = options.type != null ? options.type : EJS.type
-	var templates_directory = {} //nice and private container
-	
-	EJS.get = function(path, cache){
-		if(cache == false) return null;
-		if(templates_directory[path]) return templates_directory[path];
-  		return null;
-	}
-	
-	EJS.update = function(path, template) { 
-		if(path == null) return;
-		templates_directory[path] = template 
-	}
-	
-	EJS.INVALID_PATH =  -1;
-	
-	
-}
-EJS.config( {cache: true, type: '<' } )
-
-EJS.prototype = {
-	render : function(object){
-		var v = new EjsView(object);
-		return this.template.process.call(v, object,v);
-	},
-	out : function(){
-		return this.template.out
-	},
-	set_options : function(options){
-		this.type = options.type != null ? options.type : EJS.type
-		this.cache = options.cache != null ? options.cache : EJS.cache
-		this.text = options.text != null ? options.text : null
-		this.name = options.name != null ? options.name : null
-	},
-	// called without options, returns a function that takes the object
-	// called with options being a string, uses that as a url
-	// called with options as an object
-	update : function(element, options){
-		if(typeof element == 'string'){
-			element = document.getElementById(element)
-		}
-		if(options == null){
-			_template = this;
-			return function(object){
-				EJS.prototype.update.call(_template, element, object)
-			}
-		}
-		if(typeof options == 'string'){
-			params = {}
-			params.url = options
-			_template = this;
-			params.onComplete = function(request){
-				var object = eval( request.responseText )
-				EJS.prototype.update.call(_template, element, object)
-			}
-			EJS.ajax_request(params)
-		}else
-		{
-			element.innerHTML = this.render(options)
-		}
-	}
-}
-
-	EJS.newRequest = function(){
-	   var factories = [function() { return new ActiveXObject("Msxml2.XMLHTTP"); },function() { return new XMLHttpRequest(); },function() { return new ActiveXObject("Microsoft.XMLHTTP"); }];
-	   for(var i = 0; i < factories.length; i++) {
-	        try {
-	            var request = factories[i]();
-	            if (request != null)  return request;
-	        }
-	        catch(e) { continue;}
-	   }
-	}
-	
-	EJS.request = function(path){
-	   var request = new EJS.newRequest()
-	   request.open("GET", path, false);
-	   
-	   try{request.send(null);}
-	   catch(e){return null;}
-	   
-	   if ( request.status == 404 || request.status == 2 ||(request.status == 0 && request.responseText == '') ) return null;
-	   
-	   return request.responseText
-	}
-	EJS.ajax_request = function(params){
-		params.method = ( params.method ? params.method : 'GET')
-		
-		var request = new EJS.newRequest();
-		request.onreadystatechange = function(){
-			if(request.readyState == 4){
-				if(request.status == 200){
-					params.onComplete(request)
-				}else
-				{
-					params.onComplete(request)
-				}
-			}
-		}
-		request.open(params.method, params.url)
-		request.send(null)
-	}
-//}
-
-
-
  
 /**
  * @namespace {ActiveSupport} Provides a number of methods from the
@@ -621,6 +158,15 @@ ActiveSupport = {
             results[length] = object[length];
         }
         return results;
+    },
+    /**
+     * @alias ActiveSupport.isArray
+     * @param {mixed} object
+     * @return {Boolean}
+     */
+    isArray: function isArray(object)
+    {
+        return object && typeof(object) == 'object' && 'length' in object && 'splice' in object && 'join' in object;
     },
     /**
      * Emulates Array.indexOf for implementations that do not support it.
@@ -1281,7 +827,7 @@ ActiveSupport = {
                 {
                     for(var i = 0; i < value.length; ++i)
                     {
-                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name),value[i],indent + 1);
+                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name) || key_name,value[i],indent + 1);
                     }
                 }
                 else
@@ -1519,7 +1065,7 @@ ActiveSupport = {
                 partial,
                 value = holder[key];
             if (value && typeof value === 'object' &&
-                    typeof value.toJSON === 'function') {
+                    typeof value.toJSON === 'function' && !ActiveSupport.isArray(value)) {
                 value = value.toJSON(key);
             }
             if (typeof rep === 'function') {
@@ -2067,6 +1613,14 @@ ObservableHash.prototype.get = function get(key)
 {
     this.notify('get',key);
     return this._object[key];
+};
+
+ObservableHash.prototype.unset = function unset(key)
+{
+    this.notify('unset',key);
+    var value = this._object[key];
+    delete this._object[key];
+    return value;
 };
 
 ObservableHash.prototype.toObject = function toObject()
@@ -3205,6 +2759,12 @@ ActiveRecord = {
      */
     logging: false,
     /**
+     * Will automatically create a table when create() is called. Defaults to true.
+     * @alias ActiveRecord.autoMigrate
+     * @property {Boolean}
+     */
+     autoMigrate: true,
+    /**
      * Tracks the number of records created.
      * @alias ActiveRecord.internalCounter
      * @property {Number}
@@ -3239,18 +2799,24 @@ ActiveRecord = {
      */
     InstanceMethods: {},
     /**
-     * Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models[model_name]. model_name is a singularized, capitalized form of table name.
+     * Creates an ActiveRecord class, returning the class and storing it inside
+     * ActiveRecord.Models[model_name]. model_name is a singularized,
+     * capitalized form of table name.
      * @example
      *     var User = ActiveRecord.create('users');
      *     var u = User.find(5);
      * @alias ActiveRecord.create
      * @param {String} table_name
-     * @param {Array} [methods]
-     * @param {Function} [readyCallback]
-     *      Must be specified if running in asynchronous mode.
+     * @param {Object} fields
+     *      Should consist of column name, default value pairs. If an empty
+     *      array or empty object is set as the default, any arbitrary data
+     *      can be set and will automatically be serialized when saved. To
+     *      specify a specific type, set the value to an object that contains
+     *      a "type" key, with optional "length" and "value" keys.
+     * @param {Object} [methods]
      * @return {Object}
      */
-    create: function create(table_name, methods)
+    create: function create(table_name, fields, methods)
     {
         if (!ActiveRecord.connection)
         {
@@ -3259,7 +2825,7 @@ ActiveRecord = {
 
         //determine proper model name
         var model = null;
-        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name));
+        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name) || table_name);
         model_name = model_name.charAt(0).toUpperCase() + model_name.substring(1);
 
         //constructor
@@ -3268,28 +2834,26 @@ ActiveRecord = {
             this.modelName = this.constructor.modelName;
             this.tableName = this.constructor.tableName;
             this._object = {};
-            for (var key in data)
+            for(var key in data)
             {
-                this.set(key, data[key]);
+                //third param is to supress notifications on set
+                this.set(key,data[key],true);
             }
             this._errors = [];
             
+            for(var key in this.constructor.fields)
+            {
+                var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
+                if(Migrations.objectIsFieldDefinition(value))
+                {
+                    value = value.value;
+                }
+                //don't supress notifications on set since these are the processed values
+                this.set(key,value);
+            }
+            
             //performance optimization if no observers
             this.notify('afterInitialize', data);
-            
-            //this needs to be set explicitly and not in an observer
-            if('created' in this._object)
-            {
-                this.observe('beforeCreate',ActiveSupport.bind(function set_created_date(){
-                    this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
-                },this));
-            }
-            if('updated' in this._object)
-            {
-                this.observe('beforeSave',ActiveSupport.bind(function set_updated_date(){
-                    this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
-                },this));
-            }
         };
         model.modelName = model_name;
         model.tableName = table_name;
@@ -3308,10 +2872,66 @@ ActiveRecord = {
 
         //add lifecycle abilities
         ActiveEvent.extend(model);
-
+        
+        //clean and set field definition 
+        for(var field_name in (fields || {}))
+        {
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
+            {
+                fields[field_name].value = null;
+            }
+        }
+        model.fields = fields || {};
+        
+        //generate finders
+        for(var key in model.fields)
+        {
+            Finders.generateFindByField(model,key);
+            Finders.generateFindAllByField(model,key);
+        }
+        Finders.generateFindByField(model,'id');
+        //illogical, but consistent
+        Finders.generateFindAllByField(model,'id');
+        
+        //auto migrate if applicable
+        if(ActiveRecord.autoMigrate)
+        {
+            Migrations.Schema.createTable(table_name,ActiveSupport.clone(model.fields));
+        }
+        
         return model;
     }
 };
+
+
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
  
 ActiveEvent.extend(ActiveRecord);
 
@@ -3397,16 +3017,20 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
+     * @param {Boolean} surpress_notifications Defaults to false
      * @return {mixed} the value that was set
      */
-    set: function set(key, value)
+    set: function set(key, value, surpress_notifications)
     {
         if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
         this._object[key] = value;
-        this.notify('set',key,value);
+        if(!surpress_notifications)
+        {
+            this.notify('set',key,value);
+        }
     },
     /**
      * Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)
@@ -3434,12 +3058,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     keys: function keys()
     {
-        var keysArray = [];
+        var keys_array = [];
         for(var key_name in this._object)
         {
-            keysArray.push(key_name);
+            keys_array.push(key_name);
         }
-        return keysArray;
+        return keys_array;
     },
     /**
      * Returns an array of the column values that the instance contains.
@@ -3448,12 +3072,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     values: function values()
     {
-        var valuesArray = [];
+        var values_array = [];
         for(var key_name in this._object)
         {
-            valuesArray.push(this._object[key_name]);
+            values_array.push(this._object[key_name]);
         }
-        return valuesArray;
+        return values_array;
     },
     /**
      * Sets a given key on the object and immediately persists that change to the database triggering any callbacks or validation .
@@ -3515,15 +3139,29 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
+        //apply field in conversions
+        for (var key in this.constructor.fields)
+        {
+            //third param is to surpress observers
+            this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+        }
         if (this.notify('beforeSave') === false)
         {
             return false;
         }
+        if ('updated' in this._object)
+        {
+            this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
+        }
         if (!this.get('id'))
         {
-            if(this.notify('beforeCreate') === false)
+            if (this.notify('beforeCreate') === false)
             {
                 return false;
+            }
+            if ('created' in this._object)
+            {
+                this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
             ActiveRecord.connection.insertEntity(this.tableName, this.toObject());
             this.set('id', ActiveRecord.connection.getLastInsertedRowId());
@@ -3533,6 +3171,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         else
         {
             ActiveRecord.connection.updateEntity(this.tableName, this.get('id'), this.toObject());
+        }
+        //apply field out conversions
+        for (var key in this.constructor.fields)
+        {
+            //third param is to surpress observers
+            this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
         }
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
@@ -3788,6 +3432,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         else
         {
             var record = this.find(id);
+            if(!record)
+            {
+                return false;
+            }
             record.updateAttributes(attributes);
             return record;
         }
@@ -4077,6 +3725,10 @@ Adapters.InstanceMethods = {
         if (typeof(value) === 'number')
         {
             return 'INT';
+        }
+        if (typeof(value) == 'boolean')
+        {
+            return 'TINYINT(1)';
         }
         return 'TEXT';
     },
@@ -4390,472 +4042,6 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         },this));
     }
 });
-
-Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
-    createTable: function createTable(table_name,columns)
-    {
-        var keys = ActiveSupport.keys(columns);
-        var fragments = [];
-        for (var i = 0; i < keys.length; ++i)
-        {
-            var key = keys[i];
-            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
-        }
-        fragments.unshift('id INT NOT NULL AUTO_INCREMENT');
-        fragments.push('PRIMARY KEY(id)');
-        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ') ENGINE=InnoDB');
-    },
-    dropColumn: function dropColumn(table_column,column_name)
-    {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
-    }
-});
-
-/**
- * Adapter for Jaxer configured with MySQL.
- * @alias ActiveRecord.Adapters.JaxerMySQL
- * @property {ActiveRecord.Adapter}
- */ 
-Adapters.JaxerMySQL = function JaxerMySQL(){
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.MySQL);
-    ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log(ActiveSupport,arguments || []);
-        },
-        executeSQL: function executeSQL(sql)
-        {
-            ActiveRecord.connection.log("Adapters.JaxerMySQL.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
-            var response = Jaxer.DB.execute.apply(Jaxer.DB.connection, arguments);
-            return response;
-        },
-        getLastInsertedRowId: function getLastInsertedRowId()
-        {
-            return Jaxer.DB.lastInsertId;
-        },
-        iterableFromResultSet: function iterableFromResultSet(result)
-        {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for(var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
-            return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
-        }
-    });
-};
-
-Adapters.JaxerMySQL.connect = function connect(options)
-{
-    if(!options)
-    {
-        options = {};
-    }
-    for(var key in options)
-    {
-        options[key.toUpperCase()] = options[key];
-    }
-    Jaxer.DB.connection = new Jaxer.DB.MySQL.Connection(ActiveSupport.extend({
-        HOST: 'localhost',
-        PORT: 3306,
-        USER: 'root',
-        PASS: '',
-        NAME: 'jaxer'
-    },options));
-    return new Adapters.JaxerMySQL();
-};
- 
-/**
- * Adapter for Jaxer configured with SQLite
- * @alias ActiveRecord.Adapters.JaxerSQLite
- * @property {ActiveRecord.Adapter}
- */ 
-Adapters.JaxerSQLite = function JaxerSQLite(){
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
-    ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
-        },
-        executeSQL: function executeSQL(sql)
-        {
-            ActiveRecord.connection.log("Adapters.JaxerSQLite.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
-            var response = Jaxer.DB.execute.apply(Jaxer.DB.connection, arguments);
-            return response;
-        },
-        getLastInsertedRowId: function getLastInsertedRowId()
-        {
-            return Jaxer.DB.lastInsertId;
-        },
-        iterableFromResultSet: function iterableFromResultSet(result)
-        {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
-            return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
-        }
-    });
-};
-Adapters.JaxerSQLite.connect = function connect(path)
-{
-    Jaxer.DB.connection = new Jaxer.DB.SQLite.createDB({
-        PATH: Jaxer.Dir.resolve(path || 'ActiveRecord.sqlite')
-    });
-    return new Adapters.JaxerSQLite();
-};
- 
-/**
- * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
- * @alias ActiveRecord.Adapters.Gears
- * @property {ActiveRecord.Adapter}
- */
-Adapters.Gears = function Gears(db){
-    this.db = db;
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
-    ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if(!ActiveRecord.logging)
-            {
-                return;
-            }
-            if(arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
-        },
-        executeSQL: function executeSQL(sql)
-        {
-            var args = ActiveSupport.arrayFrom(arguments);
-            var proceed = null;
-            if(typeof(args[args.length - 1]) === 'function')
-            {
-                proceed = args.pop();
-            }
-            ActiveRecord.connection.log("Adapters.Gears.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
-            var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
-            if(proceed)
-            {
-                proceed(response);
-            }
-            return response;
-        },
-        getLastInsertedRowId: function getLastInsertedRowId()
-        {
-            return this.db.lastInsertRowId;
-        },
-        iterableFromResultSet: function iterableFromResultSet(result)
-        {
-            var response = {
-                rows: []
-            };
-            var count = result.fieldCount();
-            while(result.isValidRow())
-            {
-                var row = {};
-                for(var i = 0; i < count; ++i)
-                {
-                    row[result.fieldName(i)] = result.field(i);
-                }
-                response.rows.push(row);
-                result.next();
-            }
-            result.close();
-            response.iterate = function(iterator)
-            {
-                if(typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for(var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        iterator(row);
-                    }
-                }
-            };
-            return response;
-        },
-        fieldListFromTable: function(table_name)
-        {
-            var response = {};
-            var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
-            var columns = description.sql.match(new RegExp('CREATE[\s]+TABLE[\s]+' + table_name + '[\s]+(\([^\)]+)'));
-            var parts = columns.split(',');
-            for(var i = 0; i < parts.length; ++i)
-            {
-                //second half of the statement should instead return the type that it is
-                response[parts[i].replace(/(^\s+|\s+$)/g,'')] = parts[i].replace(/^\w+\s?/,'');
-            }
-            return response;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
-        }
-    });
-};
-Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
-Adapters.Gears.connect = function connect(name, version, display_name, size)
-{
-    var global_context = ActiveSupport.getGlobalContext();
-    var db = null;
-    
-    if(!(global_context.google && google.gears))
-    {
-        var gears_factory = null;
-        if('GearsFactory' in global_context)
-        {
-            gears_factory = new GearsFactory();
-        }
-        else if('ActiveXObject' in global_context)
-        {
-            try
-            {
-                gears_factory = new ActiveXObject('Gears.Factory');
-                if(gears_factory.getBuildInfo().indexOf('ie_mobile') !== -1)
-                {
-                    gears_factory.privateSetGlobalObject(this);
-                }
-            }
-            catch(e)
-            {
-                return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
-            }
-        }
-        else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
-        {
-            gears_factory = ActiveSupport.getGlobalContext().document.createElement("object");
-            gears_factory.style.display = "none";
-            gears_factory.width = 0;
-            gears_factory.height = 0;
-            gears_factory.type = "application/x-googlegears";
-            ActiveSupport.getGlobalContext().document.documentElement.appendChild(gears_factory);
-        }
-        
-        if(!gears_factory)
-        {
-            return ActiveSupport.throwError(Adapters.Gears.DatabaseUnavailableError);
-        }
-        
-        if(!('google' in global_context))
-        {
-            google = {};
-        }
-        
-        if(!('gears' in google))
-        {
-            google.gears = {
-                factory: gears_factory
-            };
-        }
-    }
-
-    db = google.gears.factory.create('beta.database');
-    db.open(name || 'ActiveRecord');
-        
-    return new Adapters.Gears(db);
-};
- 
-/**
- * Adapter for Adobe AIR.
- * @alias ActiveRecord.Adapters.AIR
- * @property {ActiveRecord.Adapter}
- */ 
-Adapters.AIR = function AIR(connection){
-    this.connection = connection;
-    ActiveSupport.extend(this,Adapters.InstanceMethods);
-    ActiveSupport.extend(this,Adapters.SQLite);
-    ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if(!ActiveRecord.logging)
-            {
-                return;
-            }
-            if(arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            if(air.Introspector)
-            {
-                ActiveSupport.log.apply(ActiveSupport,arguments || []);
-            }
-            else
-            {
-                return null;
-            }
-        },
-        executeSQL: function executeSQL(sql)
-        {
-            ActiveRecord.connection.log("Adapters.AIR.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
-            this.statement = new air.SQLStatement();
-            this.statement.sqlConnection = this.connection;
-            this.statement.text = sql;
-            var parameters = ActiveSupport.arrayFrom(arguments).slice(1);
-            for(var i = 0; i < parameters.length; ++i)
-            {
-                this.statement.parameters[i] = parameters[i];
-            }
-            this.statement.execute();
-            return this.statement.getResult().data;
-        },
-        getLastInsertedRowId: function getLastInsertedRowId()
-        {
-            return this.connection.lastInsertRowID;
-        },
-        iterableFromResultSet: function iterableFromResultSet(result)
-        {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this[iterator])
-                    {
-                        return ActiveSupport.clone(this[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < this.length; ++i)
-                    {
-                        iterator(this[i]);
-                    }
-                }
-            };
-            return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                this.connection.begin();
-                proceed();
-                this.connection.commit();
-            }
-            catch(e)
-            {
-                this.connection.rollback();
-                return ActiveSupport.throwError(e);
-            }
-        }
-    });
-};
-Adapters.AIR.connect = function connect(path)
-{
-    var connection = new air.SQLConnection();
-    connection.open(air.File.applicationDirectory.resolvePath(path || 'ActiveRecord'),air.SQLMode.CREATE);
-    return new Adapters.AIR(connection);
-};
 
 /**
  * In memory, non persistent storage.
@@ -6128,13 +5314,13 @@ var Relationships = {
     normalizeModelName: function(related_model_name)
     {
         var plural = ActiveSupport.camelize(related_model_name, true);
-        var singular = ActiveSupport.Inflector.singularize(plural);
+        var singular = ActiveSupport.Inflector.singularize(plural) || plural;
         return singular || plural;
     },
     normalizeForeignKey: function(foreign_key, related_model_name)
     {
         var plural = ActiveSupport.underscore(related_model_name).toLowerCase();
-        var singular = ActiveSupport.Inflector.singularize(plural);
+        var singular = ActiveSupport.Inflector.singularize(plural) || plural;
         if (!foreign_key || typeof(foreign_key) === 'undefined')
         {
             return (singular || plural) + '_id';
@@ -6628,7 +5814,7 @@ var Migrations = {
     {
         if(!Migrations.Meta)
         {
-            Migrations.Meta = ActiveRecord.define('schema_migrations',{
+            Migrations.Meta = ActiveRecord.create('schema_migrations',{
                 version: 0
             });
             delete ActiveRecord.Models.SchemaMigrations;
@@ -6684,40 +5870,6 @@ var Migrations = {
             migrations.push([keys[i],Migrations.migrations[keys[i]]]);
         }
         return migrations;
-    },
-    applyTypeConversionCallbacks: function applyTypeConversionCallbacks(model,fields)
-    {
-        model.observe('afterInitialize', function applyFieldOut(record){
-            for (var key in fields)
-            {
-                var value = ActiveRecord.connection.fieldOut(fields[key], record.get(key));
-                if(Migrations.objectIsFieldDefinition(value))
-                {
-                    value = value.value;
-                }
-                record.set(key,value);
-            }
-        });
-        model.observe('beforeSave', function applyFieldIn(record){
-            for (var key in fields)
-            {
-                record.set(key,ActiveRecord.connection.fieldIn(fields[key], record.get(key)));
-            }
-        });
-        model.observe('afterSave', function applyFieldOut(record){
-            for (var key in fields)
-            {
-                record.set(key,ActiveRecord.connection.fieldOut(fields[key], record.get(key)));
-            }
-        });
-        for (var key in fields)
-        {
-            Finders.generateFindByField(model, key);
-            Finders.generateFindAllByField(model, key);
-        }
-        Finders.generateFindByField(model, 'id');
-        //illogical, but consistent
-        Finders.generateFindAllByField(model, 'id');
     },
     objectIsFieldDefinition: function objectIsFieldDefinition(object)
     {
@@ -6783,50 +5935,6 @@ var Migrations = {
             return ActiveRecord.connection.removeIndex(table_name,index_name);
         }
     }
-};
-
-/**
- * If the table for your ActiveRecord does not exist, this will define the
- * ActiveRecord and automatically create the table.
- * @alias ActiveRecord.define
- * @param {String} table_name
- * @param {Object} fields
- *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
- * @param {Object} [methods]
- * @param {Function} [readyCallback]
- *      Must be specified if running in asynchronous mode.
- * @return {Object}
- * @example
- * 
- *     var User = ActiveRecord.define('users',{
- *         name: '',
- *         password: '',
- *         comment_count: 0,
- *         profile: {
- *             type: 'text',
- *             value: ''
- *         },
- *         serializable_field: {}
- *     });
- *     var u = User.create({
- *         name: 'alice',
- *         serializable_field: {a: '1', b: '2'}
- *     }); 
- */
-ActiveRecord.define = function define(table_name, fields, methods)
-{
-    //clean field definition
-    for(var field_name in fields)
-    {
-        if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
-        {
-            fields[field_name].value = null;
-        }
-    }
-    var model = ActiveRecord.create(table_name,methods);
-    Migrations.Schema.createTable(table_name,fields);
-    Migrations.applyTypeConversionCallbacks(model,fields);
-    return model;
 };
 
 ActiveRecord.Migrations = Migrations;
@@ -7155,6 +6263,105 @@ ActiveRecord.Synchronization = Synchronization;
 
 })();
 
+(function(){
+
+/**
+ * Adapter for Adobe AIR.
+ * @alias ActiveRecord.Adapters.AIR
+ * @property {ActiveRecord.Adapter}
+ */ 
+ActiveRecord.Adapters.AIR = function AIR(connection){
+    this.connection = connection;
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
+    ActiveSupport.extend(this,{
+        log: function log()
+        {
+            if(!ActiveRecord.logging)
+            {
+                return;
+            }
+            if(arguments[0])
+            {
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
+            }
+            if(air.Introspector)
+            {
+                ActiveSupport.log.apply(ActiveSupport,arguments || []);
+            }
+            else
+            {
+                return null;
+            }
+        },
+        executeSQL: function executeSQL(sql)
+        {
+            ActiveRecord.connection.log("Adapters.AIR.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
+            this.statement = new air.SQLStatement();
+            this.statement.sqlConnection = this.connection;
+            this.statement.text = sql;
+            var parameters = ActiveSupport.arrayFrom(arguments).slice(1);
+            for(var i = 0; i < parameters.length; ++i)
+            {
+                this.statement.parameters[i] = parameters[i];
+            }
+            this.statement.execute();
+            return this.statement.getResult().data;
+        },
+        getLastInsertedRowId: function getLastInsertedRowId()
+        {
+            return this.connection.lastInsertRowID;
+        },
+        iterableFromResultSet: function iterableFromResultSet(result)
+        {
+            result.iterate = function iterate(iterator)
+            {
+                if (typeof(iterator) === 'number')
+                {
+                    if (this[iterator])
+                    {
+                        return ActiveSupport.clone(this[iterator]);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < this.length; ++i)
+                    {
+                        iterator(this[i]);
+                    }
+                }
+            };
+            return result;
+        },
+        transaction: function transaction(proceed)
+        {
+            try
+            {
+                this.connection.begin();
+                proceed();
+                this.connection.commit();
+            }
+            catch(e)
+            {
+                this.connection.rollback();
+                return ActiveSupport.throwError(e);
+            }
+        }
+    });
+};
+ActiveRecord.Adapters.AIR.connect = function connect(path)
+{
+    var connection = new air.SQLConnection();
+    connection.open(air.File.applicationDirectory.resolvePath(path || 'ActiveRecord'),air.SQLMode.CREATE);
+    return new ActiveRecord.Adapters.AIR(connection);
+};
+
+})();
+
 var ActiveView = null;
 
 (function(){
@@ -7184,7 +6391,7 @@ ActiveView.create = function create(structure,methods)
 
 ActiveView.defaultStructure = function defaultStructure()
 {
-    return ActiveSupport.getGlobalContext().document.createElement('div');
+    return ActiveView.Builder.div();
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -7197,66 +6404,49 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
     array.makeObservable('splice');
 };
 
-ActiveView.render = function render(content,target,scope,clear,execute)
+/**
+ * This method is not usually called directly but is utilized by data
+ * bindings and ActiveControllers.
+ * 
+ * This method is normalizes or renders a variety of inputs. Strings or
+ * Element objects are returned untouched, ActiveView instances will have
+ * their DOM container returned, ActiveView classes will be rendered and
+ * the DOM container returned. If a function is passed in it will be called
+ * with the passed scope. That function should return a string or Element.
+ * 
+ * @alias ActiveView.render
+ * @param {mixed} content
+ * @param {Object} [scope]
+ * @return {mixed}
+ */
+ActiveView.render = function render(content,scope)
 {
-    if(content && typeof(content) == 'object' && 'length' in content && 'splice' in content && 'join' in content)
+    if(!scope)
     {
-        var responses = [];
-        for(var i = 0; i < content.length; ++i)
-        {
-            responses.push(ActiveView.render(content[i],target,scope,clear,execute));
-        }
-        return responses;
+        scope = {};
     }
-    else
+    
+    //if content is a function, that function can return nodes or an ActiveView class or instance
+    if(typeof(content) === 'function' && !content.prototype.structure)
     {
-        if(!execute)
-        {
-            execute = function render_execute(target,content)
-            {
-                if(!content)
-                {
-                    return ActiveSupport.throwError(Errors.InvalidContent);
-                }
-                target.appendChild(content);
-            };
-        }
-        if(typeof(content) === 'function' && !content.prototype.structure)
-        {
-            content = content(scope);
-        }
-        if(clear !== false)
-        {
-            target.innerHTML = '';
-        }
-        if(typeof(content) === 'string')
-        {
-            target.innerHTML = content;
-            return content;
-        }
-        else if(content && content.nodeType === 1)
-        {
-            execute(target,content);
-            return content;
-        }
-        else if(content && content.container)
-        {
-          //is ActiveView instance
-          execute(target,content.container);
-          return view;
-        }
-        else if(content && content.prototype && content.prototype.structure)
-        {
-            //is ActiveView class
-            var view = new content(scope);
-            execute(target,view.container);
-            return view;
-        }
-        else
-        {
-            return ActiveSupport.throwError(Errors.InvalidContent);
-        }
+        content = content(scope);
     }
+    
+    if(content && (typeof(content) == 'string' || content.nodeType == 1))
+    {
+        return content;
+    }
+    else if(content && content.container && content.container.nodeType == 1)
+    {
+        //is ActiveView instance
+        return content.container;
+    }
+    else if(content && content.prototype && content.prototype.structure)
+    {
+        //is ActiveView class
+        return new content(scope).container;
+    }
+    return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
 var InstanceMethods = {
@@ -7533,7 +6723,8 @@ ActiveView.generateBinding = function generateBinding(instance)
                             var collected_elements = [];
                             for(var i = 0; i < collection.length; ++i)
                             {
-                                ActiveView.render(view,element,collection[i],false);
+                                var generated_element = ActiveView.render(view,collection[i]);
+                                element.appendChild(generated_element);
                                 collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                             }
                             //these handlers will add or remove elements from the view as the collection changes
@@ -7544,13 +6735,13 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     collected_elements.pop();
                                 });
                                 collection.observe('push',function push_observer(item){
-                                    ActiveView.render(view,element,item,false);
+                                    var generated_element = ActiveView.render(view,item);
+                                    element.appendChild(generated_element);
                                     collected_elements.push(element.childNodes[element.childNodes.length - 1]);
                                 });
                                 collection.observe('unshift',function unshift_observer(item){
-                                    ActiveView.render(view,element,item,false,function unshift_observer_render_executor(element,content){
-                                        element.insertBefore(content,element.firstChild);
-                                    });
+                                    var generated_element = ActiveView.render(view,item);
+                                    element.insertBefore(generated_element,element.firstChild);
                                     collected_elements.unshift(element.firstChild);
                                 });
                                 collection.observe('shift',function shift_observer(){
@@ -7573,10 +6764,12 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     }
                                     for(i = 0; i < children.length; ++i)
                                     {
-                                        ActiveView.render(view,element,children[i],false,function splice_observer_render_executor(element,content){
-                                            element.insertBefore(typeof(content) === 'string' ? document.createTextNode(content) : content,element.childNodes[index + i]);
-                                            children[i] = element.childNodes[index + i];
-                                        });
+                                        var generated_element = ActiveView.render(view,children[i]);
+                                        element.insertBefore((typeof(generated_element) === 'string'
+                                            ? document.createTextNode(generated_element)
+                                            : generated_element
+                                        ),element.childNodes[index + i]);
+                                        children[i] = element.childNodes[index + i];
                                     }
                                     collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
                                 });
@@ -7590,6 +6783,19 @@ ActiveView.generateBinding = function generateBinding(instance)
 
     instance.binding.when = function when(outer_key)
     {
+        var outer_keys;
+        if(arguments.length > 1)
+        {
+            outer_keys = ActiveSupport.arrayFrom(arguments);
+        }
+        else if(ActiveSupport.isArray(outer_key))
+        {
+            outer_keys = outer_key;
+        }
+        else
+        {
+            outer_keys = [outer_key];
+        }
         return {
             changes: function changes(callback)
             {
@@ -7598,15 +6804,53 @@ ActiveView.generateBinding = function generateBinding(instance)
                     return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Function, recieved ',typeof(callback),callback);
                 }
                 instance.scope.observe('set',function changes_observer(inner_key,value){
-                    if(outer_key == inner_key)
+                    for(var i = 0; i < outer_keys.length; ++i)
                     {
-                        callback(value);
+                        if(outer_keys[i] == inner_key)
+                        {
+                            callback(value);
+                        }
                     }
                 });
             }
         };
     };
 };
+
+ActiveView.Template = {
+    create: function create(src,methods)
+    {
+        var klass = function klass(){};
+        ActiveSupport.extend(klass,methods || {});
+        ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
+        klass.template = ActiveView.Template.generateTemplate(src);
+        return klass;
+    }
+};
+ActiveView.Template.generateTemplate = function generateTemplate(src)
+{
+    // Original Implementation: Simple JavaScript Templating
+    // John Resig - http://ejohn.org/ - MIT Licensed
+    new Function("data",
+        "var p=[],print=function(){p.push.apply(p,arguments);};" +
+        "with(obj){p.push('" +
+        str.replace(/[\r\t\n]/g, " ")
+        .replace(/'(?=[^%]*%>)/g,"\t")
+        .split("'").join("\\'")
+        .split("\t").join("'")
+        .replace(/<%=(.+?)%>/g, "',$1,'")
+        .split("<%").join("');")
+        .split("%>").join("p.push('")
+        + "');}return p.join('');"
+    );
+};
+ActiveView.Template.ClassMethods = {
+    render: function render(data)
+    {
+        this.template.bind(this)(data);
+    }
+};
+ActiveView.Template.Helpers = {};
 
 })();
 
@@ -7620,14 +6864,11 @@ ActiveController.logging = false;
 
 ActiveController.create = function create(actions,methods)
 {
-    var klass = function klass(container,params){
-        this.container = container || ActiveController.createDefaultContainer();
-        this.renderTarget = this.container;
-        this.layoutRendered = false;
-        if(this.layout && typeof(this.layout.view) === 'function')
-        {
-            this.layout.view = ActiveSupport.bind(this.layout.view,this);
-        }
+    var klass = function klass(container,parent,params){
+        this.container = container;
+        this.setRenderTarget(this.container);
+        this.parent = parent;
+        this.children = [];
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
@@ -7654,7 +6895,7 @@ ActiveController.create = function create(actions,methods)
 ActiveController.createDefaultContainer = function createDefaultContainer()
 {
     var global_context = ActiveSupport.getGlobalContext();
-    var div = global_context.document.createElement('div');
+    var div = ActiveView.Builder.div();
     if(!global_context.document.body)
     {
         return ActiveSupport.throwError(Errors.BodyNotAvailable);
@@ -7667,16 +6908,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
         this.notify('beforeCall',action_name,this.params);
-        if(this.layout && !this.layoutRendered && this.layout.view)
-        {
-            this.layoutRendered = true;
-            this.layout.target = this.container;
-            var layout = this.render(this.layout);
-            if(layout && layout.renderTarget)
-            {
-                this.renderTarget = layout.renderTarget;
-            }
-        }
+        this.renderLayout();
         ActiveSupport.bind(action,this)();
         this.notify('afterCall',action_name,this.params);
     };
@@ -7697,17 +6929,10 @@ var InstanceMethods = {
     },
     render: function render(params)
     {
-        var args = this.renderArgumentsFromRenderParams(params);
-        var response = args.stopped ? null : ActiveView.render.apply(ActiveView,args);
-        return response;
-    },
-    renderArgumentsFromRenderParams: function renderArgumentsFromRenderParams(params)
-    {
         if(typeof(params) !== 'object')
         {
             return ActiveSupport.throwError(Errors.InvalidRenderParams);
         }
-        var args = [null,this.renderTarget,this.scope];
         for(var flag_name in params || {})
         {
             if(!RenderFlags[flag_name])
@@ -7718,15 +6943,32 @@ var InstanceMethods = {
                 }
                 return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
             }
-            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],args);
+            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
         }
-        return args;
+        return params;
+    },
+    getRenderTarget: function getRenderTarget()
+    {
+        return this.renderTarget;
+    },
+    setRenderTarget: function setRenderTarget(target)
+    {
+        this.renderTarget = target;
+    },
+    renderLayout: function renderLayout()
+    {
+        if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+        {
+            this.layoutRendered = true;
+            this.container.innerHtml = '';
+            this.container.appendChild(this.layout.bind(this)());
+        }
     }
 };
 ActiveController.InstanceMethods = InstanceMethods;
 
 var RenderFlags = {
-    view: function view(view_class,args)
+    view: function view(view_class,params)
     {
         if(typeof(view_class) === 'string')
         {
@@ -7735,24 +6977,34 @@ var RenderFlags = {
             {
                 return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
             }
-            args[0] = klass;
         }
         else
         {
-            args[0] = view_class;
+            klass = view_class;
+        }
+        var response = ActiveView.render(klass,params.scope || this.scope);
+        var container = params.target || this.getRenderTarget();
+        if(container)
+        {
+            container.innerHTML = '';
+            container.appendChild(response);
         }
     },
-    text: function text(text,args)
+    text: function text(text,params)
     {
-        args[0] = text;
+        var container = params.target || this.getRenderTarget();
+        if(container)
+        {
+            container.innerHTML = text;
+        }
     },
-    target: function target(target,args)
+    target: function target(target,params)
     {
-        args[1] = target;
+        //target only available for text + view, needs no processing
     },
-    scope: function scope(scope,args)
+    scope: function scope(scope,params)
     {
-        args[2] = scope;
+        //scope only available for text + view, needs no processing
     }
 };
 ActiveController.RenderFlags = RenderFlags;
@@ -7774,13 +7026,3 @@ var Errors = {
 ActiveController.Errors = Errors;
 
 })();
- 
-ActiveSupport.extend(ActiveController.RenderFlags,{
-    ejs: function ejs(source,args)
-    {
-        args[0] = new EJS({
-          text: source
-        }).render(this.scope._object);
-        args.ejs = true;
-    }
-});

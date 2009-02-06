@@ -6263,70 +6263,64 @@ ActiveRecord.Synchronization = Synchronization;
 
 })();
 
+Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
+    createTable: function createTable(table_name,columns)
+    {
+        var keys = ActiveSupport.keys(columns);
+        var fragments = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            var key = keys[i];
+            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+        }
+        fragments.unshift('id INT NOT NULL AUTO_INCREMENT');
+        fragments.push('PRIMARY KEY(id)');
+        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ') ENGINE=InnoDB');
+    },
+    dropColumn: function dropColumn(table_column,column_name)
+    {
+        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
+    }
+});
+
 (function(){
 
 /**
- * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
- * @alias ActiveRecord.Adapters.Gears
+ * Adapter for Jaxer configured with SQLite
+ * @alias ActiveRecord.Adapters.JaxerSQLite
  * @property {ActiveRecord.Adapter}
- */
-ActiveRecord.Adapters.Gears = function Gears(db){
-    this.db = db;
+ */ 
+ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
         log: function log()
         {
-            if(!ActiveRecord.logging)
+            if (!ActiveRecord.logging)
             {
                 return;
             }
-            if(arguments[0])
+            if (arguments[0])
             {
                 arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
+            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
         },
         executeSQL: function executeSQL(sql)
         {
-            var args = ActiveSupport.arrayFrom(arguments);
-            var proceed = null;
-            if(typeof(args[args.length - 1]) === 'function')
-            {
-                proceed = args.pop();
-            }
-            ActiveRecord.connection.log("Adapters.Gears.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
-            var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
-            if(proceed)
-            {
-                proceed(response);
-            }
+            ActiveRecord.connection.log("Adapters.JaxerSQLite.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
+            var response = Jaxer.DB.execute.apply(Jaxer.DB.connection, arguments);
             return response;
         },
         getLastInsertedRowId: function getLastInsertedRowId()
         {
-            return this.db.lastInsertRowId;
+            return Jaxer.DB.lastInsertId;
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            var response = {
-                rows: []
-            };
-            var count = result.fieldCount();
-            while(result.isValidRow())
+            result.iterate = function iterate(iterator)
             {
-                var row = {};
-                for(var i = 0; i < count; ++i)
-                {
-                    row[result.fieldName(i)] = result.field(i);
-                }
-                response.rows.push(row);
-                result.next();
-            }
-            result.close();
-            response.iterate = function(iterator)
-            {
-                if(typeof(iterator) === 'number')
+                if (typeof(iterator) === 'number')
                 {
                     if (this.rows[iterator])
                     {
@@ -6339,27 +6333,15 @@ ActiveRecord.Adapters.Gears = function Gears(db){
                 }
                 else
                 {
-                    for(var i = 0; i < this.rows.length; ++i)
+                    for (var i = 0; i < this.rows.length; ++i)
                     {
                         var row = ActiveSupport.clone(this.rows[i]);
+                        delete row['$values'];
                         iterator(row);
                     }
                 }
             };
-            return response;
-        },
-        fieldListFromTable: function(table_name)
-        {
-            var response = {};
-            var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
-            var columns = description.sql.match(new RegExp('CREATE[\s]+TABLE[\s]+' + table_name + '[\s]+(\([^\)]+)'));
-            var parts = columns.split(',');
-            for(var i = 0; i < parts.length; ++i)
-            {
-                //second half of the statement should instead return the type that it is
-                response[parts[i].replace(/(^\s+|\s+$)/g,'')] = parts[i].replace(/^\w+\s?/,'');
-            }
-            return response;
+            return result;
         },
         transaction: function transaction(proceed)
         {
@@ -6377,66 +6359,111 @@ ActiveRecord.Adapters.Gears = function Gears(db){
         }
     });
 };
-ActiveRecord.Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
-ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_name, size)
+ActiveRecord.Adapters.JaxerSQLite.connect = function connect(path)
 {
-    var global_context = ActiveSupport.getGlobalContext();
-    var db = null;
-    
-    if(!(global_context.google && google.gears))
-    {
-        var gears_factory = null;
-        if('GearsFactory' in global_context)
+    Jaxer.DB.connection = new Jaxer.DB.SQLite.createDB({
+        PATH: Jaxer.Dir.resolve(path || 'ActiveRecord.sqlite')
+    });
+    return new ActiveRecord.Adapters.JaxerSQLite();
+};
+
+})();
+ 
+(function(){
+  
+/**
+ * Adapter for Jaxer configured with MySQL.
+ * @alias ActiveRecord.Adapters.JaxerMySQL
+ * @property {ActiveRecord.Adapter}
+ */ 
+ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.MySQL);
+    ActiveSupport.extend(this,{
+        log: function log()
         {
-            gears_factory = new GearsFactory();
-        }
-        else if('ActiveXObject' in global_context)
+            if (!ActiveRecord.logging)
+            {
+                return;
+            }
+            if (arguments[0])
+            {
+                arguments[0] = 'ActiveRecord: ' + arguments[0];
+            }
+            return ActiveSupport.log(ActiveSupport,arguments || []);
+        },
+        executeSQL: function executeSQL(sql)
+        {
+            ActiveRecord.connection.log("Adapters.JaxerMySQL.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
+            var response = Jaxer.DB.execute.apply(Jaxer.DB.connection, arguments);
+            return response;
+        },
+        getLastInsertedRowId: function getLastInsertedRowId()
+        {
+            return Jaxer.DB.lastInsertId;
+        },
+        iterableFromResultSet: function iterableFromResultSet(result)
+        {
+            result.iterate = function iterate(iterator)
+            {
+                if (typeof(iterator) === 'number')
+                {
+                    if (this.rows[iterator])
+                    {
+                        return ActiveSupport.clone(this.rows[iterator]);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    for(var i = 0; i < this.rows.length; ++i)
+                    {
+                        var row = ActiveSupport.clone(this.rows[i]);
+                        delete row['$values'];
+                        iterator(row);
+                    }
+                }
+            };
+            return result;
+        },
+        transaction: function transaction(proceed)
         {
             try
             {
-                gears_factory = new ActiveXObject('Gears.Factory');
-                if(gears_factory.getBuildInfo().indexOf('ie_mobile') !== -1)
-                {
-                    gears_factory.privateSetGlobalObject(this);
-                }
+                ActiveRecord.connection.executeSQL('BEGIN');
+                proceed();
+                ActiveRecord.connection.executeSQL('COMMIT');
             }
             catch(e)
             {
-                return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
+                ActiveRecord.connection.executeSQL('ROLLBACK');
+                return ActiveSupport.throwError(e);
             }
         }
-        else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
-        {
-            gears_factory = ActiveSupport.getGlobalContext().document.createElement("object");
-            gears_factory.style.display = "none";
-            gears_factory.width = 0;
-            gears_factory.height = 0;
-            gears_factory.type = "application/x-googlegears";
-            ActiveSupport.getGlobalContext().document.documentElement.appendChild(gears_factory);
-        }
-        
-        if(!gears_factory)
-        {
-            return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
-        }
-        
-        if(!('google' in global_context))
-        {
-            google = {};
-        }
-        
-        if(!('gears' in google))
-        {
-            google.gears = {
-                factory: gears_factory
-            };
-        }
-    }
+    });
+};
 
-    db = google.gears.factory.create('beta.database');
-    db.open(name || 'ActiveRecord');
-        
-    return new ActiveRecord.Adapters.Gears(db);
+ActiveRecord.Adapters.JaxerMySQL.connect = function connect(options)
+{
+    if(!options)
+    {
+        options = {};
+    }
+    for(var key in options)
+    {
+        options[key.toUpperCase()] = options[key];
+    }
+    Jaxer.DB.connection = new Jaxer.DB.MySQL.Connection(ActiveSupport.extend({
+        HOST: 'localhost',
+        PORT: 3306,
+        USER: 'root',
+        PASS: '',
+        NAME: 'jaxer'
+    },options));
+    return new ActiveRecord.Adapters.JaxerMySQL();
 };
 
 })();
@@ -7105,3 +7132,343 @@ var Errors = {
 ActiveController.Errors = Errors;
 
 })();
+
+ActiveController.Errors.FileDoesNotExist = 'Could not find the file to render: ';
+
+ActiveController.Server = {};
+
+ActiveController.Server.Response = {
+    setStatus: function setStatus(status_code,reason_phrase){},
+    setContents: function setContents(contents){},
+    setHeader: function addHeader(key,value){},
+    getHeader: function getHeader(key,value){},
+    removeHeader: function removeHeader(key){},
+    redirect: function redirect(url,status_code,reason_phrase){}
+};
+
+ActiveController.Server.Request = {
+    getData: function getData(){},
+    getQuery: function getQuery(){},
+    getMethod: function getMethod(){},
+    getURI: function getURI(){}
+};
+
+ActiveController.Server.IO = {
+    exists: function exists(path){},
+    load: function load(path){},
+    read: function read(path){},
+    grep: function grep(path,pattern,recursive){}
+};
+
+ActiveController.Server.Environment = {
+    isProduction: function isProduction(){},
+    getApplicationRoot: function getApplicationRoot(){}
+};
+
+ActiveController.Server.parseParams = function parseParams(params)
+{
+    var result = {};
+    
+    for (var p in params)
+    {
+        // convert format for easier splitting
+        var dotted_name = p.replace(/\[[^\]]+\]/g, function(a) { return "." + a.substring(1, a.length - 1)});
+        
+        // split into steps
+        var parts = dotted_name.split(".");
+        
+        if (parts.length == 1)
+        {
+            // no index, so use the property value directly
+            result[p] = params[p];
+        }
+        else
+        {
+            // we have indexes, so process each step
+            var current_object = result;
+            var next_part = parts[0];
+            
+            for (var i = 1; i < parts.length; i++)
+            {
+                // update current part that we're processing now
+                var current_part = next_part;
+                
+                // look ahead to next part - needed to determine the type of composite to use for current_part
+                next_part = parts[i];
+                
+                if (current_object.hasOwnProperty(current_part) == false)
+                {
+                    if (next_part.match(/^(?:[0-9]|[1-9][0-9]+)$/))
+                    {
+                        // process as array
+                        current_object[current_part] = [];
+                    }
+                    else
+                    {
+                        // process as object
+                        current_object[current_part] = {};
+                    }
+                }
+                // NOTE: may want else-clause to verify we don't have
+                // conflicting index types (name and number on same object)
+                
+                // update the current object based on the current part
+                current_object = current_object[current_part];
+            }
+            
+            // assign value onto current object using last part
+            current_object[parts[parts.length - 1]] = params[p];
+        }
+    }
+    return result;
+};
+
+ActiveController.Server.StatusCodes = {
+    100: "Continue",
+    101: "Switching Protocols",
+    102: "Processing",
+
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    203: "Non-Authoritative Information",
+    204: "No Content",
+    205: "Reset Content",
+    206: "Partial Content",
+    207: "Multi-Status",
+    226: "IM Used",
+    
+    300: "Multiple Choices",
+    301: "Moved Permanently",
+    302: "Found",
+    303: "See Other",
+    304: "Not Modified",
+    305: "Use Proxy",
+    307: "Temporary Redirect",
+    
+    400: "Bad Request",
+    401: "Unauthorized",
+    402: "Payment Required",
+    403: "Forbidden",
+    404: "Not Found",
+    405: "Method Not Allowed",
+    406: "Not Acceptable",
+    407: "Proxy Authentication Required",
+    408: "Request Timeout",
+    409: "Conflict",
+    410: "Gone",
+    411: "Length Required",
+    412: "Precondition Failed",
+    413: "Request Entity Too Large",
+    414: "Request-URI Too Long",
+    415: "Unsupported Media Type",
+    416: "Requested Range Not Satisfiable",
+    417: "Expectation Failed",
+    422: "Unprocessable Entity",
+    423: "Locked",
+    424: "Failed Dependency",
+    426: "Upgrade Required",
+    
+    500: "Internal Server Error",
+    501: "Not Implemented",
+    502: "Bad Gateway",
+    503: "Service Unavailable",
+    504: "Gateway Timeout",
+    505: "HTTP Version Not Supported",
+    507: "Insufficient Storage",
+    510: "Not Extended"
+};
+
+ActiveSupport.extend(ActiveController.InstanceMethods,{
+    head: function head(status)
+    {
+        this.render({
+            nothing: true,
+            status: status || 200
+        });
+    }
+});
+
+ActiveSupport.extend(ActiveController.RenderFlags,{
+    text: function text(text,params)
+    {
+        ActiveController.Server.Response.setHeader('Content-Type','text/plain')
+        ActiveController.Server.Response.setContents(text);
+    },
+    json: function json(json,params)
+    {
+        if(typeof(json) != 'string')
+        {
+            json = (typeof(json.toJSON) == 'function' ? json.toJSON() : JSON.stringify(json));
+        }
+        ActiveController.Server.Response.setHeader('Content-Type','application/json');
+        ActiveController.Server.Response.setContents(json);
+    },
+    xml: function xml(xml,params)
+    {
+        if(typeof(xml) == 'xml')
+        {
+            xml = xml.toString();
+        }
+        if(xml && typeof(xml.toXML) == 'function')
+        {
+            xml = xml.toXML();
+        }
+        ActiveController.Server.Response.setHeader('Content-Type','text/xml');
+        ActiveController.Server.Response.setContents(xml);
+    },
+    html: function html(html,params)
+    {
+        ActiveController.Server.Response.setHeader('Content-Type','text/html');
+        this.set('content',html);
+        this.applyLayout();
+        ActiveController.Server.Response.setContents(this.get('content'));
+    },
+    file: function file(file,params)
+    {
+        var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + params.partial;
+        if(!ActiveController.Server.IO.exists(file))
+        {
+            ActiveController.Errors.FileDoesNotExist + file;
+        }
+        var content = ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(this.scope._object);
+        this.set('content',content);
+        this.applyLayout();
+        ActiveController.Server.Response.setContents(this.get('content'));
+    },    
+    nothing: function nothing(nothing,params)
+    {
+        ActiveController.Server.Response.setContents('');
+    },
+    status: function status(status,params)
+    {
+        if(typeof(status) == 'string')
+        {
+            for(var status_code in ActiveController.Server.StatusCodes)
+            {
+                if(ActiveController.Server.StatusCodes[status_code] == status || ActiveSupport.underscore(ActiveController.Server.StatusCodes[status_code].replace(/\-/g,' ')).toLowerCase() == status)
+                {
+                    ActiveController.Server.setStatus(status_code,ActiveController.Server.StatusCodes[status_code]);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            ActiveController.Server.setStatus(status,ActiveController.Server.StatusCodes[status_code]);
+        }
+    }
+});
+
+ActiveView.Template.Helpers.render = function render(params,scope)
+{
+    var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + params.partial;
+    if(!ActiveController.Server.IO.exists(file))
+    {
+        ActiveController.Errors.FileDoesNotExist + file;
+    }
+    return ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(scope || {});
+};
+
+/*
+if(this.layout && !this.layoutRendered && this.layout.file)
+{
+    var layout_file = Jaxer.request.app.configPath + '/app/views/' + this.layout.file;
+    if(!ActiveController.Server.IO.exists(layout_file))
+    {
+        ActiveController.Errors.FileDoesNotExist + layout_file;
+    }
+    this.layoutRendered = true;
+    this.set('content',new EJS({
+        text: ActiveController.Server.IO.read(layout_file)
+    }).render(this.scope._object));
+}
+*/
+ 
+ActiveController.Server.Response = {
+    setStatus: function setStatus(status_code,reason_phrase)
+    {
+        Jaxer.response.statusCode = status_code;
+        if(reason_phrase)
+        {
+            Jaxer.response.reasonPhrase = reason_phrase;
+        }
+    },
+    setContents: function setContents(contents)
+    {
+        Jaxer.response.setContents(contents);
+    },
+    setHeader: function addHeader(key,value)
+    {
+        Jaxer.response.headers[key] = value;
+    },
+    getHeader: function getHeader(key,value)
+    {
+        return Jaxer.response.headers[key];
+    },
+    removeHeader: function removeHeader(key)
+    {
+        Jaxer.response.headers[key];
+    },
+    redirect: function redirect(url,status_code,reason_phrase)
+    {
+        if(status_code)
+        {
+            Jaxer.response.setStatus(status_code,reason_phrase);
+        }
+        Jaxer.response.redirect(url);
+        Jaxer.response.exit();
+    }
+};
+
+ActiveController.Server.Request = {
+    getData: function getData()
+    {
+        return Jaxer.request.data;
+    },
+    getQuery: function getQuery()
+    {
+        return Jaxer.request.parsedUrl.queryParts;
+    },
+    getMethod: function getMethod()
+    {
+        return (Jaxer.request.data._method ? Jaxer.request.data._method : Jaxer.request.action).toLowerCase();
+    },
+    getURI: function getURI()
+    {
+        return Jaxer.request.uri;
+    }
+};
+
+ActiveController.Server.IO = {
+    exists: function exists(path)
+    {
+        return Jaxer.File.exists(file);
+    },
+    load: function load(path)
+    {
+        return Jaxer.load('file://' + path,null,'server');
+    },
+    read: function read(path)
+    {
+        return Jaxer.File.read(path);
+    },
+    grep: function grep(path,pattern,recursive)
+    {
+        return Jaxer.Dir.grep(path,{
+            pattern: pattern,
+            recursive: typeof(recursive) == 'undefined' ? true : recursive
+        });
+    }
+};
+
+ActiveController.Server.Environment = {
+    isProduction: function isProduction()
+    {
+        return Jaxer.Config.DEV_MODE;
+    },
+    getApplicationRoot: function getApplicationRoot()
+    {
+        
+    }
+};
