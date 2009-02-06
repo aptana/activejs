@@ -160,6 +160,15 @@ ActiveSupport = {
         return results;
     },
     /**
+     * @alias ActiveSupport.isArray
+     * @param {mixed} object
+     * @return {Boolean}
+     */
+    isArray: function isArray(object)
+    {
+        return object && typeof(object) == 'object' && 'length' in object && 'splice' in object && 'join' in object;
+    },
+    /**
      * Emulates Array.indexOf for implementations that do not support it.
      * @alias ActiveSupport.indexOf
      * @param {Array} array
@@ -818,7 +827,7 @@ ActiveSupport = {
                 {
                     for(var i = 0; i < value.length; ++i)
                     {
-                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name),value[i],indent + 1);
+                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name) || key_name,value[i],indent + 1);
                     }
                 }
                 else
@@ -1056,7 +1065,7 @@ ActiveSupport = {
                 partial,
                 value = holder[key];
             if (value && typeof value === 'object' &&
-                    typeof value.toJSON === 'function') {
+                    typeof value.toJSON === 'function' && !ActiveSupport.isArray(value)) {
                 value = value.toJSON(key);
             }
             if (typeof rep === 'function') {
