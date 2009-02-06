@@ -400,6 +400,12 @@ ActiveRecord = {
      */
     logging: false,
     /**
+     * Will automatically create a table when create() is called. Defaults to true.
+     * @alias ActiveRecord.autoMigrate
+     * @property {Boolean}
+     */
+     autoMigrate: true,
+    /**
      * Tracks the number of records created.
      * @alias ActiveRecord.internalCounter
      * @property {Number}
@@ -434,18 +440,24 @@ ActiveRecord = {
      */
     InstanceMethods: {},
     /**
-     * Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models[model_name]. model_name is a singularized, capitalized form of table name.
+     * Creates an ActiveRecord class, returning the class and storing it inside
+     * ActiveRecord.Models[model_name]. model_name is a singularized,
+     * capitalized form of table name.
      * @example
      *     var User = ActiveRecord.create('users');
      *     var u = User.find(5);
      * @alias ActiveRecord.create
      * @param {String} table_name
-     * @param {Array} [methods]
-     * @param {Function} [readyCallback]
-     *      Must be specified if running in asynchronous mode.
+     * @param {Object} fields
+     *      Should consist of column name, default value pairs. If an empty
+     *      array or empty object is set as the default, any arbitrary data
+     *      can be set and will automatically be serialized when saved. To
+     *      specify a specific type, set the value to an object that contains
+     *      a "type" key, with optional "length" and "value" keys.
+     * @param {Object} [methods]
      * @return {Object}
      */
-    create: function create(table_name, methods)
+    create: function create(table_name, fields, methods)
     {
         if (!ActiveRecord.connection)
         {
@@ -454,7 +466,7 @@ ActiveRecord = {
 
         //determine proper model name
         var model = null;
-        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name));
+        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name) || table_name);
         model_name = model_name.charAt(0).toUpperCase() + model_name.substring(1);
 
         //constructor
@@ -463,28 +475,26 @@ ActiveRecord = {
             this.modelName = this.constructor.modelName;
             this.tableName = this.constructor.tableName;
             this._object = {};
-            for (var key in data)
+            for(var key in data)
             {
-                this.set(key, data[key]);
+                //third param is to supress notifications on set
+                this.set(key,data[key],true);
             }
             this._errors = [];
             
+            for(var key in this.constructor.fields)
+            {
+                var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
+                if(Migrations.objectIsFieldDefinition(value))
+                {
+                    value = value.value;
+                }
+                //don't supress notifications on set since these are the processed values
+                this.set(key,value);
+            }
+            
             //performance optimization if no observers
             this.notify('afterInitialize', data);
-            
-            //this needs to be set explicitly and not in an observer
-            if('created' in this._object)
-            {
-                this.observe('beforeCreate',ActiveSupport.bind(function set_created_date(){
-                    this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
-                },this));
-            }
-            if('updated' in this._object)
-            {
-                this.observe('beforeSave',ActiveSupport.bind(function set_updated_date(){
-                    this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
-                },this));
-            }
         };
         model.modelName = model_name;
         model.tableName = table_name;
@@ -503,7 +513,63 @@ ActiveRecord = {
 
         //add lifecycle abilities
         ActiveEvent.extend(model);
-
+        
+        //clean and set field definition 
+        for(var field_name in (fields || {}))
+        {
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
+            {
+                fields[field_name].value = null;
+            }
+        }
+        model.fields = fields || {};
+        
+        //generate finders
+        for(var key in model.fields)
+        {
+            Finders.generateFindByField(model,key);
+            Finders.generateFindAllByField(model,key);
+        }
+        Finders.generateFindByField(model,'id');
+        //illogical, but consistent
+        Finders.generateFindAllByField(model,'id');
+        
+        //auto migrate if applicable
+        if(ActiveRecord.autoMigrate)
+        {
+            Migrations.Schema.createTable(table_name,ActiveSupport.clone(model.fields));
+        }
+        
         return model;
     }
 };
+
+
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
