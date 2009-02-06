@@ -35,6 +35,10 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
         }
         else
         {
+            //ensure singular table name model can write / read
+            var a = SingularTableName.create({string_field: 'test'});
+            assert(SingularTableName.find(a.id).string_field == 'test','Singular table names supported.');
+            
             //Comment is defined by ActiveRecord, Post is defined by SQL
             var a = new Comment({
                 title: 'a',
