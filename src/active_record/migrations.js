@@ -182,16 +182,16 @@ var Migrations = {
      */
     max: function max()
     {
-        var maxVal = 0;
+        var max_val = 0;
         for(var key_name in Migrations.migrations)
         {
             key_name = parseInt(key_name, 10);
-            if(key_name > maxVal)
+            if(key_name > max_val)
             {
-                maxVal = key_name;
+                max_val = key_name;
             }
         }
-        return maxVal;
+        return max_val;
     },
     setup: function setMigrationsTable()
     {

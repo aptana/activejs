@@ -24,8 +24,10 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
+ 
+(function(){
 
-Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
+ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRecord.Adapters.SQL),{
     createTable: function createTable(table_name,columns)
     {
         var keys = ActiveSupport.keys(columns);
@@ -44,3 +46,5 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
     }
 });
+
+})();
