@@ -655,6 +655,8 @@ ActiveSupport = {
      * MIT license
      * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
      *
+     * http://blog.stevenlevithan.com/archives/date-time-format
+     * 
      * Accepts a date, a mask, or a date and a mask.
      * Returns a formatted version of the given date.
      * The date defaults to the current date/time.
@@ -662,11 +664,19 @@ ActiveSupport = {
      */
      
     /**
+     * See: http://blog.stevenlevithan.com/archives/date-time-format
+     * 
+     * If convert_to_local_time is true the Date object will be assume to be GMT
+     * and be converted from GMT to the local time. Local time will be the local
+     * time of the server if running server side, or local time of the client
+     * side if running in the browser.
      * @alias ActiveSupport.dateFormat
      * @param {Date} date
      * @param {String} format
-     * @param {Boolean} utc
+     * @param {Boolean} [convert_to_local_time]
      * @return {String}
+     * @example
+     *     ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
      */
     dateFormat: function date_format_wrapper()
     {
@@ -5053,16 +5063,16 @@ var Migrations = {
      */
     max: function max()
     {
-        var maxVal = 0;
+        var max_val = 0;
         for(var key_name in Migrations.migrations)
         {
             key_name = parseInt(key_name, 10);
-            if(key_name > maxVal)
+            if(key_name > max_val)
             {
-                maxVal = key_name;
+                max_val = key_name;
             }
         }
-        return maxVal;
+        return max_val;
     },
     setup: function setMigrationsTable()
     {
@@ -5516,8 +5526,10 @@ Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromR
 ActiveRecord.Synchronization = Synchronization;
 
 })();
+ 
+(function(){
 
-Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
+ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRecord.Adapters.SQL),{
     createTable: function createTable(table_name,columns)
     {
         var keys = ActiveSupport.keys(columns);
@@ -5536,6 +5548,8 @@ Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
     }
 });
+
+})();
 
 (function(){
 

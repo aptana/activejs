@@ -655,6 +655,8 @@ ActiveSupport = {
      * MIT license
      * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
      *
+     * http://blog.stevenlevithan.com/archives/date-time-format
+     * 
      * Accepts a date, a mask, or a date and a mask.
      * Returns a formatted version of the given date.
      * The date defaults to the current date/time.
@@ -662,11 +664,19 @@ ActiveSupport = {
      */
      
     /**
+     * See: http://blog.stevenlevithan.com/archives/date-time-format
+     * 
+     * If convert_to_local_time is true the Date object will be assume to be GMT
+     * and be converted from GMT to the local time. Local time will be the local
+     * time of the server if running server side, or local time of the client
+     * side if running in the browser.
      * @alias ActiveSupport.dateFormat
      * @param {Date} date
      * @param {String} format
-     * @param {Boolean} utc
+     * @param {Boolean} [convert_to_local_time]
      * @return {String}
+     * @example
+     *     ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
      */
     dateFormat: function date_format_wrapper()
     {
@@ -5799,16 +5809,16 @@ var Migrations = {
      */
     max: function max()
     {
-        var maxVal = 0;
+        var max_val = 0;
         for(var key_name in Migrations.migrations)
         {
             key_name = parseInt(key_name, 10);
-            if(key_name > maxVal)
+            if(key_name > max_val)
             {
-                maxVal = key_name;
+                max_val = key_name;
             }
         }
-        return maxVal;
+        return max_val;
     },
     setup: function setMigrationsTable()
     {
@@ -6897,38 +6907,60 @@ ActiveView.generateBinding = function generateBinding(instance)
 };
 
 ActiveView.Template = {
-    create: function create(src,methods)
+    create: function create(src,helpers)
     {
         var klass = function klass(){};
-        ActiveSupport.extend(klass,methods || {});
+        klass.helpers = {};
+        ActiveSupport.extend(klass.helpers,helpers || {});
+        ActiveSupport.extend(klass.helpers,ActiveView.Template.Helpers);
         ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
         klass.template = ActiveView.Template.generateTemplate(src);
         return klass;
     }
 };
-ActiveView.Template.generateTemplate = function generateTemplate(src)
+
+ActiveView.Template.generateTemplate = function generateTemplate(source)
 {
-    // Original Implementation: Simple JavaScript Templating
-    // John Resig - http://ejohn.org/ - MIT Licensed
-    new Function("data",
-        "var p=[],print=function(){p.push.apply(p,arguments);};" +
-        "with(obj){p.push('" +
-        str.replace(/[\r\t\n]/g, " ")
-        .replace(/'(?=[^%]*%>)/g,"\t")
-        .split("'").join("\\'")
-        .split("\t").join("'")
-        .replace(/<%=(.+?)%>/g, "',$1,'")
-        .split("<%").join("');")
-        .split("%>").join("p.push('")
-        + "');}return p.join('');"
-    );
+    try
+    {
+        // Original Implementation: Simple JavaScript Templating
+        // John Resig - http://ejohn.org/ - MIT Licensed
+        var processed_source = source
+            .replace(/<%([^\=](.+?))\)(\s*)%>/g,'<%$1);$3%>') //fix missing semi-colons
+            .replace(/[\r\t\n]/g, " ")
+            .replace(/'(?=[^%]*%>)/g,"\t")
+            .split("'").join("\\'")
+            .split("\t").join("'")
+            .replace(/<%=(.+?)%>/g, "',$1,'")
+            .split("<%").join("');")
+            .split("%>").join("p.push('")
+        ;        
+        return new Function("data",[
+            "var p = [];",
+            "var print = function(){p.push.apply(p,arguments);};",
+            "with(this.helpers){with(data){p.push('",
+            processed_source,
+            "');}}",
+            "return p.join('');"
+        ].join(''));
+    }
+    catch(e)
+    {
+        ActiveSupport.throwError(ActiveView.Template.Errors.CompilationFailed,'input:',source,'processed:',processed_source,e);
+    }
 };
+
+ActiveView.Template.Errors = {
+    CompilationFailed: ActiveSupport.createError('The template could not be compiled:')
+};
+
 ActiveView.Template.ClassMethods = {
     render: function render(data)
     {
-        this.template.bind(this)(data);
+        return ActiveSupport.bind(this.template,this)(data);
     }
 };
+
 ActiveView.Template.Helpers = {};
 
 })();
