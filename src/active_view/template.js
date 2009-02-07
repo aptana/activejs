@@ -26,36 +26,58 @@
  * ***** END LICENSE BLOCK ***** */
 
 ActiveView.Template = {
-    create: function create(src,methods)
+    create: function create(src,helpers)
     {
         var klass = function klass(){};
-        ActiveSupport.extend(klass,methods || {});
+        klass.helpers = {};
+        ActiveSupport.extend(klass.helpers,helpers || {});
+        ActiveSupport.extend(klass.helpers,ActiveView.Template.Helpers);
         ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
         klass.template = ActiveView.Template.generateTemplate(src);
         return klass;
     }
 };
-ActiveView.Template.generateTemplate = function generateTemplate(src)
+
+ActiveView.Template.generateTemplate = function generateTemplate(source)
 {
-    // Original Implementation: Simple JavaScript Templating
-    // John Resig - http://ejohn.org/ - MIT Licensed
-    new Function("data",
-        "var p=[],print=function(){p.push.apply(p,arguments);};" +
-        "with(obj){p.push('" +
-        str.replace(/[\r\t\n]/g, " ")
-        .replace(/'(?=[^%]*%>)/g,"\t")
-        .split("'").join("\\'")
-        .split("\t").join("'")
-        .replace(/<%=(.+?)%>/g, "',$1,'")
-        .split("<%").join("');")
-        .split("%>").join("p.push('")
-        + "');}return p.join('');"
-    );
+    try
+    {
+        // Original Implementation: Simple JavaScript Templating
+        // John Resig - http://ejohn.org/ - MIT Licensed
+        var processed_source = source
+            .replace(/<%([^\=](.+?))\)(\s*)%>/g,'<%$1);$3%>') //fix missing semi-colons
+            .replace(/[\r\t\n]/g, " ")
+            .replace(/'(?=[^%]*%>)/g,"\t")
+            .split("'").join("\\'")
+            .split("\t").join("'")
+            .replace(/<%=(.+?)%>/g, "',$1,'")
+            .split("<%").join("');")
+            .split("%>").join("p.push('")
+        ;        
+        return new Function("data",[
+            "var p = [];",
+            "var print = function(){p.push.apply(p,arguments);};",
+            "with(this.helpers){with(data){p.push('",
+            processed_source,
+            "');}}",
+            "return p.join('');"
+        ].join(''));
+    }
+    catch(e)
+    {
+        ActiveSupport.throwError(ActiveView.Template.Errors.CompilationFailed,'input:',source,'processed:',processed_source,e);
+    }
 };
+
+ActiveView.Template.Errors = {
+    CompilationFailed: ActiveSupport.createError('The template could not be compiled:')
+};
+
 ActiveView.Template.ClassMethods = {
     render: function render(data)
     {
-        this.template.bind(this)(data);
+        return ActiveSupport.bind(this.template,this)(data);
     }
 };
+
 ActiveView.Template.Helpers = {};

@@ -218,10 +218,11 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
     },
     file: function file(file,params)
     {
-        var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + params.partial;
+        ActiveController.Server.Response.setHeader('Content-Type','text/html');
+        var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + file;
         if(!ActiveController.Server.IO.exists(file))
         {
-            ActiveController.Errors.FileDoesNotExist + file;
+            ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
         }
         var content = ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(this.scope._object);
         this.set('content',content);
@@ -257,22 +258,21 @@ ActiveView.Template.Helpers.render = function render(params,scope)
     var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + params.partial;
     if(!ActiveController.Server.IO.exists(file))
     {
-        ActiveController.Errors.FileDoesNotExist + file;
+        ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
     }
     return ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(scope || {});
 };
 
-/*
-if(this.layout && !this.layoutRendered && this.layout.file)
+ActiveController.InstanceMethods.applyLayout = function applyLayout()
 {
-    var layout_file = Jaxer.request.app.configPath + '/app/views/' + this.layout.file;
-    if(!ActiveController.Server.IO.exists(layout_file))
+    if(this.layout && !this.layoutRendered && this.layout.file)
     {
-        ActiveController.Errors.FileDoesNotExist + layout_file;
+        var layout_file = Jaxer.request.app.configPath + '/app/views/' + this.layout.file;
+        if(!ActiveController.Server.IO.exists(layout_file))
+        {
+            ActiveController.Errors.FileDoesNotExist + layout_file;
+        }
+        this.layoutRendered = true;
+        this.set('content',ActiveView.Template.create(ActiveController.Server.IO.read(layout_file)).render(this.scope._object));
     }
-    this.layoutRendered = true;
-    this.set('content',new EJS({
-        text: ActiveController.Server.IO.read(layout_file)
-    }).render(this.scope._object));
-}
-*/
+};

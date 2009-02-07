@@ -83,7 +83,7 @@ ActiveController.Server.Request = {
 ActiveController.Server.IO = {
     exists: function exists(path)
     {
-        return Jaxer.File.exists(file);
+        return Jaxer.File.exists(path);
     },
     load: function load(path)
     {
@@ -109,6 +109,6 @@ ActiveController.Server.Environment = {
     },
     getApplicationRoot: function getApplicationRoot()
     {
-        
+        return Application.Config.root + 'app'
     }
 };
