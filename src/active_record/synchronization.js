@@ -37,7 +37,7 @@ Synchronization.notifications = {};
 
 Synchronization.setupNotifications = function setupNotifications(record)
 {
-    if(!record.id)
+    if(!record.get(record.constructor.primaryKeyName))
     {
         return false;
     }
@@ -45,9 +45,9 @@ Synchronization.setupNotifications = function setupNotifications(record)
     {
         Synchronization.notifications[record.tableName] = {};
     }
-    if(!Synchronization.notifications[record.tableName][record.id])
+    if(!Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]])
     {
-        Synchronization.notifications[record.tableName][record.id] = {};
+        Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]] = {};
     }    
     return true;
 };
@@ -61,7 +61,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
     }
     if(event_name === 'afterSave')
     {
-        found_records = Synchronization.notifications[record.tableName][record.id];
+        found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
         for(internal_count_id in found_records)
         {
             if(internal_count_id !== record.internalCount)
@@ -110,14 +110,14 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
         }
         if(event_name === 'afterDestroy')
         {
-            found_records = Synchronization.notifications[record.tableName][record.id];
+            found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
             for(internal_count_id in found_records)
             {
                 if(internal_count_id !== record.internalCount)
                 {
                     found_records[internal_count_id].notify('synchronization:afterDestroy');
-                    Synchronization.notifications[record.tableName][record.id][internal_count_id] = null;
-                    delete Synchronization.notifications[record.tableName][record.id][internal_count_id];
+                    Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id] = null;
+                    delete Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id];
                 }
             }
         }
@@ -137,7 +137,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.isSynchronized = true;
             Synchronization.setupNotifications(this);
-            Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+            Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = this;
         }
     },
     /**
@@ -148,8 +148,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     stop: function stop()
     {
         Synchronization.setupNotifications(this);
-        Synchronization.notifications[this.tableName][this.id][this.internalCount] = null;
-        delete Synchronization.notifications[this.tableName][this.id][this.internalCount];
+        Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = null;
+        delete Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount];
     }
 });
 
@@ -215,7 +215,7 @@ Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromR
     {
         for(var i = 0; i < b.length; ++i)
         {
-            if(!a[i] || (a[i] && (a[i].id !== b[i].id)))
+            if(!a[i] || (a[i] && (a[i][a[i].constructor.primaryKeyName] !== b[i][b[i].constructor.primaryKeyName])))
             {
                 diffs.push([i,null,b[i]]);
                 break;
@@ -226,7 +226,7 @@ Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromR
     {
         for(var i = 0; i < a.length; ++i)
         {
-            if(!b[i] || (b[i] && (b[i].id !== a[i].id)))
+            if(!b[i] || (b[i] && (b[i][b[i].constructor.primaryKeyName] !== a[i][a[i].constructor.primaryKeyName])))
             {
                 diffs.push([i,1]);
                 break;

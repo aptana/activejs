@@ -84,14 +84,14 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[through_model_name].count(params);
         }, through_model_name, related_model_name, foreign_key);
     }
     else
     {
-        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
-            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get('id') : params);
+        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key, params){
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get(params.constructor.primaryKeyName) : params);
             if (record)
             {
                 return record.destroy();
@@ -119,7 +119,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             params.all = true;
             return ActiveRecord.Models[related_model_name].find(params);
         }, related_model_name, foreign_key);
@@ -133,7 +133,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].count(params);
         }, related_model_name, foreign_key);
 
@@ -142,7 +142,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params = {};
             }
-            params[foreign_key] = this.get('id');
+            params[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].build(params);
         }, related_model_name, foreign_key);
 
@@ -151,7 +151,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params = {};
             }
-            params[foreign_key] = this.get('id');
+            params[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].create(params);
         }, related_model_name, foreign_key);
     }

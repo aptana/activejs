@@ -72,9 +72,9 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     }, related_model_name, foreign_key);
     instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].create(params || {});
-        if(this.get('id'))
+        if(this.get(this.constructor.primaryKeyName))
         {
-            this.updateAttribute(foreign_key, record.get('id'));
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
         }
         return record;
     }, related_model_name, foreign_key);

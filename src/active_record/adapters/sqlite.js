@@ -33,9 +33,15 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            if(columns[key].primaryKey)
+            {
+                fragments.unshift(key + ' INTEGER PRIMARY KEY');
+            }
+            else
+            {
+                fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            }
         }
-        fragments.unshift('id INTEGER PRIMARY KEY');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
     },
     dropColumn: function dropColumn(table_name,column_name)

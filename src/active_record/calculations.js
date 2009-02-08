@@ -125,7 +125,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         return this.find({
             first: true,
-            order: 'id DESC'
+            order: this.primaryKeyName + ' DESC'
         });
     }
 });

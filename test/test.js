@@ -152,6 +152,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS categories');
         ActiveRecord.execute('DROP TABLE IF EXISTS categorizations');
         ActiveRecord.execute('DROP TABLE IF EXISTS field_type_testers');
+        ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
         
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)

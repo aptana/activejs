@@ -474,6 +474,7 @@ ActiveRecord = {
         {
             this.modelName = this.constructor.modelName;
             this.tableName = this.constructor.tableName;
+            this.primaryKeyName = this.constructor.primaryKeyName;
             this._object = {};
             for(var key in data)
             {
@@ -481,24 +482,26 @@ ActiveRecord = {
                 this.set(key,data[key],true);
             }
             this._errors = [];
-            
             for(var key in this.constructor.fields)
             {
-                var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
-                if(Migrations.objectIsFieldDefinition(value))
+                if(!this.constructor.fields[key].primaryKey)
                 {
-                    value = value.value;
+                    var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
+                    if(Migrations.objectIsFieldDefinition(value))
+                    {
+                        value = value.value;
+                    }
+                    //don't supress notifications on set since these are the processed values
+                    this.set(key,value);
                 }
-                //don't supress notifications on set since these are the processed values
-                this.set(key,value);
             }
-            
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };
         model.modelName = model_name;
         model.tableName = table_name;
-
+        model.primaryKeyName = 'id';
+        
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
@@ -514,15 +517,34 @@ ActiveRecord = {
         //add lifecycle abilities
         ActiveEvent.extend(model);
         
-        //clean and set field definition 
-        for(var field_name in (fields || {}))
+        //clean and set field definition
+        if(!fields)
+        {
+            fields = {};
+        }
+        var custom_primary_key = false;
+        for(var field_name in fields)
         {
             if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
             {
                 fields[field_name].value = null;
             }
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].primaryKey)
+            {
+                custom_primary_key = field_name;
+            }
         }
-        model.fields = fields || {};
+        if(!custom_primary_key)
+        {
+            fields['id'] = {
+                primaryKey: true
+            };
+        }
+        model.fields = fields;
+        if(custom_primary_key)
+        {
+            model.primaryKeyName = custom_primary_key;
+        }
         
         //generate finders
         for(var key in model.fields)
@@ -530,11 +552,8 @@ ActiveRecord = {
             Finders.generateFindByField(model,key);
             Finders.generateFindAllByField(model,key);
         }
-        Finders.generateFindByField(model,'id');
-        //illogical, but consistent
-        Finders.generateFindAllByField(model,'id');
         
-        //auto migrate if applicable
+        //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
         {
             Migrations.Schema.createTable(table_name,ActiveSupport.clone(model.fields));

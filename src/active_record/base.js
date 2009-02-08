@@ -124,11 +124,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     reload: function reload()
     {
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             return false;
         }
-        var record = this.constructor.find(this.get('id'));
+        var record = this.constructor.find(this.get(this.constructor.primaryKeyName));
         if (!record)
         {
             return false;
@@ -156,8 +156,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         //apply field in conversions
         for (var key in this.constructor.fields)
         {
-            //third param is to surpress observers
-            this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to surpress observers
+                this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+            }
         }
         if (this.notify('beforeSave') === false)
         {
@@ -167,7 +170,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -178,19 +181,22 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
             ActiveRecord.connection.insertEntity(this.tableName, this.toObject());
-            this.set('id', ActiveRecord.connection.getLastInsertedRowId());
+            this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.get('id'), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.get(this.constructor.primaryKeyName), this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
         {
-            //third param is to surpress observers
-            this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to surpress observers
+                this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+            }
         }
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
@@ -203,7 +209,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     destroy: function destroy()
     {
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             return false;
         }
@@ -211,7 +217,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.get('id'));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.get(this.constructor.primaryKeyName));
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {

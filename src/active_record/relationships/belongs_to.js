@@ -78,9 +78,9 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
     }, related_model_name, foreign_key);
     instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = this['build' + related_model_name](params);
-        if(record.save() && this.get('id'))
+        if(record.save() && this.get(this.constructor.primaryKeyName))
         {
-            this.updateAttribute(foreign_key, record.get('id'));
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
         }
         return record;
     }, related_model_name, foreign_key);

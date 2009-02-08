@@ -35,10 +35,16 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            if(columns[key].primaryKey)
+            {
+                fragments.unshift(key + ' INT NOT NULL AUTO_INCREMENT');
+                fragments.push('PRIMARY KEY(' + key + ')');
+            }
+            else
+            {
+                fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            }
         }
-        fragments.unshift('id INT NOT NULL AUTO_INCREMENT');
-        fragments.push('PRIMARY KEY(id)');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ') ENGINE=InnoDB');
     },
     dropColumn: function dropColumn(table_column,column_name)
