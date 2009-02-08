@@ -306,7 +306,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if (params.first || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
+        if ((params.first && typeof params.first === "boolean") || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
         {
             if (params.first)
             {
