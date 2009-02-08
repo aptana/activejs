@@ -62,7 +62,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
     },
-    insertEntity: function insertEntity(table, data)
+    insertEntity: function insertEntity(table, primary_key_name, data)
     {
         this.setupTable(table);
         var max = 1;
@@ -91,18 +91,11 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         
     },
-    updateEntity: function updateEntity(table, id, data)
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
         this.setupTable(table);
         this.storage[table][id] = data;
         this.notify('updated',table,id,data);
-        return true;
-    },
-    updateAttribute: function updateAttribute(table, id, key, value)
-    {
-        this.setupTable(table);
-        this.storage[table][id][key] = value;
-        this.notify('updated',table,id,this.storage[table][id]);
         return true;
     },
     calculateEntities: function calculateEntities(table, params, operation)
@@ -149,7 +142,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 return operation_type === 'avg' ? sum / entities.length : sum;
         }
     },
-    deleteEntity: function deleteEntity(table, id)
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
     {
         this.setupTable(table);
         if(!id || id === 'all')
@@ -169,7 +162,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         }
         return false;
     },
-    findEntitiesById: function findEntitiesById(table, ids)
+    findEntitiesById: function findEntitiesById(table, primary_key_name, ids)
     {
         var table_data = this.storage[table];
         var response = [];

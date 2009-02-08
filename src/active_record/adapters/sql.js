@@ -27,7 +27,7 @@
 
 Adapters.SQL = {
     schemaLess: false,
-    insertEntity: function insertEntity(table, data)
+    insertEntity: function insertEntity(table, primary_key_name, data)
     {
         var keys = ActiveSupport.keys(data).sort();
         var values = [];
@@ -41,7 +41,7 @@ Adapters.SQL = {
         var response = this.executeSQL.apply(this,args);
         var id = this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
-        data_with_id.id = id;
+        data_with_id[primary_key_name] = id;
         this.notify('created',table,id,data_with_id);
         return response;
     },
@@ -62,7 +62,7 @@ Adapters.SQL = {
         args.unshift('UPDATE ' + table + ' SET ' + updates + this.buildWhereSQLFragment(conditions, args));
         return this.executeSQL.apply(this, args);
     },
-    updateEntity: function updateEntity(table, id, data)
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
         var keys = ActiveSupport.keys(data).sort();
         var args = [];
@@ -73,18 +73,10 @@ Adapters.SQL = {
             values.push(keys[i] + " = ?");
         }
         args.push(id);
-        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE id = ?");
+        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + primary_key_name + " = ?");
         var response = this.executeSQL.apply(this, args);
         this.notify('updated',table,id,data);
         return response;
-    },
-    updateAttribute: function updateAttribute(table, id, key, value)
-    {
-        var args = ["UPDATE " + table + " SET " + key + " = ? WHERE id = ?", value, id];
-        this.executeSQL.apply(this, args);
-        this.notify('updated',table,id,this.findEntities(table,{
-            id: id
-        }).iterate(0));
     },
     calculateEntities: function calculateEntities(table, params, operation)
     {
@@ -99,20 +91,20 @@ Adapters.SQL = {
         var args = this.buildSQLArguments(table, params, operation);
         return process_count_query_result(this.executeSQL.apply(this, args));
     },
-    deleteEntity: function deleteEntity(table, id)
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
     {
         var args, response;
         if (id === 'all')
         {
             args = ["DELETE FROM " + table];
             var ids = [];
-            var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
+            var ids_result_set = this.executeSQL('SELECT ' + primary_key_name + ' FROM ' + table);
             if(!ids_result_set)
             {
                 return null;
             }
             this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
-                ids.push(row.id);
+                ids.push(row[primary_key_name]);
             });
             response = this.executeSQL.apply(this,args);
             for(var i = 0; i < ids.length; ++i)
@@ -123,15 +115,15 @@ Adapters.SQL = {
         }
         else
         {
-            args = ["DELETE FROM " + table + " WHERE id = ?",id];
+            args = ["DELETE FROM " + table + " WHERE " + primary_key_name + " = ?",id];
             response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
         }
     },
-    findEntitiesById: function findEntityById(table, ids)
+    findEntitiesById: function findEntityById(table, primary_key_name, ids)
     {
-        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE id IN (' + ids.join(',') + ')']);
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + primary_key_name + ' IN (' + ids.join(',') + ')']);
         if (!response)
         {
             return false;

@@ -180,14 +180,14 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
-            ActiveRecord.connection.insertEntity(this.tableName, this.toObject());
+            ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
             this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.get(this.constructor.primaryKeyName), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this.get(this.constructor.primaryKeyName), this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
@@ -217,7 +217,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.get(this.constructor.primaryKeyName));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this.get(this.constructor.primaryKeyName));
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
@@ -317,7 +317,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             else
             {
                 //single id
-                result = ActiveRecord.connection.findEntitiesById(this.tableName,[params]);
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,[params]);
             }
             if (result && result.iterate && result.iterate(0))
             {
@@ -340,7 +340,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             {
                 //find by multiple ids
                 var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
-                result = ActiveRecord.connection.findEntitiesById(this.tableName,ids);
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,ids);
             }
             else
             {
