@@ -71,7 +71,7 @@ RestController = {
                 var items = model.find({
                     all: true
                 });
-                if(this.request.extension == 'xml')
+                if(ActiveController.Server.Request.getExtension() == 'xml')
                 {
                     this.render({
                         xml: items,
@@ -110,7 +110,7 @@ RestController = {
             },
             renderInstance: function renderInstance(instance)
             {
-                if(this.request.extension == 'xml')
+                if(ActiveController.Server.Request.getExtension() == 'xml')
                 {
                     this.render({
                         xml: instance,

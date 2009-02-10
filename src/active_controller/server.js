@@ -42,7 +42,8 @@ ActiveController.Server.Request = {
     getData: function getData(){},
     getQuery: function getQuery(){},
     getMethod: function getMethod(){},
-    getURI: function getURI(){}
+    getURI: function getURI(){},
+    getExtension: function getExtension(){}
 };
 
 ActiveController.Server.IO = {
@@ -241,14 +242,14 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
             {
                 if(ActiveController.Server.StatusCodes[status_code] == status || ActiveSupport.underscore(ActiveController.Server.StatusCodes[status_code].replace(/\-/g,' ')).toLowerCase() == status)
                 {
-                    ActiveController.Server.setStatus(status_code,ActiveController.Server.StatusCodes[status_code]);
+                    ActiveController.Server.Response.setStatus(status_code,ActiveController.Server.StatusCodes[status_code]);
                     break;
                 }
             }
         }
         else
         {
-            ActiveController.Server.setStatus(status,ActiveController.Server.StatusCodes[status_code]);
+            ActiveController.Server.Response.setStatus(status,ActiveController.Server.StatusCodes[status_code]);
         }
     }
 });
