@@ -46,7 +46,7 @@ ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
             {
                 arguments[0] = 'ActiveRecord: ' + arguments[0];
             }
-            return ActiveSupport.log(ActiveSupport,arguments || []);
+            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
         },
         executeSQL: function executeSQL(sql)
         {
