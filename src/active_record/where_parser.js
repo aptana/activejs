@@ -28,7 +28,7 @@
 //var WhereLexer;
 var WhereParser;
 
-(function() {
+//(function() {
 
 // token types
 var $c$ = 0,
@@ -636,7 +636,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 };
 
 
-})();
+//})();
 
 //ActiveRecord.WhereLexer = WhereLexer;
 ActiveRecord.WhereParser = WhereParser;
