@@ -40,6 +40,7 @@ var $c$ = 0,
     GREATER_THAN       = $c$++,
     GREATER_THAN_EQUAL = $c$++,
     IDENTIFIER         = $c$++,
+    IN                 = $c$++,
     LESS_THAN          = $c$++,
     LESS_THAN_EQUAL    = $c$++,
     LPAREN             = $c$++,
@@ -60,6 +61,7 @@ TypeMap[FALSE]              = "FALSE";
 TypeMap[GREATER_THAN]       = "GREATER_THAN";
 TypeMap[GREATER_THAN_EQUAL] = "GREATER_THAN_EQUAL";
 TypeMap[IDENTIFIER]         = "IDENTIFIER";
+TypeMap[IN]                 = "IN";
 TypeMap[LESS_THAN]          = "LESS_THAN";
 TypeMap[LESS_THAN_EQUAL]    = "LESS_THAN_EQUAL";
 TypeMap[LPAREN]             = "LPAREN";
@@ -88,6 +90,7 @@ var OperatorMap = {
 var KeywordMap = {
     "and":   AND,
     "false": FALSE,
+    "in":    IN,
     "or":    OR,
     "true":  TRUE
 };
@@ -96,7 +99,7 @@ var KeywordMap = {
 var WHITESPACE_PATTERN = /^\s+/;
 var IDENTIFIER_PATTERN = /^[a-zA-Z][a-zA-Z]*/;
 var OPERATOR_PATTERN   = /^(?:&&|\|\||<=|<|=|!=|>=|>|,|\(|\))/i;
-var KEYWORD_PATTERN    = /^(true|or|false|and)\b/i;
+var KEYWORD_PATTERN    = /^(true|or|in|false|and)\b/i;
 var STRING_PATTERN     = /^(?:'(\\.|[^'])*'|"(\\.|[^"])*")/;
 var NUMBER_PATTERN     = /^[1-9][0-9]*/;
 
@@ -105,7 +108,7 @@ var currentLexeme;
 
 // *** Lexeme class ***
 
-/**
+/*
  * Lexeme
  * 
  * @param {Number} type
@@ -118,7 +121,7 @@ function Lexeme(type, text)
     this.text = text;
 }
 
-/**
+/*
  * toString
  * 
  * @return {String}
@@ -137,7 +140,7 @@ Lexeme.prototype.toString = function toString()
 
 // *** Lexer class ***
 
-/**
+/*
  * WhereLexer
  */
 function WhereLexer()
@@ -146,7 +149,7 @@ function WhereLexer()
     this.setSource(null);
 }
 
-/**
+/*
  * setSource
  * 
  * @param {String} source
@@ -160,7 +163,7 @@ WhereLexer.prototype.setSource = function setSource(source)
     currentLexeme = null;
 };
 
-/**
+/*
  * advance
  */
 WhereLexer.prototype.advance = function advance()
@@ -240,8 +243,8 @@ WhereLexer.prototype.advance = function advance()
 
 // Binary operator node
 
-/**
- * IdentifierNode
+/*
+ * BinaryOperatorNode
  * 
  * @param {Node} identifier
  * @param {Number} identifier
@@ -254,7 +257,7 @@ function BinaryOperatorNode(lhs, operator, rhs)
     this.rhs = rhs;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -264,44 +267,65 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 {
     var result = null;
     var lhs = this.lhs.execute(row, functionProvider);
-    var rhs = this.rhs.execute(row, functionProvider);
-    
-    switch (this.operator)
+
+    if (this.operator == IN)
     {
-        case EQUAL:
-            result = (lhs === rhs);
-            break;
-            
-        case NOT_EQUAL:
-            result = (lhs !== rhs);
-            break;
-            
-        case LESS_THAN:
-            result = (lhs < rhs);
-            break;
-            
-        case LESS_THAN_EQUAL:
-            result = (lhs <= rhs);
-            break;
-            
-        case GREATER_THAN:
-            result = (lhs > rhs);
-            break;
-            
-        case GREATER_THAN_EQUAL:
-            result = (lhs >= rhs);
-            break;
-            
-        case AND:
-            result = (lhs && rhs);
-            break;
-            
-        case OR:
-            result = (lhs || rhs);
-            break;
-            
-        default:
-            return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+        // assume failure
+        result = false;
+
+        // see if the lhs value is in the rhs list
+        for (var i = 0; i < this.rhs.length; i++)
+        {
+            var rhs = this.rhs[i].execute(row, functionProvider);
+
+            if (lhs == rhs)
+            {
+                result = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        var rhs = this.rhs.execute(row, functionProvider);
+        
+        switch (this.operator)
+        {
+            case EQUAL:
+                result = (lhs === rhs);
+                break;
+                
+            case NOT_EQUAL:
+                result = (lhs !== rhs);
+                break;
+                
+            case LESS_THAN:
+                result = (lhs < rhs);
+                break;
+                
+            case LESS_THAN_EQUAL:
+                result = (lhs <= rhs);
+                break;
+                
+            case GREATER_THAN:
+                result = (lhs > rhs);
+                break;
+                
+            case GREATER_THAN_EQUAL:
+                result = (lhs >= rhs);
+                break;
+                
+            case AND:
+                result = (lhs && rhs);
+                break;
+                
+            case OR:
+                result = (lhs || rhs);
+                break;
+                
+            default:
+                return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+        }
     }
     
     return result;
@@ -309,7 +333,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 
 // Identifer node
 
-/**
+/*
  * Parser.IdentifierNode
  * 
  * @param {Object} identifier
@@ -319,7 +343,7 @@ function IdentifierNode(identifier)
     this.identifier = identifier;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -332,7 +356,7 @@ IdentifierNode.prototype.execute = function execute(row, functionProvider)
 
 // Function node
 
-/**
+/*
  * FunctionNode
  * 
  * @param {String} name
@@ -344,7 +368,7 @@ function FunctionNode(name, args)
     this.args = args;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -366,7 +390,7 @@ FunctionNode.prototype.execute = function execute(row, functionProvider)
 
 // Scalar node
 
-/**
+/*
  * Parser.ScalarNode
  */
 function ScalarNode(value)
@@ -374,7 +398,7 @@ function ScalarNode(value)
     this.value = value;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -388,7 +412,7 @@ ScalarNode.prototype.execute = function execute(row, functionProvider)
 
 // Parser class
 
-/**
+/*
  * WhereParser
  */
 WhereParser = function WhereParser()
@@ -396,7 +420,7 @@ WhereParser = function WhereParser()
     this._lexer = new WhereLexer();
 };
 
-/**
+/*
  * parse
  * 
  * @param {String} source
@@ -426,17 +450,71 @@ WhereParser.prototype.parse = function parse(source)
             case NUMBER:
             case STRING:
             case TRUE:
-                result = this.parseOrExpression();
+                result = this.parseInExpression();
                 break;
 
             default:
+                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
                 return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
     return result;
 };
 
-/**
+/*
+ * parseWhereExpression
+ */
+WhereParser.prototype.parseInExpression = function parseInExpression()
+{
+    var result = this.parseOrExpression();
+
+    while (currentLexeme !== null && currentLexeme.type === IN) 
+    {
+        // advance over 'in'
+        this._lexer.advance();
+
+        var rhs = [];
+
+        if (currentLexeme !== null && currentLexeme.type === LPAREN)
+        {
+            // advance over '('
+            this._lexer.advance();
+
+            while (currentLexeme !== null)
+            {
+                rhs.push(this.parseOrExpression());
+
+                if (currentLexeme !== null && currentLexeme.type === COMMA)
+                {
+                    this._lexer.advance();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (currentLexeme !== null && currentLexeme.type === RPAREN)
+            {
+                this._lexer.advance();
+
+                result = new BinaryOperatorNode(result, IN, rhs);
+            }
+            else
+            {
+                return ActiveSupport.throwError(new Error("'in' list did not end with a right parenthesis." + currentLexeme));
+            }
+        }
+        else
+        {
+            return ActiveSupport.throwError(new Error("'in' list did not start with a left parenthesis"));
+        }
+    }
+
+    return result;
+};
+
+/*
  * parseOrExpression
  */
 WhereParser.prototype.parseOrExpression = function parseOrExpression()
@@ -456,7 +534,7 @@ WhereParser.prototype.parseOrExpression = function parseOrExpression()
     return result;
 };
 
-/**
+/*
  * parseAndExpression
  */
 WhereParser.prototype.parseAndExpression = function parseAndExpression()
@@ -476,7 +554,7 @@ WhereParser.prototype.parseAndExpression = function parseAndExpression()
     return result;
 };
 
-/**
+/*
  * parseEqualityExpression
  */
 WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression()
@@ -504,7 +582,7 @@ WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression
     return result;
 };
 
-/**
+/*
  * parseRelationalExpression
  */
 WhereParser.prototype.parseRelationalExpression = function()
@@ -534,7 +612,7 @@ WhereParser.prototype.parseRelationalExpression = function()
     return result;
 };
 
-/**
+/*
  * parseMemberExpression
  */
 WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
