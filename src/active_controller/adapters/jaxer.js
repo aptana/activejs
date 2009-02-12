@@ -80,7 +80,7 @@ ActiveController.Server.Request = {
     },
     getExtension: function getExtension()
     {
-        return Jaxer.request.uri.split('.').pop();
+        return (Jaxer.request.uri.split('.').pop() || '').replace(/\?.*$/,'').replace(/\#.*$/,'');
     }
 };
 
