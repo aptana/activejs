@@ -36,7 +36,7 @@ ActiveRoutes.prototype.cleanPath = function cleanPath(path,params,only_path)
         path = path.replace(/\/?\:method/,'');
     }
     path = path.replace(/\/?index$/,'');
-    if(path[0] != '/')
+    if(path.charAt(0) != '/')
     {
         path = '/' + path;
     }
@@ -55,7 +55,7 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
                 {
                     continue;
                 }
-                else if(!route.params.requirements[p]((new String(params[p]).toString())))
+                else if(!route.params.requirements[p].exec((new String(params[p]).toString())))
                 {
                     continue;
                 }
