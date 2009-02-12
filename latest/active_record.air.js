@@ -2080,23 +2080,34 @@ ActiveRecord = {
      * @param {Object} [methods]
      * @return {Object}
      */
-    create: function create(table_name, fields, methods)
+    create: function create(options, fields, methods)
     {
         if (!ActiveRecord.connection)
         {
             return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
         }
+        
+        if(typeof(options) === 'string')
+        {
+            options = {
+                tableName: options
+            };
+        }
 
         //determine proper model name
         var model = null;
-        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name) || table_name);
-        model_name = model_name.charAt(0).toUpperCase() + model_name.substring(1);
+        if(!options.modelName)
+        {
+            var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(options.tableName) || options.tableName);
+            options.modelName = model_name.charAt(0).toUpperCase() + model_name.substring(1);
+        }
 
         //constructor
-        model = ActiveRecord.Models[model_name] = function initialize(data)
+        model = ActiveRecord.Models[options.modelName] = function initialize(data)
         {
             this.modelName = this.constructor.modelName;
             this.tableName = this.constructor.tableName;
+            this.primaryKeyName = this.constructor.primaryKeyName;
             this._object = {};
             for(var key in data)
             {
@@ -2104,24 +2115,26 @@ ActiveRecord = {
                 this.set(key,data[key],true);
             }
             this._errors = [];
-            
             for(var key in this.constructor.fields)
             {
-                var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
-                if(Migrations.objectIsFieldDefinition(value))
+                if(!this.constructor.fields[key].primaryKey)
                 {
-                    value = value.value;
+                    var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
+                    if(Migrations.objectIsFieldDefinition(value))
+                    {
+                        value = value.value;
+                    }
+                    //don't supress notifications on set since these are the processed values
+                    this.set(key,value);
                 }
-                //don't supress notifications on set since these are the processed values
-                this.set(key,value);
             }
-            
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };
-        model.modelName = model_name;
-        model.tableName = table_name;
-
+        model.modelName = options.modelName;
+        model.tableName = options.tableName;
+        model.primaryKeyName = 'id';
+        
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
@@ -2137,15 +2150,34 @@ ActiveRecord = {
         //add lifecycle abilities
         ActiveEvent.extend(model);
         
-        //clean and set field definition 
-        for(var field_name in (fields || {}))
+        //clean and set field definition
+        if(!fields)
+        {
+            fields = {};
+        }
+        var custom_primary_key = false;
+        for(var field_name in fields)
         {
             if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
             {
                 fields[field_name].value = null;
             }
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].primaryKey)
+            {
+                custom_primary_key = field_name;
+            }
         }
-        model.fields = fields || {};
+        if(!custom_primary_key)
+        {
+            fields['id'] = {
+                primaryKey: true
+            };
+        }
+        model.fields = fields;
+        if(custom_primary_key)
+        {
+            model.primaryKeyName = custom_primary_key;
+        }
         
         //generate finders
         for(var key in model.fields)
@@ -2153,14 +2185,11 @@ ActiveRecord = {
             Finders.generateFindByField(model,key);
             Finders.generateFindAllByField(model,key);
         }
-        Finders.generateFindByField(model,'id');
-        //illogical, but consistent
-        Finders.generateFindAllByField(model,'id');
         
-        //auto migrate if applicable
+        //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
         {
-            Migrations.Schema.createTable(table_name,ActiveSupport.clone(model.fields));
+            Migrations.Schema.createTable(options.tableName,ActiveSupport.clone(model.fields));
         }
         
         return model;
@@ -2374,11 +2403,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     reload: function reload()
     {
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             return false;
         }
-        var record = this.constructor.find(this.get('id'));
+        var record = this.constructor.find(this.get(this.constructor.primaryKeyName));
         if (!record)
         {
             return false;
@@ -2406,8 +2435,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         //apply field in conversions
         for (var key in this.constructor.fields)
         {
-            //third param is to surpress observers
-            this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to surpress observers
+                this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+            }
         }
         if (this.notify('beforeSave') === false)
         {
@@ -2417,7 +2449,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -2427,20 +2459,23 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
-            ActiveRecord.connection.insertEntity(this.tableName, this.toObject());
-            this.set('id', ActiveRecord.connection.getLastInsertedRowId());
+            ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
+            this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.get('id'), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this.get(this.constructor.primaryKeyName), this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
         {
-            //third param is to surpress observers
-            this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to surpress observers
+                this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+            }
         }
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
@@ -2453,7 +2488,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     destroy: function destroy()
     {
-        if (!this.get('id'))
+        if (!this.get(this.constructor.primaryKeyName))
         {
             return false;
         }
@@ -2461,7 +2496,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.get('id'));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this.get(this.constructor.primaryKeyName));
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
@@ -2561,7 +2596,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             else
             {
                 //single id
-                result = ActiveRecord.connection.findEntitiesById(this.tableName,[params]);
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,[params]);
             }
             if (result && result.iterate && result.iterate(0))
             {
@@ -2584,7 +2619,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             {
                 //find by multiple ids
                 var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
-                result = ActiveRecord.connection.findEntitiesById(this.tableName,ids);
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,ids);
             }
             else
             {
@@ -2878,7 +2913,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         return this.find({
             first: true,
-            order: 'id DESC'
+            order: this.primaryKeyName + ' DESC'
         });
     }
 });
@@ -3006,7 +3041,7 @@ ActiveRecord.Adapters = Adapters;
 
 Adapters.SQL = {
     schemaLess: false,
-    insertEntity: function insertEntity(table, data)
+    insertEntity: function insertEntity(table, primary_key_name, data)
     {
         var keys = ActiveSupport.keys(data).sort();
         var values = [];
@@ -3020,7 +3055,7 @@ Adapters.SQL = {
         var response = this.executeSQL.apply(this,args);
         var id = this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
-        data_with_id.id = id;
+        data_with_id[primary_key_name] = id;
         this.notify('created',table,id,data_with_id);
         return response;
     },
@@ -3041,7 +3076,7 @@ Adapters.SQL = {
         args.unshift('UPDATE ' + table + ' SET ' + updates + this.buildWhereSQLFragment(conditions, args));
         return this.executeSQL.apply(this, args);
     },
-    updateEntity: function updateEntity(table, id, data)
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
         var keys = ActiveSupport.keys(data).sort();
         var args = [];
@@ -3052,18 +3087,10 @@ Adapters.SQL = {
             values.push(keys[i] + " = ?");
         }
         args.push(id);
-        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE id = ?");
+        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + primary_key_name + " = ?");
         var response = this.executeSQL.apply(this, args);
         this.notify('updated',table,id,data);
         return response;
-    },
-    updateAttribute: function updateAttribute(table, id, key, value)
-    {
-        var args = ["UPDATE " + table + " SET " + key + " = ? WHERE id = ?", value, id];
-        this.executeSQL.apply(this, args);
-        this.notify('updated',table,id,this.findEntities(table,{
-            id: id
-        }).iterate(0));
     },
     calculateEntities: function calculateEntities(table, params, operation)
     {
@@ -3078,20 +3105,20 @@ Adapters.SQL = {
         var args = this.buildSQLArguments(table, params, operation);
         return process_count_query_result(this.executeSQL.apply(this, args));
     },
-    deleteEntity: function deleteEntity(table, id)
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
     {
         var args, response;
         if (id === 'all')
         {
             args = ["DELETE FROM " + table];
             var ids = [];
-            var ids_result_set = this.executeSQL('SELECT id FROM ' + table);
+            var ids_result_set = this.executeSQL('SELECT ' + primary_key_name + ' FROM ' + table);
             if(!ids_result_set)
             {
                 return null;
             }
             this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
-                ids.push(row.id);
+                ids.push(row[primary_key_name]);
             });
             response = this.executeSQL.apply(this,args);
             for(var i = 0; i < ids.length; ++i)
@@ -3102,15 +3129,15 @@ Adapters.SQL = {
         }
         else
         {
-            args = ["DELETE FROM " + table + " WHERE id = ?",id];
+            args = ["DELETE FROM " + table + " WHERE " + primary_key_name + " = ?",id];
             response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
         }
     },
-    findEntitiesById: function findEntityById(table, ids)
+    findEntitiesById: function findEntityById(table, primary_key_name, ids)
     {
-        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE id IN (' + ids.join(',') + ')']);
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + primary_key_name + ' IN (' + ids.join(',') + ')']);
         if (!response)
         {
             return false;
@@ -3214,6 +3241,10 @@ Adapters.SQL = {
     },
     fieldIn: function fieldIn(field, value)
     {
+        if(value && value instanceof Date)
+        {
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss',true);
+        }
         if(Migrations.objectIsFieldDefinition(field))
         {
             field = this.getDefaultValueFromFieldDefinition(field);
@@ -3287,9 +3318,15 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
         for (var i = 0; i < keys.length; ++i)
         {
             var key = keys[i];
-            fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            if(columns[key].primaryKey)
+            {
+                fragments.unshift(key + ' INTEGER PRIMARY KEY');
+            }
+            else
+            {
+                fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            }
         }
-        fragments.unshift('id INTEGER PRIMARY KEY');
         return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
     },
     dropColumn: function dropColumn(table_name,column_name)
@@ -3344,7 +3381,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
     },
-    insertEntity: function insertEntity(table, data)
+    insertEntity: function insertEntity(table, primary_key_name, data)
     {
         this.setupTable(table);
         var max = 1;
@@ -3373,18 +3410,11 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         
     },
-    updateEntity: function updateEntity(table, id, data)
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
         this.setupTable(table);
         this.storage[table][id] = data;
         this.notify('updated',table,id,data);
-        return true;
-    },
-    updateAttribute: function updateAttribute(table, id, key, value)
-    {
-        this.setupTable(table);
-        this.storage[table][id][key] = value;
-        this.notify('updated',table,id,this.storage[table][id]);
         return true;
     },
     calculateEntities: function calculateEntities(table, params, operation)
@@ -3431,7 +3461,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 return operation_type === 'avg' ? sum / entities.length : sum;
         }
     },
-    deleteEntity: function deleteEntity(table, id)
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
     {
         this.setupTable(table);
         if(!id || id === 'all')
@@ -3451,7 +3481,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         }
         return false;
     },
-    findEntitiesById: function findEntitiesById(table, ids)
+    findEntitiesById: function findEntitiesById(table, primary_key_name, ids)
     {
         var table_data = this.storage[table];
         var response = [];
@@ -4644,9 +4674,9 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     }, related_model_name, foreign_key);
     instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].create(params || {});
-        if(this.get('id'))
+        if(this.get(this.constructor.primaryKeyName))
         {
-            this.updateAttribute(foreign_key, record.get('id'));
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
         }
         return record;
     }, related_model_name, foreign_key);
@@ -4725,14 +4755,14 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[through_model_name].count(params);
         }, through_model_name, related_model_name, foreign_key);
     }
     else
     {
-        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key,params){
-            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get('id') : params);
+        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key, params){
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get(params.constructor.primaryKeyName) : params);
             if (record)
             {
                 return record.destroy();
@@ -4760,7 +4790,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             params.all = true;
             return ActiveRecord.Models[related_model_name].find(params);
         }, related_model_name, foreign_key);
@@ -4774,7 +4804,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get('id');
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].count(params);
         }, related_model_name, foreign_key);
 
@@ -4783,7 +4813,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params = {};
             }
-            params[foreign_key] = this.get('id');
+            params[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].build(params);
         }, related_model_name, foreign_key);
 
@@ -4792,7 +4822,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params = {};
             }
-            params[foreign_key] = this.get('id');
+            params[foreign_key] = this.get(this.constructor.primaryKeyName);
             return ActiveRecord.Models[related_model_name].create(params);
         }, related_model_name, foreign_key);
     }
@@ -4867,9 +4897,9 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
     }, related_model_name, foreign_key);
     instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
         var record = this['build' + related_model_name](params);
-        if(record.save() && this.get('id'))
+        if(record.save() && this.get(this.constructor.primaryKeyName))
         {
-            this.updateAttribute(foreign_key, record.get('id'));
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
         }
         return record;
     }, related_model_name, foreign_key);
@@ -5324,7 +5354,7 @@ Synchronization.notifications = {};
 
 Synchronization.setupNotifications = function setupNotifications(record)
 {
-    if(!record.id)
+    if(!record.get(record.constructor.primaryKeyName))
     {
         return false;
     }
@@ -5332,9 +5362,9 @@ Synchronization.setupNotifications = function setupNotifications(record)
     {
         Synchronization.notifications[record.tableName] = {};
     }
-    if(!Synchronization.notifications[record.tableName][record.id])
+    if(!Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]])
     {
-        Synchronization.notifications[record.tableName][record.id] = {};
+        Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]] = {};
     }    
     return true;
 };
@@ -5348,7 +5378,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
     }
     if(event_name === 'afterSave')
     {
-        found_records = Synchronization.notifications[record.tableName][record.id];
+        found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
         for(internal_count_id in found_records)
         {
             if(internal_count_id !== record.internalCount)
@@ -5397,14 +5427,14 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
         }
         if(event_name === 'afterDestroy')
         {
-            found_records = Synchronization.notifications[record.tableName][record.id];
+            found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
             for(internal_count_id in found_records)
             {
                 if(internal_count_id !== record.internalCount)
                 {
                     found_records[internal_count_id].notify('synchronization:afterDestroy');
-                    Synchronization.notifications[record.tableName][record.id][internal_count_id] = null;
-                    delete Synchronization.notifications[record.tableName][record.id][internal_count_id];
+                    Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id] = null;
+                    delete Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id];
                 }
             }
         }
@@ -5424,7 +5454,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.isSynchronized = true;
             Synchronization.setupNotifications(this);
-            Synchronization.notifications[this.tableName][this.id][this.internalCount] = this;
+            Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = this;
         }
     },
     /**
@@ -5435,8 +5465,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     stop: function stop()
     {
         Synchronization.setupNotifications(this);
-        Synchronization.notifications[this.tableName][this.id][this.internalCount] = null;
-        delete Synchronization.notifications[this.tableName][this.id][this.internalCount];
+        Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = null;
+        delete Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount];
     }
 });
 
@@ -5502,7 +5532,7 @@ Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromR
     {
         for(var i = 0; i < b.length; ++i)
         {
-            if(!a[i] || (a[i] && (a[i].id !== b[i].id)))
+            if(!a[i] || (a[i] && (a[i][a[i].constructor.primaryKeyName] !== b[i][b[i].constructor.primaryKeyName])))
             {
                 diffs.push([i,null,b[i]]);
                 break;
@@ -5513,7 +5543,7 @@ Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromR
     {
         for(var i = 0; i < a.length; ++i)
         {
-            if(!b[i] || (b[i] && (b[i].id !== a[i].id)))
+            if(!b[i] || (b[i] && (b[i][b[i].constructor.primaryKeyName] !== a[i][a[i].constructor.primaryKeyName])))
             {
                 diffs.push([i,1]);
                 break;

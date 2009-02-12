@@ -77,6 +77,10 @@ ActiveController.Server.Request = {
     getURI: function getURI()
     {
         return Jaxer.request.uri;
+    },
+    getExtension: function getExtension()
+    {
+        return Jaxer.request.uri.split('.').pop();
     }
 };
 

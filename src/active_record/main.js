@@ -457,20 +457,30 @@ ActiveRecord = {
      * @param {Object} [methods]
      * @return {Object}
      */
-    create: function create(table_name, fields, methods)
+    create: function create(options, fields, methods)
     {
         if (!ActiveRecord.connection)
         {
             return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
         }
+        
+        if(typeof(options) === 'string')
+        {
+            options = {
+                tableName: options
+            };
+        }
 
         //determine proper model name
         var model = null;
-        var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(table_name) || table_name);
-        model_name = model_name.charAt(0).toUpperCase() + model_name.substring(1);
+        if(!options.modelName)
+        {
+            var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(options.tableName) || options.tableName);
+            options.modelName = model_name.charAt(0).toUpperCase() + model_name.substring(1);
+        }
 
         //constructor
-        model = ActiveRecord.Models[model_name] = function initialize(data)
+        model = ActiveRecord.Models[options.modelName] = function initialize(data)
         {
             this.modelName = this.constructor.modelName;
             this.tableName = this.constructor.tableName;
@@ -498,8 +508,8 @@ ActiveRecord = {
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };
-        model.modelName = model_name;
-        model.tableName = table_name;
+        model.modelName = options.modelName;
+        model.tableName = options.tableName;
         model.primaryKeyName = 'id';
         
         //mixin instance methods
@@ -556,7 +566,7 @@ ActiveRecord = {
         //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
         {
-            Migrations.Schema.createTable(table_name,ActiveSupport.clone(model.fields));
+            Migrations.Schema.createTable(options.tableName,ActiveSupport.clone(model.fields));
         }
         
         return model;

@@ -508,6 +508,13 @@ ActiveTest.Tests.ActiveRecord.date = function(proceed)
             }
             assert(saved_date == new_date,'created and updated persist via date field');
             
+            //make sure dates are preserved
+            var reload_test = ModelWithDates.find(a.id);
+            var old_created = reload_test.get('created');
+            reload_test.save();
+            reload_test.reload();
+            assert(reload_test.get('created').toString() == old_created.toString(),'created time is preserved on update');
+
             if(proceed)
                 proceed();
         }
