@@ -37,8 +37,12 @@ var Builder = {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
         }
-        var element = global_context.document.createElement(tag);
+        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         Builder.writeAttribute(element,attributes);
+        return element;
+    },
+    extendCreatedElement: function extendCreatedElement(element)
+    {
         return element;
     },
     writeAttribute: function writeAttribute(element,name,value)
