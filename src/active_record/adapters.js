@@ -94,6 +94,25 @@ ActiveRecord.execute = function execute()
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
 
+/**
+ * Escapes a given argument for use in a SQL string. By default
+ * the argument passed will also be enclosed in quotes.
+ * @alias ActiveRecord.escape
+ * @param {mixed} argument
+ * @param {Boolean} [supress_quotes] Defaults to false.
+ * @return {mixed}
+ * ActiveRecord.escape(5) == 5
+ * ActiveRecord.escape('tes"t') == '"tes\"t"';
+ */
+ActiveRecord.escape = function escape(argument,supress_quotes)
+{
+    var quote = supress_quotes ? '' : '"';
+    return typeof(argument) == 'number'
+        ? argument
+        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+    ;
+};
+
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {

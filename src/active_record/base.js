@@ -267,7 +267,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
      *          select: Array of columns to select (default ['*'])
-     *          where: String or Object
+     *          where: String or Object or Array
      *          joins: String
      *          order: String
      *          limit: Number
@@ -283,6 +283,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         where: {
      *             id: 5
      *         }
+     *     });
+     *     var user = User.find({
+     *         first: true,
+     *         where: ['id = ?',5]
      *     });
      *     var users = User.find(); //finds all
      *     var users = User.find({
