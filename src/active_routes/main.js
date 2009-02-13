@@ -142,7 +142,7 @@
  * accessible with the "history" property, and is traversable with the
  * next() and back() methods.
  */
-ActiveRoutes = function ActiveRoutes(routes,scope,options)
+ActiveRoutes = function initialize(routes,scope,options)
 {
     this.initialized = false;
     this.error = false;
@@ -166,7 +166,10 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     var i;
     for(i = 0; i < routes.length; ++i)
     {
-        this.addRoute.apply(this,routes[i]);
+        if(routes[i]) //fix for accidental trailing commas in IE arrays
+        {
+            this.addRoute.apply(this,routes[i]);
+        }
     }
     var current_route_set = this;
     this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){

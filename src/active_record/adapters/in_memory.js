@@ -490,19 +490,6 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,row,ar
 };
 Adapters.InMemory.MethodCallbacks = (function(){
     var methods = {};
-    
-    //BUG: currently only supports "id" column
-    methods['in'] = function _in(row){
-        for(var i = 1; i < arguments.length; ++i)
-        {
-            if(row.id == arguments[i])
-            {
-                return true;
-            }
-        }
-        return false;
-    };
-    
     var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
     for(var i = 0; i < math_methods.length; ++i)
     {

@@ -112,7 +112,6 @@ ActiveRoutes.prototype.match = function(path){
         var route_path_components = route.path.split('/');
         var route_path_length = route_path_components.length;
         var valid = true;
-        
         //length of path components must match, but must treat "/blog", "/blog/action", "/blog/action/id" the same
         if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*'){
             for(var ii = 0; ii < route_path_components.length; ++ii)
@@ -120,13 +119,13 @@ ActiveRoutes.prototype.match = function(path){
                 var path_component = path_components[ii];
                 var route_path_component = route_path_components[ii];
                 //catch all
-                if(route_path_component[0] == '*')
+                if(route_path_component.charAt(0) == '*')
                 {
                     route.params.path = path_components.slice(ii);
                     return this.checkAndCleanRoute(route,original_path); 
                 }
                 //named component
-                else if(route_path_component[0] == ':')
+                else if(route_path_component.charAt(0) == ':')
                 {
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&

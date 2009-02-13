@@ -25,6 +25,6 @@
  * 
  * ***** END LICENSE BLOCK ***** */
  
-ActiveRoutes = null;
+var ActiveRoutes = null;
 
 (function() {
