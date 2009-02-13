@@ -652,6 +652,18 @@ ActiveSupport = {
             }
         }
     },
+    /**
+     * Generates a JavaScript Date object from a MySQL DATETIME formatted
+     * string (yyyy-mm-dd HH:MM:ss).
+     * @alias ActiveSupport.dateFromDateTime
+     * @param {String} date_time
+     * @return {Date}
+     */
+    dateFromDateTime: function dateFromDateTime(date_time)
+    {
+        var parts = date_time.replace(/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/,"$1 $2 $3 $4 $5 $6").split(' ');
+        return new Date(parts[0],parts[1]-1,parts[2],parts[3],parts[4],parts[5]);
+    },
     /*
      * Date Format 1.2.2
      * (c) 2007-2008 Steven Levithan <stevenlevithan.com>
