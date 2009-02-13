@@ -144,9 +144,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Persists the object, creating or updating as nessecary. 
      * @alias ActiveRecord.Instance.save
+     * @param {Boolean} force_created_mode Defaults to false, will force the
+     *     record to act as if it was created even if an id property was passed.
      * @return {Boolean}
      */
-    save: function save()
+    save: function save(force_created_mode)
     {
         //callbacks/proxy not working
         if (!this._valid())
@@ -170,7 +172,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (!this.get(this.constructor.primaryKeyName))
+        if (force_created_mode || !this.get(this.constructor.primaryKeyName))
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -180,8 +182,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
+            var id = this.get(this.constructor.primaryKeyName);
             ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
-            this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
+            if(!id)
+            {
+                this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
+            }
             Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
@@ -422,7 +428,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     create: function create(data)
     {
         var record = this.build(data);
-        record.save();
+        record.save(true);
         return record;
     },
     /**

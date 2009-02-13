@@ -79,7 +79,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             data.id = max;
         }
         this.lastInsertId = data.id;
-        this.storage[table][max] = data;
+        this.storage[table][data.id] = data;
         this.notify('created',table,data.id,data);
         return true;
     },
