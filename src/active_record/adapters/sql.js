@@ -229,7 +229,7 @@ Adapters.SQL = {
     {
         if(value && value instanceof Date)
         {
-            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss',true);
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
         }
         if(Migrations.objectIsFieldDefinition(field))
         {
@@ -258,6 +258,11 @@ Adapters.SQL = {
     {
         if(Migrations.objectIsFieldDefinition(field))
         {
+            //date handling
+            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            {
+                return ActiveSupport.dateFromDateTime(value);
+            }
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
