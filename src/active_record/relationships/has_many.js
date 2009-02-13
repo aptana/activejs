@@ -106,7 +106,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             var id = this.get(this.constructor.primaryKeyName);
             if(!id)
             {
-                return [];
+                return this.constructor.resultSetFromArray([]);
             }
             if(!params)
             {
