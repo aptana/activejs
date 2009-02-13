@@ -47,8 +47,8 @@ ActiveTest.Tests.View.builder = function(proceed)
                             tr(
                                 td(
                                     ul(
-                                        li(),
-                                        li(span(b('test')))
+                                        li(span(b('test'))),
+                                        li()
                                     )
                                 ),
                                 td(
@@ -70,8 +70,8 @@ ActiveTest.Tests.View.builder = function(proceed)
         });
         var deep_instance = new DeepView();
         var arguments_instance = new ArgumentsTestView();
-
         assert(arguments_instance.container.firstChild.firstChild.nodeValue == 'one' && arguments_instance.container.firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
+        assert(deep_instance.container.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.nodeValue == 'test','deep builder node test');
         
         if(proceed)
             proceed()

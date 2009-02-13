@@ -64,6 +64,9 @@ ActiveTest.Tests.ActiveRecord.date = function(proceed)
             var old_created = reload_test.get('created');
             reload_test.save();
             reload_test.reload();
+            reload_test.save();
+            reload_test.reload();
+            ActiveSupport.dateFormat(reload_test.get('updated'),'yyyy-mm-dd HH:MM:ss');
             assert(reload_test.get('created').toString() == old_created.toString(),'created time is preserved on update');
 
             if(proceed)
