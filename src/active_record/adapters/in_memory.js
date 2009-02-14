@@ -79,7 +79,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             data.id = max;
         }
         this.lastInsertId = data.id;
-        this.storage[table][max] = data;
+        this.storage[table][data.id] = data;
         this.notify('created',table,data.id,data);
         return true;
     },
@@ -187,10 +187,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             var sql_args = ActiveSupport.arrayFrom(arguments).slice(1);
             for(var i = 0; i < sql_args.length; ++i)
             {
-                sql = sql.replace(/\?/,typeof(sql_args[i]) == 'number'
-                    ? sql_args[i]
-                    : '"' + (new String(sql_args[i])).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + '"'
-                );
+                sql = sql.replace(/\?/,ActiveRecord.escape(sql_args[i]));
             }
             var response = this.paramsFromSQLString(sql);
             table = response[0];
@@ -318,8 +315,18 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         }
     },
     createWhere: function createWhere(where)
-    {
-        if(typeof(where) === 'string'){
+    {   
+        if(ActiveSupport.isArray(where))
+        {
+            var where_fragment = where[0];
+            for(var i = 1; i < where.length; ++i)
+            {
+                where_fragment = where_fragment.replace(/\?/,ActiveRecord.escape(where[i]));
+            }
+            where = where_fragment;
+        }
+        if(typeof(where) === 'string')
+        {
             return function json_result_where_processor(result_set)
             {
                 var response = [];
@@ -334,7 +341,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 }
                 return response;
             };
-        }else{
+        }
+        else
+        {
             return function json_result_where_processor(result_set)
             {
                 var response = [];

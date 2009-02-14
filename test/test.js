@@ -497,20 +497,19 @@ ActiveTest.Tests.ActiveRecord.date = function(proceed)
             var a = ModelWithDates.create({
                 name: 'a'
             });
-            assert(a.get('created').match(/^\d{4}/) && a.get('updated').match(/^\d{4}/),'created and updated set via date field');
+            assert(ActiveSupport.dateFormat(a.get('created'),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/) && ActiveSupport.dateFormat(a.get('updated'),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/),'created and updated set via date field');
             var old_date = a.get('updated');
             a.set('updated','');
             a.save();
             var new_date = a.get('updated');
             var saved_date = ModelWithDates.find(a.id).get('updated');
-            if(saved_date instanceof Date){
-                saved_date = ActiveSupport.dateFormat(saved_date,'yyyy-mm-dd HH:MM:ss',true);
-            }
-            assert(saved_date == new_date,'created and updated persist via date field');
+            assert(saved_date.toString() == new_date.toString(),'created and updated persist via date field');
             
             //make sure dates are preserved
             var reload_test = ModelWithDates.find(a.id);
             var old_created = reload_test.get('created');
+            reload_test.save();
+            reload_test.reload();
             reload_test.save();
             reload_test.reload();
             assert(reload_test.get('created').toString() == old_created.toString(),'created time is preserved on update');
@@ -562,6 +561,11 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             }).title == 'b','find({first: true, where: string})');
             b = Comment.find('SELECT * FROM comments WHERE title = ? LIMIT 1','b');
             assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion)');
+            b = Comment.find({
+              where: ['title = ?','b'],
+              limit: 1
+            });
+            assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion via find)');            
             
             assert(Comment.find().length == 3 && Comment.find({all: true}).length == 3,'find({all: true})');
 
@@ -1414,7 +1418,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         var routes_without_params = new ActiveRoutes([
             ['index','/home',{object: 'page',method: 'index'}],
             ['contact','pages/contact',{object: 'page', method: 'index'}],
-            ['/pages/about/',{object: 'page',method: 'about'}],
+            ['/pages/about/',{object: 'page',method: 'about'}]
         ],test_scope);
         
         assert(routes_without_params.match('/home').name == 'index','match() /home');
@@ -1434,7 +1438,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         //test index handling
         var routes_without_params = new ActiveRoutes([
             ['index','pages',{object: 'page',method: 'index'}],
-            ['contact','pages/contact',{object: 'page', method: 'index'}],
+            ['contact','pages/contact',{object: 'page', method: 'index'}]
         ],test_scope);
         
         assert(routes_without_params.match('pages').name == 'index','index match() pages');
@@ -1444,7 +1448,7 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         
         var routes_without_params = new ActiveRoutes([
             ['index','pages/index',{object: 'page',method: 'index'}],
-            ['contact','pages/contact',{object: 'page', method: 'index'}],
+            ['contact','pages/contact',{object: 'page', method: 'index'}]
         ],test_scope);
         
         assert(routes_without_params.match('pages').name == 'index','index match() pages');
@@ -1456,7 +1460,6 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         var routes = new ActiveRoutes(test_valid_route_set,test_scope);
             
         var match;
-        
         match = routes.match('/blog/post/5');
         assert(match.name == 'post' && match.params.id == 5 && match.params.method == 'post','complex match() /blog/post/5');
         
@@ -1656,8 +1659,8 @@ ActiveTest.Tests.View.builder = function(proceed)
                             tr(
                                 td(
                                     ul(
-                                        li(),
-                                        li(span(b('test')))
+                                        li(span(b('test'))),
+                                        li()
                                     )
                                 ),
                                 td(
@@ -1679,8 +1682,8 @@ ActiveTest.Tests.View.builder = function(proceed)
         });
         var deep_instance = new DeepView();
         var arguments_instance = new ArgumentsTestView();
-
         assert(arguments_instance.container.firstChild.firstChild.nodeValue == 'one' && arguments_instance.container.firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
+        assert(deep_instance.container.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.nodeValue == 'test','deep builder node test');
         
         if(proceed)
             proceed()

@@ -170,7 +170,15 @@ Adapters.SQL = {
     buildWhereSQLFragment: function buildWhereSQLFragment(fragment, args)
     {
         var where, keys, i;
-        if(fragment && typeof(fragment) !== "string")
+        if(fragment && ActiveSupport.isArray(fragment))
+        {
+            for(i = 1; i < fragment.length; ++i)
+            {
+                args.push(fragment[i]);
+            }
+            return ' WHERE ' + fragment[0];
+        }
+        else if(fragment && typeof(fragment) !== "string")
         {
             where = '';
             keys = ActiveSupport.keys(fragment);

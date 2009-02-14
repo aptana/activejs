@@ -95,7 +95,20 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             var count = Comment.count();
             c.destroy();
             assert(!c.reload() && count - 1 == Comment.count(),'destroy()');
-
+            
+            //create with an id preserves id and still acts as "created"
+            var called = false;
+            Comment.observeOnce('afterCreate',function(){
+                called = true;
+            });
+            var d = Comment.create({
+                id: 50,
+                title: 'd',
+                body: 'dd'
+            });
+            d.reload();
+            assert(d.id == 50 && called,'create with an id preserves id and still acts as "created"');
+            
             Comment.destroy('all');
             assert(Comment.count() == 0,'destroy("all")');
             

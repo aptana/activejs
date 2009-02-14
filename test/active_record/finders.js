@@ -66,6 +66,11 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             }).title == 'b','find({first: true, where: string})');
             b = Comment.find('SELECT * FROM comments WHERE title = ? LIMIT 1','b');
             assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion)');
+            b = Comment.find({
+              where: ['title = ?','b'],
+              limit: 1
+            });
+            assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion via find)');            
             
             assert(Comment.find().length == 3 && Comment.find({all: true}).length == 3,'find({all: true})');
 
