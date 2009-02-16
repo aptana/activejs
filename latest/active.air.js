@@ -212,28 +212,24 @@ ActiveSupport = {
         return response;
     },
     /**
-     * Emulates Prototype's Function.prototype.bind
+     * Emulates Prototype's Function.prototype.bind. Unlike Prototype's
+     * version you must explicitly use curry() to pass extra arguments
+     * to the bound function.
      * @alias ActiveSupport.bind
      * @param {Function} func
      * @param {Object} object
      *      object will be in scope as "this" when func is called.
      * @return {Function}
      */
-    bind: function bind(func, object)
+    bind: function bind(func,object)
     {
-        func.bind = function bind()
+        if(typeof(object) == 'undefined')
         {
-            if (arguments.length < 2 && typeof(arguments[0]) === "undefined")
-            {
-                return this;
-            }
-            var __method = this;
-            var args = ActiveSupport.arrayFrom(arguments);
-            var object = args.shift();
-            return function bound()
-            {
-                return __method.apply(object, args.concat(ActiveSupport.arrayFrom(arguments)));
-            };
+            return func;
+        }
+        return function bound()
+        {
+            func.apply(object,arguments);
         };
         return func.bind(object);
     },
@@ -245,20 +241,15 @@ ActiveSupport = {
      */
     curry: function curry(func)
     {
-        func.curry = function curry()
+        if(arguments.length == 1)
         {
-            if (!arguments.length)
-            {
-                return this;
-            }
-            var __method = this;
-            var args = ActiveSupport.arrayFrom(arguments);
-            return function curried()
-            {
-                return __method.apply(this, args.concat(ActiveSupport.arrayFrom(arguments)));
-            };
+            return func;
+        }
+        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        return function curried()
+        {
+            return func.apply(this,args.concat(ActiveSupport.arrayFrom(arguments)));
         };
-        return func.curry.apply(func, ActiveSupport.arrayFrom(arguments).slice(1));
     },
     /**
      * Returns a function wrapped around the original function.
@@ -281,13 +272,10 @@ ActiveSupport = {
      */
     wrap: function wrap(func,wrapper)
     {
-        func.wrap = function wrap(wrapper){
-            var __method = this;
-            return function wrapped(){
-                return wrapper.apply(this,[ActiveSupport.bind(__method,this)].concat(ActiveSupport.arrayFrom(arguments)));
-            };
+        return function wrapped()
+        {
+            wrapper.apply(this,[ActiveSupport.bind(func,this)].concat(ActiveSupport.arrayFrom(arguments)));
         };
-        return func.wrap(wrapper);
     },
     /**
      * Returns an array of keys from an object.
@@ -297,12 +285,12 @@ ActiveSupport = {
      */
     keys: function keys(object)
     {
-        var keysArray = [];
-        for (var property in object)
+        var keys_array = [];
+        for (var property_name in object)
         {
-            keysArray.push(property);
+            keys_array.push(property_name);
         }
-        return keysArray;
+        return keys_array;
     },
     /**
      * Emulates Prototype's String.prototype.underscore
@@ -411,33 +399,6 @@ ActiveSupport = {
     {
         return typeof(value) === 'function' ? value() : value;
     },
-    
-    /**
-     * If it is the last argument of current function is a function, it will be
-     * returned. You can optionally specify the number of calls in the stack to
-     * look up.
-     * @alias ActiveSupport.block
-     * @param {Number} [levels]
-     * @return {mixed}
-     */
-    block: function block(args)
-    {
-        if(typeof(args) === 'number' || !args)
-        {
-            var up = arguments.callee;
-            for(var i = 0; i <= (args || 0); ++i)
-            {
-                up = up.caller;
-                if(!up)
-                {
-                    return false;
-                }
-            }
-            args = up.arguments;
-        }
-        return (args.length === 0 || typeof(args[args.length - 1]) !== 'function') ? false : args[args.length - 1];
-    },
-    
     /**
      * @alias ActiveSupport.synchronize
      */
@@ -648,6 +609,18 @@ ActiveSupport = {
                 }
             }
         }
+    },
+    /**
+     * Generates a JavaScript Date object from a MySQL DATETIME formatted
+     * string (yyyy-mm-dd HH:MM:ss).
+     * @alias ActiveSupport.dateFromDateTime
+     * @param {String} date_time
+     * @return {Date}
+     */
+    dateFromDateTime: function dateFromDateTime(date_time)
+    {
+        var parts = date_time.replace(/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/,"$1 $2 $3 $4 $5 $6").split(' ');
+        return new Date(parts[0],parts[1]-1,parts[2],parts[3],parts[4],parts[5]);
     },
     /*
      * Date Format 1.2.2
@@ -1542,15 +1515,20 @@ ActiveEvent.extend = function extend(object){
                 return [];
             }
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var collected_return_values = [];
             if(object.notify)
             {
                 object_args = ActiveSupport.arrayFrom(arguments).slice(1);
                 object_args.unshift(this);
                 object_args.unshift(event_name);
-                object.notify.apply(object,object_args);
+                var collected_return_values_from_object = object.notify.apply(object,object_args);
+                if(collected_return_values_from_object === false)
+                {
+                    return false;
+                }
+                collected_return_values = collected_return_values.concat(collected_return_values_from_object);
             }
             this._objectEventSetup(event_name);
-            var collected_return_values = [];
             var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
             {
@@ -1644,7 +1622,7 @@ ActiveEvent.ObservableHash = ObservableHash;
 
 })();
  
-ActiveRoutes = null;
+var ActiveRoutes = null;
 
 (function() {
  
@@ -1765,7 +1743,7 @@ ActiveRoutes = null;
  * accessible with the "history" property, and is traversable with the
  * next() and back() methods.
  */
-ActiveRoutes = function ActiveRoutes(routes,scope,options)
+ActiveRoutes = function initialize(routes,scope,options)
 {
     this.initialized = false;
     this.error = false;
@@ -1789,7 +1767,10 @@ ActiveRoutes = function ActiveRoutes(routes,scope,options)
     var i;
     for(i = 0; i < routes.length; ++i)
     {
-        this.addRoute.apply(this,routes[i]);
+        if(routes[i]) //fix for accidental trailing commas in IE arrays
+        {
+            this.addRoute.apply(this,routes[i]);
+        }
     }
     var current_route_set = this;
     this.scope[this.options.camelizeGeneratedMethods ? 'urlFor' : 'url_for'] = function generatedUrlFor(){
@@ -2045,7 +2026,6 @@ ActiveRoutes.prototype.match = function(path){
         var route_path_components = route.path.split('/');
         var route_path_length = route_path_components.length;
         var valid = true;
-        
         //length of path components must match, but must treat "/blog", "/blog/action", "/blog/action/id" the same
         if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*'){
             for(var ii = 0; ii < route_path_components.length; ++ii)
@@ -2053,13 +2033,13 @@ ActiveRoutes.prototype.match = function(path){
                 var path_component = path_components[ii];
                 var route_path_component = route_path_components[ii];
                 //catch all
-                if(route_path_component[0] == '*')
+                if(route_path_component.charAt(0) == '*')
                 {
                     route.params.path = path_components.slice(ii);
                     return this.checkAndCleanRoute(route,original_path); 
                 }
                 //named component
-                else if(route_path_component[0] == ':')
+                else if(route_path_component.charAt(0) == ':')
                 {
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
@@ -2217,7 +2197,7 @@ ActiveRoutes.prototype.cleanPath = function cleanPath(path,params,only_path)
         path = path.replace(/\/?\:method/,'');
     }
     path = path.replace(/\/?index$/,'');
-    if(path[0] != '/')
+    if(path.charAt(0) != '/')
     {
         path = '/' + path;
     }
@@ -2236,7 +2216,7 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
                 {
                     continue;
                 }
-                else if(!route.params.requirements[p]((new String(params[p]).toString())))
+                else if(!route.params.requirements[p].exec((new String(params[p]).toString())))
                 {
                     continue;
                 }
@@ -3169,9 +3149,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Persists the object, creating or updating as nessecary. 
      * @alias ActiveRecord.Instance.save
+     * @param {Boolean} force_created_mode Defaults to false, will force the
+     *     record to act as if it was created even if an id property was passed.
      * @return {Boolean}
      */
-    save: function save()
+    save: function save(force_created_mode)
     {
         //callbacks/proxy not working
         if (!this._valid())
@@ -3195,7 +3177,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (!this.get(this.constructor.primaryKeyName))
+        if (force_created_mode || !this.get(this.constructor.primaryKeyName))
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -3205,8 +3187,12 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
+            var id = this.get(this.constructor.primaryKeyName);
             ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
-            this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
+            if(!id)
+            {
+                this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
+            }
             Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
@@ -3292,7 +3278,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * @param {mixed} params
      *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
      *          select: Array of columns to select (default ['*'])
-     *          where: String or Object
+     *          where: String or Object or Array
      *          joins: String
      *          order: String
      *          limit: Number
@@ -3308,6 +3294,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         where: {
      *             id: 5
      *         }
+     *     });
+     *     var user = User.find({
+     *         first: true,
+     *         where: ['id = ?',5]
      *     });
      *     var users = User.find(); //finds all
      *     var users = User.find({
@@ -3443,7 +3433,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     create: function create(data)
     {
         var record = this.build(data);
-        record.save();
+        record.save(true);
         return record;
     },
     /**
@@ -3733,6 +3723,25 @@ ActiveRecord.execute = function execute()
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
 
+/**
+ * Escapes a given argument for use in a SQL string. By default
+ * the argument passed will also be enclosed in quotes.
+ * @alias ActiveRecord.escape
+ * @param {mixed} argument
+ * @param {Boolean} [supress_quotes] Defaults to false.
+ * @return {mixed}
+ * ActiveRecord.escape(5) == 5
+ * ActiveRecord.escape('tes"t') == '"tes\"t"';
+ */
+ActiveRecord.escape = function escape(argument,supress_quotes)
+{
+    var quote = supress_quotes ? '' : '"';
+    return typeof(argument) == 'number'
+        ? argument
+        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+    ;
+};
+
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
@@ -3930,7 +3939,15 @@ Adapters.SQL = {
     buildWhereSQLFragment: function buildWhereSQLFragment(fragment, args)
     {
         var where, keys, i;
-        if(fragment && typeof(fragment) !== "string")
+        if(fragment && ActiveSupport.isArray(fragment))
+        {
+            for(i = 1; i < fragment.length; ++i)
+            {
+                args.push(fragment[i]);
+            }
+            return ' WHERE ' + fragment[0];
+        }
+        else if(fragment && typeof(fragment) !== "string")
         {
             where = '';
             keys = ActiveSupport.keys(fragment);
@@ -3989,7 +4006,7 @@ Adapters.SQL = {
     {
         if(value && value instanceof Date)
         {
-            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss',true);
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
         }
         if(Migrations.objectIsFieldDefinition(field))
         {
@@ -4018,6 +4035,11 @@ Adapters.SQL = {
     {
         if(Migrations.objectIsFieldDefinition(field))
         {
+            //date handling
+            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            {
+                return ActiveSupport.dateFromDateTime(value);
+            }
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
@@ -4144,7 +4166,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             data.id = max;
         }
         this.lastInsertId = data.id;
-        this.storage[table][max] = data;
+        this.storage[table][data.id] = data;
         this.notify('created',table,data.id,data);
         return true;
     },
@@ -4252,10 +4274,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             var sql_args = ActiveSupport.arrayFrom(arguments).slice(1);
             for(var i = 0; i < sql_args.length; ++i)
             {
-                sql = sql.replace(/\?/,typeof(sql_args[i]) == 'number'
-                    ? sql_args[i]
-                    : '"' + (new String(sql_args[i])).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + '"'
-                );
+                sql = sql.replace(/\?/,ActiveRecord.escape(sql_args[i]));
             }
             var response = this.paramsFromSQLString(sql);
             table = response[0];
@@ -4383,8 +4402,18 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         }
     },
     createWhere: function createWhere(where)
-    {
-        if(typeof(where) === 'string'){
+    {   
+        if(ActiveSupport.isArray(where))
+        {
+            var where_fragment = where[0];
+            for(var i = 1; i < where.length; ++i)
+            {
+                where_fragment = where_fragment.replace(/\?/,ActiveRecord.escape(where[i]));
+            }
+            where = where_fragment;
+        }
+        if(typeof(where) === 'string')
+        {
             return function json_result_where_processor(result_set)
             {
                 var response = [];
@@ -4399,7 +4428,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                 }
                 return response;
             };
-        }else{
+        }
+        else
+        {
             return function json_result_where_processor(result_set)
             {
                 var response = [];
@@ -4518,6 +4549,10 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     fieldIn: function fieldIn(field, value)
     {
+        if(value && value instanceof Date)
+        {
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
+        }
         if(Migrations.objectIsFieldDefinition(field))
         {
             field = this.getDefaultValueFromFieldDefinition(field);
@@ -4529,6 +4564,11 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         if(Migrations.objectIsFieldDefinition(field))
         {
+            //date handling
+            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            {
+                return ActiveSupport.dateFromDateTime(value);
+            }
             field = this.getDefaultValueFromFieldDefinition(field);
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
@@ -4555,19 +4595,6 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,row,ar
 };
 Adapters.InMemory.MethodCallbacks = (function(){
     var methods = {};
-    
-    //BUG: currently only supports "id" column
-    methods['in'] = function _in(row){
-        for(var i = 1; i < arguments.length; ++i)
-        {
-            if(row.id == arguments[i])
-            {
-                return true;
-            }
-        }
-        return false;
-    };
-    
     var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
     for(var i = 0; i < math_methods.length; ++i)
     {
@@ -4621,7 +4648,7 @@ Adapters.Auto.connect = function connect()
 //var WhereLexer;
 var WhereParser;
 
-(function() {
+//(function() {
 
 // token types
 var $c$ = 0,
@@ -4633,6 +4660,7 @@ var $c$ = 0,
     GREATER_THAN       = $c$++,
     GREATER_THAN_EQUAL = $c$++,
     IDENTIFIER         = $c$++,
+    IN                 = $c$++,
     LESS_THAN          = $c$++,
     LESS_THAN_EQUAL    = $c$++,
     LPAREN             = $c$++,
@@ -4653,6 +4681,7 @@ TypeMap[FALSE]              = "FALSE";
 TypeMap[GREATER_THAN]       = "GREATER_THAN";
 TypeMap[GREATER_THAN_EQUAL] = "GREATER_THAN_EQUAL";
 TypeMap[IDENTIFIER]         = "IDENTIFIER";
+TypeMap[IN]                 = "IN";
 TypeMap[LESS_THAN]          = "LESS_THAN";
 TypeMap[LESS_THAN_EQUAL]    = "LESS_THAN_EQUAL";
 TypeMap[LPAREN]             = "LPAREN";
@@ -4681,6 +4710,7 @@ var OperatorMap = {
 var KeywordMap = {
     "and":   AND,
     "false": FALSE,
+    "in":    IN,
     "or":    OR,
     "true":  TRUE
 };
@@ -4689,7 +4719,7 @@ var KeywordMap = {
 var WHITESPACE_PATTERN = /^\s+/;
 var IDENTIFIER_PATTERN = /^[a-zA-Z][a-zA-Z]*/;
 var OPERATOR_PATTERN   = /^(?:&&|\|\||<=|<|=|!=|>=|>|,|\(|\))/i;
-var KEYWORD_PATTERN    = /^(true|or|false|and)\b/i;
+var KEYWORD_PATTERN    = /^(true|or|in|false|and)\b/i;
 var STRING_PATTERN     = /^(?:'(\\.|[^'])*'|"(\\.|[^"])*")/;
 var NUMBER_PATTERN     = /^[1-9][0-9]*/;
 
@@ -4698,7 +4728,7 @@ var currentLexeme;
 
 // *** Lexeme class ***
 
-/**
+/*
  * Lexeme
  * 
  * @param {Number} type
@@ -4711,7 +4741,7 @@ function Lexeme(type, text)
     this.text = text;
 }
 
-/**
+/*
  * toString
  * 
  * @return {String}
@@ -4730,7 +4760,7 @@ Lexeme.prototype.toString = function toString()
 
 // *** Lexer class ***
 
-/**
+/*
  * WhereLexer
  */
 function WhereLexer()
@@ -4739,7 +4769,7 @@ function WhereLexer()
     this.setSource(null);
 }
 
-/**
+/*
  * setSource
  * 
  * @param {String} source
@@ -4753,7 +4783,7 @@ WhereLexer.prototype.setSource = function setSource(source)
     currentLexeme = null;
 };
 
-/**
+/*
  * advance
  */
 WhereLexer.prototype.advance = function advance()
@@ -4833,8 +4863,8 @@ WhereLexer.prototype.advance = function advance()
 
 // Binary operator node
 
-/**
- * IdentifierNode
+/*
+ * BinaryOperatorNode
  * 
  * @param {Node} identifier
  * @param {Number} identifier
@@ -4847,7 +4877,7 @@ function BinaryOperatorNode(lhs, operator, rhs)
     this.rhs = rhs;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -4857,44 +4887,65 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 {
     var result = null;
     var lhs = this.lhs.execute(row, functionProvider);
-    var rhs = this.rhs.execute(row, functionProvider);
-    
-    switch (this.operator)
+
+    if (this.operator == IN)
     {
-        case EQUAL:
-            result = (lhs === rhs);
-            break;
-            
-        case NOT_EQUAL:
-            result = (lhs !== rhs);
-            break;
-            
-        case LESS_THAN:
-            result = (lhs < rhs);
-            break;
-            
-        case LESS_THAN_EQUAL:
-            result = (lhs <= rhs);
-            break;
-            
-        case GREATER_THAN:
-            result = (lhs > rhs);
-            break;
-            
-        case GREATER_THAN_EQUAL:
-            result = (lhs >= rhs);
-            break;
-            
-        case AND:
-            result = (lhs && rhs);
-            break;
-            
-        case OR:
-            result = (lhs || rhs);
-            break;
-            
-        default:
-            return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+        // assume failure
+        result = false;
+
+        // see if the lhs value is in the rhs list
+        for (var i = 0; i < this.rhs.length; i++)
+        {
+            var rhs = this.rhs[i].execute(row, functionProvider);
+
+            if (lhs == rhs)
+            {
+                result = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        var rhs = this.rhs.execute(row, functionProvider);
+        
+        switch (this.operator)
+        {
+            case EQUAL:
+                result = (lhs === rhs);
+                break;
+                
+            case NOT_EQUAL:
+                result = (lhs !== rhs);
+                break;
+                
+            case LESS_THAN:
+                result = (lhs < rhs);
+                break;
+                
+            case LESS_THAN_EQUAL:
+                result = (lhs <= rhs);
+                break;
+                
+            case GREATER_THAN:
+                result = (lhs > rhs);
+                break;
+                
+            case GREATER_THAN_EQUAL:
+                result = (lhs >= rhs);
+                break;
+                
+            case AND:
+                result = (lhs && rhs);
+                break;
+                
+            case OR:
+                result = (lhs || rhs);
+                break;
+                
+            default:
+                return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+        }
     }
     
     return result;
@@ -4902,7 +4953,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 
 // Identifer node
 
-/**
+/*
  * Parser.IdentifierNode
  * 
  * @param {Object} identifier
@@ -4912,7 +4963,7 @@ function IdentifierNode(identifier)
     this.identifier = identifier;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -4925,7 +4976,7 @@ IdentifierNode.prototype.execute = function execute(row, functionProvider)
 
 // Function node
 
-/**
+/*
  * FunctionNode
  * 
  * @param {String} name
@@ -4937,7 +4988,7 @@ function FunctionNode(name, args)
     this.args = args;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -4959,7 +5010,7 @@ FunctionNode.prototype.execute = function execute(row, functionProvider)
 
 // Scalar node
 
-/**
+/*
  * Parser.ScalarNode
  */
 function ScalarNode(value)
@@ -4967,7 +5018,7 @@ function ScalarNode(value)
     this.value = value;
 }
 
-/**
+/*
  * execute
  * 
  * @param {Object} row
@@ -4981,7 +5032,7 @@ ScalarNode.prototype.execute = function execute(row, functionProvider)
 
 // Parser class
 
-/**
+/*
  * WhereParser
  */
 WhereParser = function WhereParser()
@@ -4989,7 +5040,7 @@ WhereParser = function WhereParser()
     this._lexer = new WhereLexer();
 };
 
-/**
+/*
  * parse
  * 
  * @param {String} source
@@ -5019,17 +5070,71 @@ WhereParser.prototype.parse = function parse(source)
             case NUMBER:
             case STRING:
             case TRUE:
-                result = this.parseOrExpression();
+                result = this.parseInExpression();
                 break;
 
             default:
+                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
                 return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
     return result;
 };
 
-/**
+/*
+ * parseWhereExpression
+ */
+WhereParser.prototype.parseInExpression = function parseInExpression()
+{
+    var result = this.parseOrExpression();
+
+    while (currentLexeme !== null && currentLexeme.type === IN) 
+    {
+        // advance over 'in'
+        this._lexer.advance();
+
+        var rhs = [];
+
+        if (currentLexeme !== null && currentLexeme.type === LPAREN)
+        {
+            // advance over '('
+            this._lexer.advance();
+
+            while (currentLexeme !== null)
+            {
+                rhs.push(this.parseOrExpression());
+
+                if (currentLexeme !== null && currentLexeme.type === COMMA)
+                {
+                    this._lexer.advance();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (currentLexeme !== null && currentLexeme.type === RPAREN)
+            {
+                this._lexer.advance();
+
+                result = new BinaryOperatorNode(result, IN, rhs);
+            }
+            else
+            {
+                return ActiveSupport.throwError(new Error("'in' list did not end with a right parenthesis." + currentLexeme));
+            }
+        }
+        else
+        {
+            return ActiveSupport.throwError(new Error("'in' list did not start with a left parenthesis"));
+        }
+    }
+
+    return result;
+};
+
+/*
  * parseOrExpression
  */
 WhereParser.prototype.parseOrExpression = function parseOrExpression()
@@ -5049,7 +5154,7 @@ WhereParser.prototype.parseOrExpression = function parseOrExpression()
     return result;
 };
 
-/**
+/*
  * parseAndExpression
  */
 WhereParser.prototype.parseAndExpression = function parseAndExpression()
@@ -5069,7 +5174,7 @@ WhereParser.prototype.parseAndExpression = function parseAndExpression()
     return result;
 };
 
-/**
+/*
  * parseEqualityExpression
  */
 WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression()
@@ -5097,7 +5202,7 @@ WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression
     return result;
 };
 
-/**
+/*
  * parseRelationalExpression
  */
 WhereParser.prototype.parseRelationalExpression = function()
@@ -5127,7 +5232,7 @@ WhereParser.prototype.parseRelationalExpression = function()
     return result;
 };
 
-/**
+/*
  * parseMemberExpression
  */
 WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
@@ -5229,7 +5334,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 };
 
 
-})();
+//})();
 
 //ActiveRecord.WhereLexer = WhereLexer;
 ActiveRecord.WhereParser = WhereParser;
@@ -5520,6 +5625,11 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
         }, related_model_name, foreign_key);
 
         instance_methods['get' + relationship_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!id)
+            {
+                return this.constructor.resultSetFromArray([]);
+            }
             if(!params)
             {
                 params = {};
@@ -5536,12 +5646,17 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
+            params.where[foreign_key] = id;
             params.all = true;
             return ActiveRecord.Models[related_model_name].find(params);
         }, related_model_name, foreign_key);
 
         instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!id)
+            {
+                return 0;
+            }
             if(!params)
             {
                 params = {};
@@ -5550,25 +5665,27 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params.where = {};
             }
-            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
+            params.where[foreign_key] = id;
             return ActiveRecord.Models[related_model_name].count(params);
         }, related_model_name, foreign_key);
 
         instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
             if(!params)
             {
                 params = {};
             }
-            params[foreign_key] = this.get(this.constructor.primaryKeyName);
+            params[foreign_key] = id;
             return ActiveRecord.Models[related_model_name].build(params);
         }, related_model_name, foreign_key);
 
         instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
             if(!params)
             {
                 params = {};
             }
-            params[foreign_key] = this.get(this.constructor.primaryKeyName);
+            params[foreign_key] = id;
             return ActiveRecord.Models[related_model_name].create(params);
         }, related_model_name, foreign_key);
     }
@@ -6562,8 +6679,12 @@ var Builder = {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
         }
-        var element = global_context.document.createElement(tag);
+        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         Builder.writeAttribute(element,attributes);
+        return element;
+    },
+    extendCreatedElement: function extendCreatedElement(element)
+    {
         return element;
     },
     writeAttribute: function writeAttribute(element,name,value)
@@ -6969,6 +7090,10 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
 ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
+        if(arguments[0] && typeof(arguments[0]) == 'object')
+        {
+            this.params = arguments[0];
+        }
         this.notify('beforeCall',action_name,this.params);
         this.renderLayout();
         ActiveSupport.bind(action,this)();
