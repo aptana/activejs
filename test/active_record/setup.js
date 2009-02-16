@@ -53,7 +53,8 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS categorizations');
         ActiveRecord.execute('DROP TABLE IF EXISTS field_type_testers');
         ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
-        
+        ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
+
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
         {
@@ -171,6 +172,16 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         
         SingularTableName = ActiveRecord.create('singular_table_name',{
             string_field: ''
+        });
+        
+        Custom = ActiveRecord.create({
+            tableName: 'custom_table',
+            modelName: 'Orange'
+        },{
+            custom_id: {
+                primaryKey: true
+            },
+            name: ''
         });
         
         if(proceed)
