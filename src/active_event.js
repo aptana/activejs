@@ -361,15 +361,20 @@ ActiveEvent.extend = function extend(object){
                 return [];
             }
             var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var collected_return_values = [];
             if(object.notify)
             {
                 object_args = ActiveSupport.arrayFrom(arguments).slice(1);
                 object_args.unshift(this);
                 object_args.unshift(event_name);
-                object.notify.apply(object,object_args);
+                var collected_return_values_from_object = object.notify.apply(object,object_args);
+                if(collected_return_values_from_object === false)
+                {
+                    return false;
+                }
+                collected_return_values = collected_return_values.concat(collected_return_values_from_object);
             }
             this._objectEventSetup(event_name);
-            var collected_return_values = [];
             var response;
             if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
             {
