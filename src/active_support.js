@@ -212,28 +212,24 @@ ActiveSupport = {
         return response;
     },
     /**
-     * Emulates Prototype's Function.prototype.bind
+     * Emulates Prototype's Function.prototype.bind. Unlike Prototype's
+     * version you must explicitly use curry() to pass extra arguments
+     * to the bound function.
      * @alias ActiveSupport.bind
      * @param {Function} func
      * @param {Object} object
      *      object will be in scope as "this" when func is called.
      * @return {Function}
      */
-    bind: function bind(func, object)
+    bind: function bind(func,object)
     {
-        func.bind = function bind()
+        if(typeof(object) == 'undefined')
         {
-            if (arguments.length < 2 && typeof(arguments[0]) === "undefined")
-            {
-                return this;
-            }
-            var __method = this;
-            var args = ActiveSupport.arrayFrom(arguments);
-            var object = args.shift();
-            return function bound()
-            {
-                return __method.apply(object, args.concat(ActiveSupport.arrayFrom(arguments)));
-            };
+            return func;
+        }
+        return function bound()
+        {
+            func.apply(object,arguments);
         };
         return func.bind(object);
     },
@@ -245,20 +241,15 @@ ActiveSupport = {
      */
     curry: function curry(func)
     {
-        func.curry = function curry()
+        if(arguments.length == 1)
         {
-            if (!arguments.length)
-            {
-                return this;
-            }
-            var __method = this;
-            var args = ActiveSupport.arrayFrom(arguments);
-            return function curried()
-            {
-                return __method.apply(this, args.concat(ActiveSupport.arrayFrom(arguments)));
-            };
+            return func;
+        }
+        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        return function curried()
+        {
+            return func.apply(this,args.concat(ActiveSupport.arrayFrom(arguments)));
         };
-        return func.curry.apply(func, ActiveSupport.arrayFrom(arguments).slice(1));
     },
     /**
      * Returns a function wrapped around the original function.
@@ -281,13 +272,10 @@ ActiveSupport = {
      */
     wrap: function wrap(func,wrapper)
     {
-        func.wrap = function wrap(wrapper){
-            var __method = this;
-            return function wrapped(){
-                return wrapper.apply(this,[ActiveSupport.bind(__method,this)].concat(ActiveSupport.arrayFrom(arguments)));
-            };
+        return function wrapped()
+        {
+            wrapper.apply(this,[ActiveSupport.bind(func,this)].concat(ActiveSupport.arrayFrom(arguments)));
         };
-        return func.wrap(wrapper);
     },
     /**
      * Returns an array of keys from an object.
@@ -297,12 +285,12 @@ ActiveSupport = {
      */
     keys: function keys(object)
     {
-        var keysArray = [];
-        for (var property in object)
+        var keys_array = [];
+        for (var property_name in object)
         {
-            keysArray.push(property);
+            keys_array.push(property_name);
         }
-        return keysArray;
+        return keys_array;
     },
     /**
      * Emulates Prototype's String.prototype.underscore
@@ -411,33 +399,6 @@ ActiveSupport = {
     {
         return typeof(value) === 'function' ? value() : value;
     },
-    
-    /**
-     * If it is the last argument of current function is a function, it will be
-     * returned. You can optionally specify the number of calls in the stack to
-     * look up.
-     * @alias ActiveSupport.block
-     * @param {Number} [levels]
-     * @return {mixed}
-     */
-    block: function block(args)
-    {
-        if(typeof(args) === 'number' || !args)
-        {
-            var up = arguments.callee;
-            for(var i = 0; i <= (args || 0); ++i)
-            {
-                up = up.caller;
-                if(!up)
-                {
-                    return false;
-                }
-            }
-            args = up.arguments;
-        }
-        return (args.length === 0 || typeof(args[args.length - 1]) !== 'function') ? false : args[args.length - 1];
-    },
-    
     /**
      * @alias ActiveSupport.synchronize
      */
