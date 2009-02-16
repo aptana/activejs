@@ -74,6 +74,10 @@ ActiveController.createDefaultContainer = function createDefaultContainer()
 ActiveController.createAction = function createAction(klass,action_name,action)
 {
     klass.prototype[action_name] = function action_wrapper(){
+        if(arguments[0] && typeof(arguments[0]) == 'object')
+        {
+            this.params = arguments[0];
+        }
         this.notify('beforeCall',action_name,this.params);
         this.renderLayout();
         ActiveSupport.bind(action,this)();
