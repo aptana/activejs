@@ -53,7 +53,7 @@ ActiveView.Template.generateTemplate = function generateTemplate(source)
             .replace(/<%=(.+?)%>/g, "',$1,'")
             .split("<%").join("');")
             .split("%>").join("p.push('")
-        ;        
+        ;
         return new Function("data",[
             "var p = [];",
             "var print = function(){p.push.apply(p,arguments);};",
@@ -76,7 +76,7 @@ ActiveView.Template.Errors = {
 ActiveView.Template.ClassMethods = {
     render: function render(data)
     {
-        return ActiveSupport.bind(this.template,this)(data);
+        return ActiveSupport.bind(this.template,this)(data || {});
     }
 };
 

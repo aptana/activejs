@@ -229,9 +229,8 @@ ActiveSupport = {
         }
         return function bound()
         {
-            func.apply(object,arguments);
+            return func.apply(object,arguments);
         };
-        return func.bind(object);
     },
     /**
      * Emulates Prototype's Function.prototype.curry.
