@@ -314,6 +314,7 @@
             
             "test/active_view/setup.js",
             "test/active_view/builder.js",
+            "test/active_view/template.js",
             
             "test/active_controller/setup.js",
             "test/active_controller/scoping.js"
