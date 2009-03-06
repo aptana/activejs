@@ -1,7 +1,11 @@
+#accepts any of these three arguments: compress website documentation
 require 'rubygems'
 require 'ftools'
 require 'json'
 require 'packr'
+require 'rexml/document'
+require 'rdiscount'
+include REXML
 
 def append_file_contents_to_target_file_without_license(file_contents,target_file)
   lines = file_contents.split(/\n/)
@@ -42,12 +46,35 @@ parsed_json.each do |target|
       end
     end
     target_file.close
-    if target['compress'] && (ARGV[0] && ARGV[0] == 'compress')
+    if target['compress'] && (ARGV.include?('compress'))
       buffer = File.read(File.join(File.dirname(__FILE__),target['output']))
       target_file = File.new(File.join(File.dirname(__FILE__),target['output']),'w+')
       buffer = Packr.pack(buffer, :shrink_vars => true, :base62 => true)
       buffer = File.read(File.join(File.dirname(__FILE__),target['compress_prepend'])) + buffer if target['compress_prepend']
       target_file.write(buffer)
     end
+  end
+end
+
+if ARGV.include?('documentation')
+  `cd extensions/docs; ./make_docs.sh ~/Documents/workspace/com.aptana.sdoc; cd ..; cd ..;`
+end
+
+if ARGV.include?('website')
+  file = File.new('extensions/website/docs/docs.xml')
+  doc = Document.new(file)
+  examples = {}
+  doc.root.each_element('class/examples/example') do |example|
+    key = example.parent.parent.attributes['type'].gsub(/\..+$/,'').gsub(/^Active/,'').downcase
+    if examples.has_key?(key)
+      examples[key] = example.text
+    else
+      example.text += "\n" + example.text
+    end
+  end
+  examples.each do |key,example|
+    source = File.read('ext/website/index.html')
+    target = File.new("ext/website/#{key}.html")
+    target.write(source.gsub(/\<\!\-\- CONTENT \-\-\>.+\<\!\-\- \/CONTENT \-\-\>/,RDiscount.new(example).to_html))
   end
 end

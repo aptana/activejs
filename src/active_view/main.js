@@ -155,7 +155,7 @@ var InstanceMethods = {
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
     {
-      this.eventHandlers.push([element,event_name,observer]);
+        this.eventHandlers.push([element,event_name,observer]);
     }
 };
 

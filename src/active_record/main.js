@@ -70,7 +70,7 @@
  * If you are using a browser or platform that does not have access to a SQL
  * database, you can use the InMemory adapter which will store your objects
  * in memory. All features (including find by SQL) will still work, but you
- * will not be able to use the Migration features, since there are no table
+ * will not be able to use the Migration features, since there is no table
  * schema. Since your objects will not persist, the second parameter to
  * establish a connection is a hash with the data you would like to use
  * in this format: {table_name: {id: row}}. The InMemory adapter will also
@@ -94,24 +94,13 @@
  *     
  * Defining Your Model
  * -------------------
- * The only rule for all ActiveRecord classes is that the related table in the
- * database must have an auto incrementing 'id' property. If you are working
- * with a database table that already exists, you can create a model psuedo-class
- * using the create() method, passing the table name as the first parameter, and
- * any methods you want to define on that class as the second paramter:
- * 
- *     var Post = ActiveRecord.create('posts',{
- *         getWordCount: function(){
- *             return this.get('text').split(/\s+/).length;
- *         }
- *     });
- * 
- * This both returns the class and stores it inside ActiveRecord.Models.Post. If
- * the table for your model does not yet exist you can use the define() method
- * which takes the desired table as the first argument, the fields as the second
- * and the methods as the third:
- * 
- *     var User = ActiveRecord.define('users',{
+ * ActiveRecord classes are created using the ActiveRecord.create method which
+ * takes three arguments: the name of the table that the class will reference,
+ * a field definition hash, and optionally a hash of instance methods that
+ * will be added to the class. If the table does not exist it will be
+ * automically created.
+ *
+ *     var User = ActiveRecord.create('users',{
  *         username: '',
  *         password: '',
  *         post_count: 0,
@@ -120,8 +109,8 @@
  *             value: ''
  *         }
  *     },{
- *         getFormattedProfile: function(){
- *             return Markdown.format(this.get('profile'));
+ *         getProfileWordCount: function(){
+ *             return this.get('profile').split(/\s+/).length;
  *         }
  *     });
  * 
