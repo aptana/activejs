@@ -48,6 +48,7 @@ ActiveSupport = {
      * context) does not contain the class, but does have a __noSuchMethod__
      * property, it will attempt to call context[class_name]() to trigger
      * the __noSuchMethod__ handler.
+     * @alias ActiveSupport.getClass
      * @param {String} class_name
      * @param {Object} context
      * @return {Mixed}
@@ -229,9 +230,8 @@ ActiveSupport = {
         }
         return function bound()
         {
-            func.apply(object,arguments);
+            return func.apply(object,arguments);
         };
-        return func.bind(object);
     },
     /**
      * Emulates Prototype's Function.prototype.curry.
