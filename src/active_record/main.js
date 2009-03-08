@@ -225,10 +225,10 @@
  *             current_count = updated_count;
  *         }
  *     });
- *     var new_user = User.create({...}); //current_count incremented
+ *     var new_user = User.create({params}); //current_count incremented
  *     new_user.destroy();  //current_count decremented
  *     stop();
- *     User.create({...}); //current_count unchanged
+ *     User.create({params}); //current_count unchanged
  *
  * Lifecycle
  * ---------
