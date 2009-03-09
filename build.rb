@@ -22,6 +22,10 @@ def append_file_contents_to_target_file_without_license(file_contents,target_fil
   end
 end
 
+def format_example(example)
+  RDiscount.new(example).to_html
+end
+
 parsed_json = JSON.parse(File.read(File.join(File.dirname(__FILE__),'build.json')))
 
 parsed_json.each do |target|
@@ -57,7 +61,7 @@ parsed_json.each do |target|
 end
 
 if ARGV.include?('documentation')
-  `cd extensions/docs; ./make_docs.sh ~/Documents/workspace/com.aptana.sdoc; cd ..; cd ..;`
+  puts `cd extensions/docs; ./make_docs.sh ~/Documents/workspace/com.aptana.sdoc; cd ..; cd ..;`
 end
 
 if ARGV.include?('website')
@@ -66,15 +70,15 @@ if ARGV.include?('website')
   examples = {}
   doc.root.each_element('class/examples/example') do |example|
     key = example.parent.parent.attributes['type'].gsub(/\..+$/,'').gsub(/^Active/,'').downcase
-    if examples.has_key?(key)
+    if !examples.has_key?(key)
       examples[key] = example.text
     else
-      example.text += "\n" + example.text
+      examples[key] += "\n" + example.text
     end
   end
   examples.each do |key,example|
-    source = File.read('ext/website/index.html')
-    target = File.new("ext/website/#{key}.html")
-    target.write(source.gsub(/\<\!\-\- CONTENT \-\-\>.+\<\!\-\- \/CONTENT \-\-\>/,RDiscount.new(example).to_html))
+    source = File.read('extensions/website/index.html')
+    target = File.new("extensions/website/#{key}.html",'w+')
+    target.write(source[0,source.index('<!-- CONTENT -->')] + format_example(example) + source[source.index('<!-- /CONTENT -->') + 17,source.length])
   end
 end

@@ -4,11 +4,9 @@
     <script src="../lib/prototype.js"></script>
     <script>
       document.observe('dom:loaded',function(){
-        
-        //list item model
+        //model
         ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
-        
-        ListItem = ActiveRecord.define('list_items',{
+        ListItem = ActiveRecord.create('list_items',{
           body: ''
         });
         (new ObjectRange('a','z')).each(function(body){
@@ -23,7 +21,6 @@
           }
           with(this.binding){
             update($('current_count')).from('total_count');
-            //collect(PageLinkView).from('pages').into($('pages'));
             collect(ListItemView).from('list_items').into(container);
           }
           return container;
@@ -40,7 +37,7 @@
           with(this.binding){
             update(this.body).from('body');
           }
-          this.delete_link.observe('click',function(){
+          $(this.delete_link).observe('click',function(){
             ListItem.find(this.get('id')).destroy();
           }.bind(this));
           return container;
