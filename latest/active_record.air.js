@@ -2162,7 +2162,7 @@ ActiveRecord = {
         return model;
     }
 };
-
+ActiveRecord.define = ActiveRecord.create;
 
 /**
  * If the table for your ActiveRecord does not exist, this will define the
