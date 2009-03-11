@@ -81,7 +81,7 @@ var Migrations = {
         'bitint': 0,
         'float': 0,
         'double': 0,
-        'bouble precision': 0,
+        'double precision': 0,
         'real': 0,
         'decimal': 0,
         'numeric': 0,
