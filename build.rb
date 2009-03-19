@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 #accepts any of these three arguments: compress website documentation
 require 'rubygems'
 require 'ftools'
