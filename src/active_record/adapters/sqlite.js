@@ -35,7 +35,8 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
             var key = keys[i];
             if(columns[key].primaryKey)
             {
-                fragments.unshift(key + ' INTEGER PRIMARY KEY');
+                var type = columns[key].type || 'INTEGER';
+                fragments.unshift(key + ' ' + type + ' PRIMARY KEY');
             }
             else
             {

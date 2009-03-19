@@ -3800,7 +3800,7 @@ Adapters.SQL = {
         }
         args.unshift("INSERT INTO " + table + " (" + keys.join(',') + ") VALUES (" + values.join(',') + ")");
         var response = this.executeSQL.apply(this,args);
-        var id = this.getLastInsertedRowId();
+        var id = data[primary_key_name] || this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
         data_with_id[primary_key_name] = id;
         this.notify('created',table,id,data_with_id);
@@ -4080,7 +4080,8 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
             var key = keys[i];
             if(columns[key].primaryKey)
             {
-                fragments.unshift(key + ' INTEGER PRIMARY KEY');
+                var type = columns[key].type || 'INTEGER';
+                fragments.unshift(key + ' ' + type + ' PRIMARY KEY');
             }
             else
             {

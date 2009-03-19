@@ -54,6 +54,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS field_type_testers');
         ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
         ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
+        ActiveRecord.execute('DROP TABLE IF EXISTS guid');
 
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
@@ -182,6 +183,16 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
                 primaryKey: true
             },
             name: ''
+        });
+
+        Guid = ActiveRecord.create({
+            tableName: 'guid'
+        },{
+            guid: {
+                primaryKey: true,
+                type: 'VARCHAR(255)'
+            },
+            data: ''
         });
         
         if(proceed)

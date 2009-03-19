@@ -296,6 +296,7 @@
             "test/active_record/cleanup.js",
             "test/active_record/date.js",
             "test/active_record/finders.js",
+            "test/active_record/id.js",
             "test/active_record/migrations.js",
             "test/active_record/relationships.js",
             "test/active_record/serialization.js",

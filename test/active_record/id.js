@@ -1,6 +1,6 @@
 /* ***** BEGIN LICENSE BLOCK *****
  * 
- * Copyright (c) 2009 Aptana, Inc.
+ * Copyright (c) 2009 Matt Brubeck.
  * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,34 +24,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
-(function(){
 
-ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRecord.Adapters.SQL),{
-    createTable: function createTable(table_name,columns)
+ActiveTest.Tests.ActiveRecord.id = function(proceed)
+{
+    with (ActiveTest)
     {
-        var keys = ActiveSupport.keys(columns);
-        var fragments = [];
-        for (var i = 0; i < keys.length; ++i)
+        if (ActiveRecord.asynchronous)
         {
-            var key = keys[i];
-            if(columns[key].primaryKey)
-            {
-                var type = columns[key].type || 'INT';
-                fragments.unshift(key + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
-                fragments.push('PRIMARY KEY(' + key + ')');
-            }
-            else
-            {
-                fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
-            }
-        }
-        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ') ENGINE=InnoDB');
-    },
-    dropColumn: function dropColumn(table_column,column_name)
-    {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
-    }
-});
 
-})();
+        }
+        else
+        {
+            var a = Custom.create({name: 'test'});
+            assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
+
+            var b = Guid.create({guid: '123', data: 'test'});
+            var result = Guid.find({first: true, where: ['guid = ?', b.guid]});
+            assert(result.data == 'test', 'String primary key.');
+
+            if(proceed)
+                proceed();
+        }
+    }
+};
