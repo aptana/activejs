@@ -279,10 +279,7 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
-                        
-                     </dd>
+                     <dd>    ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');</dd>
                   </dl>
                </td>
             </tr>
@@ -718,11 +715,16 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        String.prototype.capitalize = String.prototype.capitalize.wrap( function(proceed, eachWord) { if (eachWord && this.include("
-                        ")) { // capitalize each word in the string return this.split(" ").invoke("capitalize").join(" "); } else { // proceed using
-                        the original function return proceed(); } });
-                        
+                     <dd>    String.prototype.capitalize = String.prototype.capitalize.wrap( 
+                        function(proceed, eachWord) { 
+                        if (eachWord && this.include(" ")) {
+                        // capitalize each word in the string
+                        return this.split(" ").invoke("capitalize").join(" ");
+                        } else {
+                        // proceed using the original function
+                        return proceed(); 
+                        }
+                        });
                      </dd>
                   </dl>
                </td>
