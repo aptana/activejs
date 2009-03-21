@@ -24,7 +24,15 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  * 
  * ***** END LICENSE BLOCK ***** */
-
+ 
+/**
+ * @namespace {ActiveView}
+ * @example
+ * 
+ * ActiveView.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveView = {};
 
 ActiveView.logging = false;

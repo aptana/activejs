@@ -98,10 +98,14 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        Comment.belongsTo('User', { counter: 'comment_count' //comment count must be a column in User }); var c = Comment.find(5);
-                        //each Comment instance will gain the following 3 methods c.getUser() c.buildUser() c.createUser()
-                        
+                     <dd>    Comment.belongsTo('User',{
+                        counter: 'comment_count' //comment count must be a column in User
+                        });
+                        var c = Comment.find(5);
+                        //each Comment instance will gain the following 3 methods
+                        c.getUser()
+                        c.buildUser()
+                        c.createUser()
                      </dd>
                   </dl>
                </td>
@@ -186,9 +190,11 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        var u = User.create( { name: 'alice', password: 'pass' }); u.id //will now contain the id of the user
-                        
+                     <dd>    var u = User.create({
+                        name: 'alice',
+                        password: 'pass'
+                        });
+                        u.id //will now contain the id of the user
                      </dd>
                   </dl>
                </td>
@@ -253,13 +259,31 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var user = User.find(
-                        { first: true, where: [ 'id = ?',5 ] }); var users = User.find(); //finds all var users = User.find( { where: 'name = "alice"
-                        AND password = "' + md5('pass') + '"', order: 'id DESC' }); //using the where syntax below, the parameters will be properly
-                        escaped var users = User.find( { where: { name: 'alice', password: md5('pass') } order: 'id DESC' }); var users = User.find('SELECT
-                        * FROM users ORDER id DESC');
-                        
+                     <dd>    var user = User.find(5); //finds a single record
+                        var user = User.find({
+                        first: true,
+                        where: {
+                        id: 5
+                        }
+                        });
+                        var user = User.find({
+                        first: true,
+                        where: ['id = ?',5]
+                        });
+                        var users = User.find(); //finds all
+                        var users = User.find({
+                        where: 'name = "alice" AND password = "' + md5('pass') + '"',
+                        order: 'id DESC'
+                        });
+                        //using the where syntax below, the parameters will be properly escaped
+                        var users = User.find({
+                        where: {
+                        name: 'alice',
+                        password: md5('pass')
+                        }
+                        order: 'id DESC'
+                        });
+                        var users = User.find('SELECT * FROM users ORDER id DESC');
                      </dd>
                   </dl>
                </td>
@@ -313,11 +337,16 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        User.hasMany('comments', { dependent: true }); var u = User.find(5); //each User instance will gain the following 5 methods
-                        u.createComment() u.buildComment() u.destroyComment() u.getCommentList() //takes the same options as find() u.getCommentCount()
-                        //takes the same options as count()
-                        
+                     <dd>    User.hasMany('comments',{
+                        dependent: true
+                        });
+                        var u = User.find(5);
+                        //each User instance will gain the following 5 methods
+                        u.createComment()
+                        u.buildComment()
+                        u.destroyComment()
+                        u.getCommentList() //takes the same options as find()
+                        u.getCommentCount() //takes the same options as count()
                      </dd>
                   </dl>
                </td>
@@ -351,10 +380,12 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        User.hasOne(CreditCard); var u = User.find(5); //each User instance will gain the following 3 methods u.getCreditCard() u.buildCreditCard()
+                     <dd>    User.hasOne(CreditCard);
+                        var u = User.find(5);
+                        //each User instance will gain the following 3 methods
+                        u.getCreditCard()
+                        u.buildCreditCard()
                         u.createCreditCard()
-                        
                      </dd>
                   </dl>
                </td>
@@ -475,9 +506,9 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        var one = Comment.find(1); var two = Comment.find(2); var result_set = Comment.resultSetFromArray( [ one,two ] );
-                        
+                     <dd>    var one = Comment.find(1);
+                        var two = Comment.find(2);
+                        var result_set = Comment.resultSetFromArray([one,two]);
                      </dd>
                   </dl>
                </td>
@@ -542,10 +573,11 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00));
+                     <dd>    Account.transaction(function(){
+                        var from = Account.find(2);
+                        var to = Account.find(3);
+                        to.despoit(from.withdraw(100.00));
                         });
-                        
                      </dd>
                   </dl>
                </td>
@@ -581,10 +613,14 @@
                   </p>
                   <dl class="details">
                      <dt>Examples</dt>
-                     <dd>
-                        Article.update(3, { title: 'New Title' }); //or pass an array of ids and an array of attributes Article.update( [ 5,7 ] ,
-                        [ { title : 'Title for 5'}, { title : 'Title for 7'} ] );
-                        
+                     <dd>    Article.update(3,{
+                        title: 'New Title'
+                        });
+                        //or pass an array of ids and an array of attributes
+                        Article.update([5,7],[
+                        {title: 'Title for 5'},
+                        {title: 'Title for 7'}
+                        ]);
                      </dd>
                   </dl>
                </td>

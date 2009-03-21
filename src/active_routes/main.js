@@ -33,6 +33,10 @@
  * @param {Object} [options]
  * @return {ActiveRoutes}
  * @example
+ *
+ * ActiveRoutes.js
+ * ===============
+ * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
  * calls to any type of object. Server side it can be used to map requests for
@@ -40,18 +44,6 @@
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
- * Options
- * -------
- * You can pass a hash of options as the third parameter to the ActiveRoutes
- * constructor. This hash can contain the following keys:
- * 
- * - base: default '', the default path / url prefix to be used in a generated url
- * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
- * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
- * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
- * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
- * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
- *
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with addRoute(), routes can have up
@@ -75,6 +67,18 @@
  *       ['/:object/:method']
  *     ],Application);
  * 
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
+ * 
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+ * 
  * Catch All Routes
  * ----------------
  * If you want to route all requests below a certain path to a given method,
@@ -93,7 +97,7 @@
  * parameter will be checked against. Each value checked by a regular
  * expression or function is always a string.
  * 
- *     route_set.addRoute('/article/:article_id/:comment_id,{
+ *     route_set.addRoute('/article/:article_id/:comment_id',{
  *         article_id: /^\d+$/,
  *         comment_id: function(comment_id){
  *             return comment_id.match(/^\d+$/);

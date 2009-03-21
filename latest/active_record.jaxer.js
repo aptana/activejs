@@ -1185,6 +1185,10 @@ ActiveSupport = {
 /**
  * @namespace {ActiveEvent}
  * @example
+ * 
+ * ActiveEvent.js
+ * ==============
+ * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
  *
@@ -1301,28 +1305,28 @@ ActiveSupport = {
  * can optionally pass another function to observeMethod(), if you do the
  * MethodCallObserver will be automatically stopped when that function
  * finishes executing.
- *
- *   var h = new Hash({});
- *   ActiveEvent.extend(h);
- *   
- *   var observer = h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   });
- *   h.set('a','one');
- *   h.set('a','two');
- *   observer.stop();
- *   
- *   //console now contains:
- *   //"a = one"
- *   //"b = two"
- *   
- *   //the following does the same as above
- *   h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   },function(){
- *       h.set('a','one');
- *       h.set('b','two');
- *   });
+ * 
+ *     var h = new Hash({});
+ *     ActiveEvent.extend(h);
+ *     
+ *     var observer = h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     });
+ *     h.set('a','one');
+ *     h.set('a','two');
+ *     observer.stop();
+ *     
+ *     //console now contains:
+ *     //"a = one"
+ *     //"b = two"
+ *     
+ *     //the following does the same as above
+ *     h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     },function(){
+ *         h.set('a','one');
+ *         h.set('b','two');
+ *     });
  */
 var ActiveEvent = null;
 
@@ -1629,6 +1633,9 @@ var ActiveRecord = null;
 /**
  * @namespace {ActiveRecord}
  * @example
+ * 
+ * ActiveRecord.js
+ * ===============
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
@@ -1963,7 +1970,7 @@ var ActiveRecord = null;
  *     var u = User.find(5);
  *     u.getCommentList().length;
  *     u.createComment({title: 'comment title'});
- *
+ * 
  * You can name the relationship (and thus the generate methods) by passing
  * a name parameter:
  * 
@@ -1981,7 +1988,8 @@ var ActiveRecord = null;
  * - ActsAsList
  * - ActsAsTree
  * - hasMany :through (which will likely be the only supported many to many relationship)
-*/
+ * 
+ */
 ActiveRecord = {
     /**
      * Defaults to false.
@@ -5047,11 +5055,15 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
 /**
  * @namespace {ActiveRecord.Migrations}
  * @example
+ * 
+ * Migrations
+ * ----------
+ * 
  * Migrations are a method of versioining the database schema used by your
  * application. All of your migrations must be defined in an object assigned
  * to ActiveRecord.Migrations.migrations. The keys need not be numerically
  * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
- *
+ * 
  * Each migration object must have an up() and down() method which will
  * recieve an ActiveRecord.Migrations.Schema object. createTable() and
  * addColumn() both use the same syntax as define() to specify default
@@ -5086,7 +5098,6 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
  *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
  *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
  */
-
 var Migrations = {
     fieldTypesWithDefaultValues: {
         'tinyint': 0,

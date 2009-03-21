@@ -1185,6 +1185,10 @@ ActiveSupport = {
 /**
  * @namespace {ActiveEvent}
  * @example
+ * 
+ * ActiveEvent.js
+ * ==============
+ * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
  *
@@ -1301,28 +1305,28 @@ ActiveSupport = {
  * can optionally pass another function to observeMethod(), if you do the
  * MethodCallObserver will be automatically stopped when that function
  * finishes executing.
- *
- *   var h = new Hash({});
- *   ActiveEvent.extend(h);
- *   
- *   var observer = h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   });
- *   h.set('a','one');
- *   h.set('a','two');
- *   observer.stop();
- *   
- *   //console now contains:
- *   //"a = one"
- *   //"b = two"
- *   
- *   //the following does the same as above
- *   h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   },function(){
- *       h.set('a','one');
- *       h.set('b','two');
- *   });
+ * 
+ *     var h = new Hash({});
+ *     ActiveEvent.extend(h);
+ *     
+ *     var observer = h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     });
+ *     h.set('a','one');
+ *     h.set('a','two');
+ *     observer.stop();
+ *     
+ *     //console now contains:
+ *     //"a = one"
+ *     //"b = two"
+ *     
+ *     //the following does the same as above
+ *     h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     },function(){
+ *         h.set('a','one');
+ *         h.set('b','two');
+ *     });
  */
 var ActiveEvent = null;
 
@@ -1634,6 +1638,10 @@ var ActiveRoutes = null;
  * @param {Object} [options]
  * @return {ActiveRoutes}
  * @example
+ *
+ * ActiveRoutes.js
+ * ===============
+ * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
  * calls to any type of object. Server side it can be used to map requests for
@@ -1641,18 +1649,6 @@ var ActiveRoutes = null;
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
- * Options
- * -------
- * You can pass a hash of options as the third parameter to the ActiveRoutes
- * constructor. This hash can contain the following keys:
- * 
- * - base: default '', the default path / url prefix to be used in a generated url
- * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
- * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
- * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
- * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
- * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
- *
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with addRoute(), routes can have up
@@ -1676,6 +1672,18 @@ var ActiveRoutes = null;
  *       ['/:object/:method']
  *     ],Application);
  * 
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
+ * 
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+ * 
  * Catch All Routes
  * ----------------
  * If you want to route all requests below a certain path to a given method,
@@ -1694,7 +1702,7 @@ var ActiveRoutes = null;
  * parameter will be checked against. Each value checked by a regular
  * expression or function is always a string.
  * 
- *     route_set.addRoute('/article/:article_id/:comment_id,{
+ *     route_set.addRoute('/article/:article_id/:comment_id',{
  *         article_id: /^\d+$/,
  *         comment_id: function(comment_id){
  *             return comment_id.match(/^\d+$/);
@@ -2378,6 +2386,9 @@ var ActiveRecord = null;
  * @namespace {ActiveRecord}
  * @example
  * 
+ * ActiveRecord.js
+ * ===============
+ * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
  * ActiveRecord implementation, but uses JavaScript idioms and best
@@ -2711,7 +2722,7 @@ var ActiveRecord = null;
  *     var u = User.find(5);
  *     u.getCommentList().length;
  *     u.createComment({title: 'comment title'});
- *
+ * 
  * You can name the relationship (and thus the generate methods) by passing
  * a name parameter:
  * 
@@ -2729,7 +2740,8 @@ var ActiveRecord = null;
  * - ActsAsList
  * - ActsAsTree
  * - hasMany :through (which will likely be the only supported many to many relationship)
-*/
+ * 
+ */
 ActiveRecord = {
     /**
      * Defaults to false.
@@ -5795,11 +5807,15 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
 /**
  * @namespace {ActiveRecord.Migrations}
  * @example
+ * 
+ * Migrations
+ * ----------
+ * 
  * Migrations are a method of versioining the database schema used by your
  * application. All of your migrations must be defined in an object assigned
  * to ActiveRecord.Migrations.migrations. The keys need not be numerically
  * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
- *
+ * 
  * Each migration object must have an up() and down() method which will
  * recieve an ActiveRecord.Migrations.Schema object. createTable() and
  * addColumn() both use the same syntax as define() to specify default
@@ -5834,7 +5850,6 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
  *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
  *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
  */
-
 var Migrations = {
     fieldTypesWithDefaultValues: {
         'tinyint': 0,
@@ -6594,7 +6609,15 @@ ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_na
 var ActiveView = null;
 
 (function(){
-
+ 
+/**
+ * @namespace {ActiveView}
+ * @example
+ * 
+ * ActiveView.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveView = {};
 
 ActiveView.logging = false;
@@ -7113,6 +7136,14 @@ var ActiveController = null;
 
 (function(){
 
+/**
+ * @namespace {ActiveController}
+ * @example
+ * 
+ * ActiveController.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveController = {};
 
 ActiveController.logging = false;
