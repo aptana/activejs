@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <?NLS TYPE="org.eclipse.help.toc"?><toc label="ActiveJS" link_to="../com.aptana.ide.documentation/toc.xml#reference">
    <topic label="ActiveJS" href="html/reference/api/ActiveJS.index.html">
+      <topic label="ActiveController" href="html/reference/api/ActiveController.html"/>
       <topic label="ActiveEvent" href="html/reference/api/ActiveEvent.html">
          <topic label="Functions"
                 href="html/reference/api/ActiveEvent.html#ActiveEvent.Functions">

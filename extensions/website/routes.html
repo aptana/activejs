@@ -11,7 +11,7 @@
   <body>
     <div id="container">
       <div id="navigation">
-        <a href="/"><h1 id="logo"><span>ActiveJS</span></h1></a>
+        <a href="index.html"><h1 id="logo"><span>ActiveJS</span></h1></a>
         <ul id="components">
           <li><a href="record.html">Record</a></li>
           <li><a href="controller.html">Controller</a></li>
@@ -21,7 +21,7 @@
         </ul>
         <ul id="resources">
           <li><a href="http://github.com/aptana/activejs/wikis">Wiki</a></li>
-          <li><a href="/docs">API</a></li>
+          <li><a href="docs">API</a></li>
           <li><a href="http://github.com/aptana/activejs/tree/master">Source</a></li>
           <li><a href="http://aptana.lighthouseapp.com/projects/22012-activejs/overview">Tracker</a></li>
           <li><a href="http://groups.google.com/group/activejs/">Group</a></li>
@@ -36,21 +36,6 @@ calls to any type of object. Server side it can be used to map requests for
 a given URL to a method that will render a page, client side it can be used
 to provide deep linking and back button / history support for your Ajax
 application.</p>
-
-<h2>Options</h2>
-
-<p>You can pass a hash of options as the third parameter to the ActiveRoutes
-constructor. This hash can contain the following keys:</p>
-
-<ul>
-<li>base: default '', the default path / url prefix to be used in a generated url</li>
-<li>classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post</li>
-<li>dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found</li>
-<li>camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"</li>
-<li>camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"</li>
-<li>camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"</li>
-</ul>
-
 
 <h2>Declaring Routes</h2>
 
@@ -78,6 +63,21 @@ parameters. The following are all valid routes:</p>
   ['/:object/:method']
 ],Application);
 </code></pre>
+
+<h2>Options</h2>
+
+<p>You can pass a hash of options as the third parameter to the ActiveRoutes
+constructor. This hash can contain the following keys:</p>
+
+<ul>
+<li>base: default '', the default path / url prefix to be used in a generated url</li>
+<li>classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post</li>
+<li>dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found</li>
+<li>camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"</li>
+<li>camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"</li>
+<li>camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"</li>
+</ul>
+
 
 <h2>Catch All Routes</h2>
 

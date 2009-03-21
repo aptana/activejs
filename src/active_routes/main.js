@@ -44,18 +44,6 @@
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
- * Options
- * -------
- * You can pass a hash of options as the third parameter to the ActiveRoutes
- * constructor. This hash can contain the following keys:
- * 
- * - base: default '', the default path / url prefix to be used in a generated url
- * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
- * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
- * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
- * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
- * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
- * 
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with addRoute(), routes can have up
@@ -78,6 +66,18 @@
  *       ['/pages/*',{object:'Pages',method:'page'}],
  *       ['/:object/:method']
  *     ],Application);
+ * 
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
+ * 
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
  * 
  * Catch All Routes
  * ----------------
