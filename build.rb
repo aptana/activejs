@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 #accepts any of these three arguments: compress website documentation
 require 'rubygems'
 require 'ftools'
@@ -50,7 +51,7 @@ parsed_json.each do |target|
       end
     end
     target_file.close
-    if target['compress'] && (ARGV.include?('compress'))
+    if target['compress'] && (ARGV.include?('compress') || ARGV.include?('full'))
       buffer = File.read(File.join(File.dirname(__FILE__),target['output']))
       target_file = File.new(File.join(File.dirname(__FILE__),target['output']),'w+')
       buffer = Packr.pack(buffer, :shrink_vars => true, :base62 => true)
@@ -60,11 +61,11 @@ parsed_json.each do |target|
   end
 end
 
-if ARGV.include?('documentation')
+if ARGV.include?('documentation') || ARGV.include?('full')
   puts `cd extensions/docs; ./make_docs.sh ~/Documents/workspace/com.aptana.sdoc; cd ..; cd ..;`
 end
 
-if ARGV.include?('website')
+if ARGV.include?('website') || ARGV.include?('full')
   file = File.new('extensions/website/docs/docs.xml')
   doc = Document.new(file)
   examples = {}

@@ -25,6 +25,14 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * @namespace {ActiveController}
+ * @example
+ * 
+ * ActiveController.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveController = {};
 
 ActiveController.logging = false;

@@ -107,7 +107,7 @@ ul#resources li {
 /* Body
 -----------------*/
 h1 {
-  font-size:15px;
+  font-size:16px;
   color:#333;
   margin:24px 0 20px 8px;
 }
@@ -175,6 +175,13 @@ pre.highlighted {
   width:750px;
   border-left:3px solid #ccc;
   border-right:3px solid #ccc;
+  background-color:#000;
+}
+
+.dp-highlighter {
+  background-color:#000;
+  -webkit-border-radius:3px;
+  -moz-border-radius:3px;
 }
 
 code,
@@ -189,7 +196,6 @@ code,
 .dp-highlighter ol {
   margin:0 5px;
   padding:10px 15px;
-  background-color:#000;
   list-style:none;
 }
 

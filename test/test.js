@@ -154,6 +154,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS field_type_testers');
         ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
         ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
+        ActiveRecord.execute('DROP TABLE IF EXISTS guid');
 
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
@@ -282,6 +283,16 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
                 primaryKey: true
             },
             name: ''
+        });
+
+        Guid = ActiveRecord.create({
+            tableName: 'guid'
+        },{
+            guid: {
+                primaryKey: true,
+                type: 'VARCHAR(255)'
+            },
+            data: ''
         });
         
         if(proceed)
@@ -637,6 +648,29 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             var c = Comment.find('SELECT * FROM comments WHERE id IN(?,?,?)',one.id,two.id,three.id);
             assert(c.length == 3 && c[0].id == one.id && c[1].id == two.id && c[2].id == three.id,'WHERE id IN(array) via SQL string');
             
+            if(proceed)
+                proceed();
+        }
+    }
+};
+
+ActiveTest.Tests.ActiveRecord.id = function(proceed)
+{
+    with (ActiveTest)
+    {
+        if (ActiveRecord.asynchronous)
+        {
+
+        }
+        else
+        {
+            var a = Custom.create({name: 'test'});
+            assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
+
+            var b = Guid.create({guid: '123', data: 'test'});
+            var result = Guid.find({first: true, where: ['guid = ?', b.guid]});
+            assert(result.data == 'test', 'String primary key.');
+
             if(proceed)
                 proceed();
         }

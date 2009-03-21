@@ -1649,18 +1649,6 @@ var ActiveRoutes = null;
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
- * Options
- * -------
- * You can pass a hash of options as the third parameter to the ActiveRoutes
- * constructor. This hash can contain the following keys:
- * 
- * - base: default '', the default path / url prefix to be used in a generated url
- * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
- * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
- * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
- * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
- * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
- * 
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with addRoute(), routes can have up
@@ -1683,6 +1671,18 @@ var ActiveRoutes = null;
  *       ['/pages/*',{object:'Pages',method:'page'}],
  *       ['/:object/:method']
  *     ],Application);
+ * 
+ * Options
+ * -------
+ * You can pass a hash of options as the third parameter to the ActiveRoutes
+ * constructor. This hash can contain the following keys:
+ * 
+ * - base: default '', the default path / url prefix to be used in a generated url
+ * - classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+ * - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+ * - camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+ * - camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+ * - camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
  * 
  * Catch All Routes
  * ----------------
@@ -3812,7 +3812,7 @@ Adapters.SQL = {
         }
         args.unshift("INSERT INTO " + table + " (" + keys.join(',') + ") VALUES (" + values.join(',') + ")");
         var response = this.executeSQL.apply(this,args);
-        var id = this.getLastInsertedRowId();
+        var id = data[primary_key_name] || this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
         data_with_id[primary_key_name] = id;
         this.notify('created',table,id,data_with_id);
@@ -4092,7 +4092,8 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
             var key = keys[i];
             if(columns[key].primaryKey)
             {
-                fragments.unshift(key + ' INTEGER PRIMARY KEY');
+                var type = columns[key].type || 'INTEGER';
+                fragments.unshift(key + ' ' + type + ' PRIMARY KEY');
             }
             else
             {
@@ -6439,7 +6440,8 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
             var key = keys[i];
             if(columns[key].primaryKey)
             {
-                fragments.unshift(key + ' INT NOT NULL AUTO_INCREMENT');
+                var type = columns[key].type || 'INT';
+                fragments.unshift(key + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
                 fragments.push('PRIMARY KEY(' + key + ')');
             }
             else
@@ -6645,7 +6647,15 @@ ActiveRecord.Adapters.JaxerMySQL.connect = function connect(options)
 var ActiveView = null;
 
 (function(){
-
+ 
+/**
+ * @namespace {ActiveView}
+ * @example
+ * 
+ * ActiveView.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveView = {};
 
 ActiveView.logging = false;
@@ -7164,6 +7174,14 @@ var ActiveController = null;
 
 (function(){
 
+/**
+ * @namespace {ActiveController}
+ * @example
+ * 
+ * ActiveController.js
+ * ===============
+ * Tutorial coming soon.
+ */
 ActiveController = {};
 
 ActiveController.logging = false;
