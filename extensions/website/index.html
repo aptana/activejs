@@ -13,11 +13,11 @@
       <div id="navigation">
         <a href="/"><h1 id="logo"><span>ActiveJS</span></h1></a>
         <ul id="components">
-          <li><a href="/record.html">Record</a></li>
-          <li><a href="/controller.html">Controller</a></li>
-          <li><a href="/view.html">View</a></li>
-          <li><a href="/routes.html">Routes</a></li>
-          <li><a href="/event.html">Event</a></li>
+          <li><a href="record.html">Record</a></li>
+          <li><a href="controller.html">Controller</a></li>
+          <li><a href="view.html">View</a></li>
+          <li><a href="routes.html">Routes</a></li>
+          <li><a href="event.html">Event</a></li>
         </ul>
         <ul id="resources">
           <li><a href="http://github.com/aptana/activejs/wikis">Wiki</a></li>
@@ -44,6 +44,10 @@
       <p>ActiveRecord.js is a single file, MIT licensed, relies on no external JavaScript libraries, supports automatic table creation, data validation, data synchronization, relationships between models, life cycle callbacks and can use an in memory hash table to store objects if no SQL database is available.</p>
       <!-- /CONTENT -->
       <script>
+        var code_snippets = document.getElementsByTagName('code');
+        for(var i = 0; i < code_snippets.length; ++i){
+          code_snippets[i].className = 'javascript';
+        }
         dp.sh.HighlightAll('javascript',false,false,false,true,false);
       </script>
       <p id="copyright">ActiveJS is a trademark of Aptana, Inc. &copy;2009 <a href="http://aptana.com/">Aptana Inc.</a></p>

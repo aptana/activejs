@@ -29,6 +29,9 @@
  * @namespace {ActiveRecord}
  * @example
  * 
+ * ActiveRecord.js
+ * ===============
+ * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
  * ActiveRecord implementation, but uses JavaScript idioms and best
@@ -362,7 +365,7 @@
  *     var u = User.find(5);
  *     u.getCommentList().length;
  *     u.createComment({title: 'comment title'});
- *
+ * 
  * You can name the relationship (and thus the generate methods) by passing
  * a name parameter:
  * 
@@ -380,7 +383,8 @@
  * - ActsAsList
  * - ActsAsTree
  * - hasMany :through (which will likely be the only supported many to many relationship)
-*/
+ * 
+ */
 ActiveRecord = {
     /**
      * Defaults to false.

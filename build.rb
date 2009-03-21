@@ -73,7 +73,7 @@ if ARGV.include?('website')
     if !examples.has_key?(key)
       examples[key] = example.text
     else
-      examples[key] += "\n" + example.text
+      examples[key] += "\n\n" + example.text
     end
   end
   examples.each do |key,example|

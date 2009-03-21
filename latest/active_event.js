@@ -1185,6 +1185,10 @@ ActiveSupport = {
 /**
  * @namespace {ActiveEvent}
  * @example
+ * 
+ * ActiveEvent.js
+ * ==============
+ * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
  *
@@ -1301,28 +1305,28 @@ ActiveSupport = {
  * can optionally pass another function to observeMethod(), if you do the
  * MethodCallObserver will be automatically stopped when that function
  * finishes executing.
- *
- *   var h = new Hash({});
- *   ActiveEvent.extend(h);
- *   
- *   var observer = h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   });
- *   h.set('a','one');
- *   h.set('a','two');
- *   observer.stop();
- *   
- *   //console now contains:
- *   //"a = one"
- *   //"b = two"
- *   
- *   //the following does the same as above
- *   h.observeMethod('set',function(key,value){
- *       console.log(key + '=' + value);
- *   },function(){
- *       h.set('a','one');
- *       h.set('b','two');
- *   });
+ * 
+ *     var h = new Hash({});
+ *     ActiveEvent.extend(h);
+ *     
+ *     var observer = h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     });
+ *     h.set('a','one');
+ *     h.set('a','two');
+ *     observer.stop();
+ *     
+ *     //console now contains:
+ *     //"a = one"
+ *     //"b = two"
+ *     
+ *     //the following does the same as above
+ *     h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     },function(){
+ *         h.set('a','one');
+ *         h.set('b','two');
+ *     });
  */
 var ActiveEvent = null;
 

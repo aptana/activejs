@@ -139,7 +139,9 @@ h2 {
 
 #copyright {
   text-align:right;
-  margin:50px 5px 25px 0;
+  margin:25px 5px 25px 5px;
+  padding-top:5px;
+  border-top:1px solid #ccc;
 }
 
 /* Logos

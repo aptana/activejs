@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ActiveRecord.js : Cross Browser, Cross Platform, JavaScript ORM</title>
+    <link rel="stylesheet" href="stylesheets/screen.css"/>
+    <!--[if IE]>
+      <style>pre {display:block; background-color:#000; padding:10px 15px; width:721px;}</style>
+    <![endif]-->
+    <script src="javascripts/syntax.js"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="navigation">
+        <a href="/"><h1 id="logo"><span>ActiveJS</span></h1></a>
+        <ul id="components">
+          <li><a href="record.html">Record</a></li>
+          <li><a href="controller.html">Controller</a></li>
+          <li><a href="view.html">View</a></li>
+          <li><a href="routes.html">Routes</a></li>
+          <li><a href="event.html">Event</a></li>
+        </ul>
+        <ul id="resources">
+          <li><a href="http://github.com/aptana/activejs/wikis">Wiki</a></li>
+          <li><a href="/docs">API</a></li>
+          <li><a href="http://github.com/aptana/activejs/tree/master">Source</a></li>
+          <li><a href="http://aptana.lighthouseapp.com/projects/22012-activejs/overview">Tracker</a></li>
+          <li><a href="http://groups.google.com/group/activejs/">Group</a></li>
+          <li><a href="http://github.com/aptana/activejs/downloads">Download</a></li>
+        </ul>
+      </div>
+      <h1>ActiveRecord.js</h1>
+
+<p>ActiveRecord.js is a cross browser, cross platform, stand-alone object
+relational mapper. It shares a very similar vocabulary to the Ruby
+ActiveRecord implementation, but uses JavaScript idioms and best
+practices -- it is not a direct port. It can operate using an in memory
+hash table, or with a SQL back end on the Jaxer platform (SQLite and
+MySQL), Adobe's AIR (SQLite) and Google Gears (SQLite). Support
+for the HTML 5 SQL storage spec is planned.</p>
+
+<h2>Setup</h2>
+
+<p>To begin using ActiveRecord.js, you will need to include the
+activerecord.js file and establish a connection. If you do not specify
+a connection type, one will be automatically chosen.</p>
+
+<pre><code>ActiveRecord.connect();
+</code></pre>
+
+<p>You can also specify a specific type of adapter. Jaxer requires
+pre-configuring of the database for the entire application, and Gears
+automatically configures the database, so simply passing the type of
+connection is enough. In all of the SQLite implementations you can
+optionally specify a database name (browser) or path (Jaxer):</p>
+
+<pre><code>ActiveRecord.connect(ActiveRecord.Adapters.InMemory); //in JS memory
+ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
+ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
+ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
+ActiveRecord.connect(ActiveRecord.Adapters.Gears,'my_database'); //Gears or HTML5, name is optional
+</code></pre>
+
+<p>Once connected you can always execute SQL statements directly:</p>
+
+<pre><code>ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY, user_id, title, text)');
+</code></pre>
+
+<p>Logging (to either the Jaxer log or browser console) can be turned on by setting:</p>
+
+<pre><code>ActiveRecord.logging = true;
+</code></pre>
+
+<h2>InMemory Adapter</h2>
+
+<p>If you are using a browser or platform that does not have access to a SQL
+database, you can use the InMemory adapter which will store your objects
+in memory. All features (including find by SQL) will still work, but you
+will not be able to use the Migration features, since there is no table
+schema. Since your objects will not persist, the second parameter to
+establish a connection is a hash with the data you would like to use
+in this format: {table_name: {id: row}}. The InMemory adapter will also
+trigger three observable events that allow you to write an AJAX
+persistence layer.</p>
+
+<pre><code>ActiveRecord.connect(ActiveRecord.Adapters.InMemory,{
+    table_one: {
+        1: {row_data},
+        2: {row_data}
+    },
+    table_two: {
+        1: {row_data},
+        2: {row_data}
+    }
+});
+
+ActiveRecord.connection.observe('created',function(table_name,id,data){});
+ActiveRecord.connection.observe('updated',function(table_name,id,data){});
+ActiveRecord.connection.observe('destroyed',function(table_name,id){});
+</code></pre>
+
+<h2>Defining Your Model</h2>
+
+<p>ActiveRecord classes are created using the ActiveRecord.create method which
+takes three arguments: the name of the table that the class will reference,
+a field definition hash, and optionally a hash of instance methods that
+will be added to the class. If the table does not exist it will be
+automically created.</p>
+
+<pre><code>var User = ActiveRecord.create('users',{
+    username: '',
+    password: '',
+    post_count: 0,
+    profile: {
+        type: 'TEXT',
+        value: ''
+    }
+},{
+    getProfileWordCount: function(){
+        return this.get('profile').split(/\s+/).length;
+    }
+});
+</code></pre>
+
+<h2>Class &amp; Instance Methods</h2>
+
+<p>JavaScript does not have true static methods or classes, but in this case any
+method of the User variable above is refered to as a class method, and any
+method of a particular user (that the User class would find) is refered to as
+an instance method. The most important class methods are create() and find():</p>
+
+<pre><code>var jessica = User.create({
+    username: 'Jessica',
+    password: 'rabbit'
+});
+</code></pre>
+
+<p>Add new class or instance methods to all ActiveRecord models in the following
+way:</p>
+
+<pre><code>ActiveRecord.ClassMethods.myClassMethod = function(){
+    //this === model class
+};
+ActiveRecord.InstanceMethods.myInstanceMethod = function(){
+    // this === model instance
+};
+</code></pre>
+
+<h2>Getters &amp; Setters</h2>
+
+<p>It is extremely important to note that all of the attributes/columns of the user
+are accessible directly for reading (for convenience), but cannot be written
+directly. You <strong>must</strong> use the set() method to set an attribute, you <strong>should</strong>
+use the get() method to access all attributes, but you <strong>must</strong> use the get()
+method if your attribute/column is a method of the object or a JavaScript
+reserved keyword ('save,'initialize','default', etc).</p>
+
+<pre><code>jessica.username // 'Jessica'
+jessica.get('username'); // 'Jessica'
+jessica.username = 'new username';
+jessica.get('username'); // 'Jessica'
+jessica.set('username','new username');
+jessica.get('username'); // 'new username'
+</code></pre>
+
+<h2>When Data is Persisted</h2>
+
+<p>Data is only persisted to the database in three cases: when you explicitly call
+save() on a record, when you call create() on a record, or create a child record
+through a relationship (the method will contain the word "create" in this case),
+or when you call updateAttribute() on a record. In the case of the latter, only
+the attribute you update will be saved, the rest of the record will not be
+persisted to the database, even if changes have been made. Calling save() may
+add an "id" property to the record if it does not exist, but if there are no
+errors, it's state will otherwise be unchanged. You can call refresh() on any
+record to ensure it is not out of synch with your database at any time.</p>
+
+<h2>Finding Records</h2>
+
+<p>If you created the User class using the define() method you automatically have
+free "finder" methods:</p>
+
+<pre><code>User.findByUsername('Jessica');
+User.findAllByPassword(''); //finds all with blank passwords
+</code></pre>
+
+<p>Otherwise you can use the base find() method, which takes a hash of options,
+a numeric id or a complete SQL string:</p>
+
+<pre><code>var posts = Post.find({
+    all: true,
+    order: 'id DESC',
+    limit: 10
+});
+</code></pre>
+
+<h2>Synchronization</h2>
+
+<p>It is sometimes useful to keep records that have already been found in synch
+with the database. Each found record has a synchronize() method that will keep
+the values of that record in synch with the database. If you pass the parameter
+synchronize: true to find(), all objects will have their values synchronized,
+and in addition the result set itself will update as objects are destroyed or
+created. Both features are relatively expensive operations, and are not
+automatically garbage collected/stopped when the record or result set goes
+out of scope, so you will need to explicitly stop both record and result set
+synchronization.</p>
+
+<pre><code>var aaron = User.findByName('aaron');
+aaron.synchronize();
+
+var aaron_clone = User.findByName('aaron');
+aaron_clone.set('name','Aaron!');
+aaron_clone.save();
+
+aaron.get('name') === 'Aaron!';
+aaron.stop(); //record will no longer be synchronized
+
+var users = User.find({
+    all: true,
+    synchronize: true
+});
+//users contains aaron
+aaron.destroy();
+//users will no longer contain aaron
+users.stop(); //result set will no longer be synchronized
+</code></pre>
+
+<p>Calculations (count, min, max, etc) can also be synchronized. As a second
+parameter to the calculation function, pass a hash with a synchronize
+property that contains a function. That function will be called when the
+result of the calculation changes. Instead of returning the value of the
+calculation the initial call to the calculation function will return a
+function that will stop the synchronization.</p>
+
+<pre><code>var current_count;
+var stop = User.count({
+    synchronize: function(updated_count){
+        current_count = updated_count;
+    }
+});
+var new_user = User.create({params}); //current_count incremented
+new_user.destroy();  //current_count decremented
+stop();
+User.create({params}); //current_count unchanged
+</code></pre>
+
+<h2>Lifecycle</h2>
+
+<p>There are 8 currently supported lifecycle events which allow granular control
+over your data, and are convenient to build user interface components and
+interactions around on the client side:</p>
+
+<ul>
+<li>afterFind</li>
+<li>afterInitialize</li>
+<li>beforeSave</li>
+<li>afterSave</li>
+<li>beforeCreate</li>
+<li>afterCreate</li>
+<li>beforeDestroy</li>
+<li>afterDestroy</li>
+</ul>
+
+
+<p>beforeSave and afterSave are called when both creating (inserting) and saving
+(updating) a record. You can observe events on all instances of a class, or
+just a particular instnace:</p>
+
+<pre><code>User.observe('afterCreate',function(user){
+    console.log('User with id of ' + user.id + ' was created.');
+});
+
+var u = User.find(5);
+u.observe('afterDestroy',function(){
+    //this particular user was destroyed
+});
+</code></pre>
+
+<p>In the example above, each user that is created will be passed to the first
+callback. You can also call stopObserving() to remove a given observer, and
+use the observeOnce() method (same arguments as observe()) method if needed.
+Alternately, each event name is also a convience method and the following
+example is functionally equivelent to the prior example:</p>
+
+<pre><code>User.afterCreate(function(user){
+    console.log('User with id of ' + user.id + ' was created.');
+});
+
+var u = User.find(5);
+u.afterDestroy(function(){
+    //this particular user was destroyed
+});
+</code></pre>
+
+<p>You can stop the creation, saving or destruction of a record by returning
+false inside any observers of the beforeCreate, beforeSave and
+beforeDestroy events respectively:</p>
+
+<pre><code>User.beforeDestroy(function(user){
+    if(!allow_deletion_checkbox.checked){
+        return false; //record will not be destroyed
+    }
+});
+</code></pre>
+
+<p>Returning null, or returning nothing is equivelent to returning true in
+this context and will not stop the event.</p>
+
+<p>To observe a given event on all models, you can do the following:</p>
+
+<pre><code>ActiveRecord.observe('created',function(model_class,model_instance){});
+</code></pre>
+
+<p>afterFind works differently than all of the other events. It is only available
+to the model class, not the instances, and is called only when a result set is
+found. A find first, or find by id call will not trigger the event.</p>
+
+<pre><code>User.observe('afterFind',function(users,params){
+    //params contains the params used to find the array of users
+});
+</code></pre>
+
+<h2>Validation</h2>
+
+<p>Validation is performed on each model instance when create() or save() is
+called. Validation can be applied either by using pre defined validations
+(validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by
+defining a valid() method in the class definition. (or by both). If a record is
+not valid, save() will return false. create() will always return the record,
+but in either case you can call getErrors() on the record to determine if
+there are any errors present.</p>
+
+<pre><code>User = ActiveRecord.define('users',{
+    username: '',
+    password: ''
+},{
+    valid: function(){
+        if(User.findByUsername(this.username)){
+            this.addError('The username ' + this.username + ' is already taken.');
+        }
+    }
+});
+
+User.validatesPresenceOf('password');
+
+var user = User.build({
+    'username': 'Jessica'
+});
+
+user.save(); //false
+var errors = user.getErrors(); //contains a list of the errors that occured
+user.set('password','rabbit');
+user.save(); //true
+</code></pre>
+
+<h2>Relationships</h2>
+
+<p>Relationships are declared with one of three class methods that are available
+ to all models:</p>
+
+<ul>
+<li>belongsTo</li>
+<li>hasMany</li>
+<li>hasOne</li>
+</ul>
+
+
+<p>The related model name can be specified in a number of ways, assuming that you
+have a Comment model already declared, any of the following would work:</p>
+
+<pre><code>User.hasMany(Comment)
+User.hasMany('Comment')
+User.hasMany('comment')
+User.hasMany('comments')
+</code></pre>
+
+<p>Each relationship adds various instance methods to each instance of that
+model. This differs significantly from the Rails "magical array" style of
+handling relationship logic:</p>
+
+<p>Rails:</p>
+
+<pre><code>u = User.find(5)
+u.comments.length
+u.comments.create :title =&gt; 'comment title'
+</code></pre>
+
+<p>ActiveRecord.js:</p>
+
+<pre><code>var u = User.find(5);
+u.getCommentList().length;
+u.createComment({title: 'comment title'});
+</code></pre>
+
+<p>You can name the relationship (and thus the generate methods) by passing
+a name parameter:</p>
+
+<pre><code>TreeNode.belongsTo(TreeNode,{name: 'parent'});
+TreeNode.hasMany(TreeNode,{name: 'child'});
+//instance now have, getParent(), getChildList(), methods
+</code></pre>
+
+<h2>Missing Features</h2>
+
+<p>ActiveRecord.js will not support all of the advanced features of the Ruby
+ActiveRecord implementation, but several key features are currently missing
+and will be added soon:</p>
+
+<ul>
+<li>complete set of default validations from ActiveRecord::Validations::ClassMethods</li>
+<li>ActsAsList</li>
+<li>ActsAsTree</li>
+<li>hasMany :through (which will likely be the only supported many to many relationship)</li>
+</ul>
+
+
+<h2>Migrations</h2>
+
+<p>Migrations are a method of versioining the database schema used by your
+application. All of your migrations must be defined in an object assigned
+to ActiveRecord.Migrations.migrations. The keys need not be numerically
+sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).</p>
+
+<p>Each migration object must have an up() and down() method which will
+recieve an ActiveRecord.Migrations.Schema object. createTable() and
+addColumn() both use the same syntax as define() to specify default
+values and field types.</p>
+
+<pre><code>ActiveRecord.Migrations.migrations = {
+    1: {
+        up: function(schema){
+            schema.createTable('one',{
+                a: '',
+                b: {
+                    type: 'TEXT',
+                    value: 'default'
+                }
+            });
+        },
+        down: function(schema){
+            schema.dropTable('one');
+        }
+    },
+    2: {
+        up: function(schema){
+            schema.addColumn('one','c');
+        },
+        down: function(schema){
+            schema.dropColumn('one','c');
+        }
+    }
+};
+
+ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
+ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
+ActiveRecord.Migrations.migrate(1); //migrates to version 1
+</code></pre>
+
+      <script>
+        var code_snippets = document.getElementsByTagName('code');
+        for(var i = 0; i < code_snippets.length; ++i){
+          code_snippets[i].className = 'javascript';
+        }
+        dp.sh.HighlightAll('javascript',false,false,false,true,false);
+      </script>
+      <p id="copyright">ActiveJS is a trademark of Aptana, Inc. &copy;2009 <a href="http://aptana.com/">Aptana Inc.</a></p>
+    </div>
+    <script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-2210703-5");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+  </body>
+</html>

@@ -28,11 +28,15 @@
 /**
  * @namespace {ActiveRecord.Migrations}
  * @example
+ * 
+ * Migrations
+ * ----------
+ * 
  * Migrations are a method of versioining the database schema used by your
  * application. All of your migrations must be defined in an object assigned
  * to ActiveRecord.Migrations.migrations. The keys need not be numerically
  * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
- *
+ * 
  * Each migration object must have an up() and down() method which will
  * recieve an ActiveRecord.Migrations.Schema object. createTable() and
  * addColumn() both use the same syntax as define() to specify default
@@ -67,7 +71,6 @@
  *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
  *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
  */
-
 var Migrations = {
     fieldTypesWithDefaultValues: {
         'tinyint': 0,

@@ -1,6 +1,144 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <javascript>
     <class type="ActiveEvent" superclass="Object">
+        <examples>
+            <example><![CDATA[ActiveEvent.js
+==============
+
+ActiveEvent allows you to create observable events, and attach event
+handlers to any class or object.
+Setup
+-----
+Before you can use ActiveEvent you must call extend a given class or object
+with ActiveEvent's methods. If you extend a class, both the class itself
+will become observable, as well as all of it's instances.
+    ActiveEvent.extend(MyClass); //class and all instances are observable
+    ActiveEvent.extend(my_object); //this object becomes observable
+
+Creating Events
+---------------
+You can create an event inside any method of your class or object by calling
+the notify() method with name of the event followed by any arguments to be
+passed to observers. You can also have an existing method fire an event with
+the same name as the method using makeObservable().
+
+    var Message = function(){};
+    Message.prototype.send = function(text){
+        //message sending code here...
+        this.notify('sent',text);
+    };
+    ActiveEvent.extend(Message);
+
+    //make an existing method observable
+    var observable_hash = new Hash({});
+    ActiveEvent.extend(observable_hash);
+    observable_hash.makeObservable('set');
+
+Observing Events
+----------------
+To observe an event call the observe() method with the name of the event you
+want to observe, and the observer function. The observer function will
+receive any additional arguments passed to notify(). If observing a class,
+the instance that triggered the event will always be the first argument
+passed to the observer. observeOnce() works just like observe() in every
+way, but is only called once.
+
+    Message.observe('sent',function(message,text){
+        //responds to all sent messages
+    });
+
+    var m = new Message();
+    m.observe('sent',function(text){
+        //this will only be called when "m" is sent
+    });
+
+    observable_hash.observe('set',function(key,value){
+        console.log('observable_hash.set: ' + key + '=' + value);
+    });
+    observable_hash.observeOnce(function(key,value){
+        //this will only be called once
+    });
+
+Control Flow
+------------
+When notify() is called, if any of the registered observers for that event
+return false, no other observers will be called and notify() will return
+false. Returning null or not calling return will not stop the event.
+Otherwise notify() will return an array of the
+collected return values from any registered observer functions. Observers
+can be unregistered with the stopObserving() method. If no observer is
+passed, all observers of that object or class with the given event name
+will be unregistered. If no event name and no observer is passed, all
+observers of that object or class will be unregistered.
+    Message.prototype.send = function(text){
+        if(this.notify('send',text) === false)
+            return false;
+        //message sending code here...
+        this.notify('sent',text);
+        return true;
+    };
+
+    var m = new Message();
+    
+    var observer = m.observe('send',function(message,text){
+        if(text === 'test')
+            return false;
+    });
+    
+    m.send('my message'); //returned true
+    m.send('test'); //returned false
+    
+    m.stopObserving('send',observer);
+    
+    m.send('test'); //returned true</code></pre>
+
+Object.options
+--------------
+If an object has an options property that contains a callable function with
+the same name as an event triggered with <b>notify()</b>, it will be
+treated just like an instance observer. So the falling code is equivalent.
+    var rating_one = new Control.Rating('rating_one',{  
+        afterChange: function(new_value){}    
+    });  
+    
+    var rating_two = new Control.Rating('rating_two');  
+    rating_two.observe('afterChange',function(new_value){});</code></pre>
+
+MethodCallObserver
+------------------
+The makeObservable() method permanently modifies the method that will
+become observable. If you need to temporarily observe a method call without
+permanently modifying it, use the observeMethod(). Pass the name of the
+method to observe and the observer function will receive all of the
+arguments passed to the method. An ActiveEvent.MethodCallObserver object is
+returned from the call to observeMethod(), which has a stop() method on it.
+Once stop() is called, the method is returned to it's original state. You
+can optionally pass another function to observeMethod(), if you do the
+MethodCallObserver will be automatically stopped when that function
+finishes executing.
+
+    var h = new Hash({});
+    ActiveEvent.extend(h);
+    
+    var observer = h.observeMethod('set',function(key,value){
+        console.log(key + '=' + value);
+    });
+    h.set('a','one');
+    h.set('a','two');
+    observer.stop();
+    
+    //console now contains:
+    //"a = one"
+    //"b = two"
+    
+    //the following does the same as above
+    h.observeMethod('set',function(key,value){
+        console.log(key + '=' + value);
+    },function(){
+        h.set('a','one');
+        h.set('b','two');
+    });]]></example>
+        </examples>
         <methods>
             <method name="extend" scope="static">
                 <description>After extending a given object, it will inherit the methods described in ActiveEvent.ObservableObject.</description>
@@ -72,6 +210,358 @@
         </methods>
     </class>
     <class type="ActiveRecord" superclass="Object">
+        <examples>
+            <example><![CDATA[ActiveRecord.js
+===============
+
+ActiveRecord.js is a cross browser, cross platform, stand-alone object
+relational mapper. It shares a very similar vocabulary to the Ruby
+ActiveRecord implementation, but uses JavaScript idioms and best
+practices -- it is not a direct port. It can operate using an in memory
+hash table, or with a SQL back end on the Jaxer platform (SQLite and
+MySQL), Adobe's AIR (SQLite) and Google Gears (SQLite). Support
+for the HTML 5 SQL storage spec is planned.
+
+Setup
+-----
+To begin using ActiveRecord.js, you will need to include the
+activerecord.js file and establish a connection. If you do not specify
+a connection type, one will be automatically chosen.
+
+    ActiveRecord.connect();
+
+You can also specify a specific type of adapter. Jaxer requires
+pre-configuring of the database for the entire application, and Gears
+automatically configures the database, so simply passing the type of
+connection is enough. In all of the SQLite implementations you can
+optionally specify a database name (browser) or path (Jaxer):
+
+    ActiveRecord.connect(ActiveRecord.Adapters.InMemory); //in JS memory
+    ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
+    ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
+    ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
+    ActiveRecord.connect(ActiveRecord.Adapters.Gears,'my_database'); //Gears or HTML5, name is optional
+    
+Once connected you can always execute SQL statements directly:
+
+    ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY, user_id, title, text)');
+    
+Logging (to either the Jaxer log or browser console) can be turned on by setting:
+
+    ActiveRecord.logging = true;
+
+InMemory Adapter
+----------------
+If you are using a browser or platform that does not have access to a SQL
+database, you can use the InMemory adapter which will store your objects
+in memory. All features (including find by SQL) will still work, but you
+will not be able to use the Migration features, since there is no table
+schema. Since your objects will not persist, the second parameter to
+establish a connection is a hash with the data you would like to use
+in this format: {table_name: {id: row}}. The InMemory adapter will also
+trigger three observable events that allow you to write an AJAX
+persistence layer.
+
+    ActiveRecord.connect(ActiveRecord.Adapters.InMemory,{
+        table_one: {
+            1: {row_data},
+            2: {row_data}
+        },
+        table_two: {
+            1: {row_data},
+            2: {row_data}
+        }
+    });
+
+    ActiveRecord.connection.observe('created',function(table_name,id,data){});
+    ActiveRecord.connection.observe('updated',function(table_name,id,data){});
+    ActiveRecord.connection.observe('destroyed',function(table_name,id){});
+    
+Defining Your Model
+-------------------
+ActiveRecord classes are created using the ActiveRecord.create method which
+takes three arguments: the name of the table that the class will reference,
+a field definition hash, and optionally a hash of instance methods that
+will be added to the class. If the table does not exist it will be
+automically created.
+    var User = ActiveRecord.create('users',{
+        username: '',
+        password: '',
+        post_count: 0,
+        profile: {
+            type: 'TEXT',
+            value: ''
+        }
+    },{
+        getProfileWordCount: function(){
+            return this.get('profile').split(/\s+/).length;
+        }
+    });
+
+Class & Instance Methods
+------------------------
+JavaScript does not have true static methods or classes, but in this case any
+method of the User variable above is refered to as a class method, and any
+method of a particular user (that the User class would find) is refered to as
+an instance method. The most important class methods are create() and find():
+
+    var jessica = User.create({
+        username: 'Jessica',
+        password: 'rabbit'
+    });
+
+Add new class or instance methods to all ActiveRecord models in the following
+way:
+
+    ActiveRecord.ClassMethods.myClassMethod = function(){
+        //this === model class
+    };
+    ActiveRecord.InstanceMethods.myInstanceMethod = function(){
+        // this === model instance
+    };
+
+Getters & Setters
+-----------------
+It is extremely important to note that all of the attributes/columns of the user
+are accessible directly for reading (for convenience), but cannot be written
+directly. You **must** use the set() method to set an attribute, you **should**
+use the get() method to access all attributes, but you **must** use the get()
+method if your attribute/column is a method of the object or a JavaScript
+reserved keyword ('save,'initialize','default', etc).
+
+    jessica.username // 'Jessica'
+    jessica.get('username'); // 'Jessica'
+    jessica.username = 'new username';
+    jessica.get('username'); // 'Jessica'
+    jessica.set('username','new username');
+    jessica.get('username'); // 'new username'
+
+When Data is Persisted
+----------------------
+Data is only persisted to the database in three cases: when you explicitly call
+save() on a record, when you call create() on a record, or create a child record
+through a relationship (the method will contain the word "create" in this case),
+or when you call updateAttribute() on a record. In the case of the latter, only
+the attribute you update will be saved, the rest of the record will not be
+persisted to the database, even if changes have been made. Calling save() may
+add an "id" property to the record if it does not exist, but if there are no
+errors, it's state will otherwise be unchanged. You can call refresh() on any
+record to ensure it is not out of synch with your database at any time.
+
+Finding Records
+---------------
+If you created the User class using the define() method you automatically have
+free "finder" methods:
+
+    User.findByUsername('Jessica');
+    User.findAllByPassword(''); //finds all with blank passwords
+
+Otherwise you can use the base find() method, which takes a hash of options,
+a numeric id or a complete SQL string:
+
+    var posts = Post.find({
+        all: true,
+        order: 'id DESC',
+        limit: 10
+    });
+
+Synchronization
+---------------
+It is sometimes useful to keep records that have already been found in synch
+with the database. Each found record has a synchronize() method that will keep
+the values of that record in synch with the database. If you pass the parameter
+synchronize: true to find(), all objects will have their values synchronized,
+and in addition the result set itself will update as objects are destroyed or
+created. Both features are relatively expensive operations, and are not
+automatically garbage collected/stopped when the record or result set goes
+out of scope, so you will need to explicitly stop both record and result set
+synchronization.
+
+    var aaron = User.findByName('aaron');
+    aaron.synchronize();
+
+    var aaron_clone = User.findByName('aaron');
+    aaron_clone.set('name','Aaron!');
+    aaron_clone.save();
+
+    aaron.get('name') === 'Aaron!';
+    aaron.stop(); //record will no longer be synchronized
+
+    var users = User.find({
+        all: true,
+        synchronize: true
+    });
+    //users contains aaron
+    aaron.destroy();
+    //users will no longer contain aaron
+    users.stop(); //result set will no longer be synchronized
+
+Calculations (count, min, max, etc) can also be synchronized. As a second
+parameter to the calculation function, pass a hash with a synchronize
+property that contains a function. That function will be called when the
+result of the calculation changes. Instead of returning the value of the
+calculation the initial call to the calculation function will return a
+function that will stop the synchronization.
+    var current_count;
+    var stop = User.count({
+        synchronize: function(updated_count){
+            current_count = updated_count;
+        }
+    });
+    var new_user = User.create({params}); //current_count incremented
+    new_user.destroy();  //current_count decremented
+    stop();
+    User.create({params}); //current_count unchanged
+Lifecycle
+---------
+There are 8 currently supported lifecycle events which allow granular control
+over your data, and are convenient to build user interface components and
+interactions around on the client side:
+
+- afterFind
+- afterInitialize
+- beforeSave
+- afterSave
+- beforeCreate
+- afterCreate
+- beforeDestroy
+- afterDestroy
+
+beforeSave and afterSave are called when both creating (inserting) and saving
+(updating) a record. You can observe events on all instances of a class, or
+just a particular instnace:
+
+    User.observe('afterCreate',function(user){
+        console.log('User with id of ' + user.id + ' was created.');
+    });
+
+    var u = User.find(5);
+    u.observe('afterDestroy',function(){
+        //this particular user was destroyed
+    });
+
+In the example above, each user that is created will be passed to the first
+callback. You can also call stopObserving() to remove a given observer, and
+use the observeOnce() method (same arguments as observe()) method if needed.
+Alternately, each event name is also a convience method and the following
+example is functionally equivelent to the prior example:
+
+    User.afterCreate(function(user){
+        console.log('User with id of ' + user.id + ' was created.');
+    });
+
+    var u = User.find(5);
+    u.afterDestroy(function(){
+        //this particular user was destroyed
+    });
+
+You can stop the creation, saving or destruction of a record by returning
+false inside any observers of the beforeCreate, beforeSave and
+beforeDestroy events respectively:
+
+    User.beforeDestroy(function(user){
+        if(!allow_deletion_checkbox.checked){
+            return false; //record will not be destroyed
+        }
+    });
+Returning null, or returning nothing is equivelent to returning true in
+this context and will not stop the event.
+    
+To observe a given event on all models, you can do the following: 
+
+    ActiveRecord.observe('created',function(model_class,model_instance){});
+    
+afterFind works differently than all of the other events. It is only available
+to the model class, not the instances, and is called only when a result set is
+found. A find first, or find by id call will not trigger the event.
+
+    User.observe('afterFind',function(users,params){
+        //params contains the params used to find the array of users
+    });
+    
+Validation
+----------
+Validation is performed on each model instance when create() or save() is
+called. Validation can be applied either by using pre defined validations
+(validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by
+defining a valid() method in the class definition. (or by both). If a record is
+not valid, save() will return false. create() will always return the record,
+but in either case you can call getErrors() on the record to determine if
+there are any errors present.
+
+    User = ActiveRecord.define('users',{
+        username: '',
+        password: ''
+    },{
+        valid: function(){
+            if(User.findByUsername(this.username)){
+                this.addError('The username ' + this.username + ' is already taken.');
+            }
+        }
+    });
+
+    User.validatesPresenceOf('password');
+
+    var user = User.build({
+        'username': 'Jessica'
+    });
+
+    user.save(); //false
+    var errors = user.getErrors(); //contains a list of the errors that occured
+    user.set('password','rabbit');
+    user.save(); //true
+    
+Relationships
+-------------
+Relationships are declared with one of three class methods that are available
+ to all models:
+
+- belongsTo
+- hasMany
+- hasOne
+
+The related model name can be specified in a number of ways, assuming that you
+have a Comment model already declared, any of the following would work:
+
+    User.hasMany(Comment)
+    User.hasMany('Comment')
+    User.hasMany('comment')
+    User.hasMany('comments')
+
+Each relationship adds various instance methods to each instance of that
+model. This differs significantly from the Rails "magical array" style of
+handling relationship logic:
+
+Rails:
+
+    u = User.find(5)
+    u.comments.length
+    u.comments.create :title => 'comment title'
+
+ActiveRecord.js:
+
+    var u = User.find(5);
+    u.getCommentList().length;
+    u.createComment({title: 'comment title'});
+
+You can name the relationship (and thus the generate methods) by passing
+a name parameter:
+
+    TreeNode.belongsTo(TreeNode,{name: 'parent'});
+    TreeNode.hasMany(TreeNode,{name: 'child'});
+    //instance now have, getParent(), getChildList(), methods
+
+Missing Features
+----------------
+ActiveRecord.js will not support all of the advanced features of the Ruby
+ActiveRecord implementation, but several key features are currently missing
+and will be added soon:
+
+- complete set of default validations from ActiveRecord::Validations::ClassMethods
+- ActsAsList
+- ActsAsTree
+- hasMany :through (which will likely be the only supported many to many relationship)]]></example>
+        </examples>
         <properties>
             <property name="adapter" access="read-write" scope="static" type="mixed">
                 <description>null if no connection is active, or the class that created the connection.</description>
@@ -102,9 +592,11 @@
             <method name="connect" scope="static">
                 <description>Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.</description>
                 <examples>
-                    <example>
-                        ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,&apos;path_to_database_file&apos;); ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite; ActiveRecord.connection.executeSQL(&apos;SELECT * FROM sqlite_master&apos;); //or you can have ActiveRecord try to auto detect the enviornment ActiveRecord.connect();
-                    </example>
+                    <example><![CDATA[    ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
+    ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite;
+    ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
+    //or you can have ActiveRecord try to auto detect the enviornment
+    ActiveRecord.connect();]]></example>
                 </examples>
                 <parameters>
                     <parameter name="adapter" usage="required" type="Object"/>
@@ -114,9 +606,8 @@
             <method name="create" scope="static">
                 <description>Creates an ActiveRecord class, returning the class and storing it inside ActiveRecord.Models [ model_name ] . model_name is a singularized, capitalized form of table name.</description>
                 <examples>
-                    <example>
-                        var User = ActiveRecord.create(&apos;users&apos;); var u = User.find(5);
-                    </example>
+                    <example><![CDATA[    var User = ActiveRecord.create('users');
+    var u = User.find(5);]]></example>
                 </examples>
                 <parameters>
                     <parameter name="table_name" usage="required" type="String"/>
@@ -132,9 +623,20 @@
             <method name="define" scope="static">
                 <description>If the table for your ActiveRecord does not exist, this will define the ActiveRecord and automatically create the table.</description>
                 <examples>
-                    <example>
-                        var User = ActiveRecord.define(&apos;users&apos;, { name: &apos;&apos;, password: &apos;&apos;, comment_count: 0, profile: { type: &apos;text&apos;, value: &apos;&apos; }, serializable_field: { } }); var u = User.create( { name: &apos;alice&apos;, serializable_field: { a : &apos;1&apos;, b: &apos;2&apos;} });
-                    </example>
+                    <example><![CDATA[    var User = ActiveRecord.define('users',{
+        name: '',
+        password: '',
+        comment_count: 0,
+        profile: {
+            type: 'text',
+            value: ''
+        },
+        serializable_field: {}
+    });
+    var u = User.create({
+        name: 'alice',
+        serializable_field: {a: '1', b: '2'}
+    });]]></example>
                 </examples>
                 <parameters>
                     <parameter name="table_name" usage="required" type="String"/>
@@ -167,9 +669,7 @@
             <method name="execute" scope="static">
                 <description>Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.</description>
                 <examples>
-                    <example>
-                        ActiveRecord.execute(&apos;DELETE FROM users WHERE user_id = ?&apos;,5);
-                    </example>
+                    <example><![CDATA[    ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);]]></example>
                 </examples>
                 <parameters>
                     <parameter name="sql" usage="required" type="String"/>
@@ -227,9 +727,14 @@
             <method name="belongsTo" scope="static">
                 <description>Sepcifies a 1&lt;-1 relationship between models. The foreign key will reside in the declaring object.</description>
                 <examples>
-                    <example>
-                        Comment.belongsTo(&apos;User&apos;, { counter: &apos;comment_count&apos; //comment count must be a column in User }); var c = Comment.find(5); //each Comment instance will gain the following 3 methods c.getUser() c.buildUser() c.createUser()
-                    </example>
+                    <example><![CDATA[    Comment.belongsTo('User',{
+        counter: 'comment_count' //comment count must be a column in User
+    });
+    var c = Comment.find(5);
+    //each Comment instance will gain the following 3 methods
+    c.getUser()
+    c.buildUser()
+    c.createUser()]]></example>
                 </examples>
                 <parameters>
                     <parameter name="related_model_name" usage="required" type="String">
@@ -260,9 +765,11 @@
             </method>
             <method name="create" scope="static">
                 <examples>
-                    <example>
-                        var u = User.create( { name: &apos;alice&apos;, password: &apos;pass&apos; }); u.id //will now contain the id of the user
-                    </example>
+                    <example><![CDATA[    var u = User.create({
+        name: 'alice',
+        password: 'pass'
+    });
+    u.id //will now contain the id of the user]]></example>
                 </examples>
                 <parameters>
                     <parameter name="data" usage="required" type="Object"/>
@@ -283,9 +790,31 @@
             <method name="find" scope="static">
                 <description>Find a given record, or multiple records matching the passed conditions.</description>
                 <examples>
-                    <example>
-                        var user = User.find(5); //finds a single record var user = User.find( { first: true, where: { id: 5 } }); var user = User.find( { first: true, where: [ &apos;id = ?&apos;,5 ] }); var users = User.find(); //finds all var users = User.find( { where: &apos;name = &quot;alice&quot; AND password = &quot;&apos; + md5(&apos;pass&apos;) + &apos;&quot;&apos;, order: &apos;id DESC&apos; }); //using the where syntax below, the parameters will be properly escaped var users = User.find( { where: { name: &apos;alice&apos;, password: md5(&apos;pass&apos;) } order: &apos;id DESC&apos; }); var users = User.find(&apos;SELECT * FROM users ORDER id DESC&apos;);
-                    </example>
+                    <example><![CDATA[    var user = User.find(5); //finds a single record
+    var user = User.find({
+        first: true,
+        where: {
+            id: 5
+        }
+    });
+    var user = User.find({
+        first: true,
+        where: ['id = ?',5]
+    });
+    var users = User.find(); //finds all
+    var users = User.find({
+        where: 'name = "alice" AND password = "' + md5('pass') + '"',
+        order: 'id DESC'
+    });
+    //using the where syntax below, the parameters will be properly escaped
+    var users = User.find({
+        where: {
+            name: 'alice',
+            password: md5('pass')
+        }
+        order: 'id DESC'
+    });
+    var users = User.find('SELECT * FROM users ORDER id DESC');]]></example>
                 </examples>
                 <parameters>
                     <parameter name="params" usage="required" type="mixed">
@@ -307,9 +836,16 @@
             <method name="hasMany" scope="static">
                 <description>Sepcifies a 1-&gt;N relationship between models. The foreign key will reside in the child (related) object.</description>
                 <examples>
-                    <example>
-                        User.hasMany(&apos;comments&apos;, { dependent: true }); var u = User.find(5); //each User instance will gain the following 5 methods u.createComment() u.buildComment() u.destroyComment() u.getCommentList() //takes the same options as find() u.getCommentCount() //takes the same options as count()
-                    </example>
+                    <example><![CDATA[    User.hasMany('comments',{
+        dependent: true
+    });
+    var u = User.find(5);
+    //each User instance will gain the following 5 methods
+    u.createComment()
+    u.buildComment()
+    u.destroyComment()
+    u.getCommentList() //takes the same options as find()
+    u.getCommentCount() //takes the same options as count()]]></example>
                 </examples>
                 <parameters>
                     <parameter name="related_model_name" usage="required" type="String">
@@ -323,9 +859,12 @@
             <method name="hasOne" scope="static">
                 <description>Sepcifies a 1-&gt;1 relationship between models. The foreign key will reside in the related object.</description>
                 <examples>
-                    <example>
-                        User.hasOne(CreditCard); var u = User.find(5); //each User instance will gain the following 3 methods u.getCreditCard() u.buildCreditCard() u.createCreditCard()
-                    </example>
+                    <example><![CDATA[    User.hasOne(CreditCard);
+    var u = User.find(5);
+    //each User instance will gain the following 3 methods
+    u.getCreditCard()
+    u.buildCreditCard()
+    u.createCreditCard()]]></example>
                 </examples>
                 <parameters>
                     <parameter name="related_model_name" usage="required" type="String">
@@ -365,9 +904,9 @@
             <method name="resultSetFromArray" scope="static">
                 <description>Extends a vanilla array with ActiveRecord.ResultSet methods allowing for the construction of custom result set objects from arrays where result sets are expected. This will modify the array that is passed in and return the same array object.</description>
                 <examples>
-                    <example>
-                        var one = Comment.find(1); var two = Comment.find(2); var result_set = Comment.resultSetFromArray( [ one,two ] );
-                    </example>
+                    <example><![CDATA[    var one = Comment.find(1);
+    var two = Comment.find(2);
+    var result_set = Comment.resultSetFromArray([one,two]);]]></example>
                 </examples>
                 <parameters>
                     <parameter name="result_set" usage="required" type="Array"/>
@@ -389,9 +928,11 @@
             </method>
             <method name="transaction" scope="static">
                 <examples>
-                    <example>
-                        Account.transaction(function() { var from = Account.find(2); var to = Account.find(3); to.despoit(from.withdraw(100.00)); });
-                    </example>
+                    <example><![CDATA[    Account.transaction(function(){
+        var from = Account.find(2);
+        var to = Account.find(3);
+        to.despoit(from.withdraw(100.00));
+    });]]></example>
                 </examples>
                 <parameters>
                     <parameter name="proceed" usage="required" type="Function">
@@ -404,9 +945,14 @@
             </method>
             <method name="update" scope="static">
                 <examples>
-                    <example>
-                        Article.update(3, { title: &apos;New Title&apos; }); //or pass an array of ids and an array of attributes Article.update( [ 5,7 ] , [ { title : &apos;Title for 5&apos;}, { title : &apos;Title for 7&apos;} ] );
-                    </example>
+                    <example><![CDATA[    Article.update(3,{
+        title: 'New Title'
+    });
+    //or pass an array of ids and an array of attributes
+    Article.update([5,7],[
+        {title: 'Title for 5'},
+        {title: 'Title for 7'}
+    ]);]]></example>
                 </examples>
                 <parameters>
                     <parameter name="id" usage="required" type="Number"/>
@@ -579,6 +1125,49 @@
         </methods>
     </class>
     <class type="ActiveRecord.Migrations" superclass="Object">
+        <examples>
+            <example><![CDATA[Migrations
+----------
+
+Migrations are a method of versioining the database schema used by your
+application. All of your migrations must be defined in an object assigned
+to ActiveRecord.Migrations.migrations. The keys need not be numerically
+sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
+
+Each migration object must have an up() and down() method which will
+recieve an ActiveRecord.Migrations.Schema object. createTable() and
+addColumn() both use the same syntax as define() to specify default
+values and field types.
+
+    ActiveRecord.Migrations.migrations = {
+        1: {
+            up: function(schema){
+                schema.createTable('one',{
+                    a: '',
+                    b: {
+                        type: 'TEXT',
+                        value: 'default'
+                    }
+                });
+            },
+            down: function(schema){
+                schema.dropTable('one');
+            }
+        },
+        2: {
+            up: function(schema){
+                schema.addColumn('one','c');
+            },
+            down: function(schema){
+                schema.dropColumn('one','c');
+            }
+        }
+    };
+    
+    ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
+    ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
+    ActiveRecord.Migrations.migrate(1); //migrates to version 1]]></example>
+        </examples>
         <methods>
             <method name="current" scope="static">
                 <description>Returns the current schema version number.</description>
@@ -667,9 +1256,116 @@
     </class>
     <class type="ActiveRoutes" superclass="Object">
         <examples>
-            <example>
-                ActiveRoutes maps URI strings to method calls, and visa versa. It shares a similar syntax to Rails Routing, but is framework agnostic and can map calls to any type of object. Server side it can be used to map requests for a given URL to a method that will render a page, client side it can be used to provide deep linking and back button / history support for your Ajax application. Options ------- You can pass a hash of options as the third parameter to the ActiveRoutes constructor. This hash can contain the following keys: - base: default &apos;&apos;, the default path / url prefix to be used in a generated url - classSuffix: default &apos;&apos; if it was &quot;Controller&quot;, calling &quot;/blog/post/5&quot; would call BlogController.post instead of Blog.post - dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found - camelizeObjectName: default true, if true, trying to call &quot;blog_controller&quot; through routes will call &quot;BlogController&quot; - camelizeMethodName: default true, if true, trying to call &quot;my_method_name&quot; through routes will call &quot;myMethodName&quot; - camelizeGeneratedMethods: default true, will export generated methods into the scope as &quot;articleUrl&quot; instead of &quot;article_url&quot; Declaring Routes ---------------- Wether declared in the constructor, or with addRoute(), routes can have up to three parameters, and can be declared in any of the follow ways: - &quot;name&quot;, &quot;path&quot;, { params } - &quot;path&quot;, { params } - &quot;path&quot; The path portion of a route is a URI string. Parameters that will be passed to the method called are represented with a colon. Names are optional, but the path and the params together must declare &quot;object&quot; and &quot;method&quot; parameters. The following are all valid routes: var routes = new ActiveRoutes( [ [ &apos;root&apos;,&apos;/&apos;, { object : &apos;Pages&apos;,method:&apos;index&apos;}], [ &apos;contact&apos;,&apos;/contact&apos;, { object : &apos;Pages&apos;,method:&apos;contact&apos;}], [ &apos;blog&apos;,&apos;/blog&apos;, { object : &apos;Blog&apos;,method:&apos;index&apos;}], [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;Blog&apos;,method:&apos;post&apos;}], [ &apos;/pages/*&apos;, { object : &apos;Pages&apos;,method:&apos;page&apos;}], [ &apos;/:object/:method&apos; ] ] ,Application); Catch All Routes ---------------- If you want to route all requests below a certain path to a given method, place an asterisk in your route. When a matching path is dispatched to that route the path components will be available in an array called &quot;path&quot;. route_set.addRoute(&apos;/wiki/*&apos;, { object : &apos;WikiController&apos;,method:&apos;page&apos;}) route_set.dispatch(&apos;/wiki/a/b/c&apos;); //calls: WikiController.page( { object : &apos;WikiController&apos;,method:&apos;page&apos;,path:[&apos;a&apos;,&apos;b&apos;,&apos;c&apos;]}) Route Requirements ------------------ Each route can take a special &quot;requirements&quot; parameter that will not be passed in the params passed to the called method. Each requirement can be a regular expression or a function, which the value of the parameter will be checked against. Each value checked by a regular expression or function is always a string. route_set.addRoute(&apos;/article/:article_id/:comment_id, { article_id: /^\d+$/, comment_id: function(comment_id) { return comment_id.match(/^\d+$/); } }); Scope ----- You can specify what scope an ActiveRoutes instance will look in to call the specified objects and methods. This defaults to window but can be specified as the second parameter to the constructor. Generating URLs --------------- The method urlFor() is available on every route set, and can generate a URL from an object. Using the routes declared in the example above: routes.urlFor( { object : &apos;Blog&apos;,method:&apos;post&apos;,id:5}) == &apos;/blog/post/5&apos;; If named routes are given, corresponding methods are generated in the passed scope to resolve these urls. Application.postUrl( { id : 5}) == &apos;/blog/post/5&apos;; To get the params to generate a url, a similar method is generated: Application.postParams( { id : 5}) == {object:&apos;Blog&apos;,method:&apos;post&apos;,id:5}; To call a named route directly without round-tripping to a string and back to params use: Application.callPost( { id : 5}); Dispatching ----------- To call a given method from a URL string, use the dispatch() method. routes.dispatch(&apos;/&apos;); //will call Pages.index() routes.dispatch(&apos;/blog/post/5&apos;); //will call Blog.post( { id : 5}); History ------- Most server side JavaScript implementations will not preserve objects between requests, so the history is not of use. Client side, after each dispatch, the route and parameters are recorded. The history itself is accessible with the &quot;history&quot; property, and is traversable with the next() and back() methods.
-            </example>
+            <example><![CDATA[ActiveRoutes.js
+===============
+
+ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
+similar syntax to Rails Routing, but is framework agnostic and can map
+calls to any type of object. Server side it can be used to map requests for
+a given URL to a method that will render a page, client side it can be used
+to provide deep linking and back button / history support for your Ajax
+application.
+
+Options
+-------
+You can pass a hash of options as the third parameter to the ActiveRoutes
+constructor. This hash can contain the following keys:
+
+- base: default '', the default path / url prefix to be used in a generated url
+- classSuffix: default '' if it was "Controller", calling "/blog/post/5" would call BlogController.post instead of Blog.post
+- dispatcher: default ActiveRoutes.prototype.defaultDispatcher, the dispatcher function to be called when dispatch() is called and a route is found
+- camelizeObjectName: default true, if true, trying to call "blog_controller" through routes will call "BlogController"
+- camelizeMethodName: default true, if true, trying to call "my_method_name" through routes will call "myMethodName"
+- camelizeGeneratedMethods: default true, will export generated methods into the scope as "articleUrl" instead of "article_url"
+
+Declaring Routes
+----------------
+Wether declared in the constructor, or with addRoute(), routes can have up
+to three parameters, and can be declared in any of the follow ways:
+
+- "name", "path", {params}
+- "path", {params}
+- "path"
+
+The path portion of a route is a URI string. Parameters that will be passed
+to the method called are represented with a colon. Names are optional, but
+the path and the params together must declare "object" and "method"
+parameters. The following are all valid routes:
+
+    var routes = new ActiveRoutes([
+      ['root','/',{object:'Pages',method:'index'}],
+      ['contact','/contact',{object:'Pages',method:'contact'}],
+      ['blog','/blog',{object:'Blog',method:'index'}],
+      ['post','/blog/post/:id',{object:'Blog',method:'post'}],
+      ['/pages/*',{object:'Pages',method:'page'}],
+      ['/:object/:method']
+    ],Application);
+
+Catch All Routes
+----------------
+If you want to route all requests below a certain path to a given method,
+place an asterisk in your route. When a matching path is dispatched to
+that route the path components will be available in an array called "path".
+
+    route_set.addRoute('/wiki/*',{object:'WikiController',method:'page'})
+    route_set.dispatch('/wiki/a/b/c');
+    //calls: WikiController.page({object:'WikiController',method:'page',path:['a','b','c']})
+
+Route Requirements
+------------------
+Each route can take a special "requirements" parameter that will not be
+passed in the params passed to the called method. Each requirement
+can be a regular expression or a function, which the value of the
+parameter will be checked against. Each value checked by a regular
+expression or function is always a string.
+
+    route_set.addRoute('/article/:article_id/:comment_id',{
+        article_id: /^\d+$/,
+        comment_id: function(comment_id){
+            return comment_id.match(/^\d+$/);
+        }
+    });
+
+Scope
+-----
+You can specify what scope an ActiveRoutes instance will look in to call
+the specified objects and methods. This defaults to window but can be
+specified as the second parameter to the constructor.
+
+Generating URLs
+---------------
+The method urlFor() is available on every route set, and can generate a
+URL from an object. Using the routes declared in the example above:
+
+    routes.urlFor({object:'Blog',method:'post',id:5}) == '/blog/post/5';
+
+If named routes are given, corresponding methods are generated in the
+passed scope to resolve these urls.
+
+    Application.postUrl({id: 5}) == '/blog/post/5';
+
+To get the params to generate a url, a similar method is generated:
+
+    Application.postParams({id: 5}) == {object:'Blog',method:'post',id:5};
+
+To call a named route directly without round-tripping to a string and
+back to params use:
+
+    Application.callPost({id: 5});
+Dispatching
+-----------
+To call a given method from a URL string, use the dispatch() method.
+
+    routes.dispatch('/'); //will call Pages.index()
+    routes.dispatch('/blog/post/5'); //will call Blog.post({id: 5});
+
+History
+-------
+Most server side JavaScript implementations will not preserve objects
+between requests, so the history is not of use. Client side, after each
+dispatch, the route and parameters are recorded. The history itself is
+accessible with the "history" property, and is traversable with the
+next() and back() methods.]]></example>
         </examples>
         <constructors>
             <constructor scope="instance">
@@ -696,9 +1392,9 @@
             <method name="addRoute" scope="instance">
                 <description>Add a new route to the route set. When adding routes via the constructor routes will be pushed onto the array, if called after the route set is initialized, the route will be unshifted onto the route set (and will have the highest priority).</description>
                 <examples>
-                    <example>
-                        routes.addRoute(&apos;route_name&apos;,&apos;/route/path&apos;, { params } );&lt;br/&gt; routes.addRoute(&apos;/route/path&apos;, { params } );&lt;br/&gt; routes.addRoute(&apos;/route/path&apos;);
-                    </example>
+                    <example><![CDATA[routes.addRoute('route_name','/route/path',{params});<br/>
+routes.addRoute('/route/path',{params});<br/>
+routes.addRoute('/route/path');]]></example>
                 </examples>
                 <exceptions>
                     <exception type="ActiveRoutes.Errors.NoMethodInRoute"/>
@@ -715,9 +1411,9 @@
             <method name="dispatch" scope="instance">
                 <description>Will match() the given path and call the dispatcher if one is found.</description>
                 <examples>
-                    <example>
-                        var routes = new ActiveRoutes( [ [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}]]); routes.dispatch(&apos;/blog/post/5&apos;); //by default calls Blog.post( { object : &apos;blog&apos;,method: &apos;post&apos;,id: 5});
-                    </example>
+                    <example><![CDATA[    var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
+    routes.dispatch('/blog/post/5');
+    //by default calls Blog.post({object:'blog',method: 'post',id: 5});]]></example>
                 </examples>
                 <parameters>
                     <parameter name="path" usage="required" type="String"/>
@@ -736,9 +1432,8 @@
             </method>
             <method name="match" scope="instance">
                 <examples>
-                    <example>
-                        var route = routes.match(&apos;/blog/post/5&apos;);&lt;br/&gt; route == { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5};
-                    </example>
+                    <example><![CDATA[var route = routes.match('/blog/post/5');<br/>
+route == {object: 'blog',method: 'post', id: 5};]]></example>
                 </examples>
                 <parameters>
                     <parameter name="path" usage="required" type="String"/>
@@ -757,9 +1452,8 @@
             </method>
             <method name="urlFor" scope="instance">
                 <examples>
-                    <example>
-                        var routes = new ActiveRoutes( [ [ &apos;post&apos;,&apos;/blog/post/:id&apos;, { object : &apos;blog&apos;,method: &apos;post&apos;}]]);&lt;br/&gt; routes.urlFor( { object : &apos;blog&apos;,method: &apos;post&apos;, id: 5}) == &apos;/blog/post/5&apos;;
-                    </example>
+                    <example><![CDATA[var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);<br/>
+routes.urlFor({object: 'blog',method: 'post', id: 5}) == '/blog/post/5';]]></example>
                 </examples>
                 <parameters>
                     <parameter name="params" usage="optional" type="Object"/>
@@ -843,9 +1537,7 @@
             <method name="dateFormat" scope="static">
                 <description>See: http://blog.stevenlevithan.com/archives/date-time-format If convert_to_local_time is true the Date object will be assume to be GMT and be converted from GMT to the local time. Local time will be the local time of the server if running server side, or local time of the client side if running in the browser.</description>
                 <examples>
-                    <example>
-                        ActiveSupport.dateFormat(&apos;yyyy-mm-dd HH:MM:ss&apos;);
-                    </example>
+                    <example><![CDATA[    ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');]]></example>
                 </examples>
                 <parameters>
                     <parameter name="date" usage="required" type="Date"/>
@@ -985,9 +1677,16 @@
             <method name="wrap" scope="static">
                 <description>Returns a function wrapped around the original function.</description>
                 <examples>
-                    <example>
-                        String.prototype.capitalize = String.prototype.capitalize.wrap( function(proceed, eachWord) { if (eachWord &amp;&amp; this.include(&quot; &quot;)) { // capitalize each word in the string return this.split(&quot; &quot;).invoke(&quot;capitalize&quot;).join(&quot; &quot;); } else { // proceed using the original function return proceed(); } });
-                    </example>
+                    <example><![CDATA[    String.prototype.capitalize = String.prototype.capitalize.wrap( 
+    function(proceed, eachWord) { 
+        if (eachWord && this.include(" ")) {
+            // capitalize each word in the string
+            return this.split(" ").invoke("capitalize").join(" ");
+        } else {
+            // proceed using the original function
+            return proceed(); 
+        }
+    });]]></example>
                 </examples>
                 <parameters>
                     <parameter name="func" usage="required" type="Function"/>
