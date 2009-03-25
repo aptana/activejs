@@ -196,7 +196,7 @@ ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_na
     }
 
     db = google.gears.factory.create('beta.database');
-    db.open(name || 'ActiveRecord');
+    db.open(typeof name == 'undefined' ? 'ActiveRecord' : name);
         
     return new ActiveRecord.Adapters.Gears(db);
 };
