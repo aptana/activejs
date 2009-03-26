@@ -139,7 +139,7 @@ Adapters.InstanceMethods = {
     },
     getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
     {
-        return key + ' ' + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+        return this.quoteIdentifier(key) + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
     },
     getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
     {
@@ -160,6 +160,9 @@ Adapters.InstanceMethods = {
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
         return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    quoteIdentifier: function quoteIdentifier(name) {
+      return '"' + name + '"';
     }
 };
 

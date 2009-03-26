@@ -155,6 +155,48 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             
             assert(FieldTypeTester.findByBooleanField(true).id == field_test_one.id,'findByBooleanField(true)');
             assert(FieldTypeTester.findByBooleanField(false).id == field_test_two.id,'findByBooleanField(false)');
+
+            // Identifiers that are reserved words should be quoted automatically.
+            var reserved_test = Reserved.create({
+                from: 'b',
+                select: 'c'
+            });
+            assert(Reserved.count() == 1,'Reserved.create');
+            assert(Reserved.find(reserved_test.to).from == 'b','Reserved.find');
+            assert(Reserved.findByFrom('b').select == 'c','Reserved.findByFrom');
+
+            // Identifiers must be quoted explicitly in SQL fragments.
+            assert(Reserved.find({
+              select: ['"to" + "from"', '"select"']
+            })[0].select == 'c','Reserved.find({select:...})');
+
+            // Keys of {where: {...}} properties are assumed to be column names...
+            assert(Reserved.find({
+              where: {select: 'c'}
+            })[0].select == 'c','Reserved.find({where:{...}})');
+            try {
+              // ...so that format won't work for arbitrary SQL fragments...
+              Reserved.find({
+                where: {'length("select")': 1}
+              });
+              assert(false,'Reserved.find({where:{\'length...\': 1}) throws an exception')
+            } catch (e) {
+            }
+            // ...but you can use {where: '...'} instead.
+            assert(Reserved.find({
+              where: 'length("select") = 1'
+            })[0].select == 'c','Reserved.find({where:\'length... = 1\'})');
+
+            reserved_test.set('select', 'd');
+            assert(reserved_test.select == 'd','reserved_test.set');
+            reserved_test.save();
+            assert(Reserved.find(reserved_test.to).select == 'd','reserved_test.save');
+
+            Reserved.updateAll({from: 'me'}, {select: 'd'});
+            assert(Reserved.find(reserved_test.to).from == 'me','Reserved.updateAll');
+
+            reserved_test.destroy();
+            assert(Reserved.count() == 0,'Reserved.destroy');
             
             if(proceed)
                 proceed();

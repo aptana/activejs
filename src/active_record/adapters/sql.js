@@ -37,7 +37,7 @@ Adapters.SQL = {
             args.push(data[keys[i]]);
             values.push('?');
         }
-        args.unshift("INSERT INTO " + table + " (" + keys.join(',') + ") VALUES (" + values.join(',') + ")");
+        args.unshift("INSERT INTO " + table + " (" + keys.map(this.quoteIdentifier).join(',') + ") VALUES (" + values.join(',') + ")");
         var response = this.executeSQL.apply(this,args);
         var id = data[primary_key_name] || this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
@@ -55,7 +55,7 @@ Adapters.SQL = {
             for (var i = 0; i < keys.length; ++i)
             {
                 args.push(updates[keys[i]]);
-                values.push(keys[i] + " = ?");
+                values.push(this.quoteIdentifier(keys[i]) + " = ?");
             }
             updates = values.join(',');
         }
@@ -70,10 +70,10 @@ Adapters.SQL = {
         for (var i = 0; i < keys.length; ++i)
         {
             args.push(data[keys[i]]);
-            values.push(keys[i] + " = ?");
+            values.push(this.quoteIdentifier(keys[i]) + " = ?");
         }
         args.push(id);
-        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + primary_key_name + " = ?");
+        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?");
         var response = this.executeSQL.apply(this, args);
         this.notify('updated',table,id,data);
         return response;
@@ -98,7 +98,7 @@ Adapters.SQL = {
         {
             args = ["DELETE FROM " + table];
             var ids = [];
-            var ids_result_set = this.executeSQL('SELECT ' + primary_key_name + ' FROM ' + table);
+            var ids_result_set = this.executeSQL('SELECT ' + this.quoteIdentifier(primary_key_name) + ' FROM ' + table);
             if(!ids_result_set)
             {
                 return null;
@@ -115,7 +115,7 @@ Adapters.SQL = {
         }
         else
         {
-            args = ["DELETE FROM " + table + " WHERE " + primary_key_name + " = ?",id];
+            args = ["DELETE FROM " + table + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?",id];
             response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
@@ -123,7 +123,7 @@ Adapters.SQL = {
     },
     findEntitiesById: function findEntityById(table, primary_key_name, ids)
     {
-        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + primary_key_name + ' IN (' + ids.join(',') + ')']);
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + this.quoteIdentifier(primary_key_name) + ' IN (' + ids.join(',') + ')']);
         if (!response)
         {
             return false;
@@ -184,7 +184,7 @@ Adapters.SQL = {
             keys = ActiveSupport.keys(fragment);
             for(i = 0; i < keys.length; ++i)
             {
-                where += keys[i] + " = ? AND ";
+                where += this.quoteIdentifier(keys[i]) + " = ? AND ";
                 var value;
                 if(typeof(fragment[keys[i]]) === 'number')
                 {
