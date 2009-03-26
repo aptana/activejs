@@ -55,7 +55,7 @@ Adapters.SQL = {
             for (var i = 0; i < keys.length; ++i)
             {
                 args.push(updates[keys[i]]);
-                values.push(updates[i] + " = ?");
+                values.push(keys[i] + " = ?");
             }
             updates = values.join(',');
         }
