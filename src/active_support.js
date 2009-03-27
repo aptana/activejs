@@ -550,7 +550,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (word.toLowerCase() === uncountable)
                 {
                     return uncountable;
                 }
@@ -559,7 +559,7 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((word.toLowerCase() === singular) || (word === plural))
                 {
                     return plural;
                 }
@@ -585,7 +585,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (word.toLowerCase() === uncountable)
                 {
                     return uncountable;
                 }
@@ -594,9 +594,9 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((word.toLowerCase() === singular) || (word === plural))
                 {
-                    return plural;
+                    return singular;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
@@ -608,6 +608,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+            return word;
         }
     },
     /**
