@@ -39,8 +39,13 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
             assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
 
             var b = Guid.create({guid: '123', data: 'test'});
-            var result = Guid.find({first: true, where: ['guid = ?', b.guid]});
-            assert(result.data == 'test', 'String primary key.');
+            assert(Guid.findByGuid('123').data == 'test', 'findByGuid');
+            assert(Guid.get('123').data == 'test', 'get(guid)');
+
+            Guid.update('123', {data: 'changed'});
+            assert(b.reload() && b.data == 'changed', 'Guid.update && b.reload');
+
+            assert(Guid.destroy('123') && Guid.count() == 0, 'Guid.destroy');
 
             if(proceed)
                 proceed();

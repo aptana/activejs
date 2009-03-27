@@ -128,7 +128,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        var record = this.constructor.find(this.get(this.constructor.primaryKeyName));
+        var record = this.constructor.get(this.get(this.constructor.primaryKeyName));
         if (!record)
         {
             return false;
@@ -308,6 +308,13 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         order: 'id DESC'
      *     });
      *     var users = User.find('SELECT * FROM users ORDER id DESC');
+     *
+     *     // If your primary key is not numeric, find(id) will not work.
+     *     // Use findBy<PrimaryKey>(id) or get(id) instead:
+     *
+     *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
+     *     commit = Commit.findById('cxfeea6'); // GOOD
+     *     commit = Commit.get('cxfeea6');      // GOOD
      */
     find: function find(params)
     {
@@ -393,7 +400,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var instance = this.find(id);
+            var instance = this.get(id);
             if(!instance)
             {
                 return false;
@@ -450,7 +457,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
-        if(typeof(id.length) !== 'undefined')
+        if (ActiveSupport.isArray(id))
         {
             var results = [];
             for(var i = 0; i < id.length; ++i)
@@ -461,7 +468,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var record = this.find(id);
+            var record = this.get(id);
             if(!record)
             {
                 return false;

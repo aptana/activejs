@@ -555,6 +555,8 @@ ActiveRecord = {
             Finders.generateFindByField(model,key);
             Finders.generateFindAllByField(model,key);
         }
+        //get is a synonym for findBy<PrimaryKey>
+        model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
         
         //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
