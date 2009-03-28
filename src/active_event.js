@@ -130,7 +130,7 @@
  * --------------
  * If an object has an options property that contains a callable function with
  * the same name as an event triggered with <b>notify()</b>, it will be
- * treated just like an instance observer. So the falling code is equivalent.
+ * treated just like an instance observer. So the following code is equivalent:
  *
  *     var rating_one = new Control.Rating('rating_one',{  
  *         afterChange: function(new_value){}    
