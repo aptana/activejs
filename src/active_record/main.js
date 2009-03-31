@@ -478,7 +478,7 @@ ActiveRecord = {
             this._object = {};
             for(var key in data)
             {
-                //third param is to supress notifications on set
+                //third param is to suppress notifications on set
                 this.set(key,data[key],true);
             }
             this._errors = [];

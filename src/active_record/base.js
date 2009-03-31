@@ -31,17 +31,17 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
-     * @param {Boolean} surpress_notifications Defaults to false
+     * @param {Boolean} suppress_notifications Defaults to false
      * @return {mixed} the value that was set
      */
-    set: function set(key, value, surpress_notifications)
+    set: function set(key, value, suppress_notifications)
     {
         if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
         this._object[key] = value;
-        if(!surpress_notifications)
+        if(!suppress_notifications)
         {
             this.notify('set',key,value);
         }
@@ -160,7 +160,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
             }
         }
@@ -200,7 +200,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
             }
         }
