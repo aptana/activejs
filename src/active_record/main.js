@@ -490,10 +490,6 @@ ActiveRecord = {
                 if(!this.constructor.fields[key].primaryKey)
                 {
                     var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
-                    if(Migrations.objectIsFieldDefinition(value))
-                    {
-                        value = value.value;
-                    }
                     //don't supress notifications on set since these are the processed values
                     this.set(key,value);
                 }
