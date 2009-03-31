@@ -288,6 +288,10 @@ Adapters.SQL = {
         }
         if (typeof(field) === 'number')
         {
+            if (typeof(value) === 'number')
+            {
+                return value;
+            }
             var t = ActiveSupport.trim(value);
             return (t.length > 0 && !(/[^0-9.]/).test(t) && (/\.\d/).test(t)) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
         }

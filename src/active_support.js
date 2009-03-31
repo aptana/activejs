@@ -358,7 +358,7 @@ ActiveSupport = {
      */
     trim: function(str)
     {
-        return (new String(str)).replace(/^\s+|\s+$/g,"");
+        return (str || "").replace(/^\s+|\s+$/g,"");
     },
 
     /**
