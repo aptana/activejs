@@ -489,8 +489,7 @@ ActiveRecord = {
                 if(!field.primaryKey)
                 {
                     var value = ActiveRecord.connection.fieldOut(field,this.get(key));
-                    //don't supress notifications on set since these are the processed values
-                    this.set(key,value);
+                    this.set(key,value,true);
                 }
             }
             //performance optimization if no observers
