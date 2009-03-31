@@ -288,11 +288,8 @@ Adapters.SQL = {
         }
         if (typeof(field) === 'number')
         {
-            var trim = function(str)
-            {
-                return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
-            };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
+            var t = ActiveSupport.trim(value);
+            return (t.length > 0 && !(/[^0-9.]/).test(t) && (/\.\d/).test(t)) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
         if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))

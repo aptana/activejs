@@ -351,6 +351,17 @@ ActiveSupport = {
         }
     },
     /**
+     * Trim leading and trailing whitespace.
+     * @alias ActiveSupport.trim
+     * @param {String} str
+     * @return {String}
+     */
+    trim: function(str)
+    {
+        return (new String(str)).replace(/^\s+|\s+$/g,"");
+    },
+
+    /**
      * Emulates Prototype's Object.extend
      * @alias ActiveSupport.extend
      * @param {Object} destination
