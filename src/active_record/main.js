@@ -511,7 +511,7 @@ ActiveRecord = {
         //user defined take precedence
         if(methods && typeof(methods) !== 'function')
         {
-            ActiveSupport.extend(model.prototype, methods || {});
+            ActiveSupport.extend(model.prototype, methods);
         }
 
         //mixin class methods
