@@ -485,11 +485,13 @@ ActiveRecord = {
                 this.set(key,data[key],true);
             }
             this._errors = [];
-            for(var key in this.constructor.fields)
+            var fields = this.constructor.fields;
+            for(var key in fields)
             {
-                if(!this.constructor.fields[key].primaryKey)
+                var field = fields[key]
+                if(!field.primaryKey)
                 {
-                    var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
+                    var value = ActiveRecord.connection.fieldOut(field,this.get(key));
                     //don't supress notifications on set since these are the processed values
                     this.set(key,value);
                 }

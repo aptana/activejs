@@ -267,7 +267,7 @@ Adapters.SQL = {
         if(Migrations.objectIsFieldDefinition(field))
         {
             //date handling
-            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            if(typeof(value) == 'string' && /date/.test(field.type.toLowerCase()))
             {
                 return ActiveSupport.dateFromDateTime(value);
             }

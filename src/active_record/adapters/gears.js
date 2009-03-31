@@ -101,7 +101,7 @@ ActiveRecord.Adapters.Gears = function Gears(db){
                 }
                 else
                 {
-                    for(var i = 0; i < this.rows.length; ++i)
+                    for(var i = 0, len = this.rows.length; i < len; ++i)
                     {
                         var row = ActiveSupport.clone(this.rows[i]);
                         iterator(row);
