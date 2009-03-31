@@ -475,9 +475,6 @@ ActiveRecord = {
         //constructor
         model = ActiveRecord.Models[options.modelName] = function initialize(data)
         {
-            this.modelName = this.constructor.modelName;
-            this.tableName = this.constructor.tableName;
-            this.primaryKeyName = this.constructor.primaryKeyName;
             this._object = {};
             for(var key in data)
             {
@@ -502,6 +499,11 @@ ActiveRecord = {
         model.modelName = options.modelName;
         model.tableName = options.tableName;
         model.primaryKeyName = 'id';
+        ActiveSupport.extend(model.prototype, {
+          modelName: model.modelName,
+          tableName: model.tableName,
+          primaryKeyName: model.primaryKeyName
+        });
         
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
