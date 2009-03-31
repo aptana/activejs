@@ -72,43 +72,49 @@ ActiveRecord.Adapters.Gears = function Gears(db){
         iterableFromResultSet: function iterableFromResultSet(result)
         {
             var response = {
-                rows: []
+                rows: [],
+                iterate: this._iterate
             };
             var count = result.fieldCount();
+            var fieldNames = [];
+            for(var i = 0; i < count; ++i)
+            {
+                fieldNames[i] = result.fieldName(i);
+            }
             while(result.isValidRow())
             {
                 var row = {};
                 for(var i = 0; i < count; ++i)
                 {
-                    row[result.fieldName(i)] = result.field(i);
+                    row[fieldNames[i]] = result.field(i);
                 }
                 response.rows.push(row);
                 result.next();
             }
             result.close();
-            response.iterate = function(iterator)
+            return response;
+        },
+        _iterate: function _iterate(iterator)
+        {
+            if(typeof(iterator) === 'number')
             {
-                if(typeof(iterator) === 'number')
+                if (this.rows[iterator])
                 {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return ActiveSupport.clone(this.rows[iterator]);
                 }
                 else
                 {
-                    for(var i = 0, len = this.rows.length; i < len; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        iterator(row);
-                    }
+                    return false;
                 }
-            };
-            return response;
+            }
+            else
+            {
+                for(var i = 0, len = this.rows.length; i < len; ++i)
+                {
+                    var row = ActiveSupport.clone(this.rows[i]);
+                    iterator(row);
+                }
+            }
         },
         fieldListFromTable: function(table_name)
         {
