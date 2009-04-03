@@ -55,11 +55,11 @@
  * the same name as the method using makeObservable().
  * 
  *     var Message = function(){};
+ *     ActiveEvent.extend(Message);
  *     Message.prototype.send = function(text){
  *         //message sending code here...
  *         this.notify('sent',text);
  *     };
- *     ActiveEvent.extend(Message);
  * 
  *     //make an existing method observable
  *     var observable_hash = new Hash({});
@@ -87,7 +87,8 @@
  *     observable_hash.observe('set',function(key,value){
  *         console.log('observable_hash.set: ' + key + '=' + value);
  *     });
- *     observable_hash.observeOnce(function(key,value){
+ 
+ *     observable_hash.observeOnce('set',function(key,value){
  *         //this will only be called once
  *     });
  * 
@@ -124,7 +125,7 @@
  *     
  *     m.stopObserving('send',observer);
  *     
- *     m.send('test'); //returned true</code></pre>
+ *     m.send('test'); //returned true
  * 
  * Object.options
  * --------------
@@ -137,13 +138,13 @@
  *     });  
  *     
  *     var rating_two = new Control.Rating('rating_two');  
- *     rating_two.observe('afterChange',function(new_value){});</code></pre>
+ *     rating_two.observe('afterChange',function(new_value){});
  * 
  * MethodCallObserver
  * ------------------
  * The makeObservable() method permanently modifies the method that will
  * become observable. If you need to temporarily observe a method call without
- * permanently modifying it, use the observeMethod(). Pass the name of the
+ * permanently modifying it, use observeMethod(). Pass the name of the
  * method to observe and the observer function will receive all of the
  * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
  * returned from the call to observeMethod(), which has a stop() method on it.
