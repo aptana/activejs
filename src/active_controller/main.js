@@ -44,6 +44,8 @@ ActiveController.create = function create(actions,methods)
         this.setRenderTarget(this.container);
         this.parent = parent;
         this.children = [];
+        this.history = ActiveSupport.clone(ActiveController.History);
+        this.history.callActionAtIndex = ActiveSupport.bind(this.history.callActionAtIndex,this);
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
@@ -89,6 +91,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
         this.notify('beforeCall',action_name,this.params);
         this.renderLayout();
         ActiveSupport.bind(action,this)();
+        this.history.history.push([action_name,this.params]);
         this.notify('afterCall',action_name,this.params);
     };
 };

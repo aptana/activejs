@@ -80,6 +80,7 @@
         "build": [
             "src/active_controller/header.js",
             "src/active_controller/main.js",
+            "src/active_controller/history.js",
             "src/active_controller/footer.js"
         ]
     },

@@ -1209,11 +1209,11 @@ ActiveSupport = {
  * the same name as the method using makeObservable().
  * 
  *     var Message = function(){};
+ *     ActiveEvent.extend(Message);
  *     Message.prototype.send = function(text){
  *         //message sending code here...
  *         this.notify('sent',text);
  *     };
- *     ActiveEvent.extend(Message);
  * 
  *     //make an existing method observable
  *     var observable_hash = new Hash({});
@@ -1241,7 +1241,8 @@ ActiveSupport = {
  *     observable_hash.observe('set',function(key,value){
  *         console.log('observable_hash.set: ' + key + '=' + value);
  *     });
- *     observable_hash.observeOnce(function(key,value){
+ 
+ *     observable_hash.observeOnce('set',function(key,value){
  *         //this will only be called once
  *     });
  * 
@@ -1278,7 +1279,7 @@ ActiveSupport = {
  *     
  *     m.stopObserving('send',observer);
  *     
- *     m.send('test'); //returned true</code></pre>
+ *     m.send('test'); //returned true
  * 
  * Object.options
  * --------------
@@ -1291,13 +1292,13 @@ ActiveSupport = {
  *     });  
  *     
  *     var rating_two = new Control.Rating('rating_two');  
- *     rating_two.observe('afterChange',function(new_value){});</code></pre>
+ *     rating_two.observe('afterChange',function(new_value){});
  * 
  * MethodCallObserver
  * ------------------
  * The makeObservable() method permanently modifies the method that will
  * become observable. If you need to temporarily observe a method call without
- * permanently modifying it, use the observeMethod(). Pass the name of the
+ * permanently modifying it, use observeMethod(). Pass the name of the
  * method to observe and the observer function will receive all of the
  * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
  * returned from the call to observeMethod(), which has a stop() method on it.
@@ -7076,6 +7077,8 @@ ActiveController.create = function create(actions,methods)
         this.setRenderTarget(this.container);
         this.parent = parent;
         this.children = [];
+        this.history = ActiveSupport.clone(ActiveController.History);
+        this.history.callActionAtIndex = ActiveSupport.bind(this.history.callActionAtIndex,this);
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
@@ -7121,6 +7124,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
         this.notify('beforeCall',action_name,this.params);
         this.renderLayout();
         ActiveSupport.bind(action,this)();
+        this.history.history.push([action_name,this.params]);
         this.notify('afterCall',action_name,this.params);
     };
 };
@@ -7235,5 +7239,57 @@ var Errors = {
     ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: ')
 };
 ActiveController.Errors = Errors;
+
+ActiveController.History = {
+    index: 0,
+    history: [],
+    //"this" will be bound to the controller instance
+    callActionAtIndex: function callActionAtIndex(index)
+    {
+        this[this.history.history[index][0]].apply(this,this.history.history[index][1]);
+    },
+    goToIndex: function goToIndex(index)
+    {
+        if(!this.history[index])
+        {
+            return false;
+        }
+        this.index = index;
+        this.callActionAtIndex(this.index);
+        return true;
+    },
+    /**
+     * Calls the previously called action in the history.
+     * @alias ActiveController.prototype.history.back
+     * @return {Boolean}
+     */
+    back: function back()
+    {
+        if(this.index == 0)
+        {
+            return false;
+        }
+        --this.index;
+        this.callActionAtIndex(this.index);
+        return true;
+    },
+
+    /**
+     * Calls the next called action in the history if back() has already
+     * been called.
+     * @alias ActiveController.prototype.history.next
+     * @return {Boolean}
+     */
+    next: function next()
+    {
+        if(this.index >= this.history.length - 1)
+        {
+            return false;
+        }
+        ++this.index;
+        this.callActionAtIndex(this.index);
+        return true;
+    }
+};
 
 })();
