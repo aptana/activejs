@@ -47,8 +47,8 @@
             "src/active_record/base.js",
             "src/active_record/calculations.js",
             "src/active_record/adapters.js",
-            "src/active_record/adapters/sql.js",
-            "src/active_record/adapters/sqlite.js",
+            "src/active_record/adapters/support/sql.js",
+            "src/active_record/adapters/support/sqlite.js",
             "src/active_record/adapters/in_memory.js",
             "src/active_record/adapters/auto.js",
             "src/active_record/where_parser.js",
@@ -171,7 +171,7 @@
             "src/active_support.js",
             "src/active_event.js",
             "include_active_record",
-            "src/active_record/adapters/mysql.js",
+            "src/active_record/adapters/support/mysql.js",
             "src/active_record/adapters/jaxer_sqlite.js",
             "src/active_record/adapters/jaxer_mysql.js"
         ]
@@ -240,7 +240,7 @@
             "src/active_event.js",
             "include_active_routes",
             "include_active_record",
-            "src/active_record/adapters/mysql.js",
+            "src/active_record/adapters/support/mysql.js",
             "src/active_record/adapters/jaxer_sqlite.js",
             "src/active_record/adapters/jaxer_mysql.js",
             "include_active_view",

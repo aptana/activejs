@@ -59,6 +59,10 @@ var ActiveTest = {
     },
     run: function run()
     {
+        ActiveTest.summary = [];
+        ActiveTest.lastNote = '';
+        ActiveTest.currentGroupName = null;
+        ActiveTest.currentTestName = null;
         for(var group_name in ActiveTest.Tests)
         {
             ActiveTest.log(group_name + ' Test Starting');
