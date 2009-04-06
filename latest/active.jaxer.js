@@ -3747,6 +3747,30 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     ;
 };
 
+Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
+{
+    if (typeof(iterator) === 'number')
+    {
+        if (this.rows[iterator])
+        {
+            return ActiveSupport.clone(this.rows[iterator]);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        for (var i = 0; i < this.rows.length; ++i)
+        {
+            var row = ActiveSupport.clone(this.rows[i]);
+            iterator(row);
+        }
+    }
+};
+
+
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
@@ -3794,6 +3818,18 @@ Adapters.InstanceMethods = {
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
         return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    log: function log()
+    {
+        if(!ActiveRecord.logging)
+        {
+            return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
+        }
+        return ActiveSupport.log.apply(ActiveSupport,arguments || {});
     }
 };
 
@@ -4080,6 +4116,20 @@ Adapters.SQL = {
                 return value;
             }
         }
+    },
+    transaction: function transaction(proceed)
+    {
+        try
+        {
+            ActiveRecord.connection.executeSQL('BEGIN');
+            proceed();
+            ActiveRecord.connection.executeSQL('COMMIT');
+        }
+        catch(e)
+        {
+            ActiveRecord.connection.executeSQL('ROLLBACK');
+            return ActiveSupport.throwError(e);
+        }
     }
 };
 
@@ -4138,18 +4188,6 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     serialize: function serialize()
     {
         return ActiveSupport.JSON.stringify(this.storage);
-    },
-    log: function log()
-    {
-        if(!ActiveRecord.logging)
-        {
-            return;
-        }
-        if(arguments[0])
-        {
-            arguments[0] = 'ActiveRecord: ' + arguments[0];
-        }
-        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
@@ -6471,18 +6509,6 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
-        },
         executeSQL: function executeSQL(sql)
         {
             ActiveRecord.connection.log("Adapters.JaxerSQLite.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
@@ -6495,44 +6521,8 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
+            result.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };
@@ -6557,18 +6547,6 @@ ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.MySQL);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
-        },
         executeSQL: function executeSQL(sql)
         {
             ActiveRecord.connection.log("Adapters.JaxerMySQL.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
@@ -6581,44 +6559,8 @@ ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for(var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
+            result.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };

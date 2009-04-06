@@ -2995,6 +2995,30 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     ;
 };
 
+Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
+{
+    if (typeof(iterator) === 'number')
+    {
+        if (this.rows[iterator])
+        {
+            return ActiveSupport.clone(this.rows[iterator]);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        for (var i = 0; i < this.rows.length; ++i)
+        {
+            var row = ActiveSupport.clone(this.rows[i]);
+            iterator(row);
+        }
+    }
+};
+
+
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
@@ -3042,6 +3066,18 @@ Adapters.InstanceMethods = {
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
         return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    log: function log()
+    {
+        if(!ActiveRecord.logging)
+        {
+            return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
+        }
+        return ActiveSupport.log.apply(ActiveSupport,arguments || {});
     }
 };
 
@@ -3328,6 +3364,20 @@ Adapters.SQL = {
                 return value;
             }
         }
+    },
+    transaction: function transaction(proceed)
+    {
+        try
+        {
+            ActiveRecord.connection.executeSQL('BEGIN');
+            proceed();
+            ActiveRecord.connection.executeSQL('COMMIT');
+        }
+        catch(e)
+        {
+            ActiveRecord.connection.executeSQL('ROLLBACK');
+            return ActiveSupport.throwError(e);
+        }
     }
 };
 
@@ -3386,18 +3436,6 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     serialize: function serialize()
     {
         return ActiveSupport.JSON.stringify(this.storage);
-    },
-    log: function log()
-    {
-        if(!ActiveRecord.logging)
-        {
-            return;
-        }
-        if(arguments[0])
-        {
-            arguments[0] = 'ActiveRecord: ' + arguments[0];
-        }
-        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
