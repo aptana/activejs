@@ -32,6 +32,10 @@
  */
 var ActiveSupport = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
 (function(global_context){
 ActiveSupport = {
     /**
@@ -1330,6 +1334,10 @@ ActiveSupport = {
  *     });
  */
 var ActiveEvent = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveEvent = ActiveEvent;
+}
 
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling

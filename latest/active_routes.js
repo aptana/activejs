@@ -32,6 +32,10 @@
  */
 var ActiveSupport = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
 (function(global_context){
 ActiveSupport = {
     /**
@@ -1331,6 +1335,10 @@ ActiveSupport = {
  */
 var ActiveEvent = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveEvent = ActiveEvent;
+}
+
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
  *  ActiveEvent.extend(object), the given object will inherit the
@@ -1628,6 +1636,10 @@ ActiveEvent.ObservableHash = ObservableHash;
 })();
  
 var ActiveRoutes = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveRoutes = ActiveRoutes;
+}
 
 (function() {
  

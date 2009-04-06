@@ -177,6 +177,10 @@
  */
 var ActiveEvent = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveEvent = ActiveEvent;
+}
+
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
  *  ActiveEvent.extend(object), the given object will inherit the
