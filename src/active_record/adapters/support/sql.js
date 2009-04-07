@@ -307,5 +307,19 @@ Adapters.SQL = {
                 return value;
             }
         }
+    },
+    transaction: function transaction(proceed)
+    {
+        try
+        {
+            ActiveRecord.connection.executeSQL('BEGIN');
+            proceed();
+            ActiveRecord.connection.executeSQL('COMMIT');
+        }
+        catch(e)
+        {
+            ActiveRecord.connection.executeSQL('ROLLBACK');
+            return ActiveSupport.throwError(e);
+        }
     }
 };

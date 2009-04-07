@@ -32,6 +32,10 @@
  */
 var ActiveSupport = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
 (function(global_context){
 ActiveSupport = {
     /**
@@ -1209,11 +1213,11 @@ ActiveSupport = {
  * the same name as the method using makeObservable().
  * 
  *     var Message = function(){};
+ *     ActiveEvent.extend(Message);
  *     Message.prototype.send = function(text){
  *         //message sending code here...
  *         this.notify('sent',text);
  *     };
- *     ActiveEvent.extend(Message);
  * 
  *     //make an existing method observable
  *     var observable_hash = new Hash({});
@@ -1241,7 +1245,8 @@ ActiveSupport = {
  *     observable_hash.observe('set',function(key,value){
  *         console.log('observable_hash.set: ' + key + '=' + value);
  *     });
- *     observable_hash.observeOnce(function(key,value){
+ 
+ *     observable_hash.observeOnce('set',function(key,value){
  *         //this will only be called once
  *     });
  * 
@@ -1278,7 +1283,7 @@ ActiveSupport = {
  *     
  *     m.stopObserving('send',observer);
  *     
- *     m.send('test'); //returned true</code></pre>
+ *     m.send('test'); //returned true
  * 
  * Object.options
  * --------------
@@ -1291,13 +1296,13 @@ ActiveSupport = {
  *     });  
  *     
  *     var rating_two = new Control.Rating('rating_two');  
- *     rating_two.observe('afterChange',function(new_value){});</code></pre>
+ *     rating_two.observe('afterChange',function(new_value){});
  * 
  * MethodCallObserver
  * ------------------
  * The makeObservable() method permanently modifies the method that will
  * become observable. If you need to temporarily observe a method call without
- * permanently modifying it, use the observeMethod(). Pass the name of the
+ * permanently modifying it, use observeMethod(). Pass the name of the
  * method to observe and the observer function will receive all of the
  * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
  * returned from the call to observeMethod(), which has a stop() method on it.
@@ -1329,6 +1334,10 @@ ActiveSupport = {
  *     });
  */
 var ActiveEvent = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveEvent = ActiveEvent;
+}
 
 /**
  * @namespace {ActiveEvent.ObservableObject} After calling
@@ -1627,6 +1636,10 @@ ActiveEvent.ObservableHash = ObservableHash;
 })();
  
 var ActiveRecord = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveRecord = ActiveRecord;
+}
 
 (function() {
 
@@ -2994,6 +3007,30 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     ;
 };
 
+Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
+{
+    if (typeof(iterator) === 'number')
+    {
+        if (this.rows[iterator])
+        {
+            return ActiveSupport.clone(this.rows[iterator]);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        for (var i = 0; i < this.rows.length; ++i)
+        {
+            var row = ActiveSupport.clone(this.rows[i]);
+            iterator(row);
+        }
+    }
+};
+
+
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
     {
@@ -3041,6 +3078,18 @@ Adapters.InstanceMethods = {
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
         return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    log: function log()
+    {
+        if(!ActiveRecord.logging)
+        {
+            return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
+        }
+        return ActiveSupport.log.apply(ActiveSupport,arguments || {});
     }
 };
 
@@ -3327,6 +3376,20 @@ Adapters.SQL = {
                 return value;
             }
         }
+    },
+    transaction: function transaction(proceed)
+    {
+        try
+        {
+            ActiveRecord.connection.executeSQL('BEGIN');
+            proceed();
+            ActiveRecord.connection.executeSQL('COMMIT');
+        }
+        catch(e)
+        {
+            ActiveRecord.connection.executeSQL('ROLLBACK');
+            return ActiveSupport.throwError(e);
+        }
     }
 };
 
@@ -3385,18 +3448,6 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     serialize: function serialize()
     {
         return ActiveSupport.JSON.stringify(this.storage);
-    },
-    log: function log()
-    {
-        if(!ActiveRecord.logging)
-        {
-            return;
-        }
-        if(arguments[0])
-        {
-            arguments[0] = 'ActiveRecord: ' + arguments[0];
-        }
-        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
     },
     executeSQL: function executeSQL(sql)
     {
@@ -5718,18 +5769,6 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
-        },
         executeSQL: function executeSQL(sql)
         {
             ActiveRecord.connection.log("Adapters.JaxerSQLite.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
@@ -5742,44 +5781,8 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
+            result.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };
@@ -5804,18 +5807,6 @@ ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.MySQL);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
-        },
         executeSQL: function executeSQL(sql)
         {
             ActiveRecord.connection.log("Adapters.JaxerMySQL.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
@@ -5828,44 +5819,8 @@ ActiveRecord.Adapters.JaxerMySQL = function JaxerMySQL(){
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for(var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
+            result.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };

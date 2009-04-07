@@ -46,18 +46,6 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         return ActiveSupport.JSON.stringify(this.storage);
     },
-    log: function log()
-    {
-        if(!ActiveRecord.logging)
-        {
-            return;
-        }
-        if(arguments[0])
-        {
-            arguments[0] = 'ActiveRecord: ' + arguments[0];
-        }
-        return ActiveSupport.log.apply(ActiveSupport,arguments || []);
-    },
     executeSQL: function executeSQL(sql)
     {
         ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);

@@ -37,18 +37,6 @@ ActiveRecord.Adapters.Gears = function Gears(db){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if(!ActiveRecord.logging)
-            {
-                return;
-            }
-            if(arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || []);
-        },
         executeSQL: function executeSQL(sql)
         {
             var args = ActiveSupport.arrayFrom(arguments);
@@ -72,8 +60,7 @@ ActiveRecord.Adapters.Gears = function Gears(db){
         iterableFromResultSet: function iterableFromResultSet(result)
         {
             var response = {
-                rows: [],
-                iterate: this._iterate
+                rows: []
             };
             var count = result.fieldCount();
             var fieldNames = [];
@@ -92,29 +79,8 @@ ActiveRecord.Adapters.Gears = function Gears(db){
                 result.next();
             }
             result.close();
+            response.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return response;
-        },
-        _iterate: function _iterate(iterator)
-        {
-            if(typeof(iterator) === 'number')
-            {
-                if (this.rows[iterator])
-                {
-                    return ActiveSupport.clone(this.rows[iterator]);
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                for(var i = 0, len = this.rows.length; i < len; ++i)
-                {
-                    var row = ActiveSupport.clone(this.rows[i]);
-                    iterator(row);
-                }
-            }
         },
         fieldListFromTable: function(table_name)
         {
@@ -128,20 +94,6 @@ ActiveRecord.Adapters.Gears = function Gears(db){
                 response[parts[i].replace(/(^\s+|\s+$)/g,'')] = parts[i].replace(/^\w+\s?/,'');
             }
             return response;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };

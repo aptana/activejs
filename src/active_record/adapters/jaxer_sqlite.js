@@ -36,18 +36,6 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
     ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
     ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
     ActiveSupport.extend(this,{
-        log: function log()
-        {
-            if (!ActiveRecord.logging)
-            {
-                return;
-            }
-            if (arguments[0])
-            {
-                arguments[0] = 'ActiveRecord: ' + arguments[0];
-            }
-            return ActiveSupport.log.apply(ActiveSupport,arguments || {});
-        },
         executeSQL: function executeSQL(sql)
         {
             ActiveRecord.connection.log("Adapters.JaxerSQLite.executeSQL: " + sql + " [" + ActiveSupport.arrayFrom(arguments).slice(1).join(',') + "]");
@@ -60,44 +48,8 @@ ActiveRecord.Adapters.JaxerSQLite = function JaxerSQLite(){
         },
         iterableFromResultSet: function iterableFromResultSet(result)
         {
-            result.iterate = function iterate(iterator)
-            {
-                if (typeof(iterator) === 'number')
-                {
-                    if (this.rows[iterator])
-                    {
-                        return ActiveSupport.clone(this.rows[iterator]);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    for (var i = 0; i < this.rows.length; ++i)
-                    {
-                        var row = ActiveSupport.clone(this.rows[i]);
-                        delete row['$values'];
-                        iterator(row);
-                    }
-                }
-            };
+            result.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
             return result;
-        },
-        transaction: function transaction(proceed)
-        {
-            try
-            {
-                ActiveRecord.connection.executeSQL('BEGIN');
-                proceed();
-                ActiveRecord.connection.executeSQL('COMMIT');
-            }
-            catch(e)
-            {
-                ActiveRecord.connection.executeSQL('ROLLBACK');
-                return ActiveSupport.throwError(e);
-            }
         }
     });
 };

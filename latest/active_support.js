@@ -32,6 +32,10 @@
  */
 var ActiveSupport = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
 (function(global_context){
 ActiveSupport = {
     /**

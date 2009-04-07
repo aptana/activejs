@@ -4,11 +4,11 @@
     <link href="sample.css" rel="stylesheet" type="text/css"/>
     <script type="text/javascript" src="AIRIntrospector.js"></script>
     <script type="text/javascript" src="AIRAliases.js"></script>
-    <script type="text/javascript" src="active_record.js"></script>
+    <script type="text/javascript" src="active.air.js"></script>
     <script type="text/javascript">
       ActiveRecord.connect(ActiveRecord.Adapters.AIR);
       
-      Note = ActiveRecord.define('notes',{
+      Note = ActiveRecord.create('notes',{
         body: '',
         created: {
           type: 'DATETIME'

@@ -32,6 +32,10 @@
  */
 var ActiveSupport = null;
 
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
 (function(global_context){
 ActiveSupport = {
     /**
@@ -84,13 +88,16 @@ ActiveSupport = {
     {
         if(typeof(Jaxer) !== 'undefined')
         {
+            if (typeof Jaxer.console !== 'undefined') {
+                console.log.apply(console, arguments || []);
+            }
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) !== 'undefined')
+        if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) !== 'undefined')
+        if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
