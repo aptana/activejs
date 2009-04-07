@@ -45,7 +45,13 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
             Guid.update('123', {data: 'changed'});
             assert(b.reload() && b.data == 'changed', 'Guid.update && b.reload');
 
-            assert(Guid.destroy('123') && Guid.count() == 0, 'Guid.destroy');
+            b.set('guid', 'abc');
+            assert(b.guid == 'abc', 'guid change');
+            b.save();
+            assert(!Guid.get('123'), 'old guid is gone');
+            assert(Guid.get('abc').data == 'changed', 'new guid is saved');
+
+            assert(Guid.destroy('abc') && Guid.count() == 0, 'Guid.destroy');
 
             if(proceed)
                 proceed();

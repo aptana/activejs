@@ -492,6 +492,7 @@ ActiveRecord = {
                     this.set(key,value,true);
                 }
             }
+            this._id = this.get(this.constructor.primaryKeyName);
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };

@@ -124,11 +124,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     reload: function reload()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
-        var record = this.constructor.get(this.get(this.constructor.primaryKeyName));
+        var record = this.constructor.get(this._id);
         if (!record)
         {
             return false;
@@ -172,7 +172,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (force_created_mode || !this.get(this.constructor.primaryKeyName))
+        if (force_created_mode || this._id === undefined)
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -182,9 +182,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
-            var id = this.get(this.constructor.primaryKeyName);
             ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
-            if(!id)
+            if(!this.get(this.constructor.primaryKeyName))
             {
                 this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             }
@@ -193,7 +192,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this.get(this.constructor.primaryKeyName), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this._id, this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
@@ -204,6 +203,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
                 this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
             }
         }
+        this._id = this.get(this.constructor.primaryKeyName);
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
         return this;
@@ -215,7 +215,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     destroy: function destroy()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
@@ -223,7 +223,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this.get(this.constructor.primaryKeyName));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
