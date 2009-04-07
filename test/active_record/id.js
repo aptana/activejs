@@ -39,6 +39,8 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
             assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
 
             var b = Guid.create({guid: '123', data: 'test'});
+            assert(Guid.primaryKeyName == 'guid', 'model.primaryKeyName');
+            assert(b.primaryKeyName == 'guid', 'record.primaryKeyName');
             assert(Guid.findByGuid('123').data == 'test', 'findByGuid');
             assert(Guid.get('123').data == 'test', 'get(guid)');
 

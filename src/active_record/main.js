@@ -499,11 +499,6 @@ ActiveRecord = {
         model.modelName = options.modelName;
         model.tableName = options.tableName;
         model.primaryKeyName = 'id';
-        ActiveSupport.extend(model.prototype, {
-          modelName: model.modelName,
-          tableName: model.tableName,
-          primaryKeyName: model.primaryKeyName
-        });
         
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
@@ -548,6 +543,12 @@ ActiveRecord = {
         {
             model.primaryKeyName = custom_primary_key;
         }
+
+        ActiveSupport.extend(model.prototype, {
+          modelName: model.modelName,
+          tableName: model.tableName,
+          primaryKeyName: model.primaryKeyName
+        });
         
         //generate finders
         for(var key in model.fields)
