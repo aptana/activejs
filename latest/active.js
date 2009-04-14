@@ -37,6 +37,7 @@ if(typeof exports != "undefined"){
 }
 
 (function(global_context){
+
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -88,13 +89,16 @@ ActiveSupport = {
     {
         if(typeof(Jaxer) !== 'undefined')
         {
+            if (typeof Jaxer.console !== 'undefined') {
+                console.log.apply(console, arguments || []);
+            }
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) !== 'undefined')
+        if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) !== 'undefined')
+        if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
@@ -204,7 +208,8 @@ ActiveSupport = {
      * @param {mixed} item to remove
      * @return {Array}
      */
-    without: function without(arr){
+    without: function without(arr)
+    {
         var values = ActiveSupport.arrayFrom(arguments).slice(1);
         var response = [];
         for(var i = 0 ; i < arr.length; i++)
@@ -319,7 +324,8 @@ ActiveSupport = {
      * @param {Boolean} [capitalize]
      * @return {String}
      */
-    camelize: function camelize(str, capitalize){
+    camelize: function camelize(str, capitalize)
+    {
         var camelized,
             parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
         if (len === 1)
@@ -520,7 +526,7 @@ ActiveSupport = {
             ]
         },
         /**
-         * Generates an orginalized version of a number as a string (9th, 2nd, etc)
+         * Generates an ordinalized version of a number as a string (9th, 2nd, etc)
          * @alias ActiveSupport.Inflector.ordinalize
          * @param {Number} number
          * @return {String}
@@ -584,7 +590,8 @@ ActiveSupport = {
          * @param {String} word
          * @return {String}
          */
-        singularize: function singularize(word) {
+        singularize: function singularize(word)
+        {
             var i;
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
@@ -1190,8 +1197,8 @@ ActiveSupport = {
  * @namespace {ActiveEvent}
  * @example
  * 
- * ActiveEvent.js
- * ==============
+ * ActiveEvent
+ * ===========
  * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
@@ -1289,7 +1296,7 @@ ActiveSupport = {
  * --------------
  * If an object has an options property that contains a callable function with
  * the same name as an event triggered with <b>notify()</b>, it will be
- * treated just like an instance observer. So the falling code is equivalent.
+ * treated just like an instance observer. So the following code is equivalent:
  *
  *     var rating_one = new Control.Rating('rating_one',{  
  *         afterChange: function(new_value){}    
@@ -1652,8 +1659,8 @@ if(typeof exports != "undefined"){
  * @return {ActiveRoutes}
  * @example
  *
- * ActiveRoutes.js
- * ===============
+ * ActiveRoutes
+ * ============
  * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
@@ -2403,8 +2410,8 @@ if(typeof exports != "undefined"){
  * @namespace {ActiveRecord}
  * @example
  * 
- * ActiveRecord.js
- * ===============
+ * ActiveRecord
+ * ============
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
@@ -3342,7 +3349,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if (params.first || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
+        if ((params.first && typeof params.first === "boolean") || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
         {
             if (params.first)
             {
@@ -5915,7 +5922,7 @@ var Migrations = {
         'bitint': 0,
         'float': 0,
         'double': 0,
-        'bouble precision': 0,
+        'double precision': 0,
         'real': 0,
         'decimal': 0,
         'numeric': 0,
@@ -6622,14 +6629,339 @@ var ActiveView = null;
  * @namespace {ActiveView}
  * @example
  * 
- * ActiveView.js
- * ===============
- * Tutorial coming soon.
+ * ActiveView
+ * ==========
+ * ActiveView allows for the creation of complex, stateful views. ActiveView
+ * requires a paradigm shift in view programming away from ERB/PHP/ASP, but
+ * will result in significantly more compartmentalized and reusable code.
+ * The basic flow of a view goes like this: 
+ * 
+ * - Create DOM nodes with the Builder library.
+ * - Bind data to those nodes or sub views with the Binding library.
+ * - Observe DOM events with the Ajax library of your choice.
+ * 
+ * Use ActiveView.create() to create a new class. The first parameter to
+ * the class creator is a function in which all of your view logic is,
+ * declared, followed by an option second paramter of instance methods the
+ * view will have.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         //DOM creation code (Builder)
+ *         //data binding code (Binding)
+ *         //Ajax / DOM event observation code (Prototype, jQuery, etc)
+ *     },{instance_methods});
+ * 
+ * The only requirement of the main function is that it return a DOM node.
+ * MyView is now a constructor which can be called with a scope / hash.
+ * Data that is passed into the view can be retrieved with get() and set().
+ * Once initialized, the DOM node returned by the main function will be
+ * available in the "container" property. The convenience method "attachTo"
+ * will attach the container to a given Element.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.h2(this.get('title'));
+ *     },{instance_methods});
+ *     var instance = new MyView({title: 'The Title'});
+ *     document.body.appendChild(instance.container);
+ *     //or
+ *     instance.attachTo(document.body);
+ * 
+ * The scope property (accessed with get() / set()) is an ObservableHash,
+ * so you can observe changes in the view data like so:
+ * 
+ *     instance.scope.observe('set',function(key,value){});
+ * 
+ * Builder
+ * -------
+ * The builder object in each template contains a collection of methods for
+ * each standard HTML tag name, b(), span(), h1(), etc. All of these methods
+ * are also available statically as ActiveView.Builder.tagName anywhere in
+ * your application.
+ * 
+ * Each method returns a DOM node type corresponding to it's name.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.div();
+ *     });
+ * 
+ * Each method can accept a variable number of arguments including other DOM
+ * nodes or an array of DOM nodes.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         var container = this.builder.div(
+ *             this.builder.span('Some text.')
+ *         );
+ *         return container;
+ *     });
+ *     
+ * You can use the "with" construct to eliminate the need to call tyhis.builder.
+ * The "with" construct has some side effects (var label = div() would overwrite
+ * the label() method globally for instance) that may be difficult to debug, but
+ * when used carefully it can make for more readable code.
+ *     
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div(span('Some text.'));
+ *         }
+ *         return container;
+ *     });
+ *     
+ * Builder methods can also accept a hash of attributes, text nodes, or functions
+ * that return text or DOM nodes, in any order. If a Builder method requires no
+ * parameters (hr, br, etc) you can declare it without parenthesis.
+ * 
+ * Note that you can assign DOM nodes to local variables or properties of "this"
+ * inline (a language feature, not a  library feature). This technique comes in
+ * handy when you want to attach behaviors to your elements without having to
+ * query for them.
+ *     
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             this.myDiv = div(
+ *                 ul(
+ *                     li({className: 'first'},'List Item One'),
+ *                     li('List Item Two'),
+ *                     li(
+ *                         b(span('List item Three')),
+ *                         'Extra Text',
+ *                         {className:'third'}
+ *                     ),
+ *                     li(function(){
+ *                         return 'List Item Four';
+ *                     })
+ *                 ),
+ *                 br,
+ *                 this.secondList = ul([
+ *                     li('List Item One'),
+ *                     li('List Item Two')
+ *                 ])
+ *             );
+ *         }
+ *         return this.myDiv;
+ *     });
+ * 
+ * Lastly, you can embed other views inside any builder node. You can either
+ * initialize a view, or just pass the class. If only the class is passed,
+ * the instance of the class that is created will inherit the scope of the
+ * current view.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div({className: 'result_set_container'},
+ *                 PaginationView,
+ *                 hr,
+ *                 new ResultSetView({
+ *                     result_set: my_result_set
+ *                 })
+ *             );
+ *         }
+ *     });
+ * 
+ * Enabling Prototype / jQuery Element Extensions
+ * ----------------------------------------------
+ * By default the DOM nodes generated by Builder will be standard unextended
+ * Element objects regardless of the Ajax framework you are using. It is
+ * however quite useful to have those nodes automatically be compatible
+ * with your framework of choice (although you will take a performance hit).
+ * 
+ * To enable this feature add this code anywhere in your application:
+ * 
+ *     //for Prototype
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return Element.extend(element);
+ *     };
+ * 
+ *     //for jQuery
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return jQuery(element);
+ *     };
+ *     
+ *     //alternates for above, and most other frameworks
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return $(element);
+ *     };
+ *     
+ * Once enabled this allows you to do your typical Ajax framework programming right
+ * in your view. Notice that because you already have access to those objects as
+ * DOM elements that you do not need to query for them or worry if or when they
+ * become attached to the document.
+ * 
+ *     with(this.builder){
+ *         var container = div(
+ *             this.linkOne = a({href: '#'},'Link One'),
+ *             this.linkTwo = a({href: '#'},'Link Two')
+ *         );
+ *     }
+ *     this.linkOne.observe('click',function(){});
+ *     this.linkTwo.hide();
+ * 
+ * Data Binding
+ * ------------
+ * Each view instance has a data scope associated with it which can be accessed
+ * with the get() and set() methods. In a stateless (server) enviornment data
+ * bindings are not needed, one can simply insert data directly into the DOM.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.h2(this.get('title'));
+ *     });
+ * 
+ * However in a stateful (client side) enviornment it is often useful to
+ * automatically update the DOM as data in the view changes. Apple has a
+ * [useful article about Cocoa data bindings](http://developer.apple.com/documentation/Cocoa/Conceptual/CocoaBindings/Concepts/WhatAreBindings.html)
+ * that explains the concept very well. ActiveView data bindings are
+ * vastly simpler and offer fewer features, but provide the same general
+ * functionality.
+ * 
+ * There are three core "sentance" structures that are used
+ * to create your bindings:
+ * 
+ * - update(element).from(key)
+ * - when(key).changes(callback)
+ * - collect(active_view_class).from(key).into(element)
+ * 
+ * These are accessed from the "binding" property of any view.
+ * 
+ * The first construct, update(element).from(key) will set the innerHTML
+ * property of the specified element to the value of the specificed key
+ * whenever the value of the key changes.
+ * 
+ * The second construct is a generic way of observing when a key changes.
+ * When "key" changes, the callback function will be called with the
+ * new value.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         var container = this.builder.h2();
+ *         with(this.binding){
+ *             update(container).from('title');
+ *             when('title').changes(function(title){
+ *                 console.log('title was changed to:',title);
+ *             });
+ *         }
+ *         return container;
+ *     });
+ *     var instance = new MyView({title: 'The Title'});
+ *     //instance.container == <h2>The Title</h2>
+ *     instance.set('title','New Title');
+ *     //instance.container == <h2>New Title</h2>
+ *     
+ * The third construct is the data binding equivelent of a loop. It
+ * will iterate over a given array, render a new view with each item
+ * in that array, collecting the resulting DOM nodes and inserting it
+ * into the given container. If the array is modified with pop(),
+ * push(), shift(), unshift() or splice() the resulting DOM nodes will
+ * be inserted, updated or removed.
+ * 
+ *     var ListView = ActiveView.create(function(){
+ *         var container = this.builder.ul();
+ *         with(this.binding){
+ *             collect(ListItemView).from('items').into(container);
+ *         }
+ *         return container;
+ *     });
+ *     var ListItemView = ActiveView.create(function(){
+ *         var container = this.builder.li();
+ *         with(this.binding){
+ *             update(container).from('body');
+ *         }
+ *         return container;
+ *     });
+ *     var items = [
+ *         {body: 'one'},
+ *         {body: 'two'},
+ *         {body: 'three'}
+ *     ];
+ *     var instance = new ListView(items);
+ *     //instance.container == <ul><li>one</li><li>two</li><li>three</li></ul>
+ *     items.pop();
+ *     //instance.container == <ul><li>one</li><li>two</li></ul>
+ * 
+ * ActiveRecord Data Binding Integration
+ * -------------------------------------
+ * Data bindings can be programmed and triggered directly as described above
+ * but significant integration is built right into ActiveRecord. Each
+ * ActiveRecord instance has a synchronize() method that will trigger the
+ * individual key data bindings (when() and update())
+ *     
+ *     var Article = ActiveRecord.create({
+ *         title: '',
+ *         body: ''
+ *     });
+ *     
+ *     var article_one = Article.create({
+ *         title: 'First Title',
+ *         body: 'First Body'
+ *     });
+ *     article_one.synchronize();
+ *     
+ *     var ArticleView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div(
+ *                 this.titleContainer = h2(),
+ *                 this.bodyContainer = p()
+ *             );
+ *         }
+ *         with(this.binding){
+ *             update(this.titleContainer).from('title');
+ *             update(this.bodyContainer).from('body');
+ *         }
+ *         return container;
+ *     });
+ *     
+ *     var article_one_view = new ArticleView(article_one);
+ *     //article_one_view.container == <div><h2>First Title</h2><p>First Body</p></div>
+ *     
+ *     article_one.set('title','New Title');
+ *     article_one.save();
+ *     //article_one_view.container == <div><h2>New Title</h2><p>First Body</p></div>
+ * 
+ * ActiveRecord.ResultSet objects are designed to integrate with the collect()
+ * data binding construct. If a result set should change as a result of records
+ * matching it's conditions being included or excluded, it will update the DOM
+ * accordingly.
+ * 
+ *     var ArticleListView = ActiveView.create(function(){
+ *         var container = this.builder.div();
+ *         this.binding.collect(ArticleView).from('list').into(container);
+ *         return container;
+ *     });
+ *     var articles = Article.find({
+ *         all: true,
+ *         synchronize: true
+ *     });
+ *     var article_list_instance = new ArticleListView({
+ *         list: articles
+ *     });
+ *     //article_list_instance.container == <div><h2>New Title...
+ *     
+ *     Article.create({
+ *         title: 'Second Title',
+ *         body: 'Second Body'
+ *     });
+ *     //articles.length == 2
+ *     //article_list_instance.container == <div><h2>New Title...<h2>Second Title...
+ * 
+ * Because the query matched all records, and the newly created article would fall
+ * within that result set, the result set was automatically updated (a result of
+ * the synchronize parameter) and the DOM was automatically udpated to match this
+ * (a result of our collect() data binding call).
+ * 
  */
 ActiveView = {};
 
+/**
+ * Defaults to false.
+ * @alias ActiveView.logging
+ * @property {Boolean}
+ */
 ActiveView.logging = false;
 
+/**
+ * Creates a new ActiveView class. The structure function must return a DOM node.
+ * @alias ActiveView.create
+ * @param {Function} structure
+ * @param {Object} [instance_methods]
+ * @return {ActiveView}
+ */
 ActiveView.create = function create(structure,methods)
 {
     if(typeof(options) === 'function')
@@ -6687,7 +7019,7 @@ ActiveView.render = function render(content,scope)
     }
     
     //if content is a function, that function can return nodes or an ActiveView class or instance
-    if(typeof(content) === 'function' && !content.prototype.structure)
+    if(typeof(content) === 'function' && !ActiveView.isActiveViewClass(content))
     {
         content = content(scope);
     }
@@ -6696,17 +7028,25 @@ ActiveView.render = function render(content,scope)
     {
         return content;
     }
-    else if(content && content.container && content.container.nodeType == 1)
+    else if(ActiveView.isActiveViewInstance(content))
     {
-        //is ActiveView instance
         return content.container;
     }
-    else if(content && content.prototype && content.prototype.structure)
+    else if(ActiveView.isActiveViewClass(content))
     {
-        //is ActiveView class
         return new content(scope).container;
     }
     return ActiveSupport.throwError(Errors.InvalidContent);
+};
+
+ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
+{
+    return object && object.container && object.container.nodeType == 1 && object.scope && object.builder;
+};
+
+ActiveView.isActiveViewClass = function isActiveViewClass(object)
+{
+    return object && object.prototype && object.prototype.structure && object.prototype.setupScope && object.prototype.registerEventHandler;
 };
 
 var InstanceMethods = {
@@ -6718,7 +7058,8 @@ var InstanceMethods = {
         {
             ActiveSupport.log('ActiveView: initialized with scope:',scope);
         }
-        this.builder = ActiveView.Builder;
+        this.builder = {};
+        Builder.generator(this.builder,this.scope);
         ActiveView.generateBinding(this);
         this.container = this.structure();
         if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
@@ -6742,10 +7083,21 @@ var InstanceMethods = {
             }
         }
     },
+    /**
+     * @alias ActiveView.prototype.get
+     * @param {String} key
+     * @return {mixed}
+     */
     get: function get(key)
     {
         return this.scope.get(key);
     },
+    /**
+     * @alias ActiveView.prototype.set
+     * @param {String} key
+     * @param {mixed} value
+     * @return {mixed}
+     */
     set: function set(key,value)
     {
         if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
@@ -6753,6 +7105,16 @@ var InstanceMethods = {
             ActiveView.makeArrayObservable(value);
         }
         return this.scope.set(key,value);
+    },
+    /**
+     * @alias ActiveView.prototype.attachTo
+     * @param {Element} element
+     * @return {Element}
+     */
+    attachTo: function attachTo(element)
+    {
+        element.appendChild(this.container);
+        return this.container;
     },
     registerEventHandler: function registerEventHandler(element,event_name,observer)
     {
@@ -6771,18 +7133,28 @@ var Errors = {
 };
 
 var Builder = {
+    cache: {},
     createElement: function createElement(tag,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag = tag.toLowerCase();
+        var element;
         if(ie && attributes.name)
         {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
+            element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
-        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
+        else
+        {
+            if(!Builder.cache[tag])
+            {
+                Builder.cache[tag] = Builder.extendCreatedElement(global_context.document.createElement(tag));
+            }
+            element = Builder.cache[tag].cloneNode(false);
+        }
         Builder.writeAttribute(element,attributes);
         return element;
     },
@@ -6830,7 +7202,7 @@ var Builder = {
     }
 };
 
-(function builder_generator(){
+Builder.generator = function generator(target,scope){
     var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
         "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
         "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
@@ -6842,7 +7214,7 @@ var Builder = {
     {
         var tag = tags[t];
         (function tag_iterator(tag){
-            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+            target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
@@ -6853,7 +7225,7 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) === 'function')
+                    if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
                     {
                         argument = argument();
                     }
@@ -6869,6 +7241,14 @@ var Builder = {
                     {
                         elements.push(argument);
                     }
+                    else if(ActiveView.isActiveViewInstance(argument))
+                    {
+                        return elements.push(argument.container);
+                    }
+                    else if(ActiveView.isActiveViewClass(argument))
+                    {
+                        return elements.push(new argument(scope || {}).container);
+                    }
                 }
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
@@ -6879,8 +7259,16 @@ var Builder = {
             };
         })(tag);
     }
-})();
+};
+Builder.generator(Builder);
 
+/**
+ * Contains all DOM generator methods, b(), h1(), etc. This object can
+ * always be referenced statically as ActiveView.Builder, but is also
+ * available as this.builder inside of ActiveView classes.
+ * @alias ActiveView.Builder
+ * @property {Object}
+ */
 ActiveView.Builder = Builder;
 
 ActiveView.generateBinding = function generateBinding(instance)
@@ -7081,17 +7469,63 @@ ActiveView.generateBinding = function generateBinding(instance)
     };
 };
 
-ActiveView.Template = {
-    create: function create(src,helpers)
-    {
-        var klass = function klass(){};
-        klass.helpers = {};
-        ActiveSupport.extend(klass.helpers,helpers || {});
-        ActiveSupport.extend(klass.helpers,ActiveView.Template.Helpers);
-        ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
-        klass.template = ActiveView.Template.generateTemplate(src);
-        return klass;
-    }
+/**
+ * @alias ActiveView.Template
+ * @constructor
+ * @param {String} src
+ * @param {Object} [helpers]
+ * @return {ActiveView.Template}
+ * @example
+ * 
+ * String Based Templating
+ * -----------------------
+ * Original implementation by [John Resig](http://ejohn.org/)
+ * 
+ * ActiveView.Template provides a string based templating approach that
+ * is similar to ERB, ASP or PHP.
+ * 
+ *     var template_one = new ActiveView.Template('<h1><%= title %></h1>');
+ *     template_one.render({title: 'The Title'});
+ *     //<h1>The Title</h1>
+ * 
+ * Each template class can accept a hash of helper functions as the second
+ * argument. To add helpers to all ActiveView.Template classes, you can 
+ * add properties to ActiveView.Template.Helpers.
+ * 
+ *     var template_two = new ActiveView.Template('<h1><%= i(title) %></h1>',{
+ *         i: function(text){
+ *             return '<i>' + text + '</i>';
+ *         }
+ *     });
+ *     template_two.render({title: 'The Title'});
+ *     //<h1><i>The Title</i></h1>
+ * 
+ * You can embed JavaScript with logic (loops, conditions, etc) within your
+ * template source. John Resig [points out](http://ejohn.org/blog/javascript-micro-templating/)
+ * that you can place the template source code in your page using a script tag with an
+ * unknown content type to get the browser to ignore it (but stil have access to it via the DOM).
+ * 
+ *     <script type="text/html" id="complex_template_source">
+ *         <h2><%= title %></h2>
+ *         <ul>
+ *             <% for(var i = 0; i < list.length; ++i){ %>
+ *                 <li><%= list[i] %></li>
+ *             <% } %>
+ *         </ul>
+ *     </script>
+ * 
+ * Then in your code:
+ * 
+ *     var complex_template = new ActiveView.Template($('complex_template_source').innerHTML);
+ * 
+ */
+ActiveView.Template = function Template(src,helpers)
+{
+    this.helpers = {};
+    ActiveSupport.extend(this.helpers,helpers || {});
+    ActiveSupport.extend(this.helpers,ActiveView.Template.Helpers);
+    this.template = ActiveView.Template.generateTemplate(src);
+    ActiveSupport.extend(this,ActiveView.Template.InstanceMethods);
 };
 
 ActiveView.Template.generateTemplate = function generateTemplate(source)
@@ -7129,13 +7563,25 @@ ActiveView.Template.Errors = {
     CompilationFailed: ActiveSupport.createError('The template could not be compiled:')
 };
 
-ActiveView.Template.ClassMethods = {
+ActiveView.Template.InstanceMethods = {
+    /**
+     * Renders the template with the given scope / data, returning
+     * the processed result as a string.
+     * @alias ActiveView.Template.prototype.render
+     * @param {Object} [data]
+     * @return {String}
+     */
     render: function render(data)
     {
         return ActiveSupport.bind(this.template,this)(data || {});
     }
 };
 
+/**
+ * Contains all methods that will become available as locals to templates.
+ * @alias ActiveView.Template.Helpers
+ * @property {Object}
+ */
 ActiveView.Template.Helpers = {};
 
 })();
@@ -7152,8 +7598,8 @@ if(typeof exports != "undefined"){
  * @namespace {ActiveController}
  * @example
  * 
- * ActiveController.js
- * ===============
+ * ActiveController
+ * ================
  * Tutorial coming soon.
  */
 ActiveController = {};

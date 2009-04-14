@@ -2,6 +2,16 @@
 <?NLS TYPE="org.eclipse.help.toc"?><toc label="ActiveJS" link_to="../com.aptana.ide.documentation/toc.xml#reference">
    <topic label="ActiveJS" href="html/reference/api/ActiveJS.index.html">
       <topic label="ActiveController" href="html/reference/api/ActiveController.html"/>
+      <topic label="ActiveController.prototype.history"
+             href="html/reference/api/ActiveController.prototype.history.html">
+         <topic label="Functions"
+                href="html/reference/api/ActiveController.prototype.history.html#ActiveController.prototype.history.Functions">
+            <topic label="back"
+                   href="html/reference/api/ActiveController.prototype.history.html?visibility=#ActiveController.prototype.history.back"/>
+            <topic label="next"
+                   href="html/reference/api/ActiveController.prototype.history.html?visibility=#ActiveController.prototype.history.next"/>
+         </topic>
+      </topic>
       <topic label="ActiveEvent" href="html/reference/api/ActiveEvent.html">
          <topic label="Functions"
                 href="html/reference/api/ActiveEvent.html#ActiveEvent.Functions">
@@ -332,10 +342,42 @@
          </topic>
       </topic>
       <topic label="ActiveView" href="html/reference/api/ActiveView.html">
+         <topic label="Properties"
+                href="html/reference/api/ActiveView.html#ActiveView.Properties">
+            <topic label="Builder"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.Builder"/>
+            <topic label="logging"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.logging"/>
+         </topic>
          <topic label="Functions"
                 href="html/reference/api/ActiveView.html#ActiveView.Functions">
+            <topic label="attachTo"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.attachTo"/>
+            <topic label="get"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.get"/>
+            <topic label="set"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.set"/>
+            <topic label="create"
+                   href="html/reference/api/ActiveView.html?visibility=#ActiveView.create"/>
             <topic label="render"
                    href="html/reference/api/ActiveView.html?visibility=#ActiveView.render"/>
+         </topic>
+      </topic>
+      <topic label="ActiveView.Template" href="html/reference/api/ActiveView.Template.html">
+         <topic label="Constructors"
+                href="html/reference/api/ActiveView.Template.html#ActiveView.Template.Constructors">
+            <topic label="Constructor"
+                   href="html/reference/api/ActiveView.Template.html?visibility=#ActiveView.Template."/>
+         </topic>
+         <topic label="Properties"
+                href="html/reference/api/ActiveView.Template.html#ActiveView.Template.Properties">
+            <topic label="Helpers"
+                   href="html/reference/api/ActiveView.Template.html?visibility=#ActiveView.Template.Helpers"/>
+         </topic>
+         <topic label="Functions"
+                href="html/reference/api/ActiveView.Template.html#ActiveView.Template.Functions">
+            <topic label="render"
+                   href="html/reference/api/ActiveView.Template.html?visibility=#ActiveView.Template.render"/>
          </topic>
       </topic>
    </topic>

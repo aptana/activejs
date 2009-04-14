@@ -29,8 +29,8 @@
  * @namespace {ActiveRecord}
  * @example
  * 
- * ActiveRecord.js
- * ===============
+ * ActiveRecord
+ * ============
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby

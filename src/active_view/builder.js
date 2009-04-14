@@ -26,18 +26,28 @@
  * ***** END LICENSE BLOCK ***** */
 
 var Builder = {
+    cache: {},
     createElement: function createElement(tag,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag = tag.toLowerCase();
+        var element;
         if(ie && attributes.name)
         {
             tag = '<' + tag + ' name="' + attributes.name + '">';
             delete attributes.name;
+            element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
-        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
+        else
+        {
+            if(!Builder.cache[tag])
+            {
+                Builder.cache[tag] = Builder.extendCreatedElement(global_context.document.createElement(tag));
+            }
+            element = Builder.cache[tag].cloneNode(false);
+        }
         Builder.writeAttribute(element,attributes);
         return element;
     },
@@ -85,7 +95,7 @@ var Builder = {
     }
 };
 
-(function builder_generator(){
+Builder.generator = function generator(target,scope){
     var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
         "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
         "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
@@ -97,7 +107,7 @@ var Builder = {
     {
         var tag = tags[t];
         (function tag_iterator(tag){
-            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+            target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
@@ -108,7 +118,7 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) === 'function')
+                    if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
                     {
                         argument = argument();
                     }
@@ -124,6 +134,14 @@ var Builder = {
                     {
                         elements.push(argument);
                     }
+                    else if(ActiveView.isActiveViewInstance(argument))
+                    {
+                        return elements.push(argument.container);
+                    }
+                    else if(ActiveView.isActiveViewClass(argument))
+                    {
+                        return elements.push(new argument(scope || {}).container);
+                    }
                 }
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
@@ -134,6 +152,14 @@ var Builder = {
             };
         })(tag);
     }
-})();
+};
+Builder.generator(Builder);
 
+/**
+ * Contains all DOM generator methods, b(), h1(), etc. This object can
+ * always be referenced statically as ActiveView.Builder, but is also
+ * available as this.builder inside of ActiveView classes.
+ * @alias ActiveView.Builder
+ * @property {Object}
+ */
 ActiveView.Builder = Builder;

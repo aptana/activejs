@@ -29,8 +29,8 @@
  * @namespace {ActiveController}
  * @example
  * 
- * ActiveController.js
- * ===============
+ * ActiveController
+ * ================
  * Tutorial coming soon.
  */
 ActiveController = {};

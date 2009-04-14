@@ -34,8 +34,8 @@
  * @return {ActiveRoutes}
  * @example
  *
- * ActiveRoutes.js
- * ===============
+ * ActiveRoutes
+ * ============
  * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map

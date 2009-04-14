@@ -32,8 +32,8 @@
  * @namespace {ActiveEvent}
  * @example
  * 
- * ActiveEvent.js
- * ==============
+ * ActiveEvent
+ * ===========
  * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.

@@ -25,17 +25,63 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveView.Template = {
-    create: function create(src,helpers)
-    {
-        var klass = function klass(){};
-        klass.helpers = {};
-        ActiveSupport.extend(klass.helpers,helpers || {});
-        ActiveSupport.extend(klass.helpers,ActiveView.Template.Helpers);
-        ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
-        klass.template = ActiveView.Template.generateTemplate(src);
-        return klass;
-    }
+/**
+ * @alias ActiveView.Template
+ * @constructor
+ * @param {String} src
+ * @param {Object} [helpers]
+ * @return {ActiveView.Template}
+ * @example
+ * 
+ * String Based Templating
+ * -----------------------
+ * Original implementation by [John Resig](http://ejohn.org/)
+ * 
+ * ActiveView.Template provides a string based templating approach that
+ * is similar to ERB, ASP or PHP.
+ * 
+ *     var template_one = new ActiveView.Template('<h1><%= title %></h1>');
+ *     template_one.render({title: 'The Title'});
+ *     //<h1>The Title</h1>
+ * 
+ * Each template class can accept a hash of helper functions as the second
+ * argument. To add helpers to all ActiveView.Template classes, you can 
+ * add properties to ActiveView.Template.Helpers.
+ * 
+ *     var template_two = new ActiveView.Template('<h1><%= i(title) %></h1>',{
+ *         i: function(text){
+ *             return '<i>' + text + '</i>';
+ *         }
+ *     });
+ *     template_two.render({title: 'The Title'});
+ *     //<h1><i>The Title</i></h1>
+ * 
+ * You can embed JavaScript with logic (loops, conditions, etc) within your
+ * template source. John Resig [points out](http://ejohn.org/blog/javascript-micro-templating/)
+ * that you can place the template source code in your page using a script tag with an
+ * unknown content type to get the browser to ignore it (but stil have access to it via the DOM).
+ * 
+ *     <script type="text/html" id="complex_template_source">
+ *         <h2><%= title %></h2>
+ *         <ul>
+ *             <% for(var i = 0; i < list.length; ++i){ %>
+ *                 <li><%= list[i] %></li>
+ *             <% } %>
+ *         </ul>
+ *     </script>
+ * 
+ * Then in your code:
+ * 
+ *     var complex_template = new ActiveView.Template($('complex_template_source').innerHTML);
+ * 
+ */
+ActiveView.Template = function Template(src,helpers)
+{
+    this.helpers = {};
+    ActiveSupport.extend(this.helpers,helpers || {});
+    ActiveSupport.extend(this.helpers,ActiveView.Template.Helpers);
+    this.template = ActiveView.Template.generateTemplate(src);
+    ActiveSupport.extend(this,ActiveView.Template.InstanceMethods);
 };
 
 ActiveView.Template.generateTemplate = function generateTemplate(source)
@@ -73,11 +119,23 @@ ActiveView.Template.Errors = {
     CompilationFailed: ActiveSupport.createError('The template could not be compiled:')
 };
 
-ActiveView.Template.ClassMethods = {
+ActiveView.Template.InstanceMethods = {
+    /**
+     * Renders the template with the given scope / data, returning
+     * the processed result as a string.
+     * @alias ActiveView.Template.prototype.render
+     * @param {Object} [data]
+     * @return {String}
+     */
     render: function render(data)
     {
         return ActiveSupport.bind(this.template,this)(data || {});
     }
 };
 
+/**
+ * Contains all methods that will become available as locals to templates.
+ * @alias ActiveView.Template.Helpers
+ * @property {Object}
+ */
 ActiveView.Template.Helpers = {};
