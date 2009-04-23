@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ActiveRecord.js : Cross Browser, Cross Platform, JavaScript ORM</title>
+    <title>ActiveJS: The Cross Platform JavaScript MVC</title>
     <link rel="stylesheet" href="stylesheets/screen.css"/>
     <!--[if IE]>
       <style>pre {display:block; background-color:#000; padding:10px 15px; width:721px;}</style>
@@ -175,11 +175,13 @@ h.observeMethod('set',function(key,value){
 </code></pre>
 
       <script>
-        var code_snippets = document.getElementsByTagName('code');
-        for(var i = 0; i < code_snippets.length; ++i){
-          code_snippets[i].className = 'javascript';
+        if(dp && dp.sh){
+          var code_snippets = document.getElementsByTagName('code');
+          for(var i = 0; i < code_snippets.length; ++i){
+            code_snippets[i].className = 'javascript';
+          }
+          dp.sh.HighlightAll('javascript',false,false,false,true,false);
         }
-        dp.sh.HighlightAll('javascript',false,false,false,true,false);
       </script>
       <p id="copyright">ActiveJS is a trademark of Aptana, Inc. &copy;2009 <a href="http://aptana.com/">Aptana Inc.</a></p>
     </div>

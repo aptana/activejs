@@ -173,7 +173,7 @@
  * 
  *     //for jQuery
  *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
- *         return jQuery(element);
+ *         return jQuery(element)[0];
  *     };
  *     
  *     //alternates for above, and most other frameworks
