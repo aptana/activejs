@@ -292,7 +292,7 @@ Adapters.SQL = {
             {
                 return value;
             }
-            var t = ActiveSupport.trim(value);
+            var t = ActiveSupport.trim(String(value));
             return (t.length > 0 && !(/[^0-9.]/).test(t) && (/\.\d/).test(t)) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
