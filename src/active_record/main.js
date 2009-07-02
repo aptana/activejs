@@ -291,7 +291,7 @@
  *     
  * To observe a given event on all models, you can do the following: 
  * 
- *     ActiveRecord.observe('created',function(model_class,model_instance){});
+ *     ActiveRecord.observe('afterCreate',function(model_class,model_instance){});
  *     
  * afterFind works differently than all of the other events. It is only available
  * to the model class, not the instances, and is called only when a result set is

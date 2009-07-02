@@ -584,6 +584,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+						return word;
         },
         /**
          * Generates a singular version of an english word.
@@ -620,6 +621,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+						return word;
         }
     },
     /**
