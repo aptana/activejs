@@ -482,37 +482,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
-     * @alias ActiveRecord.Class.transaction
-     * @param {Function} proceed
-     *      The block of code to execute inside the transaction.
-     * @param {Function} [error]
-     *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
-     * @example
-     *     Account.transaction(function(){
-     *         var from = Account.find(2);
-     *         var to = Account.find(3);
-     *         to.despoit(from.withdraw(100.00));
-     *     });
-     */
-    transaction: function transaction(proceed,error)
-    {
-        try
-        {
-            ActiveRecord.connection.transaction(proceed);
-        }
-        catch(e)
-        {
-            if(error)
-            {
-                error(e);
-            }
-            else
-            {
-                return ActiveSupport.throwError(e);
-            }
-        }
-    },
-    /**
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
      * the construction of custom result set objects from arrays where result 
      * sets are expected. This will modify the array that is passed in and

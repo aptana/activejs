@@ -113,6 +113,41 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     ;
 };
 
+
+/**
+ * @alias ActiveRecord.transaction
+ * @param {Function} proceed
+ *      The block of code to execute inside the transaction.
+ * @param {Function} [error]
+ *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+ * @example
+ *     ActiveRecord.transaction(function(){
+ *         var from = Account.find(2);
+ *         var to = Account.find(3);
+ *         to.despoit(from.withdraw(100.00));
+ *     });
+ */
+ActiveRecord.transaction = function transaction(proceed,error)
+{
+    try
+    {
+        ActiveRecord.connection.transaction(proceed);
+    }
+    catch(e)
+    {
+        if(error)
+        {
+            error(e);
+        }
+        else
+        {
+            return ActiveSupport.throwError(e);
+        }
+    }
+};
+//deprecated
+ActiveRecord.ClassMethods.transaction = ActiveRecord.transaction;
+
 Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
 {
     if (typeof(iterator) === 'number')

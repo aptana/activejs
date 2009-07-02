@@ -522,6 +522,7 @@ ActiveSupport = {
                 "money",
                 "rice",
                 "information",
+				"info",
                 "equipment"
             ]
         },
@@ -560,7 +561,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable)
+                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
                 {
                     return uncountable;
                 }
@@ -596,7 +597,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable)
+                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
                 {
                     return uncountable;
                 }
@@ -2759,37 +2760,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
-     * @alias ActiveRecord.Class.transaction
-     * @param {Function} proceed
-     *      The block of code to execute inside the transaction.
-     * @param {Function} [error]
-     *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
-     * @example
-     *     Account.transaction(function(){
-     *         var from = Account.find(2);
-     *         var to = Account.find(3);
-     *         to.despoit(from.withdraw(100.00));
-     *     });
-     */
-    transaction: function transaction(proceed,error)
-    {
-        try
-        {
-            ActiveRecord.connection.transaction(proceed);
-        }
-        catch(e)
-        {
-            if(error)
-            {
-                error(e);
-            }
-            else
-            {
-                return ActiveSupport.throwError(e);
-            }
-        }
-    },
-    /**
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
      * the construction of custom result set objects from arrays where result 
      * sets are expected. This will modify the array that is passed in and
@@ -3013,6 +2983,41 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
         : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
     ;
 };
+
+
+/**
+ * @alias ActiveRecord.transaction
+ * @param {Function} proceed
+ *      The block of code to execute inside the transaction.
+ * @param {Function} [error]
+ *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+ * @example
+ *     ActiveRecord.transaction(function(){
+ *         var from = Account.find(2);
+ *         var to = Account.find(3);
+ *         to.despoit(from.withdraw(100.00));
+ *     });
+ */
+ActiveRecord.transaction = function transaction(proceed,error)
+{
+    try
+    {
+        ActiveRecord.connection.transaction(proceed);
+    }
+    catch(e)
+    {
+        if(error)
+        {
+            error(e);
+        }
+        else
+        {
+            return ActiveSupport.throwError(e);
+        }
+    }
+};
+//deprecated
+ActiveRecord.ClassMethods.transaction = ActiveRecord.transaction;
 
 Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
 {
@@ -5163,7 +5168,7 @@ var Migrations = {
         'mediumint': 0,
         'int': 0,
         'integer': 0,
-        'bitint': 0,
+        'bigint': 0,
         'float': 0,
         'double': 0,
         'double precision': 0,

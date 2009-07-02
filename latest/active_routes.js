@@ -522,6 +522,7 @@ ActiveSupport = {
                 "money",
                 "rice",
                 "information",
+				"info",
                 "equipment"
             ]
         },
@@ -560,7 +561,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable)
+                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
                 {
                     return uncountable;
                 }
@@ -596,7 +597,7 @@ ActiveSupport = {
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable)
+                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
                 {
                     return uncountable;
                 }

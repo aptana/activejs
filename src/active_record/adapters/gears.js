@@ -40,17 +40,8 @@ ActiveRecord.Adapters.Gears = function Gears(db){
         executeSQL: function executeSQL(sql)
         {
             var args = ActiveSupport.arrayFrom(arguments);
-            var proceed = null;
-            if(typeof(args[args.length - 1]) === 'function')
-            {
-                proceed = args.pop();
-            }
             ActiveRecord.connection.log("Adapters.Gears.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
             var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
-            if(proceed)
-            {
-                proceed(response);
-            }
             return response;
         },
         getLastInsertedRowId: function getLastInsertedRowId()
