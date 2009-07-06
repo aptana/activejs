@@ -122,7 +122,15 @@ Builder.generator = function generator(target,scope){
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
+                    if(ActiveView.isActiveViewInstance(argument))
+                    {
+                        elements.push(argument.container);
+                    }
+                    else if(ActiveView.isActiveViewClass(argument))
+                    {
+                        elements.push(new argument(scope._object || {}).container);
+                    }
+                    else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
@@ -133,14 +141,6 @@ Builder.generator = function generator(target,scope){
                     else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
                     {
                         elements.push(argument);
-                    }
-                    else if(ActiveView.isActiveViewInstance(argument))
-                    {
-                        return elements.push(argument.container);
-                    }
-                    else if(ActiveView.isActiveViewClass(argument))
-                    {
-                        return elements.push(new argument(scope || {}).container);
                     }
                 }
                 element = Builder.createElement(tag,attributes);
