@@ -508,7 +508,20 @@ ActiveRecord = {
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
-        //user defined take precedence
+        //user defined methods take precedence
+				if(typeof(methods) == 'undefined')
+				{
+						//detect if the fields object is actually a methods object
+					  for(var method_name in fields)
+					  {
+						    if(typeof(fields[method_name]) == 'function')
+						    {
+							      methods = fields;
+							      fields = null; 
+						    }
+						    break;
+					  }
+				}
         if(methods && typeof(methods) !== 'function')
         {
             ActiveSupport.extend(model.prototype, methods || {});
