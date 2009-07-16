@@ -7058,78 +7058,80 @@ ActiveView.isActiveViewClass = function isActiveViewClass(object)
     return object && object.prototype && object.prototype.structure && object.prototype.setupScope && object.prototype.registerEventHandler;
 };
 
-var InstanceMethods = {
-    initialize: function initialize(scope,parent)
-    {
-        this.parent = parent;
-        this.setupScope(scope);
-        if(ActiveView.logging)
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize(scope,parent)
         {
-            ActiveSupport.log('ActiveView: initialized with scope:',scope);
-        }
-        this.builder = {};
-        Builder.generator(this.builder,this.scope);
-        ActiveView.generateBinding(this);
-        this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
-        {
-            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
-        }
-        for(var key in this.scope._object)
-        {
-            this.scope.set(key,this.scope._object[key]);
-        }
-    },
-    setupScope: function setupScope(scope)
-    {
-        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
-        for(var key in this.scope._object)
-        {
-            var item = this.scope._object[key];
-            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
+            this.parent = parent;
+            this.setupScope(scope);
+            if(ActiveView.logging)
             {
-                ActiveView.makeArrayObservable(item);
+                ActiveSupport.log('ActiveView: initialized with scope:',scope);
             }
-        }
-    },
-    /**
-     * @alias ActiveView.prototype.get
-     * @param {String} key
-     * @return {mixed}
-     */
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    /**
-     * @alias ActiveView.prototype.set
-     * @param {String} key
-     * @param {mixed} value
-     * @return {mixed}
-     */
-    set: function set(key,value)
-    {
-        if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+            this.builder = {};
+            Builder.generator(this.builder,this.scope);
+            ActiveView.generateBinding(this);
+            this.container = this.structure();
+            if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
+            {
+                return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
+            }
+            for(var key in this.scope._object)
+            {
+                this.scope.set(key,this.scope._object[key]);
+            }
+        },
+        setupScope: function setupScope(scope)
         {
-            ActiveView.makeArrayObservable(value);
+            this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
+            for(var key in this.scope._object)
+            {
+                var item = this.scope._object[key];
+                if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
+                {
+                    ActiveView.makeArrayObservable(item);
+                }
+            }
+        },
+        /**
+         * @alias ActiveView.prototype.get
+         * @param {String} key
+         * @return {mixed}
+         */
+        get: function get(key)
+        {
+            return this.scope.get(key);
+        },
+        /**
+         * @alias ActiveView.prototype.set
+         * @param {String} key
+         * @param {mixed} value
+         * @return {mixed}
+         */
+        set: function set(key,value)
+        {
+            if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+            {
+                ActiveView.makeArrayObservable(value);
+            }
+            return this.scope.set(key,value);
+        },
+        /**
+         * @alias ActiveView.prototype.attachTo
+         * @param {Element} element
+         * @return {Element}
+         */
+        attachTo: function attachTo(element)
+        {
+            element.appendChild(this.container);
+            return this.container;
+        },
+        registerEventHandler: function registerEventHandler(element,event_name,observer)
+        {
+            this.eventHandlers.push([element,event_name,observer]);
         }
-        return this.scope.set(key,value);
-    },
-    /**
-     * @alias ActiveView.prototype.attachTo
-     * @param {Element} element
-     * @return {Element}
-     */
-    attachTo: function attachTo(element)
-    {
-        element.appendChild(this.container);
-        return this.container;
-    },
-    registerEventHandler: function registerEventHandler(element,event_name,observer)
-    {
-        this.eventHandlers.push([element,event_name,observer]);
-    }
-};
+    };
+})();
 
 var ClassMethods = {
 
@@ -7173,6 +7175,8 @@ var Builder = {
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
+        var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         var transitions = {
             className: 'class',
             htmlFor:   'for'
@@ -7200,7 +7204,25 @@ var Builder = {
             }
             else
             {
-                element.setAttribute(name,value);
+                if(!ie)
+                {
+                    element.setAttribute(name,value);
+                }
+                else
+                {
+                    if(name == 'class')
+                    {
+                        element.setAttribute('className',value);
+                    }
+                    else if(name == 'style')
+                    {
+                        element.style.cssText = value;
+                    }
+                    else
+                    {
+                        element.setAttribute(name,value);
+                    }
+                }
             }
         }
         return element;
@@ -7674,57 +7696,59 @@ ActiveController.createAction = function createAction(klass,action_name,action)
     };
 };
 
-var InstanceMethods = {
-    initialize: function initialize()
-    {
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize()
+        {
         
-    },
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    set: function set(key,value)
-    {
-        return this.scope.set(key,value);
-    },
-    render: function render(params)
-    {
-        if(typeof(params) !== 'object')
+        },
+        get: function get(key)
         {
-            return ActiveSupport.throwError(Errors.InvalidRenderParams);
-        }
-        for(var flag_name in params || {})
+            return this.scope.get(key);
+        },
+        set: function set(key,value)
         {
-            if(!RenderFlags[flag_name])
+            return this.scope.set(key,value);
+        },
+        render: function render(params)
+        {
+            if(typeof(params) !== 'object')
             {
-                if(ActiveController.logging)
-                {
-                    ActiveSupport.log('ActiveController: render() failed with params:',params);
-                }
-                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                return ActiveSupport.throwError(Errors.InvalidRenderParams);
             }
-            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
-        }
-        return params;
-    },
-    getRenderTarget: function getRenderTarget()
-    {
-        return this.renderTarget;
-    },
-    setRenderTarget: function setRenderTarget(target)
-    {
-        this.renderTarget = target;
-    },
-    renderLayout: function renderLayout()
-    {
-        if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            for(var flag_name in params || {})
+            {
+                if(!RenderFlags[flag_name])
+                {
+                    if(ActiveController.logging)
+                    {
+                        ActiveSupport.log('ActiveController: render() failed with params:',params);
+                    }
+                    return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                }
+                ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
+            }
+            return params;
+        },
+        getRenderTarget: function getRenderTarget()
         {
-            this.layoutRendered = true;
-            this.container.innerHtml = '';
-            this.container.appendChild(this.layout.bind(this)());
+            return this.renderTarget;
+        },
+        setRenderTarget: function setRenderTarget(target)
+        {
+            this.renderTarget = target;
+        },
+        renderLayout: function renderLayout()
+        {
+            if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            {
+                this.layoutRendered = true;
+                this.container.innerHtml = '';
+                this.container.appendChild(this.layout.bind(this)());
+            }
         }
-    }
-};
+    };
+})();
 ActiveController.InstanceMethods = InstanceMethods;
 
 var RenderFlags = {

@@ -449,78 +449,80 @@ ActiveView.isActiveViewClass = function isActiveViewClass(object)
     return object && object.prototype && object.prototype.structure && object.prototype.setupScope && object.prototype.registerEventHandler;
 };
 
-var InstanceMethods = {
-    initialize: function initialize(scope,parent)
-    {
-        this.parent = parent;
-        this.setupScope(scope);
-        if(ActiveView.logging)
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize(scope,parent)
         {
-            ActiveSupport.log('ActiveView: initialized with scope:',scope);
-        }
-        this.builder = {};
-        Builder.generator(this.builder,this.scope);
-        ActiveView.generateBinding(this);
-        this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
-        {
-            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
-        }
-        for(var key in this.scope._object)
-        {
-            this.scope.set(key,this.scope._object[key]);
-        }
-    },
-    setupScope: function setupScope(scope)
-    {
-        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
-        for(var key in this.scope._object)
-        {
-            var item = this.scope._object[key];
-            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
+            this.parent = parent;
+            this.setupScope(scope);
+            if(ActiveView.logging)
             {
-                ActiveView.makeArrayObservable(item);
+                ActiveSupport.log('ActiveView: initialized with scope:',scope);
             }
-        }
-    },
-    /**
-     * @alias ActiveView.prototype.get
-     * @param {String} key
-     * @return {mixed}
-     */
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    /**
-     * @alias ActiveView.prototype.set
-     * @param {String} key
-     * @param {mixed} value
-     * @return {mixed}
-     */
-    set: function set(key,value)
-    {
-        if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+            this.builder = {};
+            Builder.generator(this.builder,this.scope);
+            ActiveView.generateBinding(this);
+            this.container = this.structure();
+            if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
+            {
+                return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
+            }
+            for(var key in this.scope._object)
+            {
+                this.scope.set(key,this.scope._object[key]);
+            }
+        },
+        setupScope: function setupScope(scope)
         {
-            ActiveView.makeArrayObservable(value);
+            this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
+            for(var key in this.scope._object)
+            {
+                var item = this.scope._object[key];
+                if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
+                {
+                    ActiveView.makeArrayObservable(item);
+                }
+            }
+        },
+        /**
+         * @alias ActiveView.prototype.get
+         * @param {String} key
+         * @return {mixed}
+         */
+        get: function get(key)
+        {
+            return this.scope.get(key);
+        },
+        /**
+         * @alias ActiveView.prototype.set
+         * @param {String} key
+         * @param {mixed} value
+         * @return {mixed}
+         */
+        set: function set(key,value)
+        {
+            if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+            {
+                ActiveView.makeArrayObservable(value);
+            }
+            return this.scope.set(key,value);
+        },
+        /**
+         * @alias ActiveView.prototype.attachTo
+         * @param {Element} element
+         * @return {Element}
+         */
+        attachTo: function attachTo(element)
+        {
+            element.appendChild(this.container);
+            return this.container;
+        },
+        registerEventHandler: function registerEventHandler(element,event_name,observer)
+        {
+            this.eventHandlers.push([element,event_name,observer]);
         }
-        return this.scope.set(key,value);
-    },
-    /**
-     * @alias ActiveView.prototype.attachTo
-     * @param {Element} element
-     * @return {Element}
-     */
-    attachTo: function attachTo(element)
-    {
-        element.appendChild(this.container);
-        return this.container;
-    },
-    registerEventHandler: function registerEventHandler(element,event_name,observer)
-    {
-        this.eventHandlers.push([element,event_name,observer]);
-    }
-};
+    };
+})();
 
 var ClassMethods = {
 

@@ -57,6 +57,8 @@ var Builder = {
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
+        var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         var transitions = {
             className: 'class',
             htmlFor:   'for'
@@ -84,7 +86,25 @@ var Builder = {
             }
             else
             {
-                element.setAttribute(name,value);
+                if(!ie)
+                {
+                    element.setAttribute(name,value);
+                }
+                else
+                {
+                    if(name == 'class')
+                    {
+                        element.setAttribute('className',value);
+                    }
+                    else if(name == 'style')
+                    {
+                        element.style.cssText = value;
+                    }
+                    else
+                    {
+                        element.setAttribute(name,value);
+                    }
+                }
             }
         }
         return element;
