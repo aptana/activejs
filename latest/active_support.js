@@ -815,7 +815,7 @@ ActiveSupport = {
             var response = '';
             if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
-                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+                response = '<![CDATA[' + String(value) + ']]>';
             }
             else if(typeof(value) === 'object')
             {

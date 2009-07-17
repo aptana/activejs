@@ -815,7 +815,7 @@ ActiveSupport = {
             var response = '';
             if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
-                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+                response = '<![CDATA[' + String(value) + ']]>';
             }
             else if(typeof(value) === 'object')
             {
@@ -2030,7 +2030,7 @@ ActiveRoutes.prototype.match = function(path){
     var original_path = path;
     this.error = false;
     //make sure the path is a copy
-    path = ActiveRoutes.normalizePath((new String(path)).toString());
+    path = ActiveRoutes.normalizePath(String(path));
     //handle extension
     var extension = path.match(/\.([^\.]+)$/);
     if(extension)
@@ -2075,8 +2075,10 @@ ActiveRoutes.prototype.match = function(path){
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
                         !(typeof(route.params.requirements[key]) == 'function'
-                            ? route.params.requirements[key]((new String(path_component).toString()))
-                            : path_component.match(route.params.requirements[key])))
+                            ? route.params.requirements[key](String(path_component))
+                            : path_component.match(route.params.requirements[key])
+                        )
+                    )
                     {
                         valid = false;
                         break;
@@ -2243,11 +2245,11 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
         if(path.match(':' + p) && params[p])
         {
             if(route.params.requirements && route.params.requirements[p]){
-                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p]((new String(params[p]).toString())))
+                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p](String(params[p])))
                 {
                     continue;
                 }
-                else if(!route.params.requirements[p].exec((new String(params[p]).toString())))
+                else if(!route.params.requirements[p].exec(String(params[p])))
                 {
                     continue;
                 }
@@ -3460,7 +3462,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
+        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
         return record;
     },
     /**
@@ -3751,7 +3753,7 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     var quote = supress_quotes ? '' : '"';
     return typeof(argument) == 'number'
         ? argument
-        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+        : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
     ;
 };
 
@@ -4045,11 +4047,11 @@ Adapters.SQL = {
                 }
                 else if(typeof(fragment[keys[i]]) == 'boolean')
                 {
-                    value = parseInt(new Number(fragment[keys[i]]));
+                    value = parseInt(Number(fragment[keys[i]]),10);
                 }
                 else
                 {
-                    value = new String(fragment[keys[i]]).toString();
+                    value = String(fragment[keys[i]]);
                 }
                 args.push(value);
             }
@@ -4099,15 +4101,15 @@ Adapters.SQL = {
         value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) === 'string')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if (typeof(field) === 'number')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value), 10))).toString();
+            return String(parseInt(Number(value),10));
         }
         //array or object
         if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
@@ -4143,9 +4145,9 @@ Adapters.SQL = {
         {
             var trim = function(str)
             {
-                return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
+                return String(str).replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
+            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(Number(value)) : parseInt(Number(value),10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
         if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
@@ -4526,7 +4528,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                     var included = true;
                     for(var column_name in where)
                     {
-                        if((new String(result_set[i][column_name]).toString()) != (new String(where[column_name]).toString()))
+                        if((String(result_set[i][column_name])) != (String(where[column_name])))
                         {
                             included = false;
                             break;
@@ -6231,7 +6233,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         },options || {});
         //will run in scope of an ActiveRecord instance
         this.addValidator(function validates_length_of_callback(){
-            var value = new String(this.get(field));
+            var value = String(this.get(field));
             if (value.length < options.min)
             {
                 this.addError(options.message || (field + ' is too short.'));
@@ -6278,7 +6280,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
     _getValidators: function _getValidators()
@@ -6809,8 +6811,8 @@ var ActiveView = null;
  * 
  * These are accessed from the "binding" property of any view.
  * 
- * The first construct, update(element).from(key) will set the innerHTML
- * property of the specified element to the value of the specificed key
+ * The first construct, update(element).from(key) will set the content
+ * of the specified element to the value of the specificed key
  * whenever the value of the key changes.
  * 
  * The second construct is a generic way of observing when a key changes.
@@ -7025,6 +7027,14 @@ ActiveView.render = function render(content,scope)
         return new content(scope).container;
     }
     return ActiveSupport.throwError(Errors.InvalidContent);
+};
+
+ActiveView.clearNode = function clearNode(node)
+{
+    while(node.firstChild)
+    {
+        node.removeChild(node.firstChild);
+    }
 };
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
@@ -7263,7 +7273,7 @@ Builder.generator = function generator(target,scope){
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode(String(elements[i])));
                 }
                 return element;
             };
@@ -7334,7 +7344,8 @@ ActiveView.generateBinding = function generateBinding(instance)
                     {
                         if(condition())
                         {
-                            element.innerHTML = transformation ? transformation(value) : value;
+                            ActiveView.clearNode(element);
+                            element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(transformation ? transformation(value) : value));
                         }
                     }
                 });
@@ -7374,7 +7385,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
-                                    element.innerHTML = '';
+                                    ActiveView.clearNode(element);
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
@@ -7411,6 +7422,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     collected_elements.shift(element.firstChild);
                                 });
                                 collection.observe('splice',function splice_observer(index,to_remove){
+                                    var global_context = ActiveSupport.getGlobalContext();
                                     var children = [];
                                     var i;
                                     for(i = 2; i < arguments.length; ++i)
@@ -7428,7 +7440,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     {
                                         var generated_element = ActiveView.render(view,children[i]);
                                         element.insertBefore((typeof(generated_element) === 'string'
-                                            ? document.createTextNode(generated_element)
+                                            ? global_context.document.createTextNode(generated_element)
                                             : generated_element
                                         ),element.childNodes[index + i]);
                                         children[i] = element.childNodes[index + i];
@@ -7722,7 +7734,7 @@ var InstanceMethods = (function(){
             if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
             {
                 this.layoutRendered = true;
-                this.container.innerHtml = '';
+                ActiveView.clearNode(this.container);
                 this.container.appendChild(this.layout.bind(this)());
             }
         }
@@ -7749,7 +7761,7 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            container.innerHTML = '';
+            ActiveView.clearNode(container);
             container.appendChild(response);
         }
     },

@@ -192,11 +192,11 @@ Adapters.SQL = {
                 }
                 else if(typeof(fragment[keys[i]]) == 'boolean')
                 {
-                    value = parseInt(new Number(fragment[keys[i]]));
+                    value = parseInt(Number(fragment[keys[i]]),10);
                 }
                 else
                 {
-                    value = new String(fragment[keys[i]]).toString();
+                    value = String(fragment[keys[i]]);
                 }
                 args.push(value);
             }
@@ -246,15 +246,15 @@ Adapters.SQL = {
         value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) === 'string')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if (typeof(field) === 'number')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value), 10))).toString();
+            return String(parseInt(Number(value),10));
         }
         //array or object
         if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
@@ -290,9 +290,9 @@ Adapters.SQL = {
         {
             var trim = function(str)
             {
-                return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
+                return String(str).replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
+            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(Number(value)) : parseInt(Number(value),10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
         if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))

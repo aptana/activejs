@@ -815,7 +815,7 @@ ActiveSupport = {
             var response = '';
             if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
-                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+                response = '<![CDATA[' + String(value) + ']]>';
             }
             else if(typeof(value) === 'object')
             {
@@ -2704,7 +2704,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
+        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
         return record;
     },
     /**
@@ -2995,7 +2995,7 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     var quote = supress_quotes ? '' : '"';
     return typeof(argument) == 'number'
         ? argument
-        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+        : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
     ;
 };
 
@@ -3289,11 +3289,11 @@ Adapters.SQL = {
                 }
                 else if(typeof(fragment[keys[i]]) == 'boolean')
                 {
-                    value = parseInt(new Number(fragment[keys[i]]));
+                    value = parseInt(Number(fragment[keys[i]]),10);
                 }
                 else
                 {
-                    value = new String(fragment[keys[i]]).toString();
+                    value = String(fragment[keys[i]]);
                 }
                 args.push(value);
             }
@@ -3343,15 +3343,15 @@ Adapters.SQL = {
         value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) === 'string')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if (typeof(field) === 'number')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value), 10))).toString();
+            return String(parseInt(Number(value),10));
         }
         //array or object
         if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
@@ -3387,9 +3387,9 @@ Adapters.SQL = {
         {
             var trim = function(str)
             {
-                return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
+                return String(str).replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
+            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(Number(value)) : parseInt(Number(value),10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
         if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
@@ -3770,7 +3770,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                     var included = true;
                     for(var column_name in where)
                     {
-                        if((new String(result_set[i][column_name]).toString()) != (new String(where[column_name]).toString()))
+                        if((String(result_set[i][column_name])) != (String(where[column_name])))
                         {
                             included = false;
                             break;
@@ -5475,7 +5475,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         },options || {});
         //will run in scope of an ActiveRecord instance
         this.addValidator(function validates_length_of_callback(){
-            var value = new String(this.get(field));
+            var value = String(this.get(field));
             if (value.length < options.min)
             {
                 this.addError(options.message || (field + ' is too short.'));
@@ -5522,7 +5522,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
     _getValidators: function _getValidators()

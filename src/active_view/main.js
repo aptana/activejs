@@ -221,8 +221,8 @@
  * 
  * These are accessed from the "binding" property of any view.
  * 
- * The first construct, update(element).from(key) will set the innerHTML
- * property of the specified element to the value of the specificed key
+ * The first construct, update(element).from(key) will set the content
+ * of the specified element to the value of the specificed key
  * whenever the value of the key changes.
  * 
  * The second construct is a generic way of observing when a key changes.
@@ -437,6 +437,14 @@ ActiveView.render = function render(content,scope)
         return new content(scope).container;
     }
     return ActiveSupport.throwError(Errors.InvalidContent);
+};
+
+ActiveView.clearNode = function clearNode(node)
+{
+    while(node.firstChild)
+    {
+        node.removeChild(node.firstChild);
+    }
 };
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)

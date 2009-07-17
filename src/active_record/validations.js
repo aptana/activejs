@@ -70,7 +70,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         },options || {});
         //will run in scope of an ActiveRecord instance
         this.addValidator(function validates_length_of_callback(){
-            var value = new String(this.get(field));
+            var value = String(this.get(field));
             if (value.length < options.min)
             {
                 this.addError(options.message || (field + ' is too short.'));
@@ -117,7 +117,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
     _getValidators: function _getValidators()

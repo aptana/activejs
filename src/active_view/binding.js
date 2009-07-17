@@ -78,7 +78,8 @@ ActiveView.generateBinding = function generateBinding(instance)
                     {
                         if(condition())
                         {
-                            element.innerHTML = transformation ? transformation(value) : value;
+                            ActiveView.clearNode(element);
+                            element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(transformation ? transformation(value) : value));
                         }
                     }
                 });
@@ -118,7 +119,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
-                                    element.innerHTML = '';
+                                    ActiveView.clearNode(element);
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
@@ -155,6 +156,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     collected_elements.shift(element.firstChild);
                                 });
                                 collection.observe('splice',function splice_observer(index,to_remove){
+                                    var global_context = ActiveSupport.getGlobalContext();
                                     var children = [];
                                     var i;
                                     for(i = 2; i < arguments.length; ++i)
@@ -172,7 +174,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     {
                                         var generated_element = ActiveView.render(view,children[i]);
                                         element.insertBefore((typeof(generated_element) === 'string'
-                                            ? document.createTextNode(generated_element)
+                                            ? global_context.document.createTextNode(generated_element)
                                             : generated_element
                                         ),element.childNodes[index + i]);
                                         children[i] = element.childNodes[index + i];

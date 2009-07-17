@@ -109,7 +109,7 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     var quote = supress_quotes ? '' : '"';
     return typeof(argument) == 'number'
         ? argument
-        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+        : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
     ;
 };
 
