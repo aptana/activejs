@@ -1527,7 +1527,7 @@ ActiveEvent.extend = function extend(object){
         object.prototype.stopObserving = object.stopObserving;
         object.prototype.observeOnce = object.observeOnce;
         
-        object.prototype.notify = function notify(event_name)
+        object.prototype.notify = function notify_instance(event_name)
         {
             if(
               (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&
