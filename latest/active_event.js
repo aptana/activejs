@@ -37,6 +37,7 @@ if(typeof exports != "undefined"){
 }
 
 (function(global_context){
+
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -88,13 +89,16 @@ ActiveSupport = {
     {
         if(typeof(Jaxer) !== 'undefined')
         {
+            if (typeof Jaxer.console !== 'undefined') {
+                console.log.apply(console, arguments || []);
+            }
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) !== 'undefined')
+        if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) !== 'undefined')
+        if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
@@ -204,7 +208,8 @@ ActiveSupport = {
      * @param {mixed} item to remove
      * @return {Array}
      */
-    without: function without(arr){
+    without: function without(arr)
+    {
         var values = ActiveSupport.arrayFrom(arguments).slice(1);
         var response = [];
         for(var i = 0 ; i < arr.length; i++)
@@ -319,7 +324,8 @@ ActiveSupport = {
      * @param {Boolean} [capitalize]
      * @return {String}
      */
-    camelize: function camelize(str, capitalize){
+    camelize: function camelize(str, capitalize)
+    {
         var camelized,
             parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
         if (len === 1)
@@ -354,6 +360,17 @@ ActiveSupport = {
             return camelized;
         }
     },
+    /**
+     * Trim leading and trailing whitespace.
+     * @alias ActiveSupport.trim
+     * @param {String} str
+     * @return {String}
+     */
+    trim: function(str)
+    {
+        return (str || "").replace(/^\s+|\s+$/g,"");
+    },
+
     /**
      * Emulates Prototype's Object.extend
      * @alias ActiveSupport.extend
@@ -516,11 +533,12 @@ ActiveSupport = {
                 "money",
                 "rice",
                 "information",
+				"info",
                 "equipment"
             ]
         },
         /**
-         * Generates an orginalized version of a number as a string (9th, 2nd, etc)
+         * Generates an ordinalized version of a number as a string (9th, 2nd, etc)
          * @alias ActiveSupport.Inflector.ordinalize
          * @param {Number} number
          * @return {String}
@@ -550,11 +568,11 @@ ActiveSupport = {
          */
         pluralize: function pluralize(word)
         {
-            var i;
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -563,7 +581,7 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
                     return plural;
                 }
@@ -577,6 +595,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+						return word;
         },
         /**
          * Generates a singular version of an english word.
@@ -584,12 +603,13 @@ ActiveSupport = {
          * @param {String} word
          * @return {String}
          */
-        singularize: function singularize(word) {
-            var i;
+        singularize: function singularize(word)
+        {
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -598,9 +618,9 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
-                    return plural;
+                    return singular;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
@@ -612,6 +632,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+            return word;
         }
     },
     /**
@@ -805,7 +826,7 @@ ActiveSupport = {
             var response = '';
             if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
-                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+                response = '<![CDATA[' + String(value) + ']]>';
             }
             else if(typeof(value) === 'object')
             {
@@ -1190,8 +1211,8 @@ ActiveSupport = {
  * @namespace {ActiveEvent}
  * @example
  * 
- * ActiveEvent.js
- * ==============
+ * ActiveEvent
+ * ===========
  * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
@@ -1289,7 +1310,7 @@ ActiveSupport = {
  * --------------
  * If an object has an options property that contains a callable function with
  * the same name as an event triggered with <b>notify()</b>, it will be
- * treated just like an instance observer. So the falling code is equivalent.
+ * treated just like an instance observer. So the following code is equivalent:
  *
  *     var rating_one = new Control.Rating('rating_one',{  
  *         afterChange: function(new_value){}    
@@ -1517,7 +1538,7 @@ ActiveEvent.extend = function extend(object){
         object.prototype.stopObserving = object.stopObserving;
         object.prototype.observeOnce = object.observeOnce;
         
-        object.prototype.notify = function notify(event_name)
+        object.prototype.notify = function notify_instance(event_name)
         {
             if(
               (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&

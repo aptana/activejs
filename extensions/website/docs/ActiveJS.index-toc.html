@@ -14,6 +14,14 @@
       <ul id="black">
          <li class="closed"><span><a href="ActiveController.html" target="content">ActiveController</a></span><ul></ul>
          </li>
+         <li class="closed"><span><a href="ActiveController.prototype.history.html" target="content">ActiveController.prototype.history</a></span><ul>
+               <li class="closed"><span><a href="ActiveController.prototype.history.html#ActiveController.prototype.history.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-static" title="Calls the previously called action in the history."><a href="ActiveController.prototype.history.html?visibility=#ActiveController.prototype.history.back" target="content">back</a></span></li>
+                     <li><span class="method method-static" title="Calls the next called action in the history if back() has already been called."><a href="ActiveController.prototype.history.html?visibility=#ActiveController.prototype.history.next" target="content">next</a></span></li>
+                  </ul>
+               </li>
+            </ul>
+         </li>
          <li class="closed"><span><a href="ActiveEvent.html" target="content">ActiveEvent</a></span><ul>
                <li class="closed"><span><a href="ActiveEvent.html#ActiveEvent.Functions" target="content">Functions</a></span><ul>
                      <li><span class="method method-static" title="After extending a given object, it will inherit the methods described in ActiveEvent.ObservableObject."><a href="ActiveEvent.html?visibility=#ActiveEvent.extend" target="content">extend</a></span></li>
@@ -215,7 +223,7 @@
          </li>
          <li class="closed"><span><a href="ActiveSupport.Inflector.html" target="content">ActiveSupport.Inflector</a></span><ul>
                <li class="closed"><span><a href="ActiveSupport.Inflector.html#ActiveSupport.Inflector.Functions" target="content">Functions</a></span><ul>
-                     <li><span class="method method-static" title="Generates an orginalized version of a number as a string (9th, 2nd, etc)"><a href="ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.ordinalize" target="content">ordinalize</a></span></li>
+                     <li><span class="method method-static" title="Generates an ordinalized version of a number as a string (9th, 2nd, etc)"><a href="ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.ordinalize" target="content">ordinalize</a></span></li>
                      <li><span class="method method-static" title="Generates a plural version of an english word."><a href="ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.pluralize" target="content">pluralize</a></span></li>
                      <li><span class="method method-static" title="Generates a singular version of an english word."><a href="ActiveSupport.Inflector.html?visibility=#ActiveSupport.Inflector.singularize" target="content">singularize</a></span></li>
                   </ul>
@@ -231,8 +239,32 @@
             </ul>
          </li>
          <li class="closed"><span><a href="ActiveView.html" target="content">ActiveView</a></span><ul>
+               <li class="closed"><span><a href="ActiveView.html#ActiveView.Properties" target="content">Properties</a></span><ul>
+                     <li><span class="property Object Object-static" title="Contains all DOM generator methods, b(), h1(), etc. This object can always be referenced statically as ActiveView.Builder, but is also available as this.builder inside of ActiveView classes."><a href="ActiveView.html?visibility=#ActiveView.Builder" target="content">Builder</a></span></li>
+                     <li><span class="property Boolean Boolean-static" title="Defaults to false."><a href="ActiveView.html?visibility=#ActiveView.logging" target="content">logging</a></span></li>
+                  </ul>
+               </li>
                <li class="closed"><span><a href="ActiveView.html#ActiveView.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-instance" title=""><a href="ActiveView.html?visibility=#ActiveView.attachTo" target="content">attachTo</a></span></li>
+                     <li><span class="method method-instance" title=""><a href="ActiveView.html?visibility=#ActiveView.get" target="content">get</a></span></li>
+                     <li><span class="method method-instance" title=""><a href="ActiveView.html?visibility=#ActiveView.set" target="content">set</a></span></li>
+                     <li><span class="method method-static" title="Creates a new ActiveView class. The structure function must return a DOM node."><a href="ActiveView.html?visibility=#ActiveView.create" target="content">create</a></span></li>
                      <li><span class="method method-static" title="This method is not usually called directly but is utilized by data bindings and ActiveControllers. This method is normalizes or renders a variety of inputs. Strings or Element objects are returned untouched, ActiveView instances will have their DOM container returned, ActiveView classes will be rendered and the DOM container returned. If a function is passed in it will be called with the passed scope. That function should return a string or Element."><a href="ActiveView.html?visibility=#ActiveView.render" target="content">render</a></span></li>
+                  </ul>
+               </li>
+            </ul>
+         </li>
+         <li class="closed"><span><a href="ActiveView.Template.html" target="content">ActiveView.Template</a></span><ul>
+               <li class="closed"><span><a href="ActiveView.Template.html#ActiveView.Template.Constructors" target="content">Constructors</a></span><ul>
+                     <li><span class="constructor constructor-instance" title=""><a href="ActiveView.Template.html?visibility=#ActiveView.Template." target="content">Constructor</a></span></li>
+                  </ul>
+               </li>
+               <li class="closed"><span><a href="ActiveView.Template.html#ActiveView.Template.Properties" target="content">Properties</a></span><ul>
+                     <li><span class="property Object Object-static" title="Contains all methods that will become available as locals to templates."><a href="ActiveView.Template.html?visibility=#ActiveView.Template.Helpers" target="content">Helpers</a></span></li>
+                  </ul>
+               </li>
+               <li class="closed"><span><a href="ActiveView.Template.html#ActiveView.Template.Functions" target="content">Functions</a></span><ul>
+                     <li><span class="method method-instance" title="Renders the template with the given scope / data, returning the processed result as a string."><a href="ActiveView.Template.html?visibility=#ActiveView.Template.render" target="content">render</a></span></li>
                   </ul>
                </li>
             </ul>

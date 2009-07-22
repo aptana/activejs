@@ -26,20 +26,65 @@
  * ***** END LICENSE BLOCK ***** */
 
 var Builder = {
-    createElement: function createElement(tag,attributes)
+    tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
+        'BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET ' +
+        'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
+        'KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
+        'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
+    ieAttributeTranslations: {
+        'class': 'className',
+        'checked': 'defaultChecked',
+        'usemap': 'useMap',
+        'for': 'htmlFor',
+        'readonly': 'readOnly',
+        'colspan': 'colSpan',
+        'bgcolor': 'bgColor',
+        'cellspacing': 'cellSpacing',
+        'cellpadding': 'cellPadding'
+    },
+    cache: {},
+    createElement: function createElement(tag_name,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
-        tag = tag.toLowerCase();
-        if(ie && attributes.name)
+        tag_name = tag_name.toLowerCase();
+        var element;
+        if(ie && (attributes.name || (tag_name == 'input' && attributes.type)))
         {
-            tag = '<' + tag + ' name="' + attributes.name + '">';
+            //ie needs these attributes to be written in the string passed to createElement
+            tag = '<' + tag_name;
+            if(attributes.name)
+            {
+                tag += ' name="' + attributes.name + '"';
+            }
+            if(tag_name == 'input' && attributes.type)
+            {
+                tag += ' type="' + attributes.type + '"';
+            }
+            tag += '>';
             delete attributes.name;
+            delete attributes.type;
+            element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
-        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
+        else
+        {
+            if(!Builder.cache[tag_name])
+            {
+                Builder.cache[tag_name] = Builder.extendCreatedElement(global_context.document.createElement(tag_name));
+            }
+            element = Builder.cache[tag_name].cloneNode(false);
+        }
         Builder.writeAttribute(element,attributes);
         return element;
+    },
+    clearElement: function clearElement(element)
+    {
+        while(element.firstChild)
+        {
+            element.removeChild(element.firstChild);
+        }
     },
     extendCreatedElement: function extendCreatedElement(element)
     {
@@ -47,6 +92,8 @@ var Builder = {
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
+        var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         var transitions = {
             className: 'class',
             htmlFor:   'for'
@@ -74,7 +121,21 @@ var Builder = {
             }
             else
             {
-                element.setAttribute(name,value);
+                if(!ie)
+                {
+                    element.setAttribute(name,value);
+                }
+                else
+                {
+                    if(name == 'style')
+                    {
+                        element.style.cssText = value;
+                    }
+                    else
+                    {
+                        element.setAttribute(Builder.ieAttributeTranslations[name] || name,value);
+                    }
+                }
             }
         }
         return element;
@@ -85,19 +146,13 @@ var Builder = {
     }
 };
 
-(function builder_generator(){
-    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+Builder.generator = function generator(target,scope){
     var global_context = ActiveSupport.getGlobalContext();
-    for(var t = 0; t < tags.length; ++t)
+    for(var t = 0; t < Builder.tags.length; ++t)
     {
-        var tag = tags[t];
+        var tag = Builder.tags[t];
         (function tag_iterator(tag){
-            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+            target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
@@ -108,11 +163,19 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) === 'function')
+                    if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
+                    if(ActiveView.isActiveViewInstance(argument))
+                    {
+                        elements.push(argument.container);
+                    }
+                    else if(ActiveView.isActiveViewClass(argument))
+                    {
+                        elements.push(new argument(scope._object || {}).container);
+                    }
+                    else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
@@ -128,12 +191,27 @@ var Builder = {
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    if(elements[i] && elements[i].nodeType === 1)
+                    {
+                        element.appendChild(elements[i]);
+                    }
+                    else
+                    {
+                        element.appendChild(global_context.document.createTextNode(String(elements[i])));
+                    }
                 }
                 return element;
             };
         })(tag);
     }
-})();
+};
+Builder.generator(Builder);
 
+/**
+ * Contains all DOM generator methods, b(), h1(), etc. This object can
+ * always be referenced statically as ActiveView.Builder, but is also
+ * available as this.builder inside of ActiveView classes.
+ * @alias ActiveView.Builder
+ * @property {Object}
+ */
 ActiveView.Builder = Builder;

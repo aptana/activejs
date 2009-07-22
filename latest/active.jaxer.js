@@ -37,6 +37,7 @@ if(typeof exports != "undefined"){
 }
 
 (function(global_context){
+
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -88,13 +89,16 @@ ActiveSupport = {
     {
         if(typeof(Jaxer) !== 'undefined')
         {
+            if (typeof Jaxer.console !== 'undefined') {
+                console.log.apply(console, arguments || []);
+            }
             Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
         }
-        else if(typeof(air) !== 'undefined')
+        if(typeof(air) !== 'undefined')
         {
             air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
         }
-        else if(typeof(console) !== 'undefined')
+        if(typeof(console) !== 'undefined')
         {
             console.log.apply(console,arguments || []);
         }
@@ -204,7 +208,8 @@ ActiveSupport = {
      * @param {mixed} item to remove
      * @return {Array}
      */
-    without: function without(arr){
+    without: function without(arr)
+    {
         var values = ActiveSupport.arrayFrom(arguments).slice(1);
         var response = [];
         for(var i = 0 ; i < arr.length; i++)
@@ -319,7 +324,8 @@ ActiveSupport = {
      * @param {Boolean} [capitalize]
      * @return {String}
      */
-    camelize: function camelize(str, capitalize){
+    camelize: function camelize(str, capitalize)
+    {
         var camelized,
             parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
         if (len === 1)
@@ -354,6 +360,17 @@ ActiveSupport = {
             return camelized;
         }
     },
+    /**
+     * Trim leading and trailing whitespace.
+     * @alias ActiveSupport.trim
+     * @param {String} str
+     * @return {String}
+     */
+    trim: function(str)
+    {
+        return (str || "").replace(/^\s+|\s+$/g,"");
+    },
+
     /**
      * Emulates Prototype's Object.extend
      * @alias ActiveSupport.extend
@@ -516,11 +533,12 @@ ActiveSupport = {
                 "money",
                 "rice",
                 "information",
+				"info",
                 "equipment"
             ]
         },
         /**
-         * Generates an orginalized version of a number as a string (9th, 2nd, etc)
+         * Generates an ordinalized version of a number as a string (9th, 2nd, etc)
          * @alias ActiveSupport.Inflector.ordinalize
          * @param {Number} number
          * @return {String}
@@ -550,11 +568,11 @@ ActiveSupport = {
          */
         pluralize: function pluralize(word)
         {
-            var i;
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -563,7 +581,7 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
                     return plural;
                 }
@@ -577,6 +595,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+						return word;
         },
         /**
          * Generates a singular version of an english word.
@@ -584,12 +603,13 @@ ActiveSupport = {
          * @param {String} word
          * @return {String}
          */
-        singularize: function singularize(word) {
-            var i;
+        singularize: function singularize(word)
+        {
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -598,9 +618,9 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
-                    return plural;
+                    return singular;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
@@ -612,6 +632,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
+            return word;
         }
     },
     /**
@@ -805,7 +826,7 @@ ActiveSupport = {
             var response = '';
             if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
             {
-                response = '<![CDATA[' + (new String(value)).toString() + ']]>';
+                response = '<![CDATA[' + String(value) + ']]>';
             }
             else if(typeof(value) === 'object')
             {
@@ -1190,8 +1211,8 @@ ActiveSupport = {
  * @namespace {ActiveEvent}
  * @example
  * 
- * ActiveEvent.js
- * ==============
+ * ActiveEvent
+ * ===========
  * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
@@ -1289,7 +1310,7 @@ ActiveSupport = {
  * --------------
  * If an object has an options property that contains a callable function with
  * the same name as an event triggered with <b>notify()</b>, it will be
- * treated just like an instance observer. So the falling code is equivalent.
+ * treated just like an instance observer. So the following code is equivalent:
  *
  *     var rating_one = new Control.Rating('rating_one',{  
  *         afterChange: function(new_value){}    
@@ -1517,7 +1538,7 @@ ActiveEvent.extend = function extend(object){
         object.prototype.stopObserving = object.stopObserving;
         object.prototype.observeOnce = object.observeOnce;
         
-        object.prototype.notify = function notify(event_name)
+        object.prototype.notify = function notify_instance(event_name)
         {
             if(
               (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&
@@ -1652,8 +1673,8 @@ if(typeof exports != "undefined"){
  * @return {ActiveRoutes}
  * @example
  *
- * ActiveRoutes.js
- * ===============
+ * ActiveRoutes
+ * ============
  * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
@@ -2020,7 +2041,7 @@ ActiveRoutes.prototype.match = function(path){
     var original_path = path;
     this.error = false;
     //make sure the path is a copy
-    path = ActiveRoutes.normalizePath((new String(path)).toString());
+    path = ActiveRoutes.normalizePath(String(path));
     //handle extension
     var extension = path.match(/\.([^\.]+)$/);
     if(extension)
@@ -2065,8 +2086,10 @@ ActiveRoutes.prototype.match = function(path){
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
                         !(typeof(route.params.requirements[key]) == 'function'
-                            ? route.params.requirements[key]((new String(path_component).toString()))
-                            : path_component.match(route.params.requirements[key])))
+                            ? route.params.requirements[key](String(path_component))
+                            : path_component.match(route.params.requirements[key])
+                        )
+                    )
                     {
                         valid = false;
                         break;
@@ -2233,11 +2256,11 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
         if(path.match(':' + p) && params[p])
         {
             if(route.params.requirements && route.params.requirements[p]){
-                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p]((new String(params[p]).toString())))
+                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p](String(params[p])))
                 {
                     continue;
                 }
-                else if(!route.params.requirements[p].exec((new String(params[p]).toString())))
+                else if(!route.params.requirements[p].exec(String(params[p])))
                 {
                     continue;
                 }
@@ -2403,8 +2426,8 @@ if(typeof exports != "undefined"){
  * @namespace {ActiveRecord}
  * @example
  * 
- * ActiveRecord.js
- * ===============
+ * ActiveRecord
+ * ============
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
@@ -2665,7 +2688,7 @@ if(typeof exports != "undefined"){
  *     
  * To observe a given event on all models, you can do the following: 
  * 
- *     ActiveRecord.observe('created',function(model_class,model_instance){});
+ *     ActiveRecord.observe('afterCreate',function(model_class,model_instance){});
  *     
  * afterFind works differently than all of the other events. It is only available
  * to the model class, not the instances, and is called only when a result set is
@@ -2849,29 +2872,24 @@ ActiveRecord = {
         //constructor
         model = ActiveRecord.Models[options.modelName] = function initialize(data)
         {
-            this.modelName = this.constructor.modelName;
-            this.tableName = this.constructor.tableName;
-            this.primaryKeyName = this.constructor.primaryKeyName;
             this._object = {};
             for(var key in data)
             {
-                //third param is to supress notifications on set
+                //third param is to suppress notifications on set
                 this.set(key,data[key],true);
             }
             this._errors = [];
-            for(var key in this.constructor.fields)
+            var fields = this.constructor.fields;
+            for(var key in fields)
             {
-                if(!this.constructor.fields[key].primaryKey)
+                var field = fields[key]
+                if(!field.primaryKey)
                 {
-                    var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
-                    if(Migrations.objectIsFieldDefinition(value))
-                    {
-                        value = value.value;
-                    }
-                    //don't supress notifications on set since these are the processed values
-                    this.set(key,value);
+                    var value = ActiveRecord.connection.fieldOut(field,this.get(key));
+                    this.set(key,value,true);
                 }
             }
+            this._id = this.get(this.constructor.primaryKeyName);
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };
@@ -2882,10 +2900,23 @@ ActiveRecord = {
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
-        //user defined take precedence
+        //user defined methods take precedence
+				if(typeof(methods) == 'undefined')
+				{
+						//detect if the fields object is actually a methods object
+					  for(var method_name in fields)
+					  {
+						    if(typeof(fields[method_name]) == 'function')
+						    {
+							      methods = fields;
+							      fields = null; 
+						    }
+						    break;
+					  }
+				}
         if(methods && typeof(methods) !== 'function')
         {
-            ActiveSupport.extend(model.prototype, methods || {});
+            ActiveSupport.extend(model.prototype, methods);
         }
 
         //mixin class methods
@@ -2922,6 +2953,12 @@ ActiveRecord = {
         {
             model.primaryKeyName = custom_primary_key;
         }
+
+        ActiveSupport.extend(model.prototype, {
+          modelName: model.modelName,
+          tableName: model.tableName,
+          primaryKeyName: model.primaryKeyName
+        });
         
         //generate finders
         for(var key in model.fields)
@@ -2929,6 +2966,8 @@ ActiveRecord = {
             Finders.generateFindByField(model,key);
             Finders.generateFindAllByField(model,key);
         }
+        //get is a synonym for findBy<PrimaryKey>
+        model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
         
         //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
@@ -3057,17 +3096,17 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
-     * @param {Boolean} surpress_notifications Defaults to false
+     * @param {Boolean} suppress_notifications Defaults to false
      * @return {mixed} the value that was set
      */
-    set: function set(key, value, surpress_notifications)
+    set: function set(key, value, suppress_notifications)
     {
         if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
         this._object[key] = value;
-        if(!surpress_notifications)
+        if(!suppress_notifications)
         {
             this.notify('set',key,value);
         }
@@ -3150,11 +3189,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     reload: function reload()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
-        var record = this.constructor.find(this.get(this.constructor.primaryKeyName));
+        var record = this.constructor.get(this._id);
         if (!record)
         {
             return false;
@@ -3186,7 +3225,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
             }
         }
@@ -3198,7 +3237,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (force_created_mode || !this.get(this.constructor.primaryKeyName))
+        if (force_created_mode || this._id === undefined)
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -3208,9 +3247,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
-            var id = this.get(this.constructor.primaryKeyName);
             ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
-            if(!id)
+            if(!this.get(this.constructor.primaryKeyName))
             {
                 this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             }
@@ -3219,17 +3257,18 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this.get(this.constructor.primaryKeyName), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this._id, this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
             }
         }
+        this._id = this.get(this.constructor.primaryKeyName);
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
         return this;
@@ -3241,7 +3280,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     destroy: function destroy()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
@@ -3249,7 +3288,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this.get(this.constructor.primaryKeyName));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
@@ -3334,6 +3373,13 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         order: 'id DESC'
      *     });
      *     var users = User.find('SELECT * FROM users ORDER id DESC');
+     *
+     *     // If your primary key is not numeric, find(id) will not work.
+     *     // Use findBy<PrimaryKey>(id) or get(id) instead:
+     *
+     *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
+     *     commit = Commit.findById('cxfeea6'); // GOOD
+     *     commit = Commit.get('cxfeea6');      // GOOD
      */
     find: function find(params)
     {
@@ -3342,7 +3388,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         {
             params = {};
         }
-        if (params.first || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
+        if ((params.first && typeof params.first === "boolean") || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
         {
             if (params.first)
             {
@@ -3419,7 +3465,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var instance = this.find(id);
+            var instance = this.get(id);
             if(!instance)
             {
                 return false;
@@ -3437,7 +3483,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
+        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
         return record;
     },
     /**
@@ -3476,7 +3522,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
-        if(typeof(id.length) !== 'undefined')
+        if (ActiveSupport.isArray(id))
         {
             var results = [];
             for(var i = 0; i < id.length; ++i)
@@ -3487,7 +3533,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var record = this.find(id);
+            var record = this.get(id);
             if(!record)
             {
                 return false;
@@ -3506,37 +3552,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     updateAll: function updateAll(updates, conditions)
     {
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
-    },
-    /**
-     * @alias ActiveRecord.Class.transaction
-     * @param {Function} proceed
-     *      The block of code to execute inside the transaction.
-     * @param {Function} [error]
-     *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
-     * @example
-     *     Account.transaction(function(){
-     *         var from = Account.find(2);
-     *         var to = Account.find(3);
-     *         to.despoit(from.withdraw(100.00));
-     *     });
-     */
-    transaction: function transaction(proceed,error)
-    {
-        try
-        {
-            ActiveRecord.connection.transaction(proceed);
-        }
-        catch(e)
-        {
-            if(error)
-            {
-                error(e);
-            }
-            else
-            {
-                return ActiveSupport.throwError(e);
-            }
-        }
     },
     /**
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
@@ -3759,9 +3774,44 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
     var quote = supress_quotes ? '' : '"';
     return typeof(argument) == 'number'
         ? argument
-        : quote + (new String(argument)).toString().replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+        : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
     ;
 };
+
+
+/**
+ * @alias ActiveRecord.transaction
+ * @param {Function} proceed
+ *      The block of code to execute inside the transaction.
+ * @param {Function} [error]
+ *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+ * @example
+ *     ActiveRecord.transaction(function(){
+ *         var from = Account.find(2);
+ *         var to = Account.find(3);
+ *         to.despoit(from.withdraw(100.00));
+ *     });
+ */
+ActiveRecord.transaction = function transaction(proceed,error)
+{
+    try
+    {
+        ActiveRecord.connection.transaction(proceed);
+    }
+    catch(e)
+    {
+        if(error)
+        {
+            error(e);
+        }
+        else
+        {
+            return ActiveSupport.throwError(e);
+        }
+    }
+};
+//deprecated
+ActiveRecord.ClassMethods.transaction = ActiveRecord.transaction;
 
 Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
 {
@@ -3813,7 +3863,7 @@ Adapters.InstanceMethods = {
     },
     getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
     {
-        return key + ' ' + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+        return this.quoteIdentifier(key) + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
     },
     getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
     {
@@ -3834,6 +3884,10 @@ Adapters.InstanceMethods = {
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
         return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    quoteIdentifier: function quoteIdentifier(name)
+    {
+      return '"' + name + '"';
     },
     log: function log()
     {
@@ -3863,7 +3917,7 @@ Adapters.SQL = {
             args.push(data[keys[i]]);
             values.push('?');
         }
-        args.unshift("INSERT INTO " + table + " (" + keys.join(',') + ") VALUES (" + values.join(',') + ")");
+        args.unshift("INSERT INTO " + table + " (" + keys.map(this.quoteIdentifier).join(',') + ") VALUES (" + values.join(',') + ")");
         var response = this.executeSQL.apply(this,args);
         var id = data[primary_key_name] || this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);
@@ -3881,7 +3935,7 @@ Adapters.SQL = {
             for (var i = 0; i < keys.length; ++i)
             {
                 args.push(updates[keys[i]]);
-                values.push(updates[i] + " = ?");
+                values.push(this.quoteIdentifier(keys[i]) + " = ?");
             }
             updates = values.join(',');
         }
@@ -3896,10 +3950,10 @@ Adapters.SQL = {
         for (var i = 0; i < keys.length; ++i)
         {
             args.push(data[keys[i]]);
-            values.push(keys[i] + " = ?");
+            values.push(this.quoteIdentifier(keys[i]) + " = ?");
         }
         args.push(id);
-        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + primary_key_name + " = ?");
+        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?");
         var response = this.executeSQL.apply(this, args);
         this.notify('updated',table,id,data);
         return response;
@@ -3924,7 +3978,7 @@ Adapters.SQL = {
         {
             args = ["DELETE FROM " + table];
             var ids = [];
-            var ids_result_set = this.executeSQL('SELECT ' + primary_key_name + ' FROM ' + table);
+            var ids_result_set = this.executeSQL('SELECT ' + this.quoteIdentifier(primary_key_name) + ' FROM ' + table);
             if(!ids_result_set)
             {
                 return null;
@@ -3941,7 +3995,7 @@ Adapters.SQL = {
         }
         else
         {
-            args = ["DELETE FROM " + table + " WHERE " + primary_key_name + " = ?",id];
+            args = ["DELETE FROM " + table + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?",id];
             response = this.executeSQL.apply(this,args);
             this.notify('destroyed',table,id);
             return response;
@@ -3949,7 +4003,7 @@ Adapters.SQL = {
     },
     findEntitiesById: function findEntityById(table, primary_key_name, ids)
     {
-        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + primary_key_name + ' IN (' + ids.join(',') + ')']);
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + this.quoteIdentifier(primary_key_name) + ' IN (' + ids.join(',') + ')']);
         if (!response)
         {
             return false;
@@ -4010,7 +4064,7 @@ Adapters.SQL = {
             keys = ActiveSupport.keys(fragment);
             for(i = 0; i < keys.length; ++i)
             {
-                where += keys[i] + " = ? AND ";
+                where += this.quoteIdentifier(keys[i]) + " = ? AND ";
                 var value;
                 if(typeof(fragment[keys[i]]) === 'number')
                 {
@@ -4018,11 +4072,11 @@ Adapters.SQL = {
                 }
                 else if(typeof(fragment[keys[i]]) == 'boolean')
                 {
-                    value = parseInt(new Number(fragment[keys[i]]));
+                    value = parseInt(Number(fragment[keys[i]]),10);
                 }
                 else
                 {
-                    value = new String(fragment[keys[i]]).toString();
+                    value = String(fragment[keys[i]]);
                 }
                 args.push(value);
             }
@@ -4072,15 +4126,15 @@ Adapters.SQL = {
         value = this.setValueFromFieldIfValueIsNull(field,value);
         if (typeof(field) === 'string')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if (typeof(field) === 'number')
         {
-            return (new String(value)).toString();
+            return String(value);
         }
         if(typeof(field) === 'boolean')
         {
-            return (new String(parseInt(new Number(value), 10))).toString();
+            return String(parseInt(Number(value),10));
         }
         //array or object
         if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
@@ -4093,7 +4147,7 @@ Adapters.SQL = {
         if(Migrations.objectIsFieldDefinition(field))
         {
             //date handling
-            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            if(typeof(value) == 'string' && /date/.test(field.type.toLowerCase()))
             {
                 return ActiveSupport.dateFromDateTime(value);
             }
@@ -4114,11 +4168,12 @@ Adapters.SQL = {
         }
         if (typeof(field) === 'number')
         {
-            var trim = function(str)
+            if (typeof(value) === 'number')
             {
-                return (new String(str)).toString().replace(/^\s+|\s+$/g,"");
+                return String(str).replace(/^\s+|\s+$/g,"");
             };
-            return (trim(value).length > 0 && !(/[^0-9.]/).test(trim(value)) && (/\.\d/).test(trim(value))) ? parseFloat(new Number(value)) : parseInt(new Number(value), 10);
+            var t = ActiveSupport.trim(String(value));
+            return (t.length > 0 && !(/[^0-9.]/).test(t) && (/\.\d/).test(t)) ? parseFloat(Number(value)) : parseInt(Number(value),10);
         }
         //array or object (can come from DB (as string) or coding enviornment (object))
         if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
@@ -4160,7 +4215,7 @@ Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
             if(columns[key].primaryKey)
             {
                 var type = columns[key].type || 'INTEGER';
-                fragments.unshift(key + ' ' + type + ' PRIMARY KEY');
+                fragments.unshift(this.quoteIdentifier(key) + ' ' + type + ' PRIMARY KEY');
             }
             else
             {
@@ -4315,7 +4370,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var response = [];
         for(var i = 0; i < ids.length; ++i)
         {
-            var id = parseInt(ids[i],10);
+            var id = ids[i];
             if(table_data[id])
             {
                 response.push(table_data[id]);
@@ -4349,9 +4404,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var table_data = this.storage[table];
         if(params && params.where && params.where.id)
         {
-            if(table_data[parseInt(params.where.id, 10)])
+            if(table_data[params.where.id])
             {
-                entity_array.push(table_data[parseInt(params.where.id, 10)]);
+                entity_array.push(table_data[params.where.id]);
             }
         }
         else
@@ -4499,7 +4554,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                     var included = true;
                     for(var column_name in where)
                     {
-                        if((new String(result_set[i][column_name]).toString()) != (new String(where[column_name]).toString()))
+                        if((String(result_set[i][column_name])) != (String(where[column_name])))
                         {
                             included = false;
                             break;
@@ -4777,7 +4832,7 @@ var KeywordMap = {
 
 // Lexer token patterns
 var WHITESPACE_PATTERN = /^\s+/;
-var IDENTIFIER_PATTERN = /^[a-zA-Z][a-zA-Z]*/;
+var IDENTIFIER_PATTERN = /^[a-zA-Z\_][a-zA-Z\_]*/;
 var OPERATOR_PATTERN   = /^(?:&&|\|\||<=|<|=|!=|>=|>|,|\(|\))/i;
 var KEYWORD_PATTERN    = /^(true|or|in|false|and)\b/i;
 var STRING_PATTERN     = /^(?:'(\\.|[^'])*'|"(\\.|[^"])*")/;
@@ -5573,7 +5628,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
         var id = this.get(foreign_key);
         if (id)
         {
-            return ActiveRecord.Models[related_model_name].find(id);
+            return ActiveRecord.Models[related_model_name].get(id);
         }
         else
         {
@@ -5803,7 +5858,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
         var id = this.get(foreign_key);
         if (id)
         {
-            return ActiveRecord.Models[related_model_name].find(id);
+            return ActiveRecord.Models[related_model_name].get(id);
         }
         else
         {
@@ -5912,10 +5967,10 @@ var Migrations = {
         'mediumint': 0,
         'int': 0,
         'integer': 0,
-        'bitint': 0,
+        'bigint': 0,
         'float': 0,
         'double': 0,
-        'bouble precision': 0,
+        'double precision': 0,
         'real': 0,
         'decimal': 0,
         'numeric': 0,
@@ -6204,7 +6259,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         },options || {});
         //will run in scope of an ActiveRecord instance
         this.addValidator(function validates_length_of_callback(){
-            var value = new String(this.get(field));
+            var value = String(this.get(field));
             if (value.length < options.min)
             {
                 this.addError(options.message || (field + ' is too short.'));
@@ -6251,7 +6306,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.valid();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + (new String(this._errors.length === 0).toString()) + (this._errors.length > 0 ? '. Errors: ' + (new String(this._errors)).toString() : ''));
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
     _getValidators: function _getValidators()
@@ -6496,8 +6551,8 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
             if(columns[key].primaryKey)
             {
                 var type = columns[key].type || 'INT';
-                fragments.unshift(key + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
-                fragments.push('PRIMARY KEY(' + key + ')');
+                fragments.unshift(this.quoteIdentifier(key) + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
+                fragments.push('PRIMARY KEY(' + this.quoteIdentifier(key) + ')');
             }
             else
             {
@@ -6508,7 +6563,7 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
     },
     dropColumn: function dropColumn(table_column,column_name)
     {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
+        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + this.quoteIdentifier(key));
     }
 });
 
@@ -6611,14 +6666,339 @@ var ActiveView = null;
  * @namespace {ActiveView}
  * @example
  * 
- * ActiveView.js
- * ===============
- * Tutorial coming soon.
+ * ActiveView
+ * ==========
+ * ActiveView allows for the creation of complex, stateful views. ActiveView
+ * requires a paradigm shift in view programming away from ERB/PHP/ASP, but
+ * will result in significantly more compartmentalized and reusable code.
+ * The basic flow of a view goes like this: 
+ * 
+ * - Create DOM nodes with the Builder library.
+ * - Bind data to those nodes or sub views with the Binding library.
+ * - Observe DOM events with the Ajax library of your choice.
+ * 
+ * Use ActiveView.create() to create a new class. The first parameter to
+ * the class creator is a function in which all of your view logic is,
+ * declared, followed by an option second paramter of instance methods the
+ * view will have.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         //DOM creation code (Builder)
+ *         //data binding code (Binding)
+ *         //Ajax / DOM event observation code (Prototype, jQuery, etc)
+ *     },{instance_methods});
+ * 
+ * The only requirement of the main function is that it return a DOM node.
+ * MyView is now a constructor which can be called with a scope / hash.
+ * Data that is passed into the view can be retrieved with get() and set().
+ * Once initialized, the DOM node returned by the main function will be
+ * available in the "container" property. The convenience method "attachTo"
+ * will attach the container to a given Element.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.h2(this.get('title'));
+ *     },{instance_methods});
+ *     var instance = new MyView({title: 'The Title'});
+ *     document.body.appendChild(instance.container);
+ *     //or
+ *     instance.attachTo(document.body);
+ * 
+ * The scope property (accessed with get() / set()) is an ObservableHash,
+ * so you can observe changes in the view data like so:
+ * 
+ *     instance.scope.observe('set',function(key,value){});
+ * 
+ * Builder
+ * -------
+ * The builder object in each template contains a collection of methods for
+ * each standard HTML tag name, b(), span(), h1(), etc. All of these methods
+ * are also available statically as ActiveView.Builder.tagName anywhere in
+ * your application.
+ * 
+ * Each method returns a DOM node type corresponding to it's name.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.div();
+ *     });
+ * 
+ * Each method can accept a variable number of arguments including other DOM
+ * nodes or an array of DOM nodes.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         var container = this.builder.div(
+ *             this.builder.span('Some text.')
+ *         );
+ *         return container;
+ *     });
+ *     
+ * You can use the "with" construct to eliminate the need to call tyhis.builder.
+ * The "with" construct has some side effects (var label = div() would overwrite
+ * the label() method globally for instance) that may be difficult to debug, but
+ * when used carefully it can make for more readable code.
+ *     
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div(span('Some text.'));
+ *         }
+ *         return container;
+ *     });
+ *     
+ * Builder methods can also accept a hash of attributes, text nodes, or functions
+ * that return text or DOM nodes, in any order. If a Builder method requires no
+ * parameters (hr, br, etc) you can declare it without parenthesis.
+ * 
+ * Note that you can assign DOM nodes to local variables or properties of "this"
+ * inline (a language feature, not a  library feature). This technique comes in
+ * handy when you want to attach behaviors to your elements without having to
+ * query for them.
+ *     
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             this.myDiv = div(
+ *                 ul(
+ *                     li({className: 'first'},'List Item One'),
+ *                     li('List Item Two'),
+ *                     li(
+ *                         b(span('List item Three')),
+ *                         'Extra Text',
+ *                         {className:'third'}
+ *                     ),
+ *                     li(function(){
+ *                         return 'List Item Four';
+ *                     })
+ *                 ),
+ *                 br,
+ *                 this.secondList = ul([
+ *                     li('List Item One'),
+ *                     li('List Item Two')
+ *                 ])
+ *             );
+ *         }
+ *         return this.myDiv;
+ *     });
+ * 
+ * Lastly, you can embed other views inside any builder node. You can either
+ * initialize a view, or just pass the class. If only the class is passed,
+ * the instance of the class that is created will inherit the scope of the
+ * current view.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div({className: 'result_set_container'},
+ *                 PaginationView,
+ *                 hr,
+ *                 new ResultSetView({
+ *                     result_set: my_result_set
+ *                 })
+ *             );
+ *         }
+ *     });
+ * 
+ * Enabling Prototype / jQuery Element Extensions
+ * ----------------------------------------------
+ * By default the DOM nodes generated by Builder will be standard unextended
+ * Element objects regardless of the Ajax framework you are using. It is
+ * however quite useful to have those nodes automatically be compatible
+ * with your framework of choice (although you will take a performance hit).
+ * 
+ * To enable this feature add this code anywhere in your application:
+ * 
+ *     //for Prototype
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return Element.extend(element);
+ *     };
+ * 
+ *     //for jQuery
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return jQuery(element)[0];
+ *     };
+ *     
+ *     //alternates for above, and most other frameworks
+ *     ActiveView.Builder.extendCreatedElement = function extendCreatedElement(element){
+ *         return $(element);
+ *     };
+ *     
+ * Once enabled this allows you to do your typical Ajax framework programming right
+ * in your view. Notice that because you already have access to those objects as
+ * DOM elements that you do not need to query for them or worry if or when they
+ * become attached to the document.
+ * 
+ *     with(this.builder){
+ *         var container = div(
+ *             this.linkOne = a({href: '#'},'Link One'),
+ *             this.linkTwo = a({href: '#'},'Link Two')
+ *         );
+ *     }
+ *     this.linkOne.observe('click',function(){});
+ *     this.linkTwo.hide();
+ * 
+ * Data Binding
+ * ------------
+ * Each view instance has a data scope associated with it which can be accessed
+ * with the get() and set() methods. In a stateless (server) enviornment data
+ * bindings are not needed, one can simply insert data directly into the DOM.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         return this.builder.h2(this.get('title'));
+ *     });
+ * 
+ * However in a stateful (client side) enviornment it is often useful to
+ * automatically update the DOM as data in the view changes. Apple has a
+ * [useful article about Cocoa data bindings](http://developer.apple.com/documentation/Cocoa/Conceptual/CocoaBindings/Concepts/WhatAreBindings.html)
+ * that explains the concept very well. ActiveView data bindings are
+ * vastly simpler and offer fewer features, but provide the same general
+ * functionality.
+ * 
+ * There are three core "sentance" structures that are used
+ * to create your bindings:
+ * 
+ * - update(element).from(key)
+ * - when(key).changes(callback)
+ * - collect(active_view_class).from(key).into(element)
+ * 
+ * These are accessed from the "binding" property of any view.
+ * 
+ * The first construct, update(element).from(key) will set the content
+ * of the specified element to the value of the specificed key
+ * whenever the value of the key changes.
+ * 
+ * The second construct is a generic way of observing when a key changes.
+ * When "key" changes, the callback function will be called with the
+ * new value.
+ * 
+ *     var MyView = ActiveView.create(function(){
+ *         var container = this.builder.h2();
+ *         with(this.binding){
+ *             update(container).from('title');
+ *             when('title').changes(function(title){
+ *                 console.log('title was changed to:',title);
+ *             });
+ *         }
+ *         return container;
+ *     });
+ *     var instance = new MyView({title: 'The Title'});
+ *     //instance.container == <h2>The Title</h2>
+ *     instance.set('title','New Title');
+ *     //instance.container == <h2>New Title</h2>
+ *     
+ * The third construct is the data binding equivelent of a loop. It
+ * will iterate over a given array, render a new view with each item
+ * in that array, collecting the resulting DOM nodes and inserting it
+ * into the given container. If the array is modified with pop(),
+ * push(), shift(), unshift() or splice() the resulting DOM nodes will
+ * be inserted, updated or removed.
+ * 
+ *     var ListView = ActiveView.create(function(){
+ *         var container = this.builder.ul();
+ *         with(this.binding){
+ *             collect(ListItemView).from('items').into(container);
+ *         }
+ *         return container;
+ *     });
+ *     var ListItemView = ActiveView.create(function(){
+ *         var container = this.builder.li();
+ *         with(this.binding){
+ *             update(container).from('body');
+ *         }
+ *         return container;
+ *     });
+ *     var items = [
+ *         {body: 'one'},
+ *         {body: 'two'},
+ *         {body: 'three'}
+ *     ];
+ *     var instance = new ListView(items);
+ *     //instance.container == <ul><li>one</li><li>two</li><li>three</li></ul>
+ *     items.pop();
+ *     //instance.container == <ul><li>one</li><li>two</li></ul>
+ * 
+ * ActiveRecord Data Binding Integration
+ * -------------------------------------
+ * Data bindings can be programmed and triggered directly as described above
+ * but significant integration is built right into ActiveRecord. Each
+ * ActiveRecord instance has a synchronize() method that will trigger the
+ * individual key data bindings (when() and update())
+ *     
+ *     var Article = ActiveRecord.create({
+ *         title: '',
+ *         body: ''
+ *     });
+ *     
+ *     var article_one = Article.create({
+ *         title: 'First Title',
+ *         body: 'First Body'
+ *     });
+ *     article_one.synchronize();
+ *     
+ *     var ArticleView = ActiveView.create(function(){
+ *         with(this.builder){
+ *             var container = div(
+ *                 this.titleContainer = h2(),
+ *                 this.bodyContainer = p()
+ *             );
+ *         }
+ *         with(this.binding){
+ *             update(this.titleContainer).from('title');
+ *             update(this.bodyContainer).from('body');
+ *         }
+ *         return container;
+ *     });
+ *     
+ *     var article_one_view = new ArticleView(article_one);
+ *     //article_one_view.container == <div><h2>First Title</h2><p>First Body</p></div>
+ *     
+ *     article_one.set('title','New Title');
+ *     article_one.save();
+ *     //article_one_view.container == <div><h2>New Title</h2><p>First Body</p></div>
+ * 
+ * ActiveRecord.ResultSet objects are designed to integrate with the collect()
+ * data binding construct. If a result set should change as a result of records
+ * matching it's conditions being included or excluded, it will update the DOM
+ * accordingly.
+ * 
+ *     var ArticleListView = ActiveView.create(function(){
+ *         var container = this.builder.div();
+ *         this.binding.collect(ArticleView).from('list').into(container);
+ *         return container;
+ *     });
+ *     var articles = Article.find({
+ *         all: true,
+ *         synchronize: true
+ *     });
+ *     var article_list_instance = new ArticleListView({
+ *         list: articles
+ *     });
+ *     //article_list_instance.container == <div><h2>New Title...
+ *     
+ *     Article.create({
+ *         title: 'Second Title',
+ *         body: 'Second Body'
+ *     });
+ *     //articles.length == 2
+ *     //article_list_instance.container == <div><h2>New Title...<h2>Second Title...
+ * 
+ * Because the query matched all records, and the newly created article would fall
+ * within that result set, the result set was automatically updated (a result of
+ * the synchronize parameter) and the DOM was automatically udpated to match this
+ * (a result of our collect() data binding call).
+ * 
  */
 ActiveView = {};
 
+/**
+ * Defaults to false.
+ * @alias ActiveView.logging
+ * @property {Boolean}
+ */
 ActiveView.logging = false;
 
+/**
+ * Creates a new ActiveView class. The structure function must return a DOM node.
+ * @alias ActiveView.create
+ * @param {Function} structure
+ * @param {Object} [instance_methods]
+ * @return {ActiveView}
+ */
 ActiveView.create = function create(structure,methods)
 {
     if(typeof(options) === 'function')
@@ -6676,7 +7056,7 @@ ActiveView.render = function render(content,scope)
     }
     
     //if content is a function, that function can return nodes or an ActiveView class or instance
-    if(typeof(content) === 'function' && !content.prototype.structure)
+    if(typeof(content) === 'function' && !ActiveView.isActiveViewClass(content))
     {
         content = content(scope);
     }
@@ -6685,69 +7065,101 @@ ActiveView.render = function render(content,scope)
     {
         return content;
     }
-    else if(content && content.container && content.container.nodeType == 1)
+    else if(ActiveView.isActiveViewInstance(content))
     {
-        //is ActiveView instance
         return content.container;
     }
-    else if(content && content.prototype && content.prototype.structure)
+    else if(ActiveView.isActiveViewClass(content))
     {
-        //is ActiveView class
         return new content(scope).container;
     }
     return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
-var InstanceMethods = {
-    initialize: function initialize(scope,parent)
-    {
-        this.parent = parent;
-        this.setupScope(scope);
-        if(ActiveView.logging)
-        {
-            ActiveSupport.log('ActiveView: initialized with scope:',scope);
-        }
-        this.builder = ActiveView.Builder;
-        ActiveView.generateBinding(this);
-        this.container = this.structure();
-        if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
-        {
-            return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
-        }
-        for(var key in this.scope._object)
-        {
-            this.scope.set(key,this.scope._object[key]);
-        }
-    },
-    setupScope: function setupScope(scope)
-    {
-        this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
-        for(var key in this.scope._object)
-        {
-            var item = this.scope._object[key];
-            if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
-            {
-                ActiveView.makeArrayObservable(item);
-            }
-        }
-    },
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    set: function set(key,value)
-    {
-        if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
-        {
-            ActiveView.makeArrayObservable(value);
-        }
-        return this.scope.set(key,value);
-    },
-    registerEventHandler: function registerEventHandler(element,event_name,observer)
-    {
-        this.eventHandlers.push([element,event_name,observer]);
-    }
+ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
+{
+    return object && object.container && object.container.nodeType == 1 && object.scope && object.builder;
 };
+
+ActiveView.isActiveViewClass = function isActiveViewClass(object)
+{
+    return object && object.prototype && object.prototype.structure && object.prototype.setupScope && object.prototype.registerEventHandler;
+};
+
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize(scope,parent)
+        {
+            this.parent = parent;
+            this.setupScope(scope);
+            if(ActiveView.logging)
+            {
+                ActiveSupport.log('ActiveView: initialized with scope:',scope);
+            }
+            this.builder = {};
+            Builder.generator(this.builder,this.scope);
+            ActiveView.generateBinding(this);
+            this.container = this.structure();
+            if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
+            {
+                return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
+            }
+            for(var key in this.scope._object)
+            {
+                this.scope.set(key,this.scope._object[key]);
+            }
+        },
+        setupScope: function setupScope(scope)
+        {
+            this.scope = (scope ? (scope.toObject ? scope : new ActiveEvent.ObservableHash(scope)) : new ActiveEvent.ObservableHash({}));
+            for(var key in this.scope._object)
+            {
+                var item = this.scope._object[key];
+                if((item !== null && typeof item === "object" && 'splice' in item && 'join' in item) && !item.observe)
+                {
+                    ActiveView.makeArrayObservable(item);
+                }
+            }
+        },
+        /**
+         * @alias ActiveView.prototype.get
+         * @param {String} key
+         * @return {mixed}
+         */
+        get: function get(key)
+        {
+            return this.scope.get(key);
+        },
+        /**
+         * @alias ActiveView.prototype.set
+         * @param {String} key
+         * @param {mixed} value
+         * @return {mixed}
+         */
+        set: function set(key,value)
+        {
+            if((value !== null && typeof value === "object" && 'splice' in value && 'join' in value) && !value.observe)
+            {
+                ActiveView.makeArrayObservable(value);
+            }
+            return this.scope.set(key,value);
+        },
+        /**
+         * @alias ActiveView.prototype.attachTo
+         * @param {Element} element
+         * @return {Element}
+         */
+        attachTo: function attachTo(element)
+        {
+            element.appendChild(this.container);
+            return this.container;
+        },
+        registerEventHandler: function registerEventHandler(element,event_name,observer)
+        {
+            this.eventHandlers.push([element,event_name,observer]);
+        }
+    };
+})();
 
 var ClassMethods = {
 
@@ -6760,20 +7172,65 @@ var Errors = {
 };
 
 var Builder = {
-    createElement: function createElement(tag,attributes)
+    tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
+        'BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET ' +
+        'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
+        'KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
+        'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
+    ieAttributeTranslations: {
+        'class': 'className',
+        'checked': 'defaultChecked',
+        'usemap': 'useMap',
+        'for': 'htmlFor',
+        'readonly': 'readOnly',
+        'colspan': 'colSpan',
+        'bgcolor': 'bgColor',
+        'cellspacing': 'cellSpacing',
+        'cellpadding': 'cellPadding'
+    },
+    cache: {},
+    createElement: function createElement(tag_name,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
-        tag = tag.toLowerCase();
-        if(ie && attributes.name)
+        tag_name = tag_name.toLowerCase();
+        var element;
+        if(ie && (attributes.name || (tag_name == 'input' && attributes.type)))
         {
-            tag = '<' + tag + ' name="' + attributes.name + '">';
+            //ie needs these attributes to be written in the string passed to createElement
+            tag = '<' + tag_name;
+            if(attributes.name)
+            {
+                tag += ' name="' + attributes.name + '"';
+            }
+            if(tag_name == 'input' && attributes.type)
+            {
+                tag += ' type="' + attributes.type + '"';
+            }
+            tag += '>';
             delete attributes.name;
+            delete attributes.type;
+            element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
-        var element = Builder.extendCreatedElement(global_context.document.createElement(tag));
+        else
+        {
+            if(!Builder.cache[tag_name])
+            {
+                Builder.cache[tag_name] = Builder.extendCreatedElement(global_context.document.createElement(tag_name));
+            }
+            element = Builder.cache[tag_name].cloneNode(false);
+        }
         Builder.writeAttribute(element,attributes);
         return element;
+    },
+    clearElement: function clearElement(element)
+    {
+        while(element.firstChild)
+        {
+            element.removeChild(element.firstChild);
+        }
     },
     extendCreatedElement: function extendCreatedElement(element)
     {
@@ -6781,6 +7238,8 @@ var Builder = {
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
+        var global_context = ActiveSupport.getGlobalContext();
+        var ie = !!(global_context.attachEvent && !global_context.opera);
         var transitions = {
             className: 'class',
             htmlFor:   'for'
@@ -6808,7 +7267,21 @@ var Builder = {
             }
             else
             {
-                element.setAttribute(name,value);
+                if(!ie)
+                {
+                    element.setAttribute(name,value);
+                }
+                else
+                {
+                    if(name == 'style')
+                    {
+                        element.style.cssText = value;
+                    }
+                    else
+                    {
+                        element.setAttribute(Builder.ieAttributeTranslations[name] || name,value);
+                    }
+                }
             }
         }
         return element;
@@ -6819,19 +7292,13 @@ var Builder = {
     }
 };
 
-(function builder_generator(){
-    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
+Builder.generator = function generator(target,scope){
     var global_context = ActiveSupport.getGlobalContext();
-    for(var t = 0; t < tags.length; ++t)
+    for(var t = 0; t < Builder.tags.length; ++t)
     {
-        var tag = tags[t];
+        var tag = Builder.tags[t];
         (function tag_iterator(tag){
-            Builder[tag.toLowerCase()] = Builder[tag] = function tag_generator(){
+            target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
@@ -6842,11 +7309,19 @@ var Builder = {
                     {
                         continue;
                     }
-                    if(typeof(argument) === 'function')
+                    if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
                     {
                         argument = argument();
                     }
-                    if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
+                    if(ActiveView.isActiveViewInstance(argument))
+                    {
+                        elements.push(argument.container);
+                    }
+                    else if(ActiveView.isActiveViewClass(argument))
+                    {
+                        elements.push(new argument(scope._object || {}).container);
+                    }
+                    else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
                         attributes = argument;
                     }
@@ -6862,14 +7337,29 @@ var Builder = {
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode((new String(elements[i])).toString()));
+                    if(elements[i] && elements[i].nodeType === 1)
+                    {
+                        element.appendChild(elements[i]);
+                    }
+                    else
+                    {
+                        element.appendChild(global_context.document.createTextNode(String(elements[i])));
+                    }
                 }
                 return element;
             };
         })(tag);
     }
-})();
+};
+Builder.generator(Builder);
 
+/**
+ * Contains all DOM generator methods, b(), h1(), etc. This object can
+ * always be referenced statically as ActiveView.Builder, but is also
+ * available as this.builder inside of ActiveView classes.
+ * @alias ActiveView.Builder
+ * @property {Object}
+ */
 ActiveView.Builder = Builder;
 
 ActiveView.generateBinding = function generateBinding(instance)
@@ -6880,6 +7370,11 @@ ActiveView.generateBinding = function generateBinding(instance)
         if(!element || !element.nodeType === 1)
         {
             return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
+        }
+        var attribute = false;
+        if(arguments[1] && typeof(arguments[1]) == 'string')
+        {
+            attribute = arguments[1];
         }
         return {
             from: function from(observe_key)
@@ -6925,7 +7420,27 @@ ActiveView.generateBinding = function generateBinding(instance)
                     {
                         if(condition())
                         {
-                            element.innerHTML = transformation ? transformation(value) : value;
+                            var formatted_value = transformation ? transformation(value) : value;
+                            if(attribute)
+                            {
+                                ActiveView.Builder.writeAttribute(element,attribute,formatted_value);
+                            }
+                            else
+                            {
+                                ActiveView.Builder.clearElement(element);
+                                if(formatted_value && formatted_value.nodeType === 1)
+                                {
+                                    element.appendChild(formatted_value);
+                                }
+                                else if(typeof(formatted_value) == 'string' || typeof(formatted_value) == 'number' || typeof(formatted_value) == 'boolean')
+                                {
+                                    element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(String(formatted_value)));
+                                }
+                                else
+                                {
+                                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element or string in update binding observer, recieved ',typeof(element),element);
+                                }
+                            }
                         }
                     }
                 });
@@ -6965,7 +7480,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
-                                    element.innerHTML = '';
+                                    ActiveView.Builder.clearElement(element);
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
@@ -7002,6 +7517,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     collected_elements.shift(element.firstChild);
                                 });
                                 collection.observe('splice',function splice_observer(index,to_remove){
+                                    var global_context = ActiveSupport.getGlobalContext();
                                     var children = [];
                                     var i;
                                     for(i = 2; i < arguments.length; ++i)
@@ -7019,7 +7535,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                     {
                                         var generated_element = ActiveView.render(view,children[i]);
                                         element.insertBefore((typeof(generated_element) === 'string'
-                                            ? document.createTextNode(generated_element)
+                                            ? global_context.document.createTextNode(generated_element)
                                             : generated_element
                                         ),element.childNodes[index + i]);
                                         children[i] = element.childNodes[index + i];
@@ -7070,17 +7586,63 @@ ActiveView.generateBinding = function generateBinding(instance)
     };
 };
 
-ActiveView.Template = {
-    create: function create(src,helpers)
-    {
-        var klass = function klass(){};
-        klass.helpers = {};
-        ActiveSupport.extend(klass.helpers,helpers || {});
-        ActiveSupport.extend(klass.helpers,ActiveView.Template.Helpers);
-        ActiveSupport.extend(klass,ActiveView.Template.ClassMethods);
-        klass.template = ActiveView.Template.generateTemplate(src);
-        return klass;
-    }
+/**
+ * @alias ActiveView.Template
+ * @constructor
+ * @param {String} src
+ * @param {Object} [helpers]
+ * @return {ActiveView.Template}
+ * @example
+ * 
+ * String Based Templating
+ * -----------------------
+ * Original implementation by [John Resig](http://ejohn.org/)
+ * 
+ * ActiveView.Template provides a string based templating approach that
+ * is similar to ERB, ASP or PHP.
+ * 
+ *     var template_one = new ActiveView.Template('<h1><%= title %></h1>');
+ *     template_one.render({title: 'The Title'});
+ *     //<h1>The Title</h1>
+ * 
+ * Each template class can accept a hash of helper functions as the second
+ * argument. To add helpers to all ActiveView.Template classes, you can 
+ * add properties to ActiveView.Template.Helpers.
+ * 
+ *     var template_two = new ActiveView.Template('<h1><%= i(title) %></h1>',{
+ *         i: function(text){
+ *             return '<i>' + text + '</i>';
+ *         }
+ *     });
+ *     template_two.render({title: 'The Title'});
+ *     //<h1><i>The Title</i></h1>
+ * 
+ * You can embed JavaScript with logic (loops, conditions, etc) within your
+ * template source. John Resig [points out](http://ejohn.org/blog/javascript-micro-templating/)
+ * that you can place the template source code in your page using a script tag with an
+ * unknown content type to get the browser to ignore it (but stil have access to it via the DOM).
+ * 
+ *     <script type="text/html" id="complex_template_source">
+ *         <h2><%= title %></h2>
+ *         <ul>
+ *             <% for(var i = 0; i < list.length; ++i){ %>
+ *                 <li><%= list[i] %></li>
+ *             <% } %>
+ *         </ul>
+ *     </script>
+ * 
+ * Then in your code:
+ * 
+ *     var complex_template = new ActiveView.Template($('complex_template_source').innerHTML);
+ * 
+ */
+ActiveView.Template = function Template(src,helpers)
+{
+    this.helpers = {};
+    ActiveSupport.extend(this.helpers,helpers || {});
+    ActiveSupport.extend(this.helpers,ActiveView.Template.Helpers);
+    this.template = ActiveView.Template.generateTemplate(src);
+    ActiveSupport.extend(this,ActiveView.Template.InstanceMethods);
 };
 
 ActiveView.Template.generateTemplate = function generateTemplate(source)
@@ -7118,13 +7680,25 @@ ActiveView.Template.Errors = {
     CompilationFailed: ActiveSupport.createError('The template could not be compiled:')
 };
 
-ActiveView.Template.ClassMethods = {
+ActiveView.Template.InstanceMethods = {
+    /**
+     * Renders the template with the given scope / data, returning
+     * the processed result as a string.
+     * @alias ActiveView.Template.prototype.render
+     * @param {Object} [data]
+     * @return {String}
+     */
     render: function render(data)
     {
         return ActiveSupport.bind(this.template,this)(data || {});
     }
 };
 
+/**
+ * Contains all methods that will become available as locals to templates.
+ * @alias ActiveView.Template.Helpers
+ * @property {Object}
+ */
 ActiveView.Template.Helpers = {};
 
 })();
@@ -7141,8 +7715,8 @@ if(typeof exports != "undefined"){
  * @namespace {ActiveController}
  * @example
  * 
- * ActiveController.js
- * ===============
+ * ActiveController
+ * ================
  * Tutorial coming soon.
  */
 ActiveController = {};
@@ -7208,57 +7782,59 @@ ActiveController.createAction = function createAction(klass,action_name,action)
     };
 };
 
-var InstanceMethods = {
-    initialize: function initialize()
-    {
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize()
+        {
         
-    },
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    set: function set(key,value)
-    {
-        return this.scope.set(key,value);
-    },
-    render: function render(params)
-    {
-        if(typeof(params) !== 'object')
+        },
+        get: function get(key)
         {
-            return ActiveSupport.throwError(Errors.InvalidRenderParams);
-        }
-        for(var flag_name in params || {})
+            return this.scope.get(key);
+        },
+        set: function set(key,value)
         {
-            if(!RenderFlags[flag_name])
+            return this.scope.set(key,value);
+        },
+        render: function render(params)
+        {
+            if(typeof(params) !== 'object')
             {
-                if(ActiveController.logging)
-                {
-                    ActiveSupport.log('ActiveController: render() failed with params:',params);
-                }
-                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                return ActiveSupport.throwError(Errors.InvalidRenderParams);
             }
-            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
-        }
-        return params;
-    },
-    getRenderTarget: function getRenderTarget()
-    {
-        return this.renderTarget;
-    },
-    setRenderTarget: function setRenderTarget(target)
-    {
-        this.renderTarget = target;
-    },
-    renderLayout: function renderLayout()
-    {
-        if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            for(var flag_name in params || {})
+            {
+                if(!RenderFlags[flag_name])
+                {
+                    if(ActiveController.logging)
+                    {
+                        ActiveSupport.log('ActiveController: render() failed with params:',params);
+                    }
+                    return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                }
+                ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
+            }
+            return params;
+        },
+        getRenderTarget: function getRenderTarget()
         {
-            this.layoutRendered = true;
-            this.container.innerHtml = '';
-            this.container.appendChild(this.layout.bind(this)());
+            return this.renderTarget;
+        },
+        setRenderTarget: function setRenderTarget(target)
+        {
+            this.renderTarget = target;
+        },
+        renderLayout: function renderLayout()
+        {
+            if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            {
+                this.layoutRendered = true;
+                ActiveView.Builder.clearElement(this.container);
+                this.container.appendChild(this.layout.bind(this)());
+            }
         }
-    }
-};
+    };
+})();
 ActiveController.InstanceMethods = InstanceMethods;
 
 var RenderFlags = {
@@ -7280,7 +7856,7 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            container.innerHTML = '';
+            ActiveView.Builder.clearElement(container);
             container.appendChild(response);
         }
     },
@@ -7573,7 +8149,7 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         {
             ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
         }
-        var content = ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(this.scope._object);
+        var content = new ActiveView.Template(ActiveController.Server.IO.read(file)).render(this.scope._object);
         this.set('content',content);
         this.applyLayout();
         ActiveController.Server.Response.setContents(this.get('content'));
@@ -7609,7 +8185,7 @@ ActiveView.Template.Helpers.render = function render(params,scope)
     {
         ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
     }
-    return ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(scope || {});
+    return new ActiveView.Template(ActiveController.Server.IO.read(file)).render(scope || {});
 };
 
 ActiveController.InstanceMethods.applyLayout = function applyLayout()
@@ -7622,7 +8198,7 @@ ActiveController.InstanceMethods.applyLayout = function applyLayout()
             ActiveController.Errors.FileDoesNotExist + layout_file;
         }
         this.layoutRendered = true;
-        this.set('content',ActiveView.Template.create(ActiveController.Server.IO.read(layout_file)).render(this.scope._object));
+        this.set('content',new ActiveView.Template(ActiveController.Server.IO.read(layout_file)).render(this.scope._object));
     }
 };
  

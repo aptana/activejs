@@ -78,7 +78,7 @@ var Migrations = {
         'mediumint': 0,
         'int': 0,
         'integer': 0,
-        'bitint': 0,
+        'bigint': 0,
         'float': 0,
         'double': 0,
         'double precision': 0,

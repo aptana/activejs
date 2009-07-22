@@ -340,7 +340,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
                     var included = true;
                     for(var column_name in where)
                     {
-                        if((new String(result_set[i][column_name]).toString()) != (new String(where[column_name]).toString()))
+                        if((String(result_set[i][column_name])) != (String(where[column_name])))
                         {
                             included = false;
                             break;

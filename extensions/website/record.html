@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ActiveRecord.js : Cross Browser, Cross Platform, JavaScript ORM</title>
+    <title>ActiveJS: The Cross Platform JavaScript MVC</title>
     <link rel="stylesheet" href="stylesheets/screen.css"/>
     <!--[if IE]>
       <style>pre {display:block; background-color:#000; padding:10px 15px; width:721px;}</style>
@@ -28,7 +28,7 @@
           <li><a href="http://github.com/aptana/activejs/downloads">Download</a></li>
         </ul>
       </div>
-      <h1>ActiveRecord.js</h1>
+      <h1>ActiveRecord</h1>
 
 <p>ActiveRecord.js is a cross browser, cross platform, stand-alone object
 relational mapper. It shares a very similar vocabulary to the Ruby
@@ -457,11 +457,13 @@ ActiveRecord.Migrations.migrate(1); //migrates to version 1
 </code></pre>
 
       <script>
-        var code_snippets = document.getElementsByTagName('code');
-        for(var i = 0; i < code_snippets.length; ++i){
-          code_snippets[i].className = 'javascript';
+        if(dp && dp.sh){
+          var code_snippets = document.getElementsByTagName('code');
+          for(var i = 0; i < code_snippets.length; ++i){
+            code_snippets[i].className = 'javascript';
+          }
+          dp.sh.HighlightAll('javascript',false,false,false,true,false);
         }
-        dp.sh.HighlightAll('javascript',false,false,false,true,false);
       </script>
       <p id="copyright">ActiveJS is a trademark of Aptana, Inc. &copy;2009 <a href="http://aptana.com/">Aptana Inc.</a></p>
     </div>

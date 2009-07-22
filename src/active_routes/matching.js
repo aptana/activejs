@@ -85,7 +85,7 @@ ActiveRoutes.prototype.match = function(path){
     var original_path = path;
     this.error = false;
     //make sure the path is a copy
-    path = ActiveRoutes.normalizePath((new String(path)).toString());
+    path = ActiveRoutes.normalizePath(String(path));
     //handle extension
     var extension = path.match(/\.([^\.]+)$/);
     if(extension)
@@ -130,8 +130,10 @@ ActiveRoutes.prototype.match = function(path){
                     var key = route_path_component.substr(1);
                     if(path_component && route.params.requirements && route.params.requirements[key] &&
                         !(typeof(route.params.requirements[key]) == 'function'
-                            ? route.params.requirements[key]((new String(path_component).toString()))
-                            : path_component.match(route.params.requirements[key])))
+                            ? route.params.requirements[key](String(path_component))
+                            : path_component.match(route.params.requirements[key])
+                        )
+                    )
                     {
                         valid = false;
                         break;

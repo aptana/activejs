@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ActiveRecord.js : Cross Browser, Cross Platform, JavaScript ORM</title>
+    <title>ActiveJS: The Cross Platform JavaScript MVC</title>
     <link rel="stylesheet" href="stylesheets/screen.css"/>
     <!--[if IE]>
       <style>pre {display:block; background-color:#000; padding:10px 15px; width:721px;}</style>
@@ -28,7 +28,7 @@
           <li><a href="http://github.com/aptana/activejs/downloads">Download</a></li>
         </ul>
       </div>
-      <h1>ActiveEvent.js</h1>
+      <h1>ActiveEvent</h1>
 
 <p>ActiveEvent allows you to create observable events, and attach event
 handlers to any class or object.</p>
@@ -51,11 +51,11 @@ passed to observers. You can also have an existing method fire an event with
 the same name as the method using makeObservable().</p>
 
 <pre><code>var Message = function(){};
+ActiveEvent.extend(Message);
 Message.prototype.send = function(text){
     //message sending code here...
     this.notify('sent',text);
 };
-ActiveEvent.extend(Message);
 
 //make an existing method observable
 var observable_hash = new Hash({});
@@ -84,7 +84,7 @@ m.observe('sent',function(text){
 observable_hash.observe('set',function(key,value){
     console.log('observable_hash.set: ' + key + '=' + value);
 });
-observable_hash.observeOnce(function(key,value){
+observable_hash.observeOnce('set',function(key,value){
     //this will only be called once
 });
 </code></pre>
@@ -121,28 +121,28 @@ m.send('test'); //returned false
 
 m.stopObserving('send',observer);
 
-m.send('test'); //returned true&lt;/code&gt;&lt;/pre&gt;
+m.send('test'); //returned true
 </code></pre>
 
 <h2>Object.options</h2>
 
 <p>If an object has an options property that contains a callable function with
 the same name as an event triggered with <b>notify()</b>, it will be
-treated just like an instance observer. So the falling code is equivalent.</p>
+treated just like an instance observer. So the following code is equivalent:</p>
 
 <pre><code>var rating_one = new Control.Rating('rating_one',{  
     afterChange: function(new_value){}    
 });  
 
 var rating_two = new Control.Rating('rating_two');  
-rating_two.observe('afterChange',function(new_value){});&lt;/code&gt;&lt;/pre&gt;
+rating_two.observe('afterChange',function(new_value){});
 </code></pre>
 
 <h2>MethodCallObserver</h2>
 
 <p>The makeObservable() method permanently modifies the method that will
 become observable. If you need to temporarily observe a method call without
-permanently modifying it, use the observeMethod(). Pass the name of the
+permanently modifying it, use observeMethod(). Pass the name of the
 method to observe and the observer function will receive all of the
 arguments passed to the method. An ActiveEvent.MethodCallObserver object is
 returned from the call to observeMethod(), which has a stop() method on it.
@@ -175,11 +175,13 @@ h.observeMethod('set',function(key,value){
 </code></pre>
 
       <script>
-        var code_snippets = document.getElementsByTagName('code');
-        for(var i = 0; i < code_snippets.length; ++i){
-          code_snippets[i].className = 'javascript';
+        if(dp && dp.sh){
+          var code_snippets = document.getElementsByTagName('code');
+          for(var i = 0; i < code_snippets.length; ++i){
+            code_snippets[i].className = 'javascript';
+          }
+          dp.sh.HighlightAll('javascript',false,false,false,true,false);
         }
-        dp.sh.HighlightAll('javascript',false,false,false,true,false);
       </script>
       <p id="copyright">ActiveJS is a trademark of Aptana, Inc. &copy;2009 <a href="http://aptana.com/">Aptana Inc.</a></p>
     </div>

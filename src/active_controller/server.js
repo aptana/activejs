@@ -225,7 +225,7 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         {
             ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
         }
-        var content = ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(this.scope._object);
+        var content = new ActiveView.Template(ActiveController.Server.IO.read(file)).render(this.scope._object);
         this.set('content',content);
         this.applyLayout();
         ActiveController.Server.Response.setContents(this.get('content'));
@@ -261,7 +261,7 @@ ActiveView.Template.Helpers.render = function render(params,scope)
     {
         ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
     }
-    return ActiveView.Template.create(ActiveController.Server.IO.read(file)).render(scope || {});
+    return new ActiveView.Template(ActiveController.Server.IO.read(file)).render(scope || {});
 };
 
 ActiveController.InstanceMethods.applyLayout = function applyLayout()
@@ -274,6 +274,6 @@ ActiveController.InstanceMethods.applyLayout = function applyLayout()
             ActiveController.Errors.FileDoesNotExist + layout_file;
         }
         this.layoutRendered = true;
-        this.set('content',ActiveView.Template.create(ActiveController.Server.IO.read(layout_file)).render(this.scope._object));
+        this.set('content',new ActiveView.Template(ActiveController.Server.IO.read(layout_file)).render(this.scope._object));
     }
 };

@@ -97,7 +97,7 @@ var KeywordMap = {
 
 // Lexer token patterns
 var WHITESPACE_PATTERN = /^\s+/;
-var IDENTIFIER_PATTERN = /^[a-zA-Z][a-zA-Z]*/;
+var IDENTIFIER_PATTERN = /^[a-zA-Z\_][a-zA-Z\_]*/;
 var OPERATOR_PATTERN   = /^(?:&&|\|\||<=|<|=|!=|>=|>|,|\(|\))/i;
 var KEYWORD_PATTERN    = /^(true|or|in|false|and)\b/i;
 var STRING_PATTERN     = /^(?:'(\\.|[^'])*'|"(\\.|[^"])*")/;

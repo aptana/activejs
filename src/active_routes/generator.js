@@ -51,11 +51,11 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
         if(path.match(':' + p) && params[p])
         {
             if(route.params.requirements && route.params.requirements[p]){
-                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p]((new String(params[p]).toString())))
+                if(typeof(route.params.requirements[p]) == 'function' && !route.params.requirements[p](String(params[p])))
                 {
                     continue;
                 }
-                else if(!route.params.requirements[p].exec((new String(params[p]).toString())))
+                else if(!route.params.requirements[p].exec(String(params[p])))
                 {
                     continue;
                 }

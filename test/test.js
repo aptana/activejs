@@ -159,6 +159,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
         ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
         ActiveRecord.execute('DROP TABLE IF EXISTS guid');
+        ActiveRecord.execute('DROP TABLE IF EXISTS reserved');
 
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
@@ -289,14 +290,18 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
             name: ''
         });
 
-        Guid = ActiveRecord.create({
-            tableName: 'guid'
-        },{
+        Guid = ActiveRecord.create('guid',{
             guid: {
                 primaryKey: true,
                 type: 'VARCHAR(255)'
             },
             data: ''
+        });
+
+        Reserved = ActiveRecord.create('reserved',{
+            to: { primaryKey: true },
+            from: '',
+            select: ''
         });
         
         if(proceed)
@@ -450,6 +455,48 @@ ActiveTest.Tests.ActiveRecord.basic = function(proceed)
             
             assert(FieldTypeTester.findByBooleanField(true).id == field_test_one.id,'findByBooleanField(true)');
             assert(FieldTypeTester.findByBooleanField(false).id == field_test_two.id,'findByBooleanField(false)');
+
+            // Identifiers that are reserved words should be quoted automatically.
+            var reserved_test = Reserved.create({
+                from: 'b',
+                select: 'c'
+            });
+            assert(Reserved.count() == 1,'Reserved.create');
+            assert(Reserved.find(reserved_test.to).from == 'b','Reserved.find');
+            assert(Reserved.findByFrom('b').select == 'c','Reserved.findByFrom');
+
+            // Identifiers must be quoted explicitly in SQL fragments.
+            assert(Reserved.find({
+              select: ['"to" + "from"', '"select"']
+            })[0].select == 'c','Reserved.find({select:...})');
+
+            // Keys of {where: {...}} properties are assumed to be column names...
+            assert(Reserved.find({
+              where: {select: 'c'}
+            })[0].select == 'c','Reserved.find({where:{...}})');
+            try {
+              // ...so that format won't work for arbitrary SQL fragments...
+              Reserved.find({
+                where: {'length("select")': 1}
+              });
+              assert(false,'Reserved.find({where:{\'length...\': 1}) throws an exception')
+            } catch (e) {
+            }
+            // ...but you can use {where: '...'} instead.
+            assert(Reserved.find({
+              where: 'length("select") = 1'
+            })[0].select == 'c','Reserved.find({where:\'length... = 1\'})');
+
+            reserved_test.set('select', 'd');
+            assert(reserved_test.select == 'd','reserved_test.set');
+            reserved_test.save();
+            assert(Reserved.find(reserved_test.to).select == 'd','reserved_test.save');
+
+            Reserved.updateAll({from: 'me'}, {select: 'd'});
+            assert(Reserved.find(reserved_test.to).from == 'me','Reserved.updateAll');
+
+            reserved_test.destroy();
+            assert(Reserved.count() == 0,'Reserved.destroy');
             
             if(proceed)
                 proceed();
@@ -672,8 +719,21 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
             assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
 
             var b = Guid.create({guid: '123', data: 'test'});
-            var result = Guid.find({first: true, where: ['guid = ?', b.guid]});
-            assert(result.data == 'test', 'String primary key.');
+            assert(Guid.primaryKeyName == 'guid', 'model.primaryKeyName');
+            assert(b.primaryKeyName == 'guid', 'record.primaryKeyName');
+            assert(Guid.findByGuid('123').data == 'test', 'findByGuid');
+            assert(Guid.get('123').data == 'test', 'get(guid)');
+
+            Guid.update('123', {data: 'changed'});
+            assert(b.reload() && b.data == 'changed', 'Guid.update && b.reload');
+
+            b.set('guid', 'abc');
+            assert(b.guid == 'abc', 'guid change');
+            b.save();
+            assert(!Guid.get('123'), 'old guid is gone');
+            assert(Guid.get('abc').data == 'changed', 'new guid is saved');
+
+            assert(Guid.destroy('abc') && Guid.count() == 0, 'Guid.destroy');
 
             if(proceed)
                 proceed();
@@ -1697,6 +1757,29 @@ ActiveTest.Tests.Routes.history = function(proceed)
         proceed();
 };
 
+ActiveTest.Tests.ActiveSupport = {};
+ActiveTest.Tests.ActiveSupport.ActiveSupport = function(proceed)
+{
+    with (ActiveTest)
+    {
+        // Inflector
+        assert(ActiveSupport.Inflector.pluralize('cat') == 'cats', 'pluralize(cat)');
+        assert(ActiveSupport.Inflector.pluralize('cats') == 'cats', 'pluralize(cats)');
+
+        assert(ActiveSupport.Inflector.singularize('cat') == 'cat', 'singularize(cat)');
+        assert(ActiveSupport.Inflector.singularize('cats') == 'cat', 'singularize(cats)');
+
+        assert(ActiveSupport.Inflector.pluralize('person') == 'people', 'pluralize(person)');
+        assert(ActiveSupport.Inflector.pluralize('people') == 'people', 'pluralize(people)');
+
+        assert(ActiveSupport.Inflector.singularize('people') == 'person', 'singularize(people)');
+        assert(ActiveSupport.Inflector.singularize('person') == 'person', 'singularize(person)');
+
+        if(proceed)
+            proceed();
+    }
+};
+
 ActiveTest.Tests.View = {};
 
 ActiveTest.Tests.View.builder = function(proceed)
@@ -1756,7 +1839,7 @@ ActiveTest.Tests.View.template = function(proceed)
 {
     with(ActiveTest)
     {
-        var simple_template = ActiveView.Template.create('<b><%= test %></b>');
+        var simple_template = new ActiveView.Template('<b><%= test %></b>');
         var output_a = simple_template.render({
             test: 'a'
         });
@@ -1765,7 +1848,7 @@ ActiveTest.Tests.View.template = function(proceed)
             test: 'b'
         });
         assert(output_b == '<b>b</b>','Render output is not cached.');
-        var loop_template = ActiveView.Template.create('<% for(var i = 0; i < list.length; ++i){ %><%= list[i] %><% } %>');
+        var loop_template = new ActiveView.Template('<% for(var i = 0; i < list.length; ++i){ %><%= list[i] %><% } %>');
         var loop_output = loop_template.render({list:['a','b','c']});
         assert(loop_output == 'abc','Loop functions correctly.');
     }

@@ -418,7 +418,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     {
         ++ActiveRecord.internalCounter;
         var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(new Number(ActiveRecord.internalCounter), 10); //ensure number is a copy
+        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
         return record;
     },
     /**
@@ -487,37 +487,6 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     updateAll: function updateAll(updates, conditions)
     {
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
-    },
-    /**
-     * @alias ActiveRecord.Class.transaction
-     * @param {Function} proceed
-     *      The block of code to execute inside the transaction.
-     * @param {Function} [error]
-     *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
-     * @example
-     *     Account.transaction(function(){
-     *         var from = Account.find(2);
-     *         var to = Account.find(3);
-     *         to.despoit(from.withdraw(100.00));
-     *     });
-     */
-    transaction: function transaction(proceed,error)
-    {
-        try
-        {
-            ActiveRecord.connection.transaction(proceed);
-        }
-        catch(e)
-        {
-            if(error)
-            {
-                error(e);
-            }
-            else
-            {
-                return ActiveSupport.throwError(e);
-            }
-        }
     },
     /**
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for

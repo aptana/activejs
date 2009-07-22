@@ -29,8 +29,8 @@
  * @namespace {ActiveRecord}
  * @example
  * 
- * ActiveRecord.js
- * ===============
+ * ActiveRecord
+ * ============
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
@@ -291,7 +291,7 @@
  *     
  * To observe a given event on all models, you can do the following: 
  * 
- *     ActiveRecord.observe('created',function(model_class,model_instance){});
+ *     ActiveRecord.observe('afterCreate',function(model_class,model_instance){});
  *     
  * afterFind works differently than all of the other events. It is only available
  * to the model class, not the instances, and is called only when a result set is
@@ -503,7 +503,20 @@ ActiveRecord = {
         //mixin instance methods
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
-        //user defined take precedence
+        //user defined methods take precedence
+				if(typeof(methods) == 'undefined')
+				{
+						//detect if the fields object is actually a methods object
+					  for(var method_name in fields)
+					  {
+						    if(typeof(fields[method_name]) == 'function')
+						    {
+							      methods = fields;
+							      fields = null; 
+						    }
+						    break;
+					  }
+				}
         if(methods && typeof(methods) !== 'function')
         {
             ActiveSupport.extend(model.prototype, methods);

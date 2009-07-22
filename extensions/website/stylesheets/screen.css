@@ -21,7 +21,7 @@ h2 {
 
 a {
   text-decoration:none;
-  color:#333;
+  color:#253b57;
   font-weight:bold;
 }
 
@@ -106,6 +106,10 @@ ul#resources li {
 
 /* Body
 -----------------*/
+#content {
+  margin-right:200px;
+}
+
 h1 {
   font-size:16px;
   color:#333;
@@ -144,10 +148,37 @@ h2 {
   border-top:1px solid #ccc;
 }
 
+/* Sidebar
+----------------------*/
+#sidebar {
+  position:absolute;
+  top:85px;
+  right:0;
+  width:175px;
+}
+
+#sidebar .item {
+  margin-bottom:15px;
+}
+
+#sidebar a,
+#sidebar a img {
+  border:none;
+}
+
+#sidebar h2 {
+  padding-left:0;
+  margin-left:0;
+}
+
 /* Logos
 --------*/
+#android_logo {
+  margin:5px 0 0 8px;
+}
+
 #jaxer_logo {
-  
+  margin:12px 0 0 1px;
 }
 
 #iphone_logo {
@@ -155,15 +186,43 @@ h2 {
 }
 
 #gears_logo {
-  margin:2px 0 -2px 12px;
+  margin:5px 0 0 5px;
 }
 
 #air_logo {
-  margin:0 0 0 5px;
+  margin:5px 0 0 3px;
 }
 
 #w3c_logo {
   margin:1px 0 -1px 12px;
+}
+
+#browsers_logo {
+  margin:9px 0 0 8px;
+}
+
+#jquery_logo {
+  margin:13px 0 0 8px;
+}
+
+#mootools_logo {
+  margin:3px 0 0 4px;
+}
+
+#prototype_logo {
+  margin:3px 0 0 4px;
+}
+
+#dojo_logo {
+  margin:7px 0 0 5px;
+}
+
+#aptana_logo {
+  margin:5px 0 0 0;
+}
+
+#syntacticx_logo {
+  margin:10px 0 0 5px;
 }
 
 /* Syntax Highlighting

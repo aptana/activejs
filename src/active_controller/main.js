@@ -29,8 +29,8 @@
  * @namespace {ActiveController}
  * @example
  * 
- * ActiveController.js
- * ===============
+ * ActiveController
+ * ================
  * Tutorial coming soon.
  */
 ActiveController = {};
@@ -96,57 +96,59 @@ ActiveController.createAction = function createAction(klass,action_name,action)
     };
 };
 
-var InstanceMethods = {
-    initialize: function initialize()
-    {
+var InstanceMethods = (function(){
+    return {
+        initialize: function initialize()
+        {
         
-    },
-    get: function get(key)
-    {
-        return this.scope.get(key);
-    },
-    set: function set(key,value)
-    {
-        return this.scope.set(key,value);
-    },
-    render: function render(params)
-    {
-        if(typeof(params) !== 'object')
+        },
+        get: function get(key)
         {
-            return ActiveSupport.throwError(Errors.InvalidRenderParams);
-        }
-        for(var flag_name in params || {})
+            return this.scope.get(key);
+        },
+        set: function set(key,value)
         {
-            if(!RenderFlags[flag_name])
+            return this.scope.set(key,value);
+        },
+        render: function render(params)
+        {
+            if(typeof(params) !== 'object')
             {
-                if(ActiveController.logging)
-                {
-                    ActiveSupport.log('ActiveController: render() failed with params:',params);
-                }
-                return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                return ActiveSupport.throwError(Errors.InvalidRenderParams);
             }
-            ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
-        }
-        return params;
-    },
-    getRenderTarget: function getRenderTarget()
-    {
-        return this.renderTarget;
-    },
-    setRenderTarget: function setRenderTarget(target)
-    {
-        this.renderTarget = target;
-    },
-    renderLayout: function renderLayout()
-    {
-        if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            for(var flag_name in params || {})
+            {
+                if(!RenderFlags[flag_name])
+                {
+                    if(ActiveController.logging)
+                    {
+                        ActiveSupport.log('ActiveController: render() failed with params:',params);
+                    }
+                    return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                }
+                ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
+            }
+            return params;
+        },
+        getRenderTarget: function getRenderTarget()
         {
-            this.layoutRendered = true;
-            this.container.innerHtml = '';
-            this.container.appendChild(this.layout.bind(this)());
+            return this.renderTarget;
+        },
+        setRenderTarget: function setRenderTarget(target)
+        {
+            this.renderTarget = target;
+        },
+        renderLayout: function renderLayout()
+        {
+            if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            {
+                this.layoutRendered = true;
+                ActiveView.Builder.clearElement(this.container);
+                this.container.appendChild(this.layout.bind(this)());
+            }
         }
-    }
-};
+    };
+})();
 ActiveController.InstanceMethods = InstanceMethods;
 
 var RenderFlags = {
@@ -168,7 +170,7 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            container.innerHTML = '';
+            ActiveView.Builder.clearElement(container);
             container.appendChild(response);
         }
     },
