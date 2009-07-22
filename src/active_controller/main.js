@@ -143,7 +143,7 @@ var InstanceMethods = (function(){
             if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
             {
                 this.layoutRendered = true;
-                ActiveView.clearNode(this.container);
+                ActiveView.Builder.clearElement(this.container);
                 this.container.appendChild(this.layout.bind(this)());
             }
         }
@@ -170,7 +170,7 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            ActiveView.clearNode(container);
+            ActiveView.Builder.clearElement(container);
             container.appendChild(response);
         }
     },

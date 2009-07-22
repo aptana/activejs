@@ -439,14 +439,6 @@ ActiveView.render = function render(content,scope)
     return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
-ActiveView.clearNode = function clearNode(node)
-{
-    while(node.firstChild)
-    {
-        node.removeChild(node.firstChild);
-    }
-};
-
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
     return object && object.container && object.container.nodeType == 1 && object.scope && object.builder;

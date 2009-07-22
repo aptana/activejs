@@ -26,41 +26,65 @@
  * ***** END LICENSE BLOCK ***** */
 
 var Builder = {
+    tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
+        'BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET ' +
+        'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
+        'KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
+        'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
     ieAttributeTranslations: {
-      'class': 'className',
-      'checked': 'defaultChecked',
-      'usemap': 'useMap',
-      'for': 'htmlFor',
-      'readonly': 'readOnly',
-      'colspan': 'colSpan',
-      'bgcolor': 'bgColor',
-      'cellspacing': 'cellSpacing',
-      'cellpadding': 'cellPadding'
+        'class': 'className',
+        'checked': 'defaultChecked',
+        'usemap': 'useMap',
+        'for': 'htmlFor',
+        'readonly': 'readOnly',
+        'colspan': 'colSpan',
+        'bgcolor': 'bgColor',
+        'cellspacing': 'cellSpacing',
+        'cellpadding': 'cellPadding'
     },
     cache: {},
-    createElement: function createElement(tag,attributes)
+    createElement: function createElement(tag_name,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
-        tag = tag.toLowerCase();
+        tag_name = tag_name.toLowerCase();
         var element;
-        if(ie && attributes.name)
+        if(ie && (attributes.name || (tag_name == 'input' && attributes.type)))
         {
-            tag = '<' + tag + ' name="' + attributes.name + '">';
+            //ie needs these attributes to be written in the string passed to createElement
+            tag = '<' + tag_name;
+            if(attributes.name)
+            {
+                tag += ' name="' + attributes.name + '"';
+            }
+            if(tag_name == 'input' && attributes.type)
+            {
+                tag += ' type="' + attributes.type + '"';
+            }
+            tag += '>';
             delete attributes.name;
+            delete attributes.type;
             element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
         else
         {
-            if(!Builder.cache[tag])
+            if(!Builder.cache[tag_name])
             {
-                Builder.cache[tag] = Builder.extendCreatedElement(global_context.document.createElement(tag));
+                Builder.cache[tag_name] = Builder.extendCreatedElement(global_context.document.createElement(tag_name));
             }
-            element = Builder.cache[tag].cloneNode(false);
+            element = Builder.cache[tag_name].cloneNode(false);
         }
         Builder.writeAttribute(element,attributes);
         return element;
+    },
+    clearElement: function clearElement(element)
+    {
+        while(element.firstChild)
+        {
+            element.removeChild(element.firstChild);
+        }
     },
     extendCreatedElement: function extendCreatedElement(element)
     {
@@ -123,16 +147,10 @@ var Builder = {
 };
 
 Builder.generator = function generator(target,scope){
-    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
     var global_context = ActiveSupport.getGlobalContext();
-    for(var t = 0; t < tags.length; ++t)
+    for(var t = 0; t < Builder.tags.length; ++t)
     {
-        var tag = tags[t];
+        var tag = Builder.tags[t];
         (function tag_iterator(tag){
             target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
@@ -173,7 +191,14 @@ Builder.generator = function generator(target,scope){
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode(String(elements[i])));
+                    if(elements[i] && elements[i].nodeType === 1)
+                    {
+                        element.appendChild(elements[i]);
+                    }
+                    else
+                    {
+                        element.appendChild(global_context.document.createTextNode(String(elements[i])));
+                    }
                 }
                 return element;
             };

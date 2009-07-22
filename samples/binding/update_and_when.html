@@ -19,6 +19,9 @@
                 this.wordCount = span(0),
                 ' Words Typed'
               ),
+              this.growingBox = img({src:'blue.gif',width:1,height:20}),
+              br,
+              br,
               this.textarea = textarea(),
               p({className: 'label'},'Show Preview?',
                 this.toggle = input({type: 'checkbox',checked: true})
@@ -29,18 +32,11 @@
           
           //data binding
           with(this.binding){
-            update(this.preview).from('content').when(function(){
-              return this.toggle.checked;
-            }.bind(this)).transform(function(content){
-              return converter.makeHtml(content);
-            });
-            /* this could also be written as:
             when('content').changes(function(content){
               if(this.toggle.checked){
                 this.preview.update(converter.makeHtml(content));
               }
             }.bind(this));
-            */
             
             //simple one to one mapping between a value of the view and a DOM node
             update(this.characterCount).from('character_count');
@@ -49,6 +45,8 @@
             when('word_count').changes(function(word_count){
               this.wordCount.update(word_count);
             }.bind(this));
+            
+            update(this.growingBox,'width').from('character_count');
           }
           
           //set values in the view based on the contents of the textarea

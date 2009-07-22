@@ -7029,14 +7029,6 @@ ActiveView.render = function render(content,scope)
     return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
-ActiveView.clearNode = function clearNode(node)
-{
-    while(node.firstChild)
-    {
-        node.removeChild(node.firstChild);
-    }
-};
-
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
     return object && object.container && object.container.nodeType == 1 && object.scope && object.builder;
@@ -7133,41 +7125,65 @@ var Errors = {
 };
 
 var Builder = {
+    tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
+        'BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET ' +
+        'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
+        'KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
+        'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
     ieAttributeTranslations: {
-      'class': 'className',
-      'checked': 'defaultChecked',
-      'usemap': 'useMap',
-      'for': 'htmlFor',
-      'readonly': 'readOnly',
-      'colspan': 'colSpan',
-      'bgcolor': 'bgColor',
-      'cellspacing': 'cellSpacing',
-      'cellpadding': 'cellPadding'
+        'class': 'className',
+        'checked': 'defaultChecked',
+        'usemap': 'useMap',
+        'for': 'htmlFor',
+        'readonly': 'readOnly',
+        'colspan': 'colSpan',
+        'bgcolor': 'bgColor',
+        'cellspacing': 'cellSpacing',
+        'cellpadding': 'cellPadding'
     },
     cache: {},
-    createElement: function createElement(tag,attributes)
+    createElement: function createElement(tag_name,attributes)
     {
         var global_context = ActiveSupport.getGlobalContext();
         var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
-        tag = tag.toLowerCase();
+        tag_name = tag_name.toLowerCase();
         var element;
-        if(ie && attributes.name)
+        if(ie && (attributes.name || (tag_name == 'input' && attributes.type)))
         {
-            tag = '<' + tag + ' name="' + attributes.name + '">';
+            //ie needs these attributes to be written in the string passed to createElement
+            tag = '<' + tag_name;
+            if(attributes.name)
+            {
+                tag += ' name="' + attributes.name + '"';
+            }
+            if(tag_name == 'input' && attributes.type)
+            {
+                tag += ' type="' + attributes.type + '"';
+            }
+            tag += '>';
             delete attributes.name;
+            delete attributes.type;
             element = Builder.extendCreatedElement(global_context.document.createElement(tag));
         }
         else
         {
-            if(!Builder.cache[tag])
+            if(!Builder.cache[tag_name])
             {
-                Builder.cache[tag] = Builder.extendCreatedElement(global_context.document.createElement(tag));
+                Builder.cache[tag_name] = Builder.extendCreatedElement(global_context.document.createElement(tag_name));
             }
-            element = Builder.cache[tag].cloneNode(false);
+            element = Builder.cache[tag_name].cloneNode(false);
         }
         Builder.writeAttribute(element,attributes);
         return element;
+    },
+    clearElement: function clearElement(element)
+    {
+        while(element.firstChild)
+        {
+            element.removeChild(element.firstChild);
+        }
     },
     extendCreatedElement: function extendCreatedElement(element)
     {
@@ -7230,16 +7246,10 @@ var Builder = {
 };
 
 Builder.generator = function generator(target,scope){
-    var tags = ("A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY " +
-        "BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET " +
-        "FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX "+
-        "KBD LABEL LEGEND LI LINK MAP MENU META NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P "+
-        "PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD "+
-        "TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR").split(/\s+/);
     var global_context = ActiveSupport.getGlobalContext();
-    for(var t = 0; t < tags.length; ++t)
+    for(var t = 0; t < Builder.tags.length; ++t)
     {
-        var tag = tags[t];
+        var tag = Builder.tags[t];
         (function tag_iterator(tag){
             target[tag.toLowerCase()] = target[tag] = function tag_generator(){
                 var i, argument, attributes, text_nodes, elements, element;
@@ -7280,7 +7290,14 @@ Builder.generator = function generator(target,scope){
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
                 {
-                    element.appendChild((elements[i] && elements[i].nodeType === 1) ? elements[i] : global_context.document.createTextNode(String(elements[i])));
+                    if(elements[i] && elements[i].nodeType === 1)
+                    {
+                        element.appendChild(elements[i]);
+                    }
+                    else
+                    {
+                        element.appendChild(global_context.document.createTextNode(String(elements[i])));
+                    }
                 }
                 return element;
             };
@@ -7306,6 +7323,11 @@ ActiveView.generateBinding = function generateBinding(instance)
         if(!element || !element.nodeType === 1)
         {
             return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
+        }
+        var attribute = false;
+        if(arguments[1] && typeof(arguments[1]) == 'string')
+        {
+            attribute = arguments[1];
         }
         return {
             from: function from(observe_key)
@@ -7351,8 +7373,27 @@ ActiveView.generateBinding = function generateBinding(instance)
                     {
                         if(condition())
                         {
-                            ActiveView.clearNode(element);
-                            element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(transformation ? transformation(value) : value));
+                            var formatted_value = transformation ? transformation(value) : value;
+                            if(attribute)
+                            {
+                                ActiveView.Builder.writeAttribute(element,attribute,formatted_value);
+                            }
+                            else
+                            {
+                                ActiveView.Builder.clearElement(element);
+                                if(formatted_value && formatted_value.nodeType === 1)
+                                {
+                                    element.appendChild(formatted_value);
+                                }
+                                else if(typeof(formatted_value) == 'string' || typeof(formatted_value) == 'number' || typeof(formatted_value) == 'boolean')
+                                {
+                                    element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(String(formatted_value)));
+                                }
+                                else
+                                {
+                                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element or string in update binding observer, recieved ',typeof(element),element);
+                                }
+                            }
                         }
                     }
                 });
@@ -7392,7 +7433,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
-                                    ActiveView.clearNode(element);
+                                    ActiveView.Builder.clearElement(element);
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
@@ -7741,7 +7782,7 @@ var InstanceMethods = (function(){
             if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
             {
                 this.layoutRendered = true;
-                ActiveView.clearNode(this.container);
+                ActiveView.Builder.clearElement(this.container);
                 this.container.appendChild(this.layout.bind(this)());
             }
         }
@@ -7768,7 +7809,7 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            ActiveView.clearNode(container);
+            ActiveView.Builder.clearElement(container);
             container.appendChild(response);
         }
     },

@@ -34,6 +34,11 @@ ActiveView.generateBinding = function generateBinding(instance)
         {
             return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element, recieved ',typeof(element),element);
         }
+        var attribute = false;
+        if(arguments[1] && typeof(arguments[1]) == 'string')
+        {
+            attribute = arguments[1];
+        }
         return {
             from: function from(observe_key)
             {
@@ -78,8 +83,27 @@ ActiveView.generateBinding = function generateBinding(instance)
                     {
                         if(condition())
                         {
-                            ActiveView.clearNode(element);
-                            element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(transformation ? transformation(value) : value));
+                            var formatted_value = transformation ? transformation(value) : value;
+                            if(attribute)
+                            {
+                                ActiveView.Builder.writeAttribute(element,attribute,formatted_value);
+                            }
+                            else
+                            {
+                                ActiveView.Builder.clearElement(element);
+                                if(formatted_value && formatted_value.nodeType === 1)
+                                {
+                                    element.appendChild(formatted_value);
+                                }
+                                else if(typeof(formatted_value) == 'string' || typeof(formatted_value) == 'number' || typeof(formatted_value) == 'boolean')
+                                {
+                                    element.appendChild(ActiveSupport.getGlobalContext().document.createTextNode(String(formatted_value)));
+                                }
+                                else
+                                {
+                                    return ActiveSupport.throwError(Errors.MismatchedArguments,'expected Element or string in update binding observer, recieved ',typeof(element),element);
+                                }
+                            }
                         }
                     }
                 });
@@ -119,7 +143,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                             instance.scope.observe('set',function collection_key_change_observer(key,value){
                                 if(key == collection_name)
                                 {
-                                    ActiveView.clearNode(element);
+                                    ActiveView.Builder.clearElement(element);
                                     instance.binding.collect(view).from(value).into(element);
                                 }
                             });
