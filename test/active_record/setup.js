@@ -55,6 +55,7 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
         ActiveRecord.execute('DROP TABLE IF EXISTS singular_table_name');
         ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
         ActiveRecord.execute('DROP TABLE IF EXISTS guid');
+        ActiveRecord.execute('DROP TABLE IF EXISTS reserved');
 
         //define Posts via SQL
         if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
@@ -185,14 +186,18 @@ ActiveTest.Tests.ActiveRecord.setup = function(proceed)
             name: ''
         });
 
-        Guid = ActiveRecord.create({
-            tableName: 'guid'
-        },{
+        Guid = ActiveRecord.create('guid',{
             guid: {
                 primaryKey: true,
                 type: 'VARCHAR(255)'
             },
             data: ''
+        });
+
+        Reserved = ActiveRecord.create('reserved',{
+            to: { primaryKey: true },
+            from: '',
+            select: ''
         });
         
         if(proceed)

@@ -1,27 +1,5882 @@
-/* ***** BEGIN LICENSE BLOCK *****
+ 
+/**
+ * @namespace {ActiveSupport} Provides a number of methods from the
+ *  Prototype.js framework, without modifying any built in prototypes to
+ *  ensure compatibility and portability.
+ */
+var ActiveSupport = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
+(function(global_context){
+
+ActiveSupport = {
+    /**
+     * Returns the global context object (window in most implementations).
+     * @alias ActiveSupport.getGlobalContext
+     * @return {Object}
+     */
+    getGlobalContext: function getGlobalContext()
+    {
+        return global_context;
+    },
+    /**
+     * Returns a class if it exists. If the context (default window / global
+     * context) does not contain the class, but does have a __noSuchMethod__
+     * property, it will attempt to call context[class_name]() to trigger
+     * the __noSuchMethod__ handler.
+     * @alias ActiveSupport.getClass
+     * @param {String} class_name
+     * @param {Object} context
+     * @return {Mixed}
+     */
+    getClass: function getClass(class_name,context)
+    {
+        context = context || ActiveSupport.getGlobalContext();
+        var klass = context[class_name];
+        if(!klass)
+        {
+            var trigger_no_such_method = (typeof(context.__noSuchMethod__) !== 'undefined');
+            if(trigger_no_such_method)
+            {
+                try
+                {
+                    context[class_name]();
+                    klass = context[class_name];
+                }
+                catch(e)
+                {
+                    return false;
+                }
+            }
+        }
+        return klass;
+    },
+    /**
+     * Logs a message to the available logging resource. Accepts a variable
+     * number of arguments.
+     * @alias ActiveSupport.log
+     */
+    log: function log()
+    {
+        if(typeof(Jaxer) !== 'undefined')
+        {
+            if (typeof Jaxer.console !== 'undefined') {
+                console.log.apply(console, arguments || []);
+            }
+            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
+        }
+        if(typeof(air) !== 'undefined')
+        {
+            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
+        }
+        if(typeof(console) !== 'undefined')
+        {
+            console.log.apply(console,arguments || []);
+        }
+    },
+    /**
+     * Creates an Error object (but does not throw it).
+     * @alias ActiveSupport.createError
+     * @param {String} message
+     * @return {null}
+     */
+    createError: function createError(message)
+    {
+        return new Error(message);
+    },
+    /**
+     * @alias ActiveSupport.logErrors
+     * @property {Boolean}
+     */
+    logErrors: true,
+    /**
+     * @alias ActiveSupport.throwErrors
+     * @property {Boolean}
+     */
+    throwErrors: true,
+    /**
+     * Accepts a variable number of arguments, that may be logged and thrown in
+     * @alias ActiveSupport.throwError
+     * @param {Error} error
+     * @return {null}
+     */
+    throwError: function throwError(error)
+    {
+        if(typeof(error) == 'string')
+        {
+            error = new Error(error);
+        }
+        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
+        if(ActiveSupport.logErrors)
+        {
+            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
+        }
+        if(ActiveSupport.throwErrors)
+        {
+            var e = ActiveSupport.clone(error);
+            e.message = e.message + error_arguments.join(',');
+            throw e;
+        }
+    },
+    /**
+     * Returns an array from an array or array like object.
+     * @alias ActiveSupport.arrayFrom
+     * @param {Object} object
+     *      Any iterable object (Array, NodeList, arguments)
+     * @return {Array}
+     */
+    arrayFrom: function arrayFrom(object)
+    {
+        if(!object)
+        {
+            return [];
+        }
+        var length = object.length || 0;
+        var results = new Array(length);
+        while (length--)
+        {
+            results[length] = object[length];
+        }
+        return results;
+    },
+    /**
+     * @alias ActiveSupport.isArray
+     * @param {mixed} object
+     * @return {Boolean}
+     */
+    isArray: function isArray(object)
+    {
+        return object && typeof(object) == 'object' && 'length' in object && 'splice' in object && 'join' in object;
+    },
+    /**
+     * Emulates Array.indexOf for implementations that do not support it.
+     * @alias ActiveSupport.indexOf
+     * @param {Array} array
+     * @param {mixed} item
+     * @return {Number}
+     */
+    indexOf: function indexOf(array,item,i)
+    {
+        i = i || (0);
+        var length = array.length;
+        if(i < 0)
+        {
+            i = length + i;
+        }
+        for(; i < length; i++)
+        {
+            if(array[i] === item)
+            {
+                return i;
+            }
+        }
+        return -1;
+    },
+    /**
+     * Returns an array without the given item.
+     * @alias ActiveSupport.without
+     * @param {Array} arr
+     * @param {mixed} item to remove
+     * @return {Array}
+     */
+    without: function without(arr)
+    {
+        var values = ActiveSupport.arrayFrom(arguments).slice(1);
+        var response = [];
+        for(var i = 0 ; i < arr.length; i++)
+        {
+            if(!(ActiveSupport.indexOf(values,arr[i]) > -1))
+            {
+                response.push(arr[i]);
+            }
+        }
+        return response;
+    },
+    /**
+     * Emulates Prototype's Function.prototype.bind. Unlike Prototype's
+     * version you must explicitly use curry() to pass extra arguments
+     * to the bound function.
+     * @alias ActiveSupport.bind
+     * @param {Function} func
+     * @param {Object} object
+     *      object will be in scope as "this" when func is called.
+     * @return {Function}
+     */
+    bind: function bind(func,object)
+    {
+        if(typeof(object) == 'undefined')
+        {
+            return func;
+        }
+        return function bound()
+        {
+            return func.apply(object,arguments);
+        };
+    },
+    /**
+     * Emulates Prototype's Function.prototype.curry.
+     * @alias ActiveSupport.curry
+     * @param {Function} func
+     * @return {Function}
+     */
+    curry: function curry(func)
+    {
+        if(arguments.length == 1)
+        {
+            return func;
+        }
+        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        return function curried()
+        {
+            return func.apply(this,args.concat(ActiveSupport.arrayFrom(arguments)));
+        };
+    },
+    /**
+     * Returns a function wrapped around the original function.
+     * @alias ActiveSupport.wrap
+     * @param {Function} func
+     * @param {Function} wrapper
+     * @return {Function} wrapped
+     * @example
+     *
+     *     String.prototype.capitalize = String.prototype.capitalize.wrap( 
+     *     function(proceed, eachWord) { 
+     *         if (eachWord && this.include(" ")) {
+     *             // capitalize each word in the string
+     *             return this.split(" ").invoke("capitalize").join(" ");
+     *         } else {
+     *             // proceed using the original function
+     *             return proceed(); 
+     *         }
+     *     });
+     */
+    wrap: function wrap(func,wrapper)
+    {
+        return function wrapped()
+        {
+            wrapper.apply(this,[ActiveSupport.bind(func,this)].concat(ActiveSupport.arrayFrom(arguments)));
+        };
+    },
+    /**
+     * Returns an array of keys from an object.
+     * @alias ActiveSupport.keys
+     * @param {Object} object
+     * @return {Array}
+     */
+    keys: function keys(object)
+    {
+        var keys_array = [];
+        for (var property_name in object)
+        {
+            keys_array.push(property_name);
+        }
+        return keys_array;
+    },
+    /**
+     * Emulates Prototype's String.prototype.underscore
+     * @alias ActiveSupport.underscore
+     * @param {String} str
+     * @return {String}
+     */
+    underscore: function underscore(str)
+    {
+        return str.replace(/::/g, '/').replace(/([A-Z]+)([A-Z][a-z])/g, function(match){
+            match = match.split("");
+            return match[0] + '_' + match[1];
+        }).replace(/([a-z\d])([A-Z])/g, function(match){
+            match = match.split("");
+            return match[0] + '_' + match[1];
+        }).replace(/-/g, '_').toLowerCase();
+    },
+    /**
+     * Emulates Prototype's String.prototype.camelize
+     * @alias ActiveSupport.camelize
+     * @param {String} str
+     * @param {Boolean} [capitalize]
+     * @return {String}
+     */
+    camelize: function camelize(str, capitalize)
+    {
+        var camelized,
+            parts = str.replace(/\_/g,'-').split('-'), len = parts.length;
+        if (len === 1)
+        {
+            if(capitalize)
+            {
+                return parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+            }
+            else
+            {
+                return parts[0];
+            }
+        }
+        if(str.charAt(0) === '-')
+        {
+            camelized = parts[0].charAt(0).toUpperCase() + parts[0].substring(1);
+        }
+        else
+        {
+            camelized = parts[0];
+        }
+        for (var i = 1; i < len; i++)
+        {
+            camelized += parts[i].charAt(0).toUpperCase() + parts[i].substring(1);
+        }
+        if(capitalize)
+        {
+            return camelized.charAt(0).toUpperCase() + camelized.substring(1);
+        }
+        else
+        {
+            return camelized;
+        }
+    },
+    /**
+     * Trim leading and trailing whitespace.
+     * @alias ActiveSupport.trim
+     * @param {String} str
+     * @return {String}
+     */
+    trim: function(str)
+    {
+        return (str || "").replace(/^\s+|\s+$/g,"");
+    },
+
+    /**
+     * Emulates Prototype's Object.extend
+     * @alias ActiveSupport.extend
+     * @param {Object} destination
+     * @param {Object} source
+     * @return {Object}
+     */
+    extend: function extend(destination, source)
+    {
+        for (var property in source)
+        {
+            destination[property] = source[property];
+        }
+        return destination;
+    },
+    /**
+     * Emulates Prototype's Object.clone
+     * @alias ActiveSupport.clone
+     * @param {Object} object
+     * @return {Object}
+     */
+    clone: function clone(object)
+    {
+        return ActiveSupport.extend({}, object);
+    },
+    
+    /**
+     * If the value passed is a function the value passed will be returned,
+     * otherwise a function returning the value passed will be returned.
+     * @alias ActiveSupport.proc
+     * @param {mixed} proc
+     * @return {Function}
+     */
+    proc: function proc(proc)
+    {
+        return typeof(proc) === 'function' ? proc : function(){return proc;};
+    },
+    
+    /**
+     * If the value passed is a function, the function is called and the value
+     * returned, otherwise the value passed in is returned.
+     * @alias ActiveSupport.value
+     * @param {mixed} value
+     * @return {scalar}
+     */
+    value: function value(value)
+    {
+        return typeof(value) === 'function' ? value() : value;
+    },
+    /**
+     * @alias ActiveSupport.synchronize
+     */
+    synchronize: function synchronize(execute,finish)
+    {
+        var scope = {};
+        var stack = [];
+        stack.waiting = {};
+        stack.add = function add(callback){
+            var wrapped = ActiveSupport.wrap(callback || function(){},function synchronizationWrapper(proceed){
+                var i = null;
+                var index = ActiveSupport.indexOf(stack,wrapped);
+                stack.waiting[index] = [proceed,ActiveSupport.arrayFrom(arguments)];
+                var all_present = true;
+                for(i = 0; i < stack.length; ++i)
+                {
+                    if(!stack.waiting[i])
+                    {
+                        all_present = false;
+                    }
+                }
+                if(all_present)
+                {
+                    for(i = 0; i < stack.length; ++i)
+                    {
+                        var item = stack.waiting[i];
+                        item[0].apply(item[0],item[1]);
+                        delete stack.waiting[i];
+                    }
+                }
+                if(all_present && i === stack.length)
+                {
+                    if(finish)
+                    {
+                        finish(scope);
+                    }
+                }
+            });
+            stack.push(wrapped);
+            return wrapped;
+        };
+        execute(stack,scope);
+        if(stack.length === 0 && finish)
+        {
+            finish(scope);
+        }
+    },
+    
+    /**
+     * @namespace {ActiveSupport.Inflector} A port of Rails Inflector class.
+     */
+    Inflector: {
+        Inflections: {
+            plural: [
+                [/(quiz)$/i,               "$1zes"  ],
+                [/^(ox)$/i,                "$1en"   ],
+                [/([m|l])ouse$/i,          "$1ice"  ],
+                [/(matr|vert|ind)ix|ex$/i, "$1ices" ],
+                [/(x|ch|ss|sh)$/i,         "$1es"   ],
+                [/([^aeiouy]|qu)y$/i,      "$1ies"  ],
+                [/(hive)$/i,               "$1s"    ],
+                [/(?:([^f])fe|([lr])f)$/i, "$1$2ves"],
+                [/sis$/i,                  "ses"    ],
+                [/([ti])um$/i,             "$1a"    ],
+                [/(buffal|tomat)o$/i,      "$1oes"  ],
+                [/(bu)s$/i,                "$1ses"  ],
+                [/(alias|status)$/i,       "$1es"   ],
+                [/(octop|vir)us$/i,        "$1i"    ],
+                [/(ax|test)is$/i,          "$1es"   ],
+                [/s$/i,                    "s"      ],
+                [/$/,                      "s"      ]
+            ],
+            singular: [
+                [/(quiz)zes$/i,                                                    "$1"     ],
+                [/(matr)ices$/i,                                                   "$1ix"   ],
+                [/(vert|ind)ices$/i,                                               "$1ex"   ],
+                [/^(ox)en/i,                                                       "$1"     ],
+                [/(alias|status)es$/i,                                             "$1"     ],
+                [/(octop|vir)i$/i,                                                 "$1us"   ],
+                [/(cris|ax|test)es$/i,                                             "$1is"   ],
+                [/(shoe)s$/i,                                                      "$1"     ],
+                [/(o)es$/i,                                                        "$1"     ],
+                [/(bus)es$/i,                                                      "$1"     ],
+                [/([m|l])ice$/i,                                                   "$1ouse" ],
+                [/(x|ch|ss|sh)es$/i,                                               "$1"     ],
+                [/(m)ovies$/i,                                                     "$1ovie" ],
+                [/(s)eries$/i,                                                     "$1eries"],
+                [/([^aeiouy]|qu)ies$/i,                                            "$1y"    ],
+                [/([lr])ves$/i,                                                    "$1f"    ],
+                [/(tive)s$/i,                                                      "$1"     ],
+                [/(hive)s$/i,                                                      "$1"     ],
+                [/([^f])ves$/i,                                                    "$1fe"   ],
+                [/(^analy)ses$/i,                                                  "$1sis"  ],
+                [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, "$1$2sis"],
+                [/([ti])a$/i,                                                      "$1um"   ],
+                [/(n)ews$/i,                                                       "$1ews"  ],
+                [/s$/i,                                                            ""       ]
+            ],
+            irregular: [
+                ['move',   'moves'   ],
+                ['sex',    'sexes'   ],
+                ['child',  'children'],
+                ['man',    'men'     ],
+                ['person', 'people'  ]
+            ],
+            uncountable: [
+                "sheep",
+                "fish",
+                "series",
+                "species",
+                "money",
+                "rice",
+                "information",
+				"info",
+                "equipment"
+            ]
+        },
+        /**
+         * Generates an ordinalized version of a number as a string (9th, 2nd, etc)
+         * @alias ActiveSupport.Inflector.ordinalize
+         * @param {Number} number
+         * @return {String}
+         */
+        ordinalize: function ordinalize(number)
+        {
+            if (11 <= parseInt(number, 10) % 100 && parseInt(number, 10) % 100 <= 13)
+            {
+                return number + "th";
+            }
+            else
+            {
+                switch (parseInt(number, 10) % 10)
+                {
+                    case  1: return number + "st";
+                    case  2: return number + "nd";
+                    case  3: return number + "rd";
+                    default: return number + "th";
+                }
+            }
+        },
+        /**
+         * Generates a plural version of an english word.
+         * @alias ActiveSupport.Inflector.pluralize
+         * @param {String} word
+         * @return {String}
+         */
+        pluralize: function pluralize(word)
+        {
+            var i, lc = word.toLowerCase();
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
+                if (lc === uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((lc === singular) || (lc === plural))
+                {
+                    return plural;
+                }
+            }
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.plural.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.plural[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.plural[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+						return word;
+        },
+        /**
+         * Generates a singular version of an english word.
+         * @alias ActiveSupport.Inflector.singularize
+         * @param {String} word
+         * @return {String}
+         */
+        singularize: function singularize(word)
+        {
+            var i, lc = word.toLowerCase();
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
+            {
+                var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
+                if (lc === uncountable)
+                {
+                    return uncountable;
+                }
+            }
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
+            {
+                var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
+                var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
+                if ((lc === singular) || (lc === plural))
+                {
+                    return singular;
+                }
+            }
+            for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
+            {
+                var regex = ActiveSupport.Inflector.Inflections.singular[i][0];
+                var replace_string = ActiveSupport.Inflector.Inflections.singular[i][1];
+                if (regex.test(word))
+                {
+                    return word.replace(regex, replace_string);
+                }
+            }
+            return word;
+        }
+    },
+    /**
+     * Generates a JavaScript Date object from a MySQL DATETIME formatted
+     * string (yyyy-mm-dd HH:MM:ss).
+     * @alias ActiveSupport.dateFromDateTime
+     * @param {String} date_time
+     * @return {Date}
+     */
+    dateFromDateTime: function dateFromDateTime(date_time)
+    {
+        var parts = date_time.replace(/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/,"$1 $2 $3 $4 $5 $6").split(' ');
+        return new Date(parts[0],parts[1]-1,parts[2],parts[3],parts[4],parts[5]);
+    },
+    /*
+     * Date Format 1.2.2
+     * (c) 2007-2008 Steven Levithan <stevenlevithan.com>
+     * MIT license
+     * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
+     *
+     * http://blog.stevenlevithan.com/archives/date-time-format
+     * 
+     * Accepts a date, a mask, or a date and a mask.
+     * Returns a formatted version of the given date.
+     * The date defaults to the current date/time.
+     * The mask defaults to dateFormat.masks.default.
+     */
+     
+    /**
+     * See: http://blog.stevenlevithan.com/archives/date-time-format
+     * 
+     * If convert_to_local_time is true the Date object will be assume to be GMT
+     * and be converted from GMT to the local time. Local time will be the local
+     * time of the server if running server side, or local time of the client
+     * side if running in the browser.
+     * @alias ActiveSupport.dateFormat
+     * @param {Date} date
+     * @param {String} format
+     * @param {Boolean} [convert_to_local_time]
+     * @return {String}
+     * @example
+     *     ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
+     */
+    dateFormat: function date_format_wrapper()
+    {
+        var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,
+            timezone = /\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|UTC)(?:[\-\+]\d{4})?)\b/g,
+            timezoneClip = /[^\-\+\dA-Z]/g,
+            pad = function (val, len) {
+                val = String(val);
+                len = len || 2;
+                while (val.length < len) {
+                    val = "0" + val;
+                }
+                return val;
+            };
+
+        // Regexes and supporting functions are cached through closure
+        var dateFormat = function dateFormat(date, mask, utc) {
+            var dF = dateFormat;
+
+            // You can't provide utc if you skip other args (use the "UTC:" mask prefix)
+            if (arguments.length === 1 && (typeof date === "string" || date instanceof String) && !/\d/.test(date)) {
+                mask = date;
+                date = undefined;
+            }
+
+            // Passing date through Date applies Date.parse, if necessary
+            date = date ? new Date(date) : new Date();
+            if (isNaN(date)) {
+                return ActiveSupport.throwError(new SyntaxError("invalid date"));
+            }
+
+            mask = String(dF.masks[mask] || mask || dF.masks["default"]);
+
+            // Allow setting the utc argument via the mask
+            if (mask.slice(0, 4) === "UTC:") {
+                mask = mask.slice(4);
+                utc = true;
+            }
+
+            var _ = utc ? "getUTC" : "get",
+                d = date[_ + "Date"](),
+                D = date[_ + "Day"](),
+                m = date[_ + "Month"](),
+                y = date[_ + "FullYear"](),
+                H = date[_ + "Hours"](),
+                M = date[_ + "Minutes"](),
+                s = date[_ + "Seconds"](),
+                L = date[_ + "Milliseconds"](),
+                o = utc ? 0 : date.getTimezoneOffset(),
+                flags = {
+                    d:    d,
+                    dd:   pad(d),
+                    ddd:  dF.i18n.dayNames[D],
+                    dddd: dF.i18n.dayNames[D + 7],
+                    m:    m + 1,
+                    mm:   pad(m + 1),
+                    mmm:  dF.i18n.monthNames[m],
+                    mmmm: dF.i18n.monthNames[m + 12],
+                    yy:   String(y).slice(2),
+                    yyyy: y,
+                    h:    H % 12 || 12,
+                    hh:   pad(H % 12 || 12),
+                    H:    H,
+                    HH:   pad(H),
+                    M:    M,
+                    MM:   pad(M),
+                    s:    s,
+                    ss:   pad(s),
+                    l:    pad(L, 3),
+                    L:    pad(L > 99 ? Math.round(L / 10) : L),
+                    t:    H < 12 ? "a"  : "p",
+                    tt:   H < 12 ? "am" : "pm",
+                    T:    H < 12 ? "A"  : "P",
+                    TT:   H < 12 ? "AM" : "PM",
+                    Z:    utc ? "UTC" : (String(date).match(timezone) || [""]).pop().replace(timezoneClip, ""),
+                    o:    (o > 0 ? "-" : "+") + pad(Math.floor(Math.abs(o) / 60) * 100 + Math.abs(o) % 60, 4),
+                    S:    ["th", "st", "nd", "rd"][d % 10 > 3 ? 0 : (d % 100 - d % 10 !== 10) * d % 10]
+                };
+
+            return mask.replace(token, function ($0) {
+                return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
+            });
+        };
+        
+        // Some common format strings
+        dateFormat.masks = {
+            "default":      "ddd mmm dd yyyy HH:MM:ss",
+            shortDate:      "m/d/yy",
+            mediumDate:     "mmm d, yyyy",
+            longDate:       "mmmm d, yyyy",
+            fullDate:       "dddd, mmmm d, yyyy",
+            shortTime:      "h:MM TT",
+            mediumTime:     "h:MM:ss TT",
+            longTime:       "h:MM:ss TT Z",
+            isoDate:        "yyyy-mm-dd",
+            isoTime:        "HH:MM:ss",
+            isoDateTime:    "yyyy-mm-dd'T'HH:MM:ss",
+            MySQL:          "yyyy-mm-dd HH:MM:ss",
+            isoUtcDateTime: "UTC:yyyy-mm-dd'T'HH:MM:ss'Z'"
+        };
+
+        // Internationalization strings
+        dateFormat.i18n = {
+            dayNames: [
+                "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+                "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+            ],
+            monthNames: [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+            ]
+        };
+        
+        return dateFormat;
+    }(),
+    /**
+     * Serializes an object to a JSON string.
+     * @alias ActiveSupport.JSONFromObject
+     * @param {Object} object
+     * @return {String} json
+     */ 
+    JSONFromObject: function JSONFromObject(object)
+    {
+        return ActiveSupport.JSON.stringify(object);
+    },
+    /**
+     * Serializes an object to an XML string.
+     * @alias ActiveSupport.XMLFromObject
+     * @param {String} outer_key_name
+     * @param {Object} object
+     * @return {String} xml
+     */ 
+    XMLFromObject: function XMLFromObject(outer_key_name,object)
+    {
+        var indent = 0;
+        
+        var str_repeat = function str_repeat(string,repeat)
+        {
+            var response = '';
+            for(var i = 0; i < repeat; ++i)
+            {
+                response += string;
+            }
+            return response;
+        };
+        
+        var serialize_value = function serialize_value(key_name,value,indent)
+        {
+            var response = '';
+            if(typeof(value) === 'string' || typeof(value) === 'number' || typeof(value) === 'boolean')
+            {
+                response = '<![CDATA[' + String(value) + ']]>';
+            }
+            else if(typeof(value) === 'object')
+            {
+                response += String.fromCharCode(10);
+                if('length' in value && 'splice' in value)
+                {
+                    for(var i = 0; i < value.length; ++i)
+                    {
+                        response += wrap_value(ActiveSupport.Inflector.singularize(key_name) || key_name,value[i],indent + 1);
+                    }
+                }
+                else
+                {
+                    var object = value.toObject && typeof(value.toObject) === 'function' ? value.toObject() : value;
+                    for(key_name in object)
+                    {
+                        response += wrap_value(key_name,object[key_name],indent + 1);
+                    }
+                }
+                response += str_repeat(' ',4 * indent);
+            }
+            return response;
+        };
+        
+        var sanitize_key_name = function sanitize_key_name(key_name)
+        {
+            return key_name.replace(/[\s\_]+/g,'-').toLowerCase();
+        };
+        
+        var wrap_value = function wrap_value(key_name,value,indent)
+        {
+            key_name = sanitize_key_name(key_name);
+            return str_repeat(' ',4 * indent) + '<' + key_name + '>' + serialize_value(key_name,value,indent) + '</' + key_name + '>' + String.fromCharCode(10);
+        };
+        
+        outer_key_name = sanitize_key_name(outer_key_name);
+        return '<' + outer_key_name + '>' + serialize_value(outer_key_name,object,0) + '</' + outer_key_name + '>';
+    },
+    /*
+        http://www.JSON.org/json2.js
+        2008-07-15
+
+        Public Domain.
+
+        NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+        See http://www.JSON.org/js.html
+
+        This file creates a global JSON object containing two methods: stringify
+        and parse.
+
+            JSON.stringify(value, replacer, space)
+                value       any JavaScript value, usually an object or array.
+
+                replacer    an optional parameter that determines how object
+                            values are stringified for objects. It can be a
+                            function or an array.
+
+                space       an optional parameter that specifies the indentation
+                            of nested structures. If it is omitted, the text will
+                            be packed without extra whitespace. If it is a number,
+                            it will specify the number of spaces to indent at each
+                            level. If it is a string (such as '\t' or '&nbsp;'),
+                            it contains the characters used to indent at each level.
+
+                This method produces a JSON text from a JavaScript value.
+
+                When an object value is found, if the object contains a toJSON
+                method, its toJSON method will be called and the result will be
+                stringified. A toJSON method does not serialize: it returns the
+                value represented by the name/value pair that should be serialized,
+                or undefined if nothing should be serialized. The toJSON method
+                will be passed the key associated with the value, and this will be
+                bound to the object holding the key.
+
+                For example, this would serialize Dates as ISO strings.
+
+                    Date.prototype.toJSON = function (key) {
+                        function f(n) {
+                            // Format integers to have at least two digits.
+                            return n < 10 ? '0' + n : n;
+                        }
+
+                        return this.getUTCFullYear()   + '-' +
+                             f(this.getUTCMonth() + 1) + '-' +
+                             f(this.getUTCDate())      + 'T' +
+                             f(this.getUTCHours())     + ':' +
+                             f(this.getUTCMinutes())   + ':' +
+                             f(this.getUTCSeconds())   + 'Z';
+                    };
+
+                You can provide an optional replacer method. It will be passed the
+                key and value of each member, with this bound to the containing
+                object. The value that is returned from your method will be
+                serialized. If your method returns undefined, then the member will
+                be excluded from the serialization.
+
+                If the replacer parameter is an array, then it will be used to
+                select the members to be serialized. It filters the results such
+                that only members with keys listed in the replacer array are
+                stringified.
+
+                Values that do not have JSON representations, such as undefined or
+                functions, will not be serialized. Such values in objects will be
+                dropped; in arrays they will be replaced with null. You can use
+                a replacer function to replace those with JSON values.
+                JSON.stringify(undefined) returns undefined.
+
+                The optional space parameter produces a stringification of the
+                value that is filled with line breaks and indentation to make it
+                easier to read.
+
+                If the space parameter is a non-empty string, then that string will
+                be used for indentation. If the space parameter is a number, then
+                the indentation will be that many spaces.
+
+                Example:
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}]);
+                // text is '["e",{"pluribus":"unum"}]'
+
+
+                text = JSON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+                // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+                text = JSON.stringify([new Date()], function (key, value) {
+                    return this[key] instanceof Date ?
+                        'Date(' + this[key] + ')' : value;
+                });
+                // text is '["Date(---current time---)"]'
+
+
+            JSON.parse(text, reviver)
+                This method parses a JSON text to produce an object or array.
+                It can throw a SyntaxError exception.
+
+                The optional reviver parameter is a function that can filter and
+                transform the results. It receives each of the keys and values,
+                and its return value is used instead of the original value.
+                If it returns what it received, then the structure is not modified.
+                If it returns undefined then the member is deleted.
+
+                Example:
+
+                // Parse the text. Values that look like ISO date strings will
+                // be converted to Date objects.
+
+                myData = JSON.parse(text, function (key, value) {
+                    var a;
+                    if (typeof value === 'string') {
+                        a =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                        if (a) {
+                            return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4],
+                                +a[5], +a[6]));
+                        }
+                    }
+                    return value;
+                });
+
+                myData = JSON.parse('["Date(09/09/2001)"]', function (key, value) {
+                    var d;
+                    if (typeof value === 'string' &&
+                            value.slice(0, 5) === 'Date(' &&
+                            value.slice(-1) === ')') {
+                        d = new Date(value.slice(5, -1));
+                        if (d) {
+                            return d;
+                        }
+                    }
+                    return value;
+                });
+
+
+        This is a reference implementation. You are free to copy, modify, or
+        redistribute.
+
+        This code should be minified before deployment.
+        See http://javascript.crockford.com/jsmin.html
+
+        USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+        NOT CONTROL.
+    */
+    
+    /**
+     * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+     */
+    JSON: function()
+    {
+        //use native support if available
+        if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
+        {
+            return global_context.JSON;
+        }
+        
+        function f(n) {
+            // Format integers to have at least two digits.
+            return n < 10 ? '0' + n : n;
+        }
+        
+        Date.prototype.toJSON = function (key) {
+            return this.getUTCFullYear()   + '-' +
+                 f(this.getUTCMonth() + 1) + '-' +
+                 f(this.getUTCDate())      + 'T' +
+                 f(this.getUTCHours())     + ':' +
+                 f(this.getUTCMinutes())   + ':' +
+                 f(this.getUTCSeconds())   + 'Z';
+        };
+        var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            escapeable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+            gap,
+            indent,
+            meta = {    // table of character substitutions
+                '\b': '\\b',
+                '\t': '\\t',
+                '\n': '\\n',
+                '\f': '\\f',
+                '\r': '\\r',
+                '"' : '\\"',
+                '\\': '\\\\'
+            },
+            rep;
+        
+        function quote(string) {
+            escapeable.lastIndex = 0;
+            return escapeable.test(string) ?
+                '"' + string.replace(escapeable, function (a) {
+                    var c = meta[a];
+                    if (typeof c === 'string') {
+                        return c;
+                    }
+                    return '\\u' + ('0000' +
+                            (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                }) + '"' :
+                '"' + string + '"';
+        }
+        
+        function str(key, holder) {
+            var i,          // The loop counter.
+                k,          // The member key.
+                v,          // The member value.
+                length,
+                mind = gap,
+                partial,
+                value = holder[key];
+            if (value && typeof value === 'object' &&
+                    typeof value.toJSON === 'function' && !ActiveSupport.isArray(value)) {
+                value = value.toJSON(key);
+            }
+            if (typeof rep === 'function') {
+                value = rep.call(holder, key, value);
+            }
+            switch (typeof value) {
+            case 'string':
+                return quote(value.valueOf());
+            case 'number':
+                return isFinite(value) ? String(value.valueOf()) : 'null';
+            case 'boolean':
+                return String(value.valueOf());
+            case 'null':
+                return String(value);
+            case 'object':
+                if (!value) {
+                    return 'null';
+                }
+                gap += indent;
+                partial = [];
+                if (typeof value.length === 'number' &&
+                        !(value.propertyIsEnumerable('length'))) {
+                    length = value.length;
+                    for (i = 0; i < length; i += 1) {
+                        partial[i] = str(i, value) || 'null';
+                    }
+                    v = partial.length === 0 ? '[]' :
+                        gap ? '[\n' + gap +
+                                partial.join(',\n' + gap) + '\n' +
+                                    mind + ']' :
+                              '[' + partial.join(',') + ']';
+                    gap = mind;
+                    return v;
+                }
+                if (rep && typeof rep === 'object') {
+                    length = rep.length;
+                    for (i = 0; i < length; i += 1) {
+                        k = rep[i];
+                        if (typeof k === 'string') {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                } else {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = str(k, value);
+                            if (v) {
+                                partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                            }
+                        }
+                    }
+                }
+                v = partial.length === 0 ? '{}' :
+                    gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' +
+                            mind + '}' : '{' + partial.join(',') + '}';
+                gap = mind;
+                return v;
+            }
+        }
+        
+        return {
+            /**
+             * @alias ActiveSupport.JSON.stringify
+             * @param {Object} value
+             * @return {String}
+             */
+            stringify: function (value, replacer, space) {
+                var i;
+                gap = '';
+                indent = '';
+                if (typeof space === 'number') {
+                    for (i = 0; i < space; i += 1) {
+                        indent += ' ';
+                    }
+                } else if (typeof space === 'string') {
+                    indent = space;
+                }
+                rep = replacer;
+                if (replacer && typeof replacer !== 'function' &&
+                        (typeof replacer !== 'object' ||
+                         typeof replacer.length !== 'number')) {
+                    return ActiveSupport.throwError(new Error('JSON.stringify'));
+                }
+                return str('', {'': value});
+            },
+            /**
+             * @alias ActiveSupport.JSON.parse
+             * @param {String} text
+             * @return {Object}
+             */
+            parse: function (text, reviver) {
+                var j;
+                
+                function walk(holder, key) {
+                    var k, v, value = holder[key];
+                    if (value && typeof value === 'object') {
+                        for (k in value) {
+                            if (Object.hasOwnProperty.call(value, k)) {
+                                v = walk(value, k);
+                                if (v !== undefined) {
+                                    value[k] = v;
+                                } else {
+                                    delete value[k];
+                                }
+                            }
+                        }
+                    }
+                    return reviver.call(holder, key, value);
+                }
+                
+                cx.lastIndex = 0;
+                if (cx.test(text)) {
+                    text = text.replace(cx, function (a) {
+                        return '\\u' + ('0000' +
+                                (+(a.charCodeAt(0))).toString(16)).slice(-4);
+                    });
+                }
+                if (/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g, '@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, ']').replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
+                    j = eval('(' + text + ')');
+                    return typeof reviver === 'function' ?
+                        walk({'': j}, '') : j;
+                }
+                return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
+            }
+        };
+    }()
+};
+
+})(this);
+
+/**
+ * @namespace {ActiveEvent}
+ * @example
  * 
- * Copyright (c) 2009 Aptana, Inc.
+ * ActiveEvent
+ * ===========
  * 
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * ActiveEvent allows you to create observable events, and attach event
+ * handlers to any class or object.
+ *
+ * Setup
+ * -----
+ * Before you can use ActiveEvent you must call extend a given class or object
+ * with ActiveEvent's methods. If you extend a class, both the class itself
+ * will become observable, as well as all of it's instances.
+ *
+ *     ActiveEvent.extend(MyClass); //class and all instances are observable
+ *     ActiveEvent.extend(my_object); //this object becomes observable
  * 
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * Creating Events
+ * ---------------
+ * You can create an event inside any method of your class or object by calling
+ * the notify() method with name of the event followed by any arguments to be
+ * passed to observers. You can also have an existing method fire an event with
+ * the same name as the method using makeObservable().
  * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ *     var Message = function(){};
+ *     ActiveEvent.extend(Message);
+ *     Message.prototype.send = function(text){
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *     };
  * 
- * ***** END LICENSE BLOCK ***** */
-eval(function(p,a,c,k,e,r){e=function(c){return(c<62?'':e(parseInt(c/62)))+((c=c%62)>35?String.fromCharCode(c+29):c.toString(36))};if('0'.replace(0,e)==0){while(c--)r[e(c)]=k[c];k=[function(e){return r[e]||e}];e=function(){return'([8]|[1-8]\\w)'};c=1};while(c--)if(k[c])p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c]);return p}('14 19=1j;if(1d 3f!="1D"){3f.19=19}(17(B){19={3A:17 bs(){15 B},getClass:17 bt(a,b){b=b||19.3A();14 c=b[a];if(!c){14 d=(1d(b.__noSuchMethod__)!==\'1D\');if(d){3g{b[a]();c=b[a]}3h(e){15 1l}}}15 c},1N:17 be(){if(1d(31)!==\'1D\'){if(1d 31.3i!==\'1D\'){3i.1N.1t(3i,1u||[])}31.5L.5M.1t(31.5L,1u||[])}if(1d(44)!==\'1D\'){44.5N.5O.1N.1t(44.5N.5O,1u||[])}if(1d(3i)!==\'1D\'){3i.1N.1t(3i,1u||[])}},45:17 bu(a){15 1p 2q(a)},5P:1w,5Q:1w,1Q:17 N(a){if(1d(a)==\'1F\'){a=1p 2q(a);}14 b=19.1U(1u).1I(1);if(19.5P){19.1N.1t(19,[\'Throwing error:\',a].3j(b))}if(19.5Q){14 c=19.21(a);c.3B=c.3B+b.26(\',\');5R c;}},1U:17 bv(a){if(!a){15[]}14 b=a.1c||0;14 c=1p 5S(b);2r(b--){c[b]=a[b]}15 c},46:17 bw(a){15 a&&1d(a)==\'1R\'&&\'1c\'in a&&\'4O\'in a&&\'26\'in a},3C:17 bx(a,b,c){c=c||(0);14 d=a.1c;if(c<0){c=d+c}1e(;c<d;c++){if(a[c]===b){15 c}}15-1},5T:17 by(a){14 b=19.1U(1u).1I(1);14 c=[];1e(14 d=0;d<a.1c;d++){if(!(19.3C(b,a[d])>-1)){c.1m(a[d])}}15 c},3D:17 bz(a,b){if(1d(b)==\'1D\'){15 a}15 17 c(){15 a.1t(b,1u)}},1O:17 bA(a){if(1u.1c==1){15 a}14 b=19.1U(1u).1I(1);15 17 c(){15 a.1t(8,b.3j(19.1U(1u)))}},47:17 bB(a,b){15 17 c(){b.1t(8,[19.3D(a,8)].3j(19.1U(1u)))}},2H:17 bf(a){14 b=[];1e(14 c in a){b.1m(c)}15 b},48:17 bC(b){15 b.1A(/::/g,\'/\').1A(/([A-Z]+)([A-Z][a-z])/g,17(a){a=a.2I("");15 a[0]+\'_\'+a[1]}).1A(/([a-z\\d])([A-Z])/g,17(a){a=a.2I("");15 a[0]+\'_\'+a[1]}).1A(/-/g,\'_\').1V()},3E:17 bg(a,b){14 c,d=a.1A(/\\_/g,\'-\').2I(\'-\'),f=d.1c;if(f===1){if(b){15 d[0].3k(0).3l()+d[0].2Q(1)}1g{15 d[0]}}if(a.3k(0)===\'-\'){c=d[0].3k(0).3l()+d[0].2Q(1)}1g{c=d[0]}1e(14 g=1;g<f;g++){c+=d[g].3k(0).3l()+d[g].2Q(1)}if(b){15 c.3k(0).3l()+c.2Q(1)}1g{15 c}},1x:17 bD(a,b){1e(14 c in b){a[c]=b[c]}15 a},21:17 bh(a){15 19.1x({},a)},proc:17 bi(a){15 1d(a)===\'17\'?a:17(){15 a}},2s:17 bE(a){15 1d(a)===\'17\'?a():a},2a:17 bF(j,i){14 k={};14 l=[];l.3F={};l.add=17 q(g){14 h=19.47(g||17(){},17 synchronizationWrapper(a){14 b=1j;14 c=19.3C(l,h);l.3F[c]=[a,19.1U(1u)];14 d=1w;1e(b=0;b<l.1c;++b){if(!l.3F[b]){d=1l}}if(d){1e(b=0;b<l.1c;++b){14 f=l.3F[b];f[0].1t(f[0],f[1]);2l l.3F[b]}}if(d&&b===l.1c){if(i){i(k)}}});l.1m(h);15 h};j(l,k);if(l.1c===0&&i){i(k)}},1K:{1W:{49:[[/(5U)$/i,"$1zes"],[/^(ox)$/i,"$1en"],[/([m|l])ouse$/i,"$1ice"],[/(5W|5X|5Y)ix|ex$/i,"$1ices"],[/(x|ch|ss|sh)$/i,"$4P"],[/([^61]|qu)y$/i,"$1ies"],[/(63)$/i,"$1s"],[/(?:([^f])fe|([lr])f)$/i,"$1$2ves"],[/sis$/i,"4Q"],[/([ti])um$/i,"$1a"],[/(buffal|tomat)o$/i,"$1oes"],[/(bu)s$/i,"$1ses"],[/(66|67)$/i,"$4P"],[/(68|69)us$/i,"$1i"],[/(ax|2t)is$/i,"$4P"],[/s$/i,"s"],[/$/,"s"]],4a:[[/(5U)zes$/i,"$1"],[/(5W)6a$/i,"$1ix"],[/(5X|5Y)6a$/i,"$1ex"],[/^(ox)en/i,"$1"],[/(66|67)es$/i,"$1"],[/(68|69)i$/i,"$1us"],[/(cris|ax|2t)es$/i,"$1is"],[/(shoe)s$/i,"$1"],[/(o)es$/i,"$1"],[/(bus)es$/i,"$1"],[/([m|l])ice$/i,"$1ouse"],[/(x|ch|ss|sh)es$/i,"$1"],[/(m)ovies$/i,"$1ovie"],[/(s)eries$/i,"$1eries"],[/([^61]|qu)ies$/i,"$1y"],[/([lr])6b$/i,"$1f"],[/(tive)s$/i,"$1"],[/(63)s$/i,"$1"],[/([^f])6b$/i,"$1fe"],[/(^analy)4Q$/i,"$1sis"],[/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)4Q$/i,"$1$2sis"],[/([ti])a$/i,"$1um"],[/(n)ews$/i,"$1ews"],[/s$/i,""]],33:[[\'move\',\'moves\'],[\'sex\',\'sexes\'],[\'child\',\'6c\'],[\'man\',\'men\'],[\'person\',\'people\']],3G:["sheep","fish","series","species","money","rice","information","5M","equipment"]},ordinalize:17 bG(a){if(11<=1S(a,10)%4b&&1S(a,10)%4b<=13){15 a+"th"}1g{2R(1S(a,10)%10){1v 1:15 a+"st";1v 2:15 a+"nd";1v 3:15 a+"rd";3H:15 a+"th"}}},6g:17 bH(a){14 b;1e(b=0;b<19.1K.1W.3G.1c;b++){14 c=19.1K.1W.3G[b];if(a.1V()===c||19.48(a.1V()).2I(\'_\').4S()===c){15 c}}1e(b=0;b<19.1K.1W.33.1c;b++){14 d=19.1K.1W.33[b][0];14 f=19.1K.1W.33[b][1];if((a.1V()===d)||(a===f)){15 f}}1e(b=0;b<19.1K.1W.49.1c;b++){14 g=19.1K.1W.49[b][0];14 h=19.1K.1W.49[b][1];if(g.2t(a)){15 a.1A(g,h)}}15 a},3I:17 bI(a){14 b;1e(b=0;b<19.1K.1W.3G.1c;b++){14 c=19.1K.1W.3G[b];if(a.1V()===c||19.48(a.1V()).2I(\'_\').4S()===c){15 c}}1e(b=0;b<19.1K.1W.33.1c;b++){14 d=19.1K.1W.33[b][0];14 f=19.1K.1W.33[b][1];if((a.1V()===d)||(a===f)){15 f}}1e(b=0;b<19.1K.1W.4a.1c;b++){14 g=19.1K.1W.4a[b][0];14 h=19.1K.1W.4a[b][1];if(g.2t(a)){15 a.1A(g,h)}}15 a}},4T:17 bJ(a){14 b=a.1A(/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/,"$1 $2 $3 $4 $5 $6").2I(\' \');15 1p 34(b[0],b[1]-1,b[2],b[3],b[4],b[5])},3J:17 bK(){14 D=/d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\\1?|[LloSZ]|"[^"]*"|\'[^\']*\'/g,x=/\\b(?:[PMCEA][SDP]T|(?:Pacific|Mountain|Central|Eastern|Atlantic) (?:Standard|Daylight|Prevailing) Time|(?:GMT|4d)(?:[\\-\\+]\\d{4})?)\\b/g,bb=/[^\\-\\+\\dA-Z]/g,z=17(a,b){a=1L(a);b=b||2;2r(a.1c<b){a="0"+a}15 a};14 E=17 E(b,c,d){14 f=E;if(1u.1c===1&&(1d b==="1F"||b 4U 1L)&&!/\\d/.2t(b)){c=b;b=1D}b=b?1p 34(b):1p 34();if(isNaN(b)){15 19.1Q(1p 6h("invalid 4e"));}c=1L(f.4V[c]||c||f.4V["3H"]);if(c.1I(0,4)==="4d:"){c=c.1I(4);d=1w}14 g=d?"getUTC":"1o",h=b[g+"34"](),j=b[g+"Day"](),i=b[g+"Month"](),k=b[g+"FullYear"](),l=b[g+"Hours"](),q=b[g+"Minutes"](),n=b[g+"Seconds"](),s=b[g+"Milliseconds"](),u=d?0:b.getTimezoneOffset(),v={d:h,dd:z(h),6i:f.3K.4W[j],6j:f.3K.4W[j+7],m:i+1,mm:z(i+1),4X:f.3K.4Y[i],4Z:f.3K.4Y[i+12],yy:1L(k).1I(2),2b:k,h:l%12||12,hh:z(l%12||12),H:l,HH:z(l),M:q,MM:z(q),s:n,ss:z(n),l:z(s,3),L:z(s>99?35.6k(s/10):s),t:l<12?"a":"p",tt:l<12?"am":"pm",T:l<12?"A":"P",TT:l<12?"AM":"PM",Z:d?"4d":(1L(b).2m(x)||[""]).4S().1A(bb,""),o:(u>0?"-":"+")+z(35.6l(35.50(u)/60)*4b+35.50(u)%60,4),S:["th","st","nd","rd"][h%10>3?0:(h%4b-h%10!==10)*h%10]};15 c.1A(D,17(a){15 a in v?v[a]:a.1I(1,a.1c-1)})};E.4V={"3H":"6i 4X dd 2b HH:MM:ss",shortDate:"m/d/yy",mediumDate:"4X d, 2b",longDate:"4Z d, 2b",fullDate:"6j, 4Z d, 2b",shortTime:"h:MM TT",mediumTime:"h:MM:ss TT",longTime:"h:MM:ss TT Z",isoDate:"2b-mm-dd",isoTime:"HH:MM:ss",isoDateTime:"2b-mm-dd\'T\'HH:MM:ss",6m:"2b-mm-dd HH:MM:ss",isoUtcDateTime:"4d:2b-mm-dd\'T\'HH:MM:ss\'Z\'"};E.3K={4W:["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],4Y:["Jan","Feb","Mar","Apr","6n","Jun","Jul","Aug","Sep","Oct","Nov","Dec","January","February","March","April","6n","June","July","August","September","October","November","December"]};15 E}(),JSONFromObject:17 bL(a){15 19.28.2S(a)},51:17 bM(h,j){14 i=0;14 k=17 k(a,b){14 c=\'\';1e(14 d=0;d<b;++d){c+=a}15 c};14 l=17 l(a,b,c){14 d=\'\';if(1d(b)===\'1F\'||1d(b)===\'24\'||1d(b)===\'36\'){d=\'<![CDATA[\'+1L(b)+\']]>\'}1g if(1d(b)===\'1R\'){d+=1L.6o(10);if(\'1c\'in b&&\'4O\'in b){1e(14 f=0;f<b.1c;++f){d+=n(19.1K.3I(a)||a,b[f],c+1)}}1g{14 g=b.2v&&1d(b.2v)===\'17\'?b.2v():b;1e(a in g){d+=n(a,g[a],c+1)}}d+=k(\' \',4*c)}15 d};14 q=17 q(a){15 a.1A(/[\\s\\_]+/g,\'-\').1V()};14 n=17 n(a,b,c){a=q(a);15 k(\' \',4*c)+\'<\'+a+\'>\'+l(a,b,c)+\'</\'+a+\'>\'+1L.6o(10)};h=q(h);15\'<\'+h+\'>\'+l(h,j,0)+\'</\'+h+\'>\'},28:17(){if(B&&\'28\'in B&&\'2S\'in B.28&&\'37\'in B.28){15 B.28}17 k(a){15 a<10?\'0\'+a:a}34.1z.3L=17(a){15 8.getUTCFullYear()+\'-\'+k(8.getUTCMonth()+1)+\'-\'+k(8.getUTCDate())+\'T\'+k(8.getUTCHours())+\':\'+k(8.getUTCMinutes())+\':\'+k(8.getUTCSeconds())+\'Z\'};14 l=/[\\u0000\\6p\\6q-\\6r\\6s\\6t\\6u\\6v-\\6w\\6x-\\6y\\6z-\\6A\\6B\\6C-\\6D]/g,q=/[\\\\\\"\\x00-\\x1f\\x7f-\\x9f\\6p\\6q-\\6r\\6s\\6t\\6u\\6v-\\6w\\6x-\\6y\\6z-\\6A\\6B\\6C-\\6D]/g,n,s,u={\'\\b\':\'\\\\b\',\'\\t\':\'\\\\t\',\'\\n\':\'\\\\n\',\'\\f\':\'\\\\f\',\'\\r\':\'\\\\r\',\'"\':\'\\\\"\',\'\\\\\':\'\\\\\\\\\'},v;17 D(c){q.6E=0;15 q.2t(c)?\'"\'+c.1A(q,17(a){14 b=u[a];if(1d b===\'1F\'){15 b}15\'\\\\u\'+(\'6F\'+(+(a.6G(0))).4g(16)).1I(-4)})+\'"\':\'"\'+c+\'"\'}17 x(a,b){14 c,d,f,g,h=n,j,i=b[a];if(i&&1d i===\'1R\'&&1d i.3L===\'17\'&&!19.46(i)){i=i.3L(a)}if(1d v===\'17\'){i=v.4h(b,a,i)}2R(1d i){1v\'1F\':15 D(i.52());1v\'24\':15 isFinite(i)?1L(i.52()):\'1j\';1v\'36\':15 1L(i.52());1v\'1j\':15 1L(i);1v\'1R\':if(!i){15\'1j\'}n+=s;j=[];if(1d i.1c===\'24\'&&!(i.propertyIsEnumerable(\'1c\'))){g=i.1c;1e(c=0;c<g;c+=1){j[c]=x(c,i)||\'1j\'}f=j.1c===0?\'[]\':n?\'[\\n\'+n+j.26(\',\\n\'+n)+\'\\n\'+h+\']\':\'[\'+j.26(\',\')+\']\';n=h;15 f}if(v&&1d v===\'1R\'){g=v.1c;1e(c=0;c<g;c+=1){d=v[c];if(1d d===\'1F\'){f=x(d,i);if(f){j.1m(D(d)+(n?\': \':\':\')+f)}}}}1g{1e(d in i){if(6H.6I.4h(i,d)){f=x(d,i);if(f){j.1m(D(d)+(n?\': \':\':\')+f)}}}}f=j.1c===0?\'{}\':n?\'{\\n\'+n+j.26(\',\\n\'+n)+\'\\n\'+h+\'}\':\'{\'+j.26(\',\')+\'}\';n=h;15 f}}15{2S:17(a,b,c){14 d;n=\'\';s=\'\';if(1d c===\'24\'){1e(d=0;d<c;d+=1){s+=\' \'}}1g if(1d c===\'1F\'){s=c}v=b;if(b&&1d b!==\'17\'&&(1d b!==\'1R\'||1d b.1c!==\'24\')){15 19.1Q(1p 2q(\'28.2S\'));}15 x(\'\',{\'\':a})},37:17(g,h){14 j;17 i(a,b){14 c,d,f=a[b];if(f&&1d f===\'1R\'){1e(c in f){if(6H.6I.4h(f,c)){d=i(f,c);if(d!==1D){f[c]=d}1g{2l f[c]}}}}15 h.4h(a,b,f)}l.6E=0;if(l.2t(g)){g=g.1A(l,17(a){15\'\\\\u\'+(\'6F\'+(+(a.6G(0))).4g(16)).1I(-4)})}if(/^[\\],:{}\\s]*$/.2t(g.1A(/\\\\(?:["\\\\\\/bfnrt]|u[0-9a-fA-F]{4})/g,\'@\').1A(/"[^"\\\\\\n\\r]*"|1w|1l|1j|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?/g,\']\').1A(/(?:^|:|,)(?:\\s*\\[)+/g,\'\'))){j=eval(\'(\'+g+\')\');15 1d h===\'17\'?i({\'\':j},\'\'):j}15 19.1Q(1p 6h(\'28.37\'));}}}()}})(8);14 2g=1j;if(1d 3f!="1D"){3f.2g=2g}(17(){2g={};2g.1x=17 v(h){h.4i=17 j(d){if(8[d]){8.2K(d);8[d]=19.47(8[d],17 f(a){14 b=19.1U(1u).1I(1);14 c=a.1t(8,b);b.2T(d);8.1E.1t(8,b);15 c})}if(8.1z){8.1z.4i(d)}};h.53=17 i(a,b,c){15 1p 2g.6J([[8,a]],b,c)};h.2K=17 k(a){8.1C=8.1C||{};8.1C[a]=8.1C[a]||[]};h.2d=17 l(a,b){if(1d(a)===\'1F\'&&1d(b)!==\'1D\'){8.2K(a);if(!(19.3C(8.1C[a],b)>-1)){8.1C[a].1m(b)}}1g{1e(14 c in a){8.2d(c,a[c])}}15 b};h.4j=17 q(a,b){8.2K(a);if(a&&b){8.1C[a]=19.5T(8.1C[a],b)}1g if(a){8.1C[a]=[]}1g{8.1C={}}};h.54=17 n(a,b){14 c=19.3D(17 bound_inner_observer(){b.1t(8,1u);8.4j(a,c)},8);8.2K(a);8.1C[a].1m(c);15 c};h.1E=17 s(a){if(!8.1C||!8.1C[a]||(8.1C[a]&&8.1C[a].1c==0)){15[]}8.2K(a);14 b=[];14 c=19.1U(1u).1I(1);1e(14 d=0;d<8.1C[a].1c;++d){14 f=8.1C[a][d].1t(8.1C[a][d],c);if(f===1l){15 1l}1g{b.1m(f)}}15 b};if(h.1z){h.1z.4i=h.4i;h.1z.53=h.53;h.1z.2K=h.2K;h.1z.2d=h.2d;h.1z.4j=h.4j;h.1z.54=h.54;h.1z.1E=17 u(a){if((!h.1C||!h.1C[a]||(h.1C[a]&&h.1C[a].1c==0))&&(!8.3m||!8.3m[a])&&(!8.1C||!8.1C[a]||(8.1C[a]&&8.1C[a].1c==0))){15[]}14 b=19.1U(1u).1I(1);14 c=[];if(h.1E){4k=19.1U(1u).1I(1);4k.2T(8);4k.2T(a);14 d=h.1E.1t(h,4k);if(d===1l){15 1l}c=c.3j(d)}8.2K(a);14 f;if(8.3m&&8.3m[a]&&1d(8.3m[a])===\'17\'){f=8.3m[a].1t(8,b);if(f===1l){15 1l}1g{c.1m(f)}}1e(14 g=0;g<8.1C[a].1c;++g){f=8.1C[a][g].1t(8.1C[a][g],b);if(f===1l){15 1l}1g{c.1m(f)}}15 c}}};2g.6J=17 D(c,d,f){8.3M=17 g(){1e(14 a=0;a<8.2n.1c;++a){8.2n[a][0][8.2n[a][1]]=8.55[a]}};8.2n=c;8.55=[];1e(14 h=0;h<8.2n.1c;++h){8.55.1m(8.2n[h][0][8.2n[h][1]]);8.2n[h][0][8.2n[h][1]]=19.47(8.2n[h][0][8.2n[h][1]],17(a){14 b=19.1U(1u).1I(1);d.1t(8,b);15 a.1t(8,b)})}if(f){f();8.3M()}};14 x=17 x(a){8.22=a||{}};x.1z.23=17 bb(a,b){8.22[a]=b;8.1E(\'23\',a,b);15 b};x.1z.1o=17 z(a){8.1E(\'1o\',a);15 8.22[a]};x.1z.6K=17 E(a){8.1E(\'6K\',a);14 b=8.22[a];2l 8.22[a];15 b};x.1z.2v=17 B(){15 8.22};2g.1x(x);2g.ObservableHash=x})();14 1b=1j;if(1d 3f!="1D"){3f.1b=1b}(17(){1b={6L:1l,6M:1w,56:0,1X:{},2w:{},2h:{},2o:17 be(d,f,g){if(!1b.1k){15 19.1Q(1b.4l.57);}if(1d(d)===\'1F\'){d={1q:d}}14 h=1j;if(!d.1Y){14 j=19.3E(19.1K.3I(d.1q)||d.1q);d.1Y=j.3k(0).3l()+j.2Q(1)}h=1b.1X[d.1Y]=17 i(a){8.1Y=8.1n.1Y;8.1q=8.1n.1q;8.1r=8.1n.1r;8.22={};1e(14 b in a){8.23(b,a[b],1w)}8.2U=[];1e(14 b in 8.1n.2i){if(!8.1n.2i[b].3n){14 c=1b.1k.4m(8.1n.2i[b],8.1o(b));if(r.2L(c)){c=c.2s}8.23(b,c)}}8.1E(\'6N\',a)};h.1Y=d.1Y;h.1q=d.1q;h.1r=\'id\';19.1x(h.1z,1b.2h);if(1d(g)==\'1D\'){1e(14 k in f){if(1d(f[k])==\'17\'){g=f;f=1j}1G}}if(g&&1d(g)!==\'17\'){19.1x(h.1z,g||{})}19.1x(h,1b.2w);2g.1x(h);if(!f){f={}}14 l=1l;1e(14 q in f){if(1d(f[q])===\'1R\'&&f[q].1B&&!(\'2s\'in f[q])){f[q].2s=1j}if(1d(f[q])===\'1R\'&&f[q].3n){l=q}}if(!l){f[\'id\']={3n:1w}}h.2i=f;if(l){h.1r=l}1e(14 n in h.2i){J.58(h,n);J.59(h,n)}if(1b.6M){r.4n.3N(d.1q,19.21(h.2i))}15 h}};1b.define=1b.2o;2g.1x(1b);1b.2y=[\'6N\',\'6O\',\'6P\',\'3O\',\'6Q\',\'38\',\'6R\',\'2z\'];(17(){1e(14 c=0;c<1b.2y.1c;++c){1b.2w[1b.2y[c]]=1b.2h[1b.2y[c]]=19.1O(17 d(a,b){15 8.2d(a,b)},1b.2y[c])}})();1b.6S=1b.2d;1b.2d=17 bu(a,b){1e(14 c=0;c<1b.2y.1c;++c){if(1b.2y[c]===a){14 d=[];14 f;1e(14 g in 1b.1X){f=19.1O(b,1b.1X[g]);d.1m(f);1b.1X[g].2d(a,f)}15 d}}15 1b.6S(a,b)};(17(){1e(14 c=0;c<1b.2y.1c;++c){1b[1b.2y[c]]=19.1O(17 d(a,b){1b.2d(a,b)},1b.2y[c])}})();14 N={57:19.45(\'No 1b 1k is active.\'),6T:19.45(\'6U requested method 6V 2V 6W.\'),6X:19.45(\'6U 6Y 1B 6V 2V 6W:\')};1b.4l=N;19.1x(1b.2h,{23:17 bv(a,b,c){if(1d(8[a])!=="17"){8[a]=b}8.22[a]=b;if(!c){8.1E(\'23\',a,b)}},1o:17 bw(a){15 8.22[a]},2v:17 bx(){15 19.21(8.22)},2H:17 by(){14 a=[];1e(14 b in 8.22){a.1m(b)}15 a},values:17 bz(){14 a=[];1e(14 b in 8.22){a.1m(8.22[b])}15 a},3P:17 bA(a,b){8.23(a,b);15 8.3Q()},6Z:17 bB(a){1e(14 b in a){8.23(b,a[b])}15 8.3Q()},70:17 bf(){if(!8.1o(8.1n.1r)){15 1l}14 a=8.1n.1Z(8.1o(8.1n.1r));if(!a){15 1l}8.22={};14 b=a.2v();1e(14 c in b){8.23(c,b[c])}15 1w},3Q:17 bC(a){if(!8.71()){15 1l}1e(14 b in 8.1n.2i){if(!8.1n.2i[b].3n){8.23(b,1b.1k.5a(8.1n.2i[b],8.1o(b)),1w)}}if(8.1E(\'6P\')===1l){15 1l}if(\'4o\'in 8.22){8.23(\'4o\',19.3J(\'2b-mm-dd HH:MM:ss\'))}if(a||!8.1o(8.1n.1r)){if(8.1E(\'6Q\')===1l){15 1l}if(\'4p\'in 8.22){8.23(\'4p\',19.3J(\'2b-mm-dd HH:MM:ss\'))}14 c=8.1o(8.1n.1r);1b.1k.5b(8.1q,8.1n.1r,8.2v());if(!c){8.23(8.1n.1r,1b.1k.4q())}m.4r(8,\'38\');8.1E(\'38\')}1g{1b.1k.5c(8.1q,8.1n.1r,8.1o(8.1n.1r),8.2v())}1e(14 b in 8.1n.2i){if(!8.1n.2i[b].3n){8.23(b,1b.1k.4m(8.1n.2i[b],8.1o(b)),1w)}}m.4r(8,\'3O\');8.1E(\'3O\');15 8},2p:17 bg(){if(!8.1o(8.1n.1r)){15 1l}if(8.1E(\'6R\')===1l){15 1l}1b.1k.5d(8.1q,8.1n.1r,8.1o(8.1n.1r));m.4r(8,\'2z\');if(8.1E(\'2z\')===1l){15 1l}15 1w},3R:17 bD(){15 8.2v()},3L:17 bh(a){15 19.28.2S(19.1x(8.3R(),a||{}))},72:17 bi(a){15 19.51(8.1Y,19.1x(8.3R(),a||{}))}});19.1x(1b.2w,{1Z:17 bE(b){14 c;if(!b){b={}}if((b.39&&1d b.39==="36")||((1d(b)==="24"||(1d(b)==="1F"&&b.2m(/^\\d+$/)))&&1u.1c==1)){if(b.39){b.2W=1;c=1b.1k.3o(8.1q,b)}1g{c=1b.1k.4s(8.1q,8.1r,[b])}if(c&&c.2A&&c.2A(0)){15 8.2e(c.2A(0))}1g{15 1l}}1g{c=1j;if(1d(b)===\'1F\'&&!b.2m(/^\\d+$/)){c=1b.1k.3o.1t(1b.1k,1u)}1g if(b&&((1d(b)==\'1R\'&&\'1c\'in b&&\'1I\'in b)||((1d(b)==\'24\'||1d(b)==\'1F\')&&1u.1c>1))){14 d=((1d(b)==\'24\'||1d(b)==\'1F\')&&1u.1c>1)?19.1U(1u):b;c=1b.1k.4s(8.1q,8.1r,d)}1g{c=1b.1k.3o(8.1q,b)}14 f=[];if(c){c.2A(19.3D(17 g(a){f.1m(8.2e(a))},8))}8.5e(f,b);8.1E(\'6O\',f,b);15 f}},2p:17 bg(a){if(a==\'3a\'){14 b=8.1Z({3a:1w});14 c=[];1e(14 d=0;d<b.1c;++d){c.1m(b[d].2p())}15 c}1g{14 f=8.1Z(a);if(!f){15 1l}15 f.2p()}},2e:17 bF(a){++1b.56;14 b=1p 8(19.21(a));b.3p=1S(3S(1b.56),10);15 b},2o:17 be(a){14 b=8.2e(a);b.3Q(1w);15 b},73:17 bG(a,b){if(1d(a.1c)!==\'1D\'){14 c=[];1e(14 d=0;d<a.1c;++d){c.1m(8.73(a[d],b[d]))}15 c}1g{14 f=8.1Z(a);if(!f){15 1l}f.6Z(b);15 f}},updateAll:17 bH(a,b){1b.1k.5f(8.1q,a,b)},5e:17 bI(a,b){if(!b){b={}}1e(14 c in bc.2h){a[c]=19.1O(bc.2h[c],a,b,8)}if(b.2a){m.74(8,b,a)}15 a}});19.1x(1b.2w,{75:17 bJ(a,b){if(!b){b={}}if(1d(b)===\'1F\'){b={1H:b}}15 b},3q:17 bK(a,b,c){if(b&&b.2a){15 m.76(8,a,b)}1g{15 1b.1k.5g(8.1q,8.75(a,b),c)}},3T:17 bL(a){15 8.3q(\'3T\',a,\'COUNT(*)\')},77:17 bM(a,b){15 8.3q(\'77\',b,\'AVG(\'+a+\')\')},2B:17 bN(a,b){15 8.3q(\'2B\',b,\'MAX(\'+a+\')\')},3r:17 ch(a,b){15 8.3q(\'3r\',b,\'MIN(\'+a+\')\')},5h:17 ci(a,b){15 8.3q(\'5h\',b,\'SUM(\'+a+\')\')},39:17 cj(){15 8.1Z({39:1w})},last:17 ck(){15 8.1Z({39:1w,2M:8.1r+\' DESC\'})}});14 p={};1b.5i=1j;1b.1k=1j;1b.20=17 bO(a){if(!a){1b.1k=p.4t.20.1t(p.4t,19.1U(1u).1I(1));1b.5i=1b.1k.1n}1g{1b.5i=a;1b.1k=a.20.1t(a,19.1U(1u).1I(1))}2g.1x(1b.1k);if(!1b.1k.preventConnectedNotification){1b.1E(\'connected\')}};1b.29=17 O(){if(!1b.1k){15 19.1Q(1b.4l.57);}15 1b.1k.1M.1t(1b.1k,1u)};1b.5j=17 cl(a,b){14 c=b?\'\':\'"\';15 1d(a)==\'24\'?a:c+1L(a).1A(/\\"/g,\'\\\\"\').1A(/\\\\/g,\'\\\\\\\\\').1A(/\\0/g,\'\\\\0\')+c};1b.2X=17 bj(a,b){3g{1b.1k.2X(a)}3h(e){if(b){b(e)}1g{15 19.1Q(e);}}};1b.2w.2X=1b.2X;p.78=17 cm(a){if(1d(a)===\'24\'){if(8.3s[a]){15 19.21(8.3s[a])}1g{15 1l}}1g{1e(14 b=0;b<8.3s.1c;++b){14 c=19.21(8.3s[b]);a(c)}}};p.2h={3U:17 cn(a,b){if(b===1j||1d(b)===\'1D\'){if(r.2L(a)){14 c=8.3t(a);if(1d(c)===\'1D\'){15 19.1Q(N.6X,(a?(a.1B||\'[1R]\'):\'1l\'));}15 a.2s||c}1g{15 a}}15 b},5k:17 co(a,b){15 a+\' \'+((1d(b[a])===\'1R\'&&1d(b[a].1B)!==\'1D\')?b[a].1B:8.79(b[a]))},79:17 cp(a){if(1d(a)===\'1F\'){15\'VARCHAR(255)\'}if(1d(a)===\'24\'){15\'INT\'}if(1d(a)==\'36\'){15\'TINYINT(1)\'}15\'TEXT\'},3t:17 cq(a){15 a.2s?a.2s:r.7a[a.1B?a.1B.1A(/\\(.*/g,\'\').1V():\'\']},1N:17 cr(){if(!1b.6L){15}if(1u[0]){1u[0]=\'1b: \'+1u[0]}15 19.1N.1t(19,1u||{})}};1b.2f=p;p.5l={7b:1l,5b:17 bP(a,b,c){14 d=19.2H(c).3V();14 f=[];14 g=[];1e(14 h=0;h<d.1c;++h){g.1m(c[d[h]]);f.1m(\'?\')}g.2T("7c 7d "+a+" ("+d.26(\',\')+") VALUES ("+f.26(\',\')+")");14 j=8.1M.1t(8,g);14 i=c[b]||8.4q();14 k=19.21(c);k[b]=i;8.1E(\'4p\',a,i,k);15 j},5f:17 bQ(a,b,c){14 d=[];if(1d(b)!==\'1F\'){14 f=[];14 g=19.2H(b).3V();1e(14 h=0;h<g.1c;++h){d.1m(b[g[h]]);f.1m(b[h]+" = ?")}b=f.26(\',\')}d.2T(\'7e \'+a+\' 7f \'+b+8.5m(c,d));15 8.1M.1t(8,d)},5c:17 bR(a,b,c,d){14 f=19.2H(d).3V();14 g=[];14 h=[];1e(14 j=0;j<f.1c;++j){g.1m(d[f[j]]);h.1m(f[j]+" = ?")}g.1m(c);g.2T("7e "+a+" 7f "+h.26(\',\')+" 2N "+b+" = ?");14 i=8.1M.1t(8,g);8.1E(\'4o\',a,c,d);15 i},5g:17 bS(b,c,d){14 f=17 f(a){if(!a){15 0}15 1S(1b.1k.2C(a).2A(0)[\'7g\'],10)};14 g=8.5n(b,c,d);15 f(8.1M.1t(8,g))},5d:17 bT(b,c,d){14 f,g;if(d===\'3a\'){f=["7h 2O "+b];14 h=[];14 j=8.1M(\'3b \'+c+\' 2O \'+b);if(!j){15 1j}8.2C(j).2A(17 i(a){h.1m(a[c])});g=8.1M.1t(8,f);1e(14 k=0;k<h.1c;++k){8.1E(\'4u\',b,h[k])}15 g}1g{f=["7h 2O "+b+" 2N "+c+" = ?",d];g=8.1M.1t(8,f);8.1E(\'4u\',b,d);15 g}},4s:17 cs(a,b,c){14 d=8.1M.1t(8,[\'3b * 2O \'+a+\' 2N \'+b+\' IN (\'+c.26(\',\')+\')\']);if(!d){15 1l}1g{15 1b.1k.2C(d)}},3o:17 bU(a,b){14 c;if(1d(a)===\'1F\'&&!a.2m(/^\\d+$/)&&1d(b)!=\'1R\'){c=1u}1g{c=8.5n(a,b,1l)}14 d=8.1M.1t(8,c);if(!d){15 1l}1g{15 1b.1k.2C(d)}},5n:17 ct(a,b,c){14 d=[];14 f=\'3b \'+(c?(c+\' AS 7g\'):(b.7j?b.7j.26(\',\'):\'*\'))+\' 2O \'+a+8.5m(b.1H,d)+(b.7k?\' \'+b.7k:\'\')+(b.3W?\' 7l BY \'+b.3W:\'\')+(b.2M?\' 7m BY \'+b.2M:\'\')+(b.2Y&&b.2W?\' 5o \'+b.2Y+\',\'+b.2W:\'\')+(!b.2Y&&b.2W?\' 5o \'+b.2W:\'\');d.2T(f);15 d},5m:17 cu(a,b){14 c,d,f;if(a&&19.46(a)){1e(f=1;f<a.1c;++f){b.1m(a[f])}15\' 2N \'+a[0]}1g if(a&&1d(a)!=="1F"){c=\'\';d=19.2H(a);1e(f=0;f<d.1c;++f){c+=d[f]+" = ? 7n ";14 g;if(1d(a[d[f]])===\'24\'){g=a[d[f]]}1g if(1d(a[d[f]])==\'36\'){g=1S(3S(a[d[f]]),10)}1g{g=1L(a[d[f]])}b.1m(g)}c=\' 2N \'+c.2Q(0,c.1c-4)}1g if(a){c=\' 2N \'+a}1g{c=\'\'}15 c},3X:17 bk(a){15 8.1M(\'DROP 3c IF 7p \'+a)},4w:17 bl(a,b,c){},7q:17 cv(a,b){8.1M(\'7r 3c \'+a+\' RENAME TO \'+b)},4x:17 bm(a,b){},4y:17 bn(a,b,c){15 8.1M(\'7r 3c \'+a+\' ADD COLUMN \'+8.5k(key,columns))},5a:17 bV(a,b){if(b&&b 4U 34){15 19.3J(b,\'2b-mm-dd HH:MM:ss\')}if(r.2L(a)){a=8.3t(a)}b=8.3U(a,b);if(1d(a)===\'1F\'){15 1L(b)}if(1d(a)===\'24\'){15 1L(b)}if(1d(a)===\'36\'){15 1L(1S(3S(b),10))}if(1d(b)===\'1R\'&&!r.2L(a)){15 19.28.2S(b)}},4m:17 bW(b,c){if(r.2L(b)){if(b.1B.1V().2m(/4e/)&&1d(c)==\'1F\'){15 19.4T(c)}b=8.3t(b)}c=8.3U(b,c);if(1d(b)===\'1F\'){15 c}if(1d(b)===\'36\'){if(c===\'0\'||c===0||c===\'1l\'){c=1l}15!!c}if(1d(b)===\'24\'){14 d=17(a){15 1L(a).1A(/^\\s+|\\s+$/g,"")};15(d(c).1c>0&&!(/[^0-9.]/).2t(d(c))&&(/\\.\\d/).2t(d(c)))?parseFloat(3S(c)):1S(3S(c),10)}if((1d(c)===\'1F\'||1d(c)===\'1R\')&&(1d(b)===\'1R\'&&(1d(b.1c)!==\'1D\'||1d(b.1B)===\'1D\'))){if(1d(c)===\'1F\'){15 19.28.37(c)}1g{15 c}}},2X:17 bj(a){3g{1b.1k.1M(\'BEGIN\');a();1b.1k.1M(\'COMMIT\')}3h(e){1b.1k.1M(\'ROLLBACK\');15 19.1Q(e);}}};p.7s=19.1x(19.21(p.5l),{3N:17 bo(a,b){14 c=19.2H(b);14 d=[];1e(14 f=0;f<c.1c;++f){14 g=c[f];if(b[g].3n){14 h=b[g].1B||\'INTEGER\';d.2T(g+\' \'+h+\' PRIMARY KEY\')}1g{d.1m(8.5k(g,b))}}15 8.1M(\'4z 3c IF NOT 7p \'+a+\' (\'+d.26(\',\')+\')\')},5p:17 cw(c,d){8.2X(19.3D(17 f(){14 a=1b.1k.2C(1b.1k.1M(\'3b * 2O 7t 2N 7u = "\'+c+\'"\')).2A(0);14 b=\'temp_\'+c;1b.29(a[\'7v\'].1A(1p 5q(\'^4z\\s+3c\\s+\'+c),\'4z 3c \'+b).1A(1p 5q(\'(,|\\()\\s*\'+d+\'[\\s\\w]+(\\)|,)\'),17(){15(3u[1]==\'(\'?\'(\':\'\')+3u[2]}));1b.29(\'7c 7d \'+b+\' 3b * 2O \'+c);8.3X(c);8.7q(b,c)},8))}});p.25=17 cx(a){8.1T=1d(a)===\'1F\'?19.28.37(a):(a||{});8.5r=1j};19.1x(p.25.1z,p.2h);19.1x(p.25.1z,{7b:1w,entityMissing:17 cy(a){15{}},serialize:17 cz(){15 19.28.2S(8.1T)},1M:17 cA(a){1b.1k.1N(\'2f.25 7w 2V 29 5l:\'+a)},5b:17 bP(a,b,c){8.3v(a);14 d=1;14 f=8.1T[a];if(!c.id){1e(14 g in f){if(1S(g,10)>=d){d=1S(g,10)+1}}c.id=d}8.5r=c.id;8.1T[a][c.id]=c;8.1E(\'4p\',a,c.id,c);15 1w},4q:17 cB(){15 8.5r},5f:17 bQ(a,b,c){},5c:17 bR(a,b,c,d){8.3v(a);8.1T[a][c]=d;8.1E(\'4o\',a,c,d);15 1w},5g:17 bS(a,b,c){8.3v(a);14 d=8.3o(a,b);14 f=c.2m(/([A-Za-z]+)\\(([^\\)]+)\\)/);14 g=f[1].1V();14 h=f[2];2R(g){1v\'3T\':15 d.1c;1v\'2B\':14 j=0;1e(14 i=0;i<d.1c;++i){if(1S(d[i][h],10)>j){j=1S(d[i][h],10)}}15 j;1v\'3r\':14 k=0;if(d[0]){k=d[0][h]}1e(14 i=0;i<d.1c;++i){if(d[i][h]<k){k=d[i][h]}}15 k;1v\'7x\':1v\'5h\':14 l=0;1e(14 i=0;i<d.1c;++i){l+=d[i][h]}15 g===\'7x\'?l/d.1c:l}},5d:17 bT(a,b,c){8.3v(a);if(!c||c===\'3a\'){1e(14 d in 8.1T[a]){8.1E(\'4u\',a,d)}8.1T[a]={};15 1w}1g if(8.1T[a][c]){2l 8.1T[a][c];8.1E(\'4u\',a,c);15 1w}15 1l},4s:17 cC(a,b,c){14 d=8.1T[a];14 f=[];1e(14 g=0;g<c.1c;++g){14 h=1S(c[g],10);if(d[h]){f.1m(d[h])}}15 8.2C(f)},3o:17 bU(a,b){if(1d(a)===\'1F\'&&!a.2m(/^\\d+$/)&&1d(b)!=\'1R\'){14 c=a;14 d=19.1U(1u).1I(1);1e(14 f=0;f<d.1c;++f){c=c.1A(/\\?/,1b.5j(d[f]))}14 g=8.7y(c);a=g[0];b=g[1]}1g if(1d(b)===\'1D\'){b={}}8.3v(a);14 h=[];14 j=8.1T[a];if(b&&b.1H&&b.1H.id){if(j[1S(b.1H.id,10)]){h.1m(j[1S(b.1H.id,10)])}}1g{1e(14 i in j){h.1m(j[i])}}14 k=[];if(b&&b.3W){k.1m(8.7z(b.3W))}if(b&&b.1H){k.1m(8.7A(b.1H))}if(b&&b.2M){k.1m(8.7B(b.2M))}if(b&&b.2W||b.2Y){k.1m(8.7C(b.2W,b.2Y))}1e(14 f=0;f<k.1c;++f){h=k[f](h)}15 8.2C(h)},7y:17 cD(a){14 b={};14 c=/\\s*3b\\s+.+\\s+2O\\s+(\\w+)\\s+/i;14 d=a.2m(c);14 f=d[1];a=a.1A(c,\'\');14 g=[[\'2W\',/(^|\\s+)5o\\s+(.+)$/i],[\'2M\',/(^|\\s+)7m\\s+BY\\s+(.+)$/i],[\'3W\',/(^|\\s+)7l\\s+BY\\s+(.+)$/i],[\'1H\',/(^|\\s+)2N\\s+(.+)$/i]];1e(14 h=0;h<g.1c;++h){14 j=g[h][0];14 i=g[h][1];14 k=a.2m(i);if(k){b[j]=k[2];a=a.1A(i,\'\')}}15[f,b]},2X:17 bj(a){14 b={};1e(14 c in 8.1T){b[c]=19.21(8.1T[c])}3g{a()}3h(e){8.1T=b;15 19.1Q(e);}},2C:17 cE(d){d.2A=17 f(a){if(1d(a)===\'24\'){if(8[a]){15 19.21(8[a])}1g{15 1l}}1g{1e(14 b=0;b<8.1c;++b){14 c=19.21(8[b]);a(c)}}};15 d},3v:17 cF(a){if(!8.1T[a]){8.1T[a]={}}},7A:17 cG(g){if(19.46(g)){14 h=g[0];1e(14 j=1;j<g.1c;++j){h=h.1A(/\\?/,1b.5j(g[j]))}g=h}if(1d(g)===\'1F\'){15 17 i(a){14 b=[];14 c=1p A();14 d=c.37(g);1e(14 f=0;f<a.1c;++f){if(d.29(a[f],p.25.7D)){b.1m(a[f])}}15 b}}1g{15 17 i(a){14 b=[];1e(14 c=0;c<a.1c;++c){14 d=1w;1e(14 f in g){if((1L(a[c][f]))!=(1L(g[f]))){d=1l;1G}}if(d){b.1m(a[c])}}15 b}}},7C:17 cH(b,c){15 17 d(a){15 a.1I(c||0,b)}},7z:17 cI(g){if(!g||g==\'\'){15 17 h(a){15 a}}14 j=g.1A(/(^[\\s]+|[\\s]+$)/g,\'\');15 17 h(a){14 b=[];14 c={};1e(14 d=0;d<a.1c;++d){c[a[d][j]]=a[d]}1e(14 f in c){b.1m(c[f])}15 b}},7B:17 cJ(i){if(!i||i===\'\'){15 17 k(a){15 a}}14 l=i.2I(\',\');14 q=[];1e(14 n=0;n<l.1c;++n){q.1m(l[n].1A(/(^[\\s]+|[\\s]+$)/g,\'\').1A(/[\\s]{2,}/g,\'\').1V())}15 17 k(c){1e(14 d=0;d<q.1c;++d){14 f=q[d].2I(/\\s/);14 g=f[0];14 h=f[1]&&f[1]===\'desc\';c=c.3V(17 j(a,b){15 a[g]<b[g]?-1:a[g]>b[g]?1:0});if(h){c=c.7E()}}15 c}},3N:17 bo(a,b){if(!8.1T[a]){8.1T[a]={}}},3X:17 bk(a){2l 8.1T[a]},4y:17 bn(a,b,c){15},removeColumn:17 bX(a,b){15},4w:17 bl(a,b,c){15},4x:17 bm(a,b){15},5a:17 bV(a,b){if(b&&b 4U 34){15 19.3J(b,\'2b-mm-dd HH:MM:ss\')}if(r.2L(a)){a=8.3t(a)}b=8.3U(a,b);15 b},4m:17 bW(a,b){if(r.2L(a)){if(a.1B.1V().2m(/4e/)&&1d(b)==\'1F\'){15 19.4T(b)}a=8.3t(a)}b=8.3U(a,b);15 b}});p.25.7D=17 cK(b,c,d){if(!p.25.3Y[b]){b=b.1V().1A(/\\_[0-9A-Z-a-z]/g,17 f(a){15 a.3l()})}if(!p.25.3Y[b]){15 19.1Q(N.6T);}1g{15 p.25.3Y[b].1t(p.25.3Y[b],[c].3j(d||[]))}};p.25.3Y=(17(){14 c={};14 d=[\'50\',\'acos\',\'asin\',\'atan\',\'atan2\',\'ceil\',\'cos\',\'exp\',\'6l\',\'1N\',\'2B\',\'3r\',\'pow\',\'random\',\'6k\',\'sin\',\'sqrt\',\'tan\'];1e(14 f=0;f<d.1c;++f){c[d[f]]=(17 g(a){15 17 b(){15 35[d[a]].1t(35.math_methods[a],19.1U(1u).1I(1))}})(f)}15 c})();p.25.20=17(a){15 1p p.25(a||{})};p.4t={};p.4t.20=17 bO(){if(1d(31)!==\'1D\'){if(31.DB.1k.1n==31.DB.6m.Connection){15 p.7G.20.1t(p.7G.20,1u)}1g{15 p.7H.20.1t(p.7H.20,1u)}}1g if(1d(44)!==\'1D\'){15 p.7I.20.1t(p.7I.20,1u)}1g{3g{15 p.2j.20.1t(p.2j.20,1u)}3h(e){15 p.25.20.1t(p.25.20,1u)}}};14 A;14 w=0,bY=-1,F=w++,P=w++,Q=w++,R=w++,S=w++,T=w++,U=w++,K=w++,V=w++,W=w++,G=w++,X=w++,Y=w++,L=w++,Z=w++,ba=w++,H=w++,bp=w++;14 t=[];t[F]="7n";t[P]="COMMA";t[Q]="EQUAL";t[R]="FALSE";t[S]="GREATER_THAN";t[T]="GREATER_THAN_EQUAL";t[U]="IDENTIFIER";t[K]="IN";t[V]="LESS_THAN";t[W]="LESS_THAN_EQUAL";t[G]="LPAREN";t[X]="NOT_EQUAL";t[Y]="NUMBER";t[L]="RPAREN";t[Z]="STRING";t[ba]="TRUE";t[H]="OR";t[bp]="WHITESPACE";14 bZ={"&&":F,",":P,"||":H,"<":V,"<=":W,"=":Q,"!=":X,">":S,">=":T,"(":G,")":L};14 ca={"7J":F,"1l":R,"in":K,"or":H,"1w":ba};14 cb=/^\\s+/;14 cc=/^[a-zA-Z\\_][a-zA-Z\\_]*/;14 cd=/^(?:&&|\\|\\||<=|<|=|!=|>=|>|,|\\(|\\))/i;14 ce=/^(1w|or|in|1l|7J)\\b/i;14 cf=/^(?:\'(\\\\.|[^\'])*\'|"(\\\\.|[^"])*")/;14 cg=/^[1-9][0-9]*/;14 o;17 C(a,b){8.1B=a;8.4A=1j;8.2Z=b}C.1z.4g=17 cL(){if(8.4A){15"["+8.4A+"]~"+8.2Z+"~"}1g{15"["+8.1B+"]~"+8.2Z+"~"}};17 bd(){8.5s(1j)}bd.1z.5s=17 cM(a){8.2D=a;8.2Y=0;8.1c=(a!==1j)?a.1c:0;o=1j};bd.1z.1P=17 cN(){14 a=1w;14 b=1j;2r(a){a=1l;b=1j;if(8.2Y<8.1c){14 c,d,f;if((c=cb.3w(8.2D))!==1j){b=1p C(bp,c[0]);a=1w}1g if((c=cd.3w(8.2D))!==1j){d=c[0];f=bZ[d.1V()];b=1p C(f,d)}1g if((c=ce.3w(8.2D))!==1j){d=c[0];f=ca[d.1V()];b=1p C(f,d)}1g if((c=cf.3w(8.2D))!==1j){b=1p C(Z,c[0])}1g if((c=cg.3w(8.2D))!==1j){b=1p C(Y,c[0])}1g if((c=cc.3w(8.2D))!==1j){b=1p C(U,c[0])}1g{b=1p C(bY,8.2D)}if(t[b.1B]){b.4A=t[b.1B]}14 g=b.2Z.1c;8.2Y+=g;8.2D=8.2D.2Q(g)}}o=b;15 b};17 I(a,b,c){8.7M=a;8.3Z=b;8.4B=c}I.1z.29=17 O(a,b){14 c=1j;14 d=8.7M.29(a,b);if(8.3Z==K){c=1l;1e(14 f=0;f<8.4B.1c;f++){14 g=8.4B[f].29(a,b);if(d==g){c=1w;1G}}}1g{14 g=8.4B.29(a,b);2R(8.3Z){1v Q:c=(d===g);1G;1v X:c=(d!==g);1G;1v V:c=(d<g);1G;1v W:c=(d<=g);1G;1v S:c=(d>g);1G;1v T:c=(d>=g);1G;1v F:c=(d&&g);1G;1v H:c=(d||g);1G;3H:15 19.1Q(1p 2q("Unknown 3Z 1B: "+8.3Z));}}15 c};17 bq(a){8.5t=a}bq.1z.29=17 O(a,b){15 a[8.5t]};17 br(a,b){8.30=a;8.3u=b}br.1z.29=17 O(a,b){14 c=1p 5S(8.3u.1c);1e(14 d=0;d<8.3u.1c;d++){c[d]=8.3u[d].29(a,b)}15 b(8.30,a,c)};17 M(a){8.2s=a}M.1z.29=17 O(a,b){15 8.2s};A=17 A(){8.1J=1p bd()};A.1z.37=17 cO(a){14 b=1j;o=1j;8.1J.5s(a);8.1J.1P();2r(o!==1j){2R(o.1B){1v U:1v R:1v G:1v Y:1v Z:1v ba:b=8.7N();1G;3H:5R 1p 2q("7O 7P 7Q in 1H-7R:"+8.1J.7S);15 19.1Q(1p 2q("7O 7P 7Q in 1H-7R:"+8.1J.7S));}}15 b};A.1z.7N=17 cP(){14 a=8.40();2r(o!==1j&&o.1B===K){8.1J.1P();14 b=[];if(o!==1j&&o.1B===G){8.1J.1P();2r(o!==1j){b.1m(8.40());if(o!==1j&&o.1B===P){8.1J.1P()}1g{1G}}if(o!==1j&&o.1B===L){8.1J.1P();a=1p I(a,K,b)}1g{15 19.1Q(1p 2q("\'in\' 5u 7T 2V end 5v a 5w 4C."+o));}}1g{15 19.1Q(1p 2q("\'in\' 5u 7T 2V 7U 5v a left 4C"));}}15 a};A.1z.40=17 cQ(){14 a=8.5x();2r(o!==1j&&o.1B===H){8.1J.1P();14 b=8.5x();a=1p I(a,H,b)}15 a};A.1z.5x=17 cR(){14 a=8.5y();2r(o!==1j&&o.1B===F){8.1J.1P();14 b=8.5y();a=1p I(a,F,b)}15 a};A.1z.5y=17 cS(){14 a=8.5z();if(o!==1j){14 b=o.1B;2R(b){1v Q:1v X:8.1J.1P();14 c=8.5z();a=1p I(a,b,c);1G}}15 a};A.1z.5z=17(){14 a=8.5A();if(o!==1j){14 b=o.1B;2R(b){1v V:1v W:1v S:1v T:8.1J.1P();14 c=8.5A();a=1p I(a,b,c);1G}}15 a};A.1z.5A=17 cT(){14 a=1j;if(o!==1j){2R(o.1B){1v U:a=1p bq(o.2Z);8.1J.1P();if(o!==1j&&o.1B===G){14 b=a.5t;14 c=[];8.1J.1P();2r(o!==1j&&o.1B!==L){c.1m(8.40());if(o!==1j&&o.1B===P){8.1J.1P()}}if(o!==1j){8.1J.1P();a=1p br(b,c)}1g{15 19.1Q(1p 2q("Function argument 5u was 2V closed 5v a 5w 4C."));}}1G;1v ba:a=1p M(1w);8.1J.1P();1G;1v R:a=1p M(1l);8.1J.1P();1G;1v Y:a=1p M(o.2Z-0);8.1J.1P();1G;1v Z:14 d=o.2Z;a=1p M(d.2Q(1,d.1c-1));8.1J.1P();1G;1v G:8.1J.1P();a=8.40();if(o!==1j&&o.1B===L){8.1J.1P()}1g{15 19.1Q(1p 2q("Missing closing 5w 4C: "+o));}1G}}15 a};1b.WhereParser=A;14 J={4D:17 4D(a,b,c){if(!c){c={}}c=19.21(c);if(c.1H){c.1H[a]=b}1g{c.1H={};c.1H[a]=b}15 c},58:17 58(f,g){f[\'findBy\'+19.3E(g,1w)]=19.1O(17 h(a,b,c,d){15 a.1Z(19.1x(J.4D(b,c,d),{39:1w}))},f,g)},59:17 59(f,g){f[\'findAllBy\'+19.3E(g,1w)]=19.1O(17 h(a,b,c,d){15 a.1Z(19.1x(J.4D(b,c,d),{3a:1w}))},f,g)}};1b.Finders=J;14 bc={};bc.2h={70:17 bf(a,b,c){a.1c=0;14 d=c.1Z(19.1x(19.21(b),{2a:1l}));1e(14 f=0;f<d.1c;++f){a.1m(d[f])}},toArray:17 cU(a,b,c){14 d=[];1e(14 f=0;f<a.1c;++f){d.1m(a[f].2v())}15 d},3L:17 bh(a,b,c){14 d=[];1e(14 f=0;f<a.1c;++f){d.1m(a[f].3R())}15 19.28.2S(d)},72:17 bi(a,b,c){14 d=[];1e(14 f=0;f<a.1c;++f){d.1m(a[f].3R())}15 19.51(19.1K.6g(c.1Y),d)}};14 y={2E:17(a){14 b=19.3E(a,1w);14 c=19.1K.3I(b)||b;15 c||b},4E:17(a,b){14 c=19.48(b).1V();14 d=19.1K.3I(c)||c;if(!a||1d(a)===\'1D\'){15(d||c)+\'_id\'}1g{15 a}}};1b.7V=y;1b.2w.hasOne=17 cV(f,g){if(f&&f.1Y){f=f.1Y}if(!g){g={}}f=y.2E(f);14 h=g.30?y.2E(g.30):f;14 j=y.4E(g.5B,y.2E(f));14 i={};14 k={};k[\'1o\'+h]=19.1O(17 l(a,b){14 c=8.1o(b);if(c){15 1b.1X[a].1Z(c)}1g{15 1l}},f,j);i[\'2e\'+h]=k[\'2e\'+h]=19.1O(17 q(a,b,c){15 1b.1X[a].2e(c||{})},f,j);k[\'2o\'+h]=19.1O(17 n(a,b,c){14 d=1b.1X[a].2o(c||{});if(8.1o(8.1n.1r)){8.3P(b,d.1o(d.1n.1r))}15 d},f,j);19.1x(8.1z,k);19.1x(8,i);if(g.5C){8.2d(\'2z\',17 s(a){14 b=a[\'1o\'+h]();if(b){b.2p()}})}};1b.2w.7W=17 cW(i,k){if(i&&i.1Y){i=i.1Y}if(!k){k={}}i=y.2E(i);14 l=k.30?y.2E(k.30):i;14 q=i;14 n=y.4E(k.5B,y.2E(8.1Y));14 s={};14 u={};if(k.7X){14 v=y.2E(k.7X);u[\'1o\'+l+\'4F\']=19.1O(17 D(a,b,c,d){14 f=8[\'1o\'+a+\'4F\']();14 g=[];14 h=[];1e(14 j=0;j<f.1c;++j){h.1m(f[j][\'1o\'+b]())}15 h},v,i,n);u[\'1o\'+l+\'7Y\']=19.1O(17 x(a,b,c,d){if(!d){d={}}if(!d.1H){d.1H={}}d.1H[c]=8.1o(8.1n.1r);15 1b.1X[a].3T(d)},v,i,n)}1g{u[\'2p\'+l]=s[\'2p\'+l]=19.1O(17 bb(a,b,c){14 d=1b.1X[a].1Z((c&&1d(c.1o)===\'17\')?c.1o(c.1n.1r):c);if(d){15 d.2p()}1g{15 1l}},i,n);u[\'1o\'+l+\'4F\']=19.1O(17 z(a,b,c){14 d=8.1o(8.1n.1r);if(!d){15 8.1n.5e([])}if(!c){c={}}if(k.2M){c.2M=k.2M}if(k.2a){c.2a=k.2a}if(!c.1H){c.1H={}}c.1H[b]=d;c.3a=1w;15 1b.1X[a].1Z(c)},i,n);u[\'1o\'+l+\'7Y\']=19.1O(17 E(a,b,c){14 d=8.1o(8.1n.1r);if(!d){15 0}if(!c){c={}}if(!c.1H){c.1H={}}c.1H[b]=d;15 1b.1X[a].3T(c)},i,n);u[\'2e\'+l]=19.1O(17 B(a,b,c){14 d=8.1o(8.1n.1r);if(!c){c={}}c[b]=d;15 1b.1X[a].2e(c)},i,n);u[\'2o\'+l]=19.1O(17 bs(a,b,c){14 d=8.1o(8.1n.1r);if(!c){c={}}c[b]=d;15 1b.1X[a].2o(c)},i,n)}19.1x(8.1z,u);19.1x(8,s);if(k.5C){8.2d(\'2z\',17 bt(a){14 b=a[\'1o\'+l+\'4F\']();1b.1k.1N(\'7V.7W 2p \'+b.1c+\' 5C \'+i+\' 6c of \'+a.1Y);1e(14 c=0;c<b.1c;++c){b[c].2p()}})}};1b.2w.belongsTo=17 cX(f,g){if(f&&f.1Y){f=f.1Y}if(!g){g={}}f=y.2E(f);14 h=g.30?y.2E(g.30):f;14 j=y.4E(g.5B,f);14 i={};14 k={};k[\'1o\'+h]=19.1O(17 l(a,b){14 c=8.1o(b);if(c){15 1b.1X[a].1Z(c)}1g{15 1l}},f,j);k[\'2e\'+h]=i[\'2e\'+h]=19.1O(17 q(a,b,c){14 d=1b.1X[a].2e(c||{});if(g.3d){d[g.3d]=1}15 d},f,j);k[\'2o\'+h]=19.1O(17 n(a,b,c){14 d=8[\'2e\'+a](c);if(d.3Q()&&8.1o(8.1n.1r)){8.3P(b,d.1o(d.1n.1r))}15 d},f,j);19.1x(8.1z,k);19.1x(8,i);if(g.3d){8.2d(\'2z\',17 s(a){14 b=a[\'1o\'+h]();if(b){14 c=b.1o(g.3d);if(1d(c)===\'1D\'){c=0}b.3P(g.3d,35.2B(0,1S(c,10)-1))}});8.2d(\'38\',17 u(a){14 b=a[\'1o\'+h]();if(b){14 c=b.1o(g.3d);if(1d(c)===\'1D\'){c=0}b.3P(g.3d,1S(c,10)+1)}})}};14 r={7a:{\'tinyint\':0,\'smallint\':0,\'mediumint\':0,\'int\':0,\'integer\':0,\'bigint\':0,\'float\':0,\'7Z\':0,\'7Z precision\':0,\'real\':0,\'decimal\':0,\'numeric\':0,\'4e\':\'\',\'datetime\':\'\',\'timestamp\':\'\',\'time\':\'\',\'year\':\'\',\'char\':\'\',\'varchar\':\'\',\'tinyblob\':\'\',\'tinytext\':\'\',\'blob\':\'\',\'2Z\':\'\',\'mediumtext\':\'\',\'mediumblob\':\'\',\'longblob\':\'\',\'longtext\':\'\',\'enum\':\'\',\'23\':\'\'},3x:{},4G:17 4G(b){if(1d(b)===\'1D\'||b===1l){b=r.2B()}r.5D();1b.1k.1N(\'5E.4G(\'+b+\') 7U.\');14 c=r.4H();1b.1k.1N(\'80 81 2P is \'+c);14 d,f,g;r.3y.2X(17(){if(b>c){d=r.5F(c,b);1e(f=0;f<d.1c;++f){1b.1k.1N(\'82 up to 2P \'+d[f][0]);d[f][1].up(r.4n);r.3y.2o({2P:d[f][0]})}}1g if(b<c){d=r.5G(c,b);1e(f=0;f<d.1c;++f){1b.1k.1N(\'82 3z to 2P \'+d[f][0]);d[f][1].3z(r.4n)}g=r.3y.1Z({3a:1w});1e(f=0;f<g.1c;++f){if(g[f].1o(\'2P\')>b){g[f].2p()}}1b.1k.1N(\'Migrate to 2P \'+b+\' complete.\')}1g{1b.1k.1N(\'80 81 2P is 4H, no 3x were run.\')}},17(a){1b.1k.1N(\'Migration failed: \'+a)});1b.1k.1N(\'5E.4G(\'+b+\') finished.\')},4H:17 4H(){r.5D();15 r.3y.2B(\'2P\')||0},2B:17 bN(){14 a=0;1e(14 b in r.3x){b=1S(b,10);if(b>a){a=b}}15 a},5D:17 setMigrationsTable(){if(!r.3y){r.3y=1b.2o(\'schema_migrations\',{2P:0});2l 1b.1X.SchemaMigrations}},5G:17 5G(a,b){15[[a,r.3x[a]]].3j(r.4I(a,b+1,\'3z\'))},5F:17 5F(a,b){15 r.4I(a,b,\'up\')},4I:17 4I(a,b,c){14 d=[];1e(14 f in r.3x){f=1S(f,10);if((c===\'up\'&&f>a)||(c===\'3z\'&&f<a)){d.1m(f)}}d=d.3V();if(c===\'3z\'){d=d.7E()}14 g=[];1e(14 h=0;h<d.1c;++h){if((c===\'3z\'&&1d(b)!==\'1D\'&&b>d[h])||(c===\'up\'&&1d(b)!==\'1D\'&&b<d[h])){1G}g.1m([d[h],r.3x[d[h]]])}15 g},2L:17 2L(a){15 1d(a)===\'1R\'&&19.2H(a).1c===2&&(\'1B\'in a)&&(\'2s\'in a)},4n:{3N:17 bo(a,b){15 1b.1k.3N(a,b)},3X:17 bk(a){15 1b.1k.3X(a)},4y:17 bn(a,b,c){15 1b.1k.4y(a,b,c)},5p:17 bX(a,b){15 1b.1k.5p(a,b)},4w:17 bl(a,b,c){15 1b.1k.4w(a,b,c)},4x:17 bm(a,b){15 1b.1k.4x(a,b)}}};1b.5E=r;19.1x(1b.2w,{5H:17 cY(a){if(!8.4J){8.4J=[]}8.4J.1m(a)},validatesPresenceOf:17 cZ(a,b){b=19.1x({},b||{});8.5H(17 c(){if(!8.1o(a)||8.1o(a)===\'\'){8.4K(b.3B||(a+\' is 2V present.\'))}})},validatesLengthOf:17 da(b,c){c=19.1x({3r:1,2B:9999},c||{});8.5H(17 d(){14 a=1L(8.1o(b));if(a.1c<c.3r){8.4K(c.3B||(b+\' is 83 short.\'))}if(a.1c>c.2B){8.4K(c.3B||(b+\' is 83 long.\'))}})}});19.1x(1b.2h,{4K:17 db(a,b){14 c=1j;if(b){c=[a,b];c.4g=17 d(){15 a}}1g{c=a}8.2U.1m(a)},71:17 dc(){8.2U=[];14 a=8.84();1e(14 b=0;b<a.1c;++b){a[b].1t(8)}if(1d(8.5I)===\'17\'){8.5I()}1b.1k.1N(\'1b.5I()? \'+1L(8.2U.1c===0)+(8.2U.1c>0?\'. 4l: \'+1L(8.2U):\'\'));15 8.2U.1c===0},84:17 dd(){15 8.1n.4J||[]},getErrors:17 de(){15 8.2U}});1b.asynchronous=1l;14 m={};m.2F={};m.2G={};m.2k={};m.4L=17 df(a){if(!a.1o(a.1n.1r)){15 1l}if(!m.2k[a.1q]){m.2k[a.1q]={}}if(!m.2k[a.1q][a[a.1n.1r]]){m.2k[a.1q][a[a.1n.1r]]={}}15 1w};m.4r=17 dg(a,b){14 c,d;if(!m.4L(a)){15 1l}if(b===\'3O\'){c=m.2k[a.1q][a[a.1n.1r]];1e(d in c){if(d!==a.3p){14 f=c[d];14 g=f.2H();1e(14 h=0;h<g.1c;++h){14 j=g[h];f.23(j,a.1o(j))}f.1E(\'85:3O\')}}}1g if(b===\'2z\'||b===\'38\'){if(m.2F[a.1q]){1e(14 i in m.2F[a.1q]){m.2F[a.1q][i]()}}if(m.2G[a.1q]){1e(14 5J in m.2G[a.1q]){14 k=m.2G[a.1q][5J].86;14 l=19.21(m.2G[a.1q][5J].87);14 q=a.1n.1Z(19.1x(l,{2a:1l}));14 n=m.88(k,q,b);1e(14 s=0;s<n.1c;++s){if(b==\'38\'){14 u=n[s].1I(2);1e(14 v=0;v<u.1c;++v){u[v].2a()}}k.4O.1t(k,n[s])}}}if(b===\'2z\'){c=m.2k[a.1q][a[a.1n.1r]];1e(d in c){if(d!==a.3p){c[d].1E(\'85:2z\');m.2k[a.1q][a[a.1n.1r]][d]=1j;2l m.2k[a.1q][a[a.1n.1r]][d]}}}}};19.1x(1b.2h,{2a:17 dh(){if(!8.89){8.89=1w;m.4L(8);m.2k[8.1q][8[8.1n.1r]][8.3p]=8}},3M:17 di(){m.4L(8);m.2k[8.1q][8[8.1n.1r]][8.3p]=1j;2l m.2k[8.1q][8[8.1n.1r]][8.3p]}});m.43=0;m.76=17 dj(g,h,j){++m.43;14 i=j.2a;14 k=19.21(j);2l k.2a;if(!m.2F[g.1q]){m.2F[g.1q]={}}m.2F[g.1q][m.43]=(17 l(a,b,c,d){15 17 f(){d(a[b](k))}})(g,h,j,i);m.2F[g.1q][m.43]();15(17 q(a,b){15 17 c(){m.2F[a][b]=1j;2l m.2F[a][b]}})(g.1q,m.43)};m.4M=0;m.74=17 dk(f,g,h){++m.4M;if(!m.2G[f.1q]){m.2G[f.1q]={}}m.2G[f.1q][m.4M]={86:h,87:g};1e(14 j=0;j<h.1c;++j){h[j].2a()}h.3M=(17 i(b,c){15 17 d(){1e(14 a=0;a<8.1c;++a){8[a].3M()}m.2G[b][c]=1j;2l m.2G[b][c]}})(f.1q,m.4M)};m.88=17 dl(a,b,c){14 d=[];if(c===\'38\'){1e(14 f=0;f<b.1c;++f){if(!a[f]||(a[f]&&(a[f][a[f].1n.1r]!==b[f][b[f].1n.1r]))){d.1m([f,1j,b[f]]);1G}}}1g if(c===\'2z\'){1e(14 f=0;f<a.1c;++f){if(!b[f]||(b[f]&&(b[f][b[f].1n.1r]!==a[f][a[f].1n.1r]))){d.1m([f,1]);1G}}}15 d};1b.Synchronization=m})();(17(){1b.2f.2j=17 l(h){8.db=h;19.1x(8,1b.2f.2h);19.1x(8,1b.2f.7s);19.1x(8,{1M:17 j(a){14 b=19.1U(1u);1b.1k.1N("2f.2j.1M: "+a+" ["+b.1I(1).26(\',\')+"]");14 c=1b.1k.db.29(a,b.1I(1));15 c},4q:17 i(){15 8.db.lastInsertRowId},2C:17 k(a){14 b={3s:[]};14 c=a.fieldCount();2r(a.isValidRow()){14 d={};1e(14 f=0;f<c;++f){d[a.fieldName(f)]=a.6Y(f)}b.3s.1m(d);a.next()}a.close();b.2A=1b.2f.78;15 b},fieldListFromTable:17(a){14 b={};14 c=1b.1k.2C(1b.1k.1M(\'3b * 2O 7t 2N 7u = "\'+a+\'"\')).2A(0);14 d=c.7v.2m(1p 5q(\'4z[\\s]+3c[\\s]+\'+a+\'[\\s]+(\\([^\\)]+)\'));14 f=d.2I(\',\');1e(14 g=0;g<f.1c;++g){b[f[g].1A(/(^\\s+|\\s+$)/g,\'\')]=f[g].1A(/^\\w+\\s?/,\'\')}15 b}})};1b.2f.2j.5K=\'1b.2f.2j 7w 2V 1Z a Google 2j 8a to 20 to.\';1b.2f.2j.20=17 q(a,b,c,d){14 f=19.3A();14 g=1j;if(!(f.3e&&3e.4N)){14 h=1j;if(\'8b\'in f){h=1p 8b()}1g if(\'8c\'in f){3g{h=1p 8c(\'2j.Factory\');if(h.getBuildInfo().3C(\'ie_mobile\')!==-1){h.privateSetGlobalObject(8)}}3h(e){15 19.1Q(1b.2f.2j.5K);}}1g if((\'8d\'in 8e)&&(\'8f/x-8g\'in 8e.8d)){h=19.3A().8h.createElement("1R");h.style.display="none";h.width=0;h.height=0;h.1B="8f/x-8g";19.3A().8h.documentElement.appendChild(h)}if(!h){15 19.1Q(1b.2f.2j.5K);}if(!(\'3e\'in f)){3e={}}if(!(\'4N\'in 3e)){3e.4N={8i:h}}}g=3e.4N.8i.2o(\'beta.8a\');g.open(a||\'1b\');15 1p 1b.2f.2j(g)}})();',[],515,'||||||||this||||||||||||||||||||||||||||||||||||||||||||||||||||||||||var|return||function||ActiveSupport||ActiveRecord|length|typeof|for||else|||null|connection|false|push|constructor|get|new|tableName|primaryKeyName||apply|arguments|case|true|extend||prototype|replace|type|_observers|undefined|notify|string|break|where|slice|_lexer|Inflector|String|executeSQL|log|curry|advance|throwError|object|parseInt|storage|arrayFrom|toLowerCase|Inflections|Models|modelName|find|connect|clone|_object|set|number|InMemory|join||JSON|execute|synchronize|yyyy||observe|build|Adapters|ActiveEvent|InstanceMethods|fields|Gears|notifications|delete|match|methods|create|destroy|Error|while|value|test||toObject|ClassMethods||eventNames|afterDestroy|iterate|max|iterableFromResultSet|source|normalizeModelName|calculationNotifications|resultSetNotifications|keys|split||_objectEventSetup|objectIsFieldDefinition|order|WHERE|FROM|version|substring|switch|stringify|unshift|_errors|not|limit|transaction|offset|text|name|Jaxer||irregular|Date|Math|boolean|parse|afterCreate|first|all|SELECT|TABLE|counter|google|exports|try|catch|console|concat|charAt|toUpperCase|options|primaryKey|findEntities|internalCount|performCalculation|min|rows|getDefaultValueFromFieldDefinition|args|setupTable|exec|migrations|Meta|down|getGlobalContext|message|indexOf|bind|camelize|waiting|uncountable|default|singularize|dateFormat|i18n|toJSON|stop|createTable|afterSave|updateAttribute|save|toSerializableObject|Number|count|setValueFromFieldIfValueIsNull|sort|group|dropTable|MethodCallbacks|operator|parseOrExpression|||synchronizedCalculationCount|air|createError|isArray|wrap|underscore|plural|singular|100||UTC|date||toString|call|makeObservable|stopObserving|object_args|Errors|fieldOut|Schema|updated|created|getLastInsertedRowId|triggerSynchronizationNotifications|findEntitiesById|Auto|destroyed||addIndex|removeIndex|addColumn|CREATE|typeName|rhs|parenthesis|mergeOptions|normalizeForeignKey|List|migrate|current|collectMigrations|_validators|addError|setupNotifications|synchronizedResultSetCount|gears|splice|1es|ses||pop|dateFromDateTime|instanceof|masks|dayNames|mmm|monthNames|mmmm|abs|XMLFromObject|valueOf|observeMethod|observeOnce|originals|internalCounter|ConnectionNotEstablished|generateFindByField|generateFindAllByField|fieldIn|insertEntity|updateEntity|deleteEntity|resultSetFromArray|updateMultitpleEntities|calculateEntities|sum|adapter|escape|getColumnDefinitionFragmentFromKeyAndColumns|SQL|buildWhereSQLFragment|buildSQLArguments|LIMIT|dropColumn|RegExp|lastInsertId|setSource|identifier|list|with|right|parseAndExpression|parseEqualityExpression|parseRelationalExpression|parseMemberExpression|foreignKey|dependent|setup|Migrations|collectAboveIndex|collectBelowIndex|addValidator|valid|synchronized_result_set_count|DatabaseUnavailableError|Log|info|Introspector|Console|logErrors|throwErrors|throw|Array|without|quiz||matr|vert|ind|||aeiouy||hive|||alias|status|octop|vir|ices|ves|children||||pluralize|SyntaxError|ddd|dddd|round|floor|MySQL|May|fromCharCode|u00ad|u0600|u0604|u070f|u17b4|u17b5|u200c|u200f|u2028|u202f|u2060|u206f|ufeff|ufff0|uffff|lastIndex|0000|charCodeAt|Object|hasOwnProperty|MethodCallObserver|unset|logging|autoMigrate|afterInitialize|afterFind|beforeSave|beforeCreate|beforeDestroy|old_observe|MethodDoesNotExist|The|does|exist|InvalidFieldType|field|updateAttributes|reload|_valid|toXML|update|synchronizeResultSet|processCalculationParams|synchronizeCalculation|average|defaultResultSetIterator|getDefaultColumnDefinitionFragmentFromValue|fieldTypesWithDefaultValues|schemaLess|INSERT|INTO|UPDATE|SET|calculation|DELETE||select|joins|GROUP|ORDER|AND||EXISTS|renameTable|ALTER|SQLite|sqlite_master|tbl_name|sql|could|avg|paramsFromSQLString|createGroupBy|createWhere|createOrderBy|createLimit|method_call_handler|reverse||JaxerMySQL|JaxerSQLite|AIR|and|||lhs|parseInExpression|Unrecognized|starting|token|clause|currentLexeme|did|start|Relationships|hasMany|through|Count|double|Current|schema|Migrating|too|_getValidators|synchronization|resultSet|params|spliceArgumentsFromResultSetDiff|isSynchronized|database|GearsFactory|ActiveXObject|mimeTypes|navigator|application|googlegears|document|factory'.split('|'),0,{}))
+ *     //make an existing method observable
+ *     var observable_hash = new Hash({});
+ *     ActiveEvent.extend(observable_hash);
+ *     observable_hash.makeObservable('set');
+ * 
+ * Observing Events
+ * ----------------
+ * To observe an event call the observe() method with the name of the event you
+ * want to observe, and the observer function. The observer function will
+ * receive any additional arguments passed to notify(). If observing a class,
+ * the instance that triggered the event will always be the first argument
+ * passed to the observer. observeOnce() works just like observe() in every
+ * way, but is only called once.
+ * 
+ *     Message.observe('sent',function(message,text){
+ *         //responds to all sent messages
+ *     });
+ * 
+ *     var m = new Message();
+ *     m.observe('sent',function(text){
+ *         //this will only be called when "m" is sent
+ *     });
+ * 
+ *     observable_hash.observe('set',function(key,value){
+ *         console.log('observable_hash.set: ' + key + '=' + value);
+ *     });
+ 
+ *     observable_hash.observeOnce('set',function(key,value){
+ *         //this will only be called once
+ *     });
+ * 
+ * Control Flow
+ * ------------
+ * When notify() is called, if any of the registered observers for that event
+ * return false, no other observers will be called and notify() will return
+ * false. Returning null or not calling return will not stop the event.
+ *
+ * Otherwise notify() will return an array of the
+ * collected return values from any registered observer functions. Observers
+ * can be unregistered with the stopObserving() method. If no observer is
+ * passed, all observers of that object or class with the given event name
+ * will be unregistered. If no event name and no observer is passed, all
+ * observers of that object or class will be unregistered.
+ *
+ *     Message.prototype.send = function(text){
+ *         if(this.notify('send',text) === false)
+ *             return false;
+ *         //message sending code here...
+ *         this.notify('sent',text);
+ *         return true;
+ *     };
+ * 
+ *     var m = new Message();
+ *     
+ *     var observer = m.observe('send',function(message,text){
+ *         if(text === 'test')
+ *             return false;
+ *     });
+ *     
+ *     m.send('my message'); //returned true
+ *     m.send('test'); //returned false
+ *     
+ *     m.stopObserving('send',observer);
+ *     
+ *     m.send('test'); //returned true
+ * 
+ * Object.options
+ * --------------
+ * If an object has an options property that contains a callable function with
+ * the same name as an event triggered with <b>notify()</b>, it will be
+ * treated just like an instance observer. So the following code is equivalent:
+ *
+ *     var rating_one = new Control.Rating('rating_one',{  
+ *         afterChange: function(new_value){}    
+ *     });  
+ *     
+ *     var rating_two = new Control.Rating('rating_two');  
+ *     rating_two.observe('afterChange',function(new_value){});
+ * 
+ * MethodCallObserver
+ * ------------------
+ * The makeObservable() method permanently modifies the method that will
+ * become observable. If you need to temporarily observe a method call without
+ * permanently modifying it, use observeMethod(). Pass the name of the
+ * method to observe and the observer function will receive all of the
+ * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
+ * returned from the call to observeMethod(), which has a stop() method on it.
+ * Once stop() is called, the method is returned to it's original state. You
+ * can optionally pass another function to observeMethod(), if you do the
+ * MethodCallObserver will be automatically stopped when that function
+ * finishes executing.
+ * 
+ *     var h = new Hash({});
+ *     ActiveEvent.extend(h);
+ *     
+ *     var observer = h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     });
+ *     h.set('a','one');
+ *     h.set('a','two');
+ *     observer.stop();
+ *     
+ *     //console now contains:
+ *     //"a = one"
+ *     //"b = two"
+ *     
+ *     //the following does the same as above
+ *     h.observeMethod('set',function(key,value){
+ *         console.log(key + '=' + value);
+ *     },function(){
+ *         h.set('a','one');
+ *         h.set('b','two');
+ *     });
+ */
+var ActiveEvent = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveEvent = ActiveEvent;
+}
+
+/**
+ * @namespace {ActiveEvent.ObservableObject} After calling
+ *  ActiveEvent.extend(object), the given object will inherit the
+ *  methods in this namespace. If the given object has a prototype
+ *  (is a class constructor), the object's prototype will inherit
+ *  these methods as well.
+ */
+
+(function(){
+
+ActiveEvent = {};
+
+/**
+ * After extending a given object, it will inherit the methods described in
+ *  ActiveEvent.ObservableObject.
+ * @alias ActiveEvent.extend
+ * @param {Object} object
+ */
+ActiveEvent.extend = function extend(object){
+    
+    /**
+     * Wraps the given method_name with a function that will call the method,
+     *  then trigger an event with the same name as the method. This can
+     *  safely be applied to virtually any method, including built in
+     *  Objects (Array.pop, etc), but cannot be undone.
+     * @alias ActiveEvent.ObservableObject.makeObservable
+     * @param {String} method_name
+     */
+    object.makeObservable = function makeObservable(method_name)
+    {
+        if(this[method_name])
+        {
+            this._objectEventSetup(method_name);
+            this[method_name] = ActiveSupport.wrap(this[method_name],function wrapped_observer(proceed){
+                var args = ActiveSupport.arrayFrom(arguments).slice(1);
+                var response = proceed.apply(this,args);
+                args.unshift(method_name);
+                this.notify.apply(this,args);
+                return response;
+            });
+        }
+        if(this.prototype)
+        {
+            this.prototype.makeObservable(method_name);
+        }
+    };
+    
+    /**
+     * Similiar to makeObservable(), but after the callback is called, the
+     *  method will be returned to it's original state and will no longer
+     *  be observable.
+     * @alias ActiveEvent.ObservableObject.observeMethod
+     * @param {String} method_name
+     * @param {Function} observe
+     * @param {Function} [callback]
+     */
+    object.observeMethod = function observeMethod(method_name,observer,scope)
+    {
+        return new ActiveEvent.MethodCallObserver([[this,method_name]],observer,scope);
+    };
+    
+    object._objectEventSetup = function _objectEventSetup(event_name)
+    {
+        this._observers = this._observers || {};
+        this._observers[event_name] = this._observers[event_name] || [];
+    };
+    
+    /**
+     * @alias ActiveEvent.ObservableObject.observe
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} observer
+     */
+    object.observe = function observe(event_name,observer)
+    {
+        if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
+        {
+            this._objectEventSetup(event_name);
+            if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
+            {
+                this._observers[event_name].push(observer);
+            }
+        }
+        else
+        {
+            for(var e in event_name)
+            {
+                this.observe(e,event_name[e]);
+            }
+        }
+        return observer;
+    };
+    
+    /**
+     * Removes a given observer. If no observer is passed, removes all
+     *   observers of that event. If no event is passed, removes all
+     *   observers of the object.
+     * @alias ActiveEvent.ObservableObject.stopObserving
+     * @param {String} [event_name]
+     * @param {Function} [observer]
+     */
+    object.stopObserving = function stopObserving(event_name,observer)
+    {
+        this._objectEventSetup(event_name);
+        if(event_name && observer)
+        {
+            this._observers[event_name] = ActiveSupport.without(this._observers[event_name],observer);
+        }
+        else if(event_name)
+        {
+            this._observers[event_name] = [];
+        }
+        else
+        {
+            this._observers = {};
+        }
+    };
+    
+    /**
+     * Works exactly like observe(), but will stopObserving() after the next
+     *   time the event is fired.
+     * @alias ActiveEvent.ObservableObject.observeOnce
+     * @param {String} event_name
+     * @param {Function} observer
+     * @return {Function} The observer that was passed in will be wrapped,
+     *  this generated / wrapped observer is returned.
+     */
+    object.observeOnce = function observeOnce(event_name,outer_observer)
+    {
+        var inner_observer = ActiveSupport.bind(function bound_inner_observer(){
+            outer_observer.apply(this,arguments);
+            this.stopObserving(event_name,inner_observer);
+        },this);
+        this._objectEventSetup(event_name);
+        this._observers[event_name].push(inner_observer);
+        return inner_observer;
+    };
+    
+    /**
+     * Triggers event_name with the passed arguments.
+     * @alias ActiveEvent.ObservableObject.notify
+     * @param {String} event_name
+     * @param {mixed} [args]
+     * @return {mixed} Array of return values, or false if the event was
+     *  stopped by an observer.
+     */
+    object.notify = function notify(event_name)
+    {
+        if(!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+        {
+            return [];
+        }
+        this._objectEventSetup(event_name);
+        var collected_return_values = [];
+        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        for(var i = 0; i < this._observers[event_name].length; ++i)
+        {
+            var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+            if(response === false)
+            {
+                return false;
+            }
+            else
+            {
+                collected_return_values.push(response);
+            }
+        }
+        return collected_return_values;
+    };
+    if(object.prototype)
+    {
+        object.prototype.makeObservable = object.makeObservable;
+        object.prototype.observeMethod = object.observeMethod;
+        object.prototype._objectEventSetup = object._objectEventSetup;
+        object.prototype.observe = object.observe;
+        object.prototype.stopObserving = object.stopObserving;
+        object.prototype.observeOnce = object.observeOnce;
+        
+        object.prototype.notify = function notify_instance(event_name)
+        {
+            if(
+              (!object._observers || !object._observers[event_name] || (object._observers[event_name] && object._observers[event_name].length == 0)) &&
+              (!this.options || !this.options[event_name]) &&
+              (!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
+            )
+            {
+                return [];
+            }
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var collected_return_values = [];
+            if(object.notify)
+            {
+                object_args = ActiveSupport.arrayFrom(arguments).slice(1);
+                object_args.unshift(this);
+                object_args.unshift(event_name);
+                var collected_return_values_from_object = object.notify.apply(object,object_args);
+                if(collected_return_values_from_object === false)
+                {
+                    return false;
+                }
+                collected_return_values = collected_return_values.concat(collected_return_values_from_object);
+            }
+            this._objectEventSetup(event_name);
+            var response;
+            if(this.options && this.options[event_name] && typeof(this.options[event_name]) === 'function')
+            {
+                response = this.options[event_name].apply(this,args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
+            }
+            for(var i = 0; i < this._observers[event_name].length; ++i)
+            {
+                response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
+                if(response === false)
+                {
+                    return false;
+                }
+                else
+                {
+                    collected_return_values.push(response);
+                }
+            }
+            return collected_return_values;
+        };
+    }
+};
+
+ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,scope)
+{
+    this.stop = function stop(){
+        for(var i = 0; i < this.methods.length; ++i)
+        {
+            this.methods[i][0][this.methods[i][1]] = this.originals[i];
+        }
+    };
+    this.methods = methods;
+    this.originals = [];
+    for(var i = 0; i < this.methods.length; ++i)
+    {
+        this.originals.push(this.methods[i][0][this.methods[i][1]]);
+        this.methods[i][0][this.methods[i][1]] = ActiveSupport.wrap(this.methods[i][0][this.methods[i][1]],function(proceed){
+            var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            observer.apply(this,args);
+            return proceed.apply(this,args);
+        });
+    }
+    if(scope)
+    {
+        scope();
+        this.stop();
+    }
+};
+
+var ObservableHash = function ObservableHash(object)
+{
+    this._object = object || {};
+};
+
+ObservableHash.prototype.set = function set(key,value)
+{
+    this._object[key] = value;
+    this.notify('set',key,value);
+    return value;
+};
+
+ObservableHash.prototype.get = function get(key)
+{
+    this.notify('get',key);
+    return this._object[key];
+};
+
+ObservableHash.prototype.unset = function unset(key)
+{
+    this.notify('unset',key);
+    var value = this._object[key];
+    delete this._object[key];
+    return value;
+};
+
+ObservableHash.prototype.toObject = function toObject()
+{
+    return this._object;
+};
+
+ActiveEvent.extend(ObservableHash);
+
+ActiveEvent.ObservableHash = ObservableHash;
+
+})();
+ 
+var ActiveRecord = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveRecord = ActiveRecord;
+}
+
+(function() {
+
+/**
+ * @namespace {ActiveRecord}
+ * @example
+ * 
+ * ActiveRecord
+ * ============
+ * 
+ * ActiveRecord.js is a cross browser, cross platform, stand-alone object
+ * relational mapper. It shares a very similar vocabulary to the Ruby
+ * ActiveRecord implementation, but uses JavaScript idioms and best
+ * practices -- it is not a direct port. It can operate using an in memory
+ * hash table, or with a SQL back end on the Jaxer platform (SQLite and
+ * MySQL), Adobe's AIR (SQLite) and Google Gears (SQLite). Support
+ * for the HTML 5 SQL storage spec is planned.
+ * 
+ * Setup
+ * -----
+ * To begin using ActiveRecord.js, you will need to include the
+ * activerecord.js file and establish a connection. If you do not specify
+ * a connection type, one will be automatically chosen.
+ * 
+ *     ActiveRecord.connect();
+ * 
+ * You can also specify a specific type of adapter. Jaxer requires
+ * pre-configuring of the database for the entire application, and Gears
+ * automatically configures the database, so simply passing the type of
+ * connection is enough. In all of the SQLite implementations you can
+ * optionally specify a database name (browser) or path (Jaxer):
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory); //in JS memory
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerMySQL); //Jaxer MySQL
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite); //Jaxer SQLite
+ *     ActiveRecord.connect(ActiveRecord.Adapters.AIR); //Adobe AIR
+ *     ActiveRecord.connect(ActiveRecord.Adapters.Gears,'my_database'); //Gears or HTML5, name is optional
+ *     
+ * Once connected you can always execute SQL statements directly:
+ * 
+ *     ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY, user_id, title, text)');
+ *     
+ * Logging (to either the Jaxer log or browser console) can be turned on by setting:
+ * 
+ *     ActiveRecord.logging = true;
+ * 
+ * InMemory Adapter
+ * ----------------
+ * If you are using a browser or platform that does not have access to a SQL
+ * database, you can use the InMemory adapter which will store your objects
+ * in memory. All features (including find by SQL) will still work, but you
+ * will not be able to use the Migration features, since there is no table
+ * schema. Since your objects will not persist, the second parameter to
+ * establish a connection is a hash with the data you would like to use
+ * in this format: {table_name: {id: row}}. The InMemory adapter will also
+ * trigger three observable events that allow you to write an AJAX
+ * persistence layer.
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory,{
+ *         table_one: {
+ *             1: {row_data},
+ *             2: {row_data}
+ *         },
+ *         table_two: {
+ *             1: {row_data},
+ *             2: {row_data}
+ *         }
+ *     });
+ * 
+ *     ActiveRecord.connection.observe('created',function(table_name,id,data){});
+ *     ActiveRecord.connection.observe('updated',function(table_name,id,data){});
+ *     ActiveRecord.connection.observe('destroyed',function(table_name,id){});
+ *     
+ * Defining Your Model
+ * -------------------
+ * ActiveRecord classes are created using the ActiveRecord.create method which
+ * takes three arguments: the name of the table that the class will reference,
+ * a field definition hash, and optionally a hash of instance methods that
+ * will be added to the class. If the table does not exist it will be
+ * automically created.
+ *
+ *     var User = ActiveRecord.create('users',{
+ *         username: '',
+ *         password: '',
+ *         post_count: 0,
+ *         profile: {
+ *             type: 'TEXT',
+ *             value: ''
+ *         }
+ *     },{
+ *         getProfileWordCount: function(){
+ *             return this.get('profile').split(/\s+/).length;
+ *         }
+ *     });
+ * 
+ * Class & Instance Methods
+ * ------------------------
+ * JavaScript does not have true static methods or classes, but in this case any
+ * method of the User variable above is refered to as a class method, and any
+ * method of a particular user (that the User class would find) is refered to as
+ * an instance method. The most important class methods are create() and find():
+ * 
+ *     var jessica = User.create({
+ *         username: 'Jessica',
+ *         password: 'rabbit'
+ *     });
+ * 
+ * Add new class or instance methods to all ActiveRecord models in the following
+ * way:
+ * 
+ *     ActiveRecord.ClassMethods.myClassMethod = function(){
+ *         //this === model class
+ *     };
+ *     ActiveRecord.InstanceMethods.myInstanceMethod = function(){
+ *         // this === model instance
+ *     };
+ * 
+ * Getters & Setters
+ * -----------------
+ * It is extremely important to note that all of the attributes/columns of the user
+ * are accessible directly for reading (for convenience), but cannot be written
+ * directly. You **must** use the set() method to set an attribute, you **should**
+ * use the get() method to access all attributes, but you **must** use the get()
+ * method if your attribute/column is a method of the object or a JavaScript
+ * reserved keyword ('save,'initialize','default', etc).
+ * 
+ *     jessica.username // 'Jessica'
+ *     jessica.get('username'); // 'Jessica'
+ *     jessica.username = 'new username';
+ *     jessica.get('username'); // 'Jessica'
+ *     jessica.set('username','new username');
+ *     jessica.get('username'); // 'new username'
+ * 
+ * When Data is Persisted
+ * ----------------------
+ * Data is only persisted to the database in three cases: when you explicitly call
+ * save() on a record, when you call create() on a record, or create a child record
+ * through a relationship (the method will contain the word "create" in this case),
+ * or when you call updateAttribute() on a record. In the case of the latter, only
+ * the attribute you update will be saved, the rest of the record will not be
+ * persisted to the database, even if changes have been made. Calling save() may
+ * add an "id" property to the record if it does not exist, but if there are no
+ * errors, it's state will otherwise be unchanged. You can call refresh() on any
+ * record to ensure it is not out of synch with your database at any time.
+ * 
+ * Finding Records
+ * ---------------
+ * If you created the User class using the define() method you automatically have
+ * free "finder" methods:
+ * 
+ *     User.findByUsername('Jessica');
+ *     User.findAllByPassword(''); //finds all with blank passwords
+ * 
+ * Otherwise you can use the base find() method, which takes a hash of options,
+ * a numeric id or a complete SQL string:
+ * 
+ *     var posts = Post.find({
+ *         all: true,
+ *         order: 'id DESC',
+ *         limit: 10
+ *     });
+ * 
+ * Synchronization
+ * ---------------
+ * It is sometimes useful to keep records that have already been found in synch
+ * with the database. Each found record has a synchronize() method that will keep
+ * the values of that record in synch with the database. If you pass the parameter
+ * synchronize: true to find(), all objects will have their values synchronized,
+ * and in addition the result set itself will update as objects are destroyed or
+ * created. Both features are relatively expensive operations, and are not
+ * automatically garbage collected/stopped when the record or result set goes
+ * out of scope, so you will need to explicitly stop both record and result set
+ * synchronization.
+ * 
+ *     var aaron = User.findByName('aaron');
+ *     aaron.synchronize();
+ * 
+ *     var aaron_clone = User.findByName('aaron');
+ *     aaron_clone.set('name','Aaron!');
+ *     aaron_clone.save();
+ * 
+ *     aaron.get('name') === 'Aaron!';
+ *     aaron.stop(); //record will no longer be synchronized
+ * 
+ *     var users = User.find({
+ *         all: true,
+ *         synchronize: true
+ *     });
+ *     //users contains aaron
+ *     aaron.destroy();
+ *     //users will no longer contain aaron
+ *     users.stop(); //result set will no longer be synchronized
+ * 
+ * Calculations (count, min, max, etc) can also be synchronized. As a second
+ * parameter to the calculation function, pass a hash with a synchronize
+ * property that contains a function. That function will be called when the
+ * result of the calculation changes. Instead of returning the value of the
+ * calculation the initial call to the calculation function will return a
+ * function that will stop the synchronization.
+ *
+ *     var current_count;
+ *     var stop = User.count({
+ *         synchronize: function(updated_count){
+ *             current_count = updated_count;
+ *         }
+ *     });
+ *     var new_user = User.create({params}); //current_count incremented
+ *     new_user.destroy();  //current_count decremented
+ *     stop();
+ *     User.create({params}); //current_count unchanged
+ *
+ * Lifecycle
+ * ---------
+ * There are 8 currently supported lifecycle events which allow granular control
+ * over your data, and are convenient to build user interface components and
+ * interactions around on the client side:
+ * 
+ * - afterFind
+ * - afterInitialize
+ * - beforeSave
+ * - afterSave
+ * - beforeCreate
+ * - afterCreate
+ * - beforeDestroy
+ * - afterDestroy
+ * 
+ * beforeSave and afterSave are called when both creating (inserting) and saving
+ * (updating) a record. You can observe events on all instances of a class, or
+ * just a particular instnace:
+ * 
+ *     User.observe('afterCreate',function(user){
+ *         console.log('User with id of ' + user.id + ' was created.');
+ *     });
+ * 
+ *     var u = User.find(5);
+ *     u.observe('afterDestroy',function(){
+ *         //this particular user was destroyed
+ *     });
+ * 
+ * In the example above, each user that is created will be passed to the first
+ * callback. You can also call stopObserving() to remove a given observer, and
+ * use the observeOnce() method (same arguments as observe()) method if needed.
+ * Alternately, each event name is also a convience method and the following
+ * example is functionally equivelent to the prior example:
+ * 
+ *     User.afterCreate(function(user){
+ *         console.log('User with id of ' + user.id + ' was created.');
+ *     });
+ * 
+ *     var u = User.find(5);
+ *     u.afterDestroy(function(){
+ *         //this particular user was destroyed
+ *     });
+ * 
+ * You can stop the creation, saving or destruction of a record by returning
+ * false inside any observers of the beforeCreate, beforeSave and
+ * beforeDestroy events respectively:
+ * 
+ *     User.beforeDestroy(function(user){
+ *         if(!allow_deletion_checkbox.checked){
+ *             return false; //record will not be destroyed
+ *         }
+ *     });
+ *
+ * Returning null, or returning nothing is equivelent to returning true in
+ * this context and will not stop the event.
+ *     
+ * To observe a given event on all models, you can do the following: 
+ * 
+ *     ActiveRecord.observe('afterCreate',function(model_class,model_instance){});
+ *     
+ * afterFind works differently than all of the other events. It is only available
+ * to the model class, not the instances, and is called only when a result set is
+ * found. A find first, or find by id call will not trigger the event.
+ * 
+ *     User.observe('afterFind',function(users,params){
+ *         //params contains the params used to find the array of users
+ *     });
+ *     
+ * Validation
+ * ----------
+ * Validation is performed on each model instance when create() or save() is
+ * called. Validation can be applied either by using pre defined validations
+ * (validatesPresenceOf, validatesLengthOf, more will be implemented soon), or by
+ * defining a valid() method in the class definition. (or by both). If a record is
+ * not valid, save() will return false. create() will always return the record,
+ * but in either case you can call getErrors() on the record to determine if
+ * there are any errors present.
+ * 
+ *     User = ActiveRecord.define('users',{
+ *         username: '',
+ *         password: ''
+ *     },{
+ *         valid: function(){
+ *             if(User.findByUsername(this.username)){
+ *                 this.addError('The username ' + this.username + ' is already taken.');
+ *             }
+ *         }
+ *     });
+ * 
+ *     User.validatesPresenceOf('password');
+ * 
+ *     var user = User.build({
+ *         'username': 'Jessica'
+ *     });
+ * 
+ *     user.save(); //false
+ *     var errors = user.getErrors(); //contains a list of the errors that occured
+ *     user.set('password','rabbit');
+ *     user.save(); //true
+ *     
+ * Relationships
+ * -------------
+ * Relationships are declared with one of three class methods that are available
+ *  to all models:
+ * 
+ * - belongsTo
+ * - hasMany
+ * - hasOne
+ * 
+ * The related model name can be specified in a number of ways, assuming that you
+ * have a Comment model already declared, any of the following would work:
+ * 
+ *     User.hasMany(Comment)
+ *     User.hasMany('Comment')
+ *     User.hasMany('comment')
+ *     User.hasMany('comments')
+ * 
+ * Each relationship adds various instance methods to each instance of that
+ * model. This differs significantly from the Rails "magical array" style of
+ * handling relationship logic:
+ * 
+ * Rails:
+ * 
+ *     u = User.find(5)
+ *     u.comments.length
+ *     u.comments.create :title => 'comment title'
+ * 
+ * ActiveRecord.js:
+ * 
+ *     var u = User.find(5);
+ *     u.getCommentList().length;
+ *     u.createComment({title: 'comment title'});
+ * 
+ * You can name the relationship (and thus the generate methods) by passing
+ * a name parameter:
+ * 
+ *     TreeNode.belongsTo(TreeNode,{name: 'parent'});
+ *     TreeNode.hasMany(TreeNode,{name: 'child'});
+ *     //instance now have, getParent(), getChildList(), methods
+ * 
+ * Missing Features
+ * ----------------
+ * ActiveRecord.js will not support all of the advanced features of the Ruby
+ * ActiveRecord implementation, but several key features are currently missing
+ * and will be added soon:
+ * 
+ * - complete set of default validations from ActiveRecord::Validations::ClassMethods
+ * - ActsAsList
+ * - ActsAsTree
+ * - hasMany :through (which will likely be the only supported many to many relationship)
+ * 
+ */
+ActiveRecord = {
+    /**
+     * Defaults to false.
+     * @alias ActiveRecord.logging
+     * @property {Boolean}
+     */
+    logging: false,
+    /**
+     * Will automatically create a table when create() is called. Defaults to true.
+     * @alias ActiveRecord.autoMigrate
+     * @property {Boolean}
+     */
+     autoMigrate: true,
+    /**
+     * Tracks the number of records created.
+     * @alias ActiveRecord.internalCounter
+     * @property {Number}
+     */
+    internalCounter: 0,
+    /**
+     * Contains model_name, ActiveRecord.Class pairs.
+     * @alias ActiveRecord.Models
+     * @property {Object} 
+     */
+    Models: {},
+    /**
+     * @namespace {ActiveRecord.Class} Each generated class will inherit all of
+     * the methods in this class, in addition to the ones dynamically generated
+     * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord classes.
+     * @alias ActiveRecord.ClassMethods
+     * @property {Object} 
+     */
+    ClassMethods: {},
+    /**
+     * @namespace {ActiveRecord.Instance} Each found instance will inherit all of
+      * the methods in this class, in addition to the ones dynamically generated
+      * by finders, validators, relationships, or your own definitions.
+     */
+    /**
+     * Contains all methods that will become available to ActiveRecord instances.
+     * @alias ActiveRecord.InstanceMethods
+     * @property {Object}
+     */
+    InstanceMethods: {},
+    /**
+     * Creates an ActiveRecord class, returning the class and storing it inside
+     * ActiveRecord.Models[model_name]. model_name is a singularized,
+     * capitalized form of table name.
+     * @example
+     *     var User = ActiveRecord.create('users');
+     *     var u = User.find(5);
+     * @alias ActiveRecord.create
+     * @param {String} table_name
+     * @param {Object} fields
+     *      Should consist of column name, default value pairs. If an empty
+     *      array or empty object is set as the default, any arbitrary data
+     *      can be set and will automatically be serialized when saved. To
+     *      specify a specific type, set the value to an object that contains
+     *      a "type" key, with optional "length" and "value" keys.
+     * @param {Object} [methods]
+     * @return {Object}
+     */
+    create: function create(options, fields, methods)
+    {
+        if (!ActiveRecord.connection)
+        {
+            return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
+        }
+        
+        if(typeof(options) === 'string')
+        {
+            options = {
+                tableName: options
+            };
+        }
+
+        //determine proper model name
+        var model = null;
+        if(!options.modelName)
+        {
+            var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(options.tableName) || options.tableName);
+            options.modelName = model_name.charAt(0).toUpperCase() + model_name.substring(1);
+        }
+
+        //constructor
+        model = ActiveRecord.Models[options.modelName] = function initialize(data)
+        {
+            this._object = {};
+            for(var key in data)
+            {
+                //third param is to suppress notifications on set
+                this.set(key,data[key],true);
+            }
+            this._errors = [];
+            var fields = this.constructor.fields;
+            for(var key in fields)
+            {
+                var field = fields[key]
+                if(!field.primaryKey)
+                {
+                    var value = ActiveRecord.connection.fieldOut(field,this.get(key));
+                    this.set(key,value,true);
+                }
+            }
+            this._id = this.get(this.constructor.primaryKeyName);
+            //performance optimization if no observers
+            this.notify('afterInitialize', data);
+        };
+        model.modelName = options.modelName;
+        model.tableName = options.tableName;
+        model.primaryKeyName = 'id';
+        
+        //mixin instance methods
+        ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
+
+        //user defined methods take precedence
+				if(typeof(methods) == 'undefined')
+				{
+						//detect if the fields object is actually a methods object
+					  for(var method_name in fields)
+					  {
+						    if(typeof(fields[method_name]) == 'function')
+						    {
+							      methods = fields;
+							      fields = null; 
+						    }
+						    break;
+					  }
+				}
+        if(methods && typeof(methods) !== 'function')
+        {
+            ActiveSupport.extend(model.prototype, methods);
+        }
+
+        //mixin class methods
+        ActiveSupport.extend(model, ActiveRecord.ClassMethods);
+
+        //add lifecycle abilities
+        ActiveEvent.extend(model);
+        
+        //clean and set field definition
+        if(!fields)
+        {
+            fields = {};
+        }
+        var custom_primary_key = false;
+        for(var field_name in fields)
+        {
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].type && !('value' in fields[field_name]))
+            {
+                fields[field_name].value = null;
+            }
+            if(typeof(fields[field_name]) === 'object' && fields[field_name].primaryKey)
+            {
+                custom_primary_key = field_name;
+            }
+        }
+        if(!custom_primary_key)
+        {
+            fields['id'] = {
+                primaryKey: true
+            };
+        }
+        model.fields = fields;
+        if(custom_primary_key)
+        {
+            model.primaryKeyName = custom_primary_key;
+        }
+
+        ActiveSupport.extend(model.prototype, {
+          modelName: model.modelName,
+          tableName: model.tableName,
+          primaryKeyName: model.primaryKeyName
+        });
+        
+        //generate finders
+        for(var key in model.fields)
+        {
+            Finders.generateFindByField(model,key);
+            Finders.generateFindAllByField(model,key);
+        }
+        //get is a synonym for findBy<PrimaryKey>
+        model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
+        
+        //create table for model if autoMigrate enabled
+        if(ActiveRecord.autoMigrate)
+        {
+            Migrations.Schema.createTable(options.tableName,ActiveSupport.clone(model.fields));
+        }
+        
+        return model;
+    }
+};
+ActiveRecord.define = ActiveRecord.create;
+
+/**
+ * If the table for your ActiveRecord does not exist, this will define the
+ * ActiveRecord and automatically create the table.
+ * @alias ActiveRecord.define
+ * @param {String} table_name
+ * @param {Object} fields
+ *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
+ * @param {Object} [methods]
+ * @param {Function} [readyCallback]
+ *      Must be specified if running in asynchronous mode.
+ * @return {Object}
+ * @example
+ * 
+ *     var User = ActiveRecord.define('users',{
+ *         name: '',
+ *         password: '',
+ *         comment_count: 0,
+ *         profile: {
+ *             type: 'text',
+ *             value: ''
+ *         },
+ *         serializable_field: {}
+ *     });
+ *     var u = User.create({
+ *         name: 'alice',
+ *         serializable_field: {a: '1', b: '2'}
+ *     }); 
+ */
+ 
+ActiveEvent.extend(ActiveRecord);
+
+ActiveRecord.eventNames = [
+    'afterInitialize',
+    'afterFind',
+    'beforeSave',
+    'afterSave',
+    'beforeCreate',
+    'afterCreate',
+    'beforeDestroy',
+    'afterDestroy'
+];
+
+//add lifecycle method names to classes and models (model_instance.beforeDestory() model_class.beforeDestroy())
+(function(){
+    for (var i = 0; i < ActiveRecord.eventNames.length; ++i)
+    {
+        ActiveRecord.ClassMethods[ActiveRecord.eventNames[i]] = ActiveRecord.InstanceMethods[ActiveRecord.eventNames[i]] = ActiveSupport.curry(function event_name_delegator(event_name, observer){
+            return this.observe(event_name, observer);
+        },ActiveRecord.eventNames[i]);
+    }
+})();
+
+/**
+ * Observe an event on all models. observer will be called with model_class, model_instance.
+ * @alias ActiveRecord.observe
+ * @param {String} event_name
+ * @param {Function} observer
+ * @return {Array} Array of observers 
+ */
+ActiveRecord.old_observe = ActiveRecord.observe;
+ActiveRecord.observe = function observe(event_name,observer)
+{
+    for(var i = 0; i < ActiveRecord.eventNames.length; ++i)
+    {
+        if(ActiveRecord.eventNames[i] === event_name)
+        {
+            var observers = [];
+            var model_observer;
+            for(var model_name in ActiveRecord.Models)
+            {
+                model_observer = ActiveSupport.curry(observer,ActiveRecord.Models[model_name]);
+                observers.push(model_observer);
+                ActiveRecord.Models[model_name].observe(event_name,model_observer);
+            }
+            return observers;
+        }
+    }
+    return ActiveRecord.old_observe(event_name,observer);
+};
+
+//add lifecycle method names to ActiveRecord (ActiveRecord.beforeDestory)
+(function(){
+    for (var i = 0; i < ActiveRecord.eventNames.length; ++i)
+    {
+        ActiveRecord[ActiveRecord.eventNames[i]] = ActiveSupport.curry(function event_name_delegator(event_name, observer){
+            ActiveRecord.observe(event_name, observer);
+        },ActiveRecord.eventNames[i]);
+    }
+})();
+
+var Errors = {
+    /**
+     * @alias ActiveRecord.Errors.ConnectionNotEstablished
+     * @property {String} Error that will be thrown if ActiveRecord is used without a connection.
+     */
+    ConnectionNotEstablished: ActiveSupport.createError('No ActiveRecord connection is active.'),
+    /**
+     * @alias ActiveRecord.Errors.MethodDoesNotExist
+     * @property {String} Error that will be thrown if using InMemory based adapter, and a method called inside a SQL statement cannot be found.
+     */
+    MethodDoesNotExist: ActiveSupport.createError('The requested method does not exist.'),
+    /**
+     * @alias ActiveRecord.Errors.InvalidFieldType
+     * @property {String} Error that will be thrown if an unrecognized field type definition is used.
+     */
+    InvalidFieldType: ActiveSupport.createError('The field type does not exist:')
+};
+
+ActiveRecord.Errors = Errors;
+
+ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+    /**
+     * Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.
+     * @alias ActiveRecord.Instance.set
+     * @param {String} key
+     * @param {mixed} value
+     * @param {Boolean} suppress_notifications Defaults to false
+     * @return {mixed} the value that was set
+     */
+    set: function set(key, value, suppress_notifications)
+    {
+        if (typeof(this[key]) !== "function")
+        {
+            this[key] = value;
+        }
+        this._object[key] = value;
+        if(!suppress_notifications)
+        {
+            this.notify('set',key,value);
+        }
+    },
+    /**
+     * Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)
+     * @alias ActiveRecord.Instance.get
+     * @param {String} key
+     * @return {mixed}
+     */
+    get: function get(key)
+    {
+        return this._object[key];
+    },
+    /**
+     * Returns a "clean" version of the object, with just the data and no methods.
+     * @alias ActiveRecord.Instance.toObject
+     * @return {Object}
+     */
+    toObject: function toObject()
+    {
+        return ActiveSupport.clone(this._object);
+    },
+    /**
+     * Returns an array of the column names that the instance contains.
+     * @alias ActiveRecord.Instance.keys
+     * @return {Array}
+     */
+    keys: function keys()
+    {
+        var keys_array = [];
+        for(var key_name in this._object)
+        {
+            keys_array.push(key_name);
+        }
+        return keys_array;
+    },
+    /**
+     * Returns an array of the column values that the instance contains.
+     * @alias ActiveRecord.Instance.values
+     * @return {Array}
+     */
+    values: function values()
+    {
+        var values_array = [];
+        for(var key_name in this._object)
+        {
+            values_array.push(this._object[key_name]);
+        }
+        return values_array;
+    },
+    /**
+     * Sets a given key on the object and immediately persists that change to the database triggering any callbacks or validation .
+     * @alias ActiveRecord.Instance.updateAttribute
+     * @param {String} key
+     * @param {mixed} value
+     */
+    updateAttribute: function updateAttribute(key, value)
+    {
+        this.set(key, value);
+        return this.save();
+    },
+    /**
+     * Updates all of the passed attributes on the record and then calls save().
+     * @alias ActiveRecord.Instance.updateAttributes
+     * @param {Object} attributes
+     */
+    updateAttributes: function updateAttributes(attributes)
+    {
+        for(var key in attributes)
+        {
+            this.set(key, attributes[key]);
+        }
+        return this.save();
+    },
+    /**
+     * Loads the most current data for the object from the database.
+     * @alias ActiveRecord.Instance.reload
+     * @return {Boolean}
+     */
+    reload: function reload()
+    {
+        if (this._id === undefined)
+        {
+            return false;
+        }
+        var record = this.constructor.get(this._id);
+        if (!record)
+        {
+            return false;
+        }
+        this._object = {};
+        var raw = record.toObject();
+        for (var key in raw)
+        {
+            this.set(key,raw[key]);
+        }
+        return true;
+    },
+    /**
+     * Persists the object, creating or updating as nessecary. 
+     * @alias ActiveRecord.Instance.save
+     * @param {Boolean} force_created_mode Defaults to false, will force the
+     *     record to act as if it was created even if an id property was passed.
+     * @return {Boolean}
+     */
+    save: function save(force_created_mode)
+    {
+        //callbacks/proxy not working
+        if (!this._valid())
+        {
+            return false;
+        }
+        //apply field in conversions
+        for (var key in this.constructor.fields)
+        {
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to suppress observers
+                this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+            }
+        }
+        if (this.notify('beforeSave') === false)
+        {
+            return false;
+        }
+        if ('updated' in this._object)
+        {
+            this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
+        }
+        if (force_created_mode || this._id === undefined)
+        {
+            if (this.notify('beforeCreate') === false)
+            {
+                return false;
+            }
+            if ('created' in this._object)
+            {
+                this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
+            }
+            ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
+            if(!this.get(this.constructor.primaryKeyName))
+            {
+                this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
+            }
+            Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
+            this.notify('afterCreate');
+        }
+        else
+        {
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this._id, this.toObject());
+        }
+        //apply field out conversions
+        for (var key in this.constructor.fields)
+        {
+            if(!this.constructor.fields[key].primaryKey)
+            {
+                //third param is to suppress observers
+                this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+            }
+        }
+        this._id = this.get(this.constructor.primaryKeyName);
+        Synchronization.triggerSynchronizationNotifications(this,'afterSave');
+        this.notify('afterSave');
+        return this;
+    },
+    /**
+     * Removes the object from the database, but does not destroy the object in memory itself.
+     * @alias ActiveRecord.Instance.destroy
+     * @return {Boolean}
+     */
+    destroy: function destroy()
+    {
+        if (this._id === undefined)
+        {
+            return false;
+        }
+        if (this.notify('beforeDestroy') === false)
+        {
+            return false;
+        }
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
+        Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
+        if (this.notify('afterDestroy') === false)
+        {
+            return false;
+        }
+        return true;
+    },
+    /**
+     * toJSON and toXML will call this instead of toObject() to get the
+     * data they will serialize. By default this calls toObject(), but 
+     * you can override this method to easily create custom JSON and XML
+     * output.
+     * @alias ActiveRecord.Instance.toSerializableObject
+     * @return {Object}
+     */
+    toSerializableObject: function toSerializableObject()
+    {
+        return this.toObject();
+    },
+    /**
+     * Serializes the record to an JSON string. If object_to_inject is passed
+     * that object will override any values of the record.
+     * @alias ActiveRecord.Instance.toJSON
+     * @param {Object} [object_to_inject]
+     * @return {String}
+     */
+    toJSON: function toJSON(object_to_inject)
+    {
+        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
+    },
+    /**
+     * Serializes the record to an XML string. If object_to_inject is passed
+     * that object will override any values of the record.
+     * @alias ActiveRecord.Instance.toXML
+     * @param {Object} [object_to_inject]
+     * @return {String}
+     */
+    toXML: function toXML(object_to_inject)
+    {
+        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
+    }
+});
+ActiveSupport.extend(ActiveRecord.ClassMethods,{
+    /**
+     * Find a given record, or multiple records matching the passed conditions.
+     * @alias ActiveRecord.Class.find
+     * @param {mixed} params
+     *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
+     *          select: Array of columns to select (default ['*'])
+     *          where: String or Object or Array
+     *          joins: String
+     *          order: String
+     *          limit: Number
+     *          offset: Number
+     *          synchronize: Boolean
+     * @return {mixed}
+     *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
+     * @example
+     *
+     *     var user = User.find(5); //finds a single record
+     *     var user = User.find({
+     *         first: true,
+     *         where: {
+     *             id: 5
+     *         }
+     *     });
+     *     var user = User.find({
+     *         first: true,
+     *         where: ['id = ?',5]
+     *     });
+     *     var users = User.find(); //finds all
+     *     var users = User.find({
+     *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
+     *         order: 'id DESC'
+     *     });
+     *     //using the where syntax below, the parameters will be properly escaped
+     *     var users = User.find({
+     *         where: {
+     *             name: 'alice',
+     *             password: md5('pass')
+     *         }
+     *         order: 'id DESC'
+     *     });
+     *     var users = User.find('SELECT * FROM users ORDER id DESC');
+     *
+     *     // If your primary key is not numeric, find(id) will not work.
+     *     // Use findBy<PrimaryKey>(id) or get(id) instead:
+     *
+     *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
+     *     commit = Commit.findById('cxfeea6'); // GOOD
+     *     commit = Commit.get('cxfeea6');      // GOOD
+     */
+    find: function find(params)
+    {
+        var result;
+        if (!params)
+        {
+            params = {};
+        }
+        if ((params.first && typeof params.first === "boolean") || ((typeof(params) === "number" || (typeof(params) === "string" && params.match(/^\d+$/))) && arguments.length == 1))
+        {
+            if (params.first)
+            {
+                //find first
+                params.limit = 1;
+                result = ActiveRecord.connection.findEntities(this.tableName,params);
+            }
+            else
+            {
+                //single id
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,[params]);
+            }
+            if (result && result.iterate && result.iterate(0))
+            {
+                return this.build(result.iterate(0));
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            result = null;
+            if (typeof(params) === 'string' && !params.match(/^\d+$/))
+            {
+                //find by sql
+                result = ActiveRecord.connection.findEntities.apply(ActiveRecord.connection,arguments);
+            }
+            else if (params && ((typeof(params) == 'object' && 'length' in params && 'slice' in params) || ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1)))
+            {
+                //find by multiple ids
+                var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
+                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,ids);
+            }
+            else
+            {
+                //result find
+                result = ActiveRecord.connection.findEntities(this.tableName,params);
+            }
+            var response = [];
+            if (result)
+            {
+                result.iterate(ActiveSupport.bind(function result_iterator(row){
+                    response.push(this.build(row));
+                }, this));
+            }
+            this.resultSetFromArray(response,params);
+            this.notify('afterFind',response,params);
+            return response;
+        }
+    },
+    /**
+     * Deletes a given id (if it exists) calling any callbacks or validations
+     * on the record. If "all" is passed as the ids, all records will be found
+     * and destroyed.
+     * @alias ActiveRecord.Class.destroy
+     * @param {Number} id 
+     * @return {Boolean}
+     */
+    destroy: function destroy(id)
+    {
+        if(id == 'all')
+        {
+            var instances = this.find({
+                all: true
+            });
+            var responses = [];
+            for(var i = 0; i < instances.length; ++i)
+            {
+                responses.push(instances[i].destroy());
+            }
+            return responses;
+        }
+        else
+        {
+            var instance = this.get(id);
+            if(!instance)
+            {
+                return false;
+            }
+            return instance.destroy();
+        }
+    },
+    /**
+     * Identical to calling create(), but does not save the record.
+     * @alias ActiveRecord.Class.build
+     * @param {Object} data
+     * @return {ActiveRecord.Instance}
+     */
+    build: function build(data)
+    {
+        ++ActiveRecord.internalCounter;
+        var record = new this(ActiveSupport.clone(data));
+        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
+        return record;
+    },
+    /**
+     * @alias ActiveRecord.Class.create
+     * @param {Object} data 
+     * @return {ActiveRecord.Instance}
+     * @example
+     *     var u = User.create({
+     *         name: 'alice',
+     *         password: 'pass'
+     *     });
+     *     u.id //will now contain the id of the user
+     */
+    create: function create(data)
+    {
+        var record = this.build(data);
+        record.save(true);
+        return record;
+    },
+    /**
+     * @alias ActiveRecord.Class.update
+     * @param {Number} id
+     * @param {Object} attributes
+     * @return {ActiveRecord.Instance}
+     * @example
+     * 
+     *     Article.update(3,{
+     *         title: 'New Title'
+     *     });
+     *     //or pass an array of ids and an array of attributes
+     *     Article.update([5,7],[
+     *         {title: 'Title for 5'},
+     *         {title: 'Title for 7'}
+     *     ]);
+     */
+    update: function update(id, attributes)
+    {
+        //array of ids and array of attributes passed in
+        if (ActiveSupport.isArray(id))
+        {
+            var results = [];
+            for(var i = 0; i < id.length; ++i)
+            {
+                results.push(this.update(id[i], attributes[i]));
+            }
+            return results;
+        }
+        else
+        {
+            var record = this.get(id);
+            if(!record)
+            {
+                return false;
+            }
+            record.updateAttributes(attributes);
+            return record;
+        }
+    },
+    /**
+     * @alias ActiveRecord.Class.updateAll
+     * @param {Object} updates
+     *      A string of updates to make, or a Hash of column value pairs.
+     * @param {String} [conditions]
+     *      Optional where condition, or Hash of column name, value pairs.
+     */
+    updateAll: function updateAll(updates, conditions)
+    {
+        ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
+    },
+    /**
+     * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
+     * the construction of custom result set objects from arrays where result 
+     * sets are expected. This will modify the array that is passed in and
+     * return the same array object.
+     * @alias ActiveRecord.Class.resultSetFromArray
+     * @param {Array} result_set
+     * @param {Object} [params]
+     * @return {Array}
+     * @example
+     *     var one = Comment.find(1);
+     *     var two = Comment.find(2);
+     *     var result_set = Comment.resultSetFromArray([one,two]);
+     */
+    resultSetFromArray: function resultSetFromArray(result_set,params)
+    {
+        if(!params)
+        {
+            params = {};
+        }
+        for(var method_name in ResultSet.InstanceMethods)
+        {
+            result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,this);
+        }
+        if(params.synchronize)
+        {
+            Synchronization.synchronizeResultSet(this,params,result_set);
+        }
+        return result_set;
+    }
+});
+
+ActiveSupport.extend(ActiveRecord.ClassMethods,{
+    processCalculationParams: function processCalculationParams(operation,params)
+    {
+        if(!params)
+        {
+            params = {};
+        }
+        if(typeof(params) === 'string')
+        {
+            params = {
+                where: params
+            };
+        }
+        return params;
+    },
+    performCalculation: function performCalculation(operation,params,sql_fragment)
+    {
+        if(params && params.synchronize)
+        {
+            return Synchronization.synchronizeCalculation(this,operation,params);
+        }
+        else
+        {
+            return ActiveRecord.connection.calculateEntities(this.tableName,this.processCalculationParams(operation,params),sql_fragment);
+        }
+    },
+    /**
+     * options can contain all params that find() can
+     * @alias ActiveRecord.Class.count
+     * @param {Object} [params] 
+     * @return {Number}
+     */
+    count: function count(params)
+    {
+        return this.performCalculation('count',params,'COUNT(*)');
+    },
+    /**
+     * options can contain all params that find() can
+     * @alias ActiveRecord.Class.average
+     * @param {String} column_name
+     * @param {Object} [params] 
+     * @return {Number}
+     */
+    average: function average(column_name,params)
+    {
+        return this.performCalculation('average',params,'AVG(' + column_name + ')');
+    },
+    /**
+     * options can contain all params that find() can
+     * @alias ActiveRecord.Class.max
+     * @param {String} column_name
+     * @param {Object} [params] 
+     * @return {Number}
+     */
+    max: function max(column_name,params)
+    {
+        return this.performCalculation('max',params,'MAX(' + column_name + ')');
+    },
+    /**
+     * options can contain all params that find() can
+     * @alias ActiveRecord.Class.min
+     * @param {String} column_name
+     * @param {Object} [params] 
+     * @return {Number}
+     */
+    min: function min(column_name,params)
+    {
+        return this.performCalculation('min',params,'MIN(' + column_name + ')');
+    },
+    /**
+     * options can contain all params that find() can
+     * @alias ActiveRecord.Class.sum
+     * @param {String} column_name
+     * @param {Object} [params]
+     * @return {Number}
+     */
+    sum: function sum(column_name,params)
+    {
+        return this.performCalculation('sum',params,'SUM(' + column_name + ')');
+    },
+    /**
+     * Returns the first record sorted by id.
+     * @alias ActiveRecord.Class.first
+     * @return {ActiveRecord.Instance} 
+     */
+    first: function first()
+    {
+        return this.find({
+            first: true
+        });
+    },
+    /**
+     * Returns the last record sorted by id.
+     * @alias ActiveRecord.Class.last
+     * @return {ActiveRecord.Instance} 
+     */
+    last: function last()
+    {
+        return this.find({
+            first: true,
+            order: this.primaryKeyName + ' DESC'
+        });
+    }
+});
+ 
+ /**
+ * @namespace {ActiveRecord.Adapters}
+ */
+ var Adapters = {};
+
+/**
+ * null if no connection is active, or the class that created the connection.
+ * @alias ActiveRecord.adapter
+ * @property {mixed}
+ */
+ActiveRecord.adapter = null;
+
+/**
+ * null if no connection is active, or the connection object.
+ * @alias ActiveRecord.connection
+ * @property {mixed}
+ */
+ActiveRecord.connection = null;
+
+/**
+ * Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.
+ * @alias ActiveRecord.connect
+ * @param {Object} adapter
+ * @param {mixed} [args]
+ * @example
+ * 
+ *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
+ *     ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
+ *     //or you can have ActiveRecord try to auto detect the enviornment
+ *     ActiveRecord.connect();
+ */
+ActiveRecord.connect = function connect(adapter)
+{   
+    if(!adapter)
+    {
+        ActiveRecord.connection = Adapters.Auto.connect.apply(Adapters.Auto, ActiveSupport.arrayFrom(arguments).slice(1));
+        ActiveRecord.adapter = ActiveRecord.connection.constructor;
+    }
+    else
+    {
+        ActiveRecord.adapter = adapter;
+        ActiveRecord.connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
+    }
+    ActiveEvent.extend(ActiveRecord.connection);
+    if(!ActiveRecord.connection.preventConnectedNotification)
+    {
+        ActiveRecord.notify('connected');
+    }
+};
+
+/**
+ * Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.
+ * @alias ActiveRecord.execute
+ * @param {String} sql
+ * @return {mixed}
+ * @example
+ *
+ *     ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
+ */
+ActiveRecord.execute = function execute()
+{
+    if (!ActiveRecord.connection)
+    {
+        return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
+    }
+    return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
+};
+
+/**
+ * Escapes a given argument for use in a SQL string. By default
+ * the argument passed will also be enclosed in quotes.
+ * @alias ActiveRecord.escape
+ * @param {mixed} argument
+ * @param {Boolean} [supress_quotes] Defaults to false.
+ * @return {mixed}
+ * ActiveRecord.escape(5) == 5
+ * ActiveRecord.escape('tes"t') == '"tes\"t"';
+ */
+ActiveRecord.escape = function escape(argument,supress_quotes)
+{
+    var quote = supress_quotes ? '' : '"';
+    return typeof(argument) == 'number'
+        ? argument
+        : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
+    ;
+};
+
+
+/**
+ * @alias ActiveRecord.transaction
+ * @param {Function} proceed
+ *      The block of code to execute inside the transaction.
+ * @param {Function} [error]
+ *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+ * @example
+ *     ActiveRecord.transaction(function(){
+ *         var from = Account.find(2);
+ *         var to = Account.find(3);
+ *         to.despoit(from.withdraw(100.00));
+ *     });
+ */
+ActiveRecord.transaction = function transaction(proceed,error)
+{
+    try
+    {
+        ActiveRecord.connection.transaction(proceed);
+    }
+    catch(e)
+    {
+        if(error)
+        {
+            error(e);
+        }
+        else
+        {
+            return ActiveSupport.throwError(e);
+        }
+    }
+};
+//deprecated
+ActiveRecord.ClassMethods.transaction = ActiveRecord.transaction;
+
+Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
+{
+    if (typeof(iterator) === 'number')
+    {
+        if (this.rows[iterator])
+        {
+            return ActiveSupport.clone(this.rows[iterator]);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        for (var i = 0; i < this.rows.length; ++i)
+        {
+            var row = ActiveSupport.clone(this.rows[i]);
+            iterator(row);
+        }
+    }
+};
+
+
+Adapters.InstanceMethods = {
+    setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
+    {
+        //no value was passed
+        if (value === null || typeof(value) === 'undefined')
+        {
+            //default value was in field specification
+            if(Migrations.objectIsFieldDefinition(field))
+            {
+                var default_value = this.getDefaultValueFromFieldDefinition(field);
+                if(typeof(default_value) === 'undefined')
+                {
+                    return ActiveSupport.throwError(Errors.InvalidFieldType,(field ? (field.type || '[object]') : 'false'));
+                }
+                return field.value || default_value;
+            }
+            //default value was set, but was not field specification 
+            else
+            {
+                return field;
+            }
+        }
+        return value;
+    },
+    getColumnDefinitionFragmentFromKeyAndColumns: function getColumnDefinitionFragmentFromKeyAndColumns(key,columns)
+    {
+        return this.quoteIdentifier(key) + ((typeof(columns[key]) === 'object' && typeof(columns[key].type) !== 'undefined') ? columns[key].type : this.getDefaultColumnDefinitionFragmentFromValue(columns[key]));
+    },
+    getDefaultColumnDefinitionFragmentFromValue: function getDefaultColumnDefinitionFragmentFromValue(value)
+    {
+        if (typeof(value) === 'string')
+        {
+            return 'VARCHAR(255)';
+        }
+        if (typeof(value) === 'number')
+        {
+            return 'INT';
+        }
+        if (typeof(value) == 'boolean')
+        {
+            return 'TINYINT(1)';
+        }
+        return 'TEXT';
+    },
+    getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
+    {
+        return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+    },
+    quoteIdentifier: function quoteIdentifier(name)
+    {
+      return '"' + name + '"';
+    },
+    log: function log()
+    {
+        if(!ActiveRecord.logging)
+        {
+            return;
+        }
+        if(arguments[0])
+        {
+            arguments[0] = 'ActiveRecord: ' + arguments[0];
+        }
+        return ActiveSupport.log.apply(ActiveSupport,arguments || {});
+    }
+};
+
+ActiveRecord.Adapters = Adapters;
+
+Adapters.SQL = {
+    schemaLess: false,
+    insertEntity: function insertEntity(table, primary_key_name, data)
+    {
+        var keys = ActiveSupport.keys(data).sort();
+        var values = [];
+        var args = [];
+        for(var i = 0; i < keys.length; ++i)
+        {
+            args.push(data[keys[i]]);
+            values.push('?');
+        }
+        args.unshift("INSERT INTO " + table + " (" + keys.map(this.quoteIdentifier).join(',') + ") VALUES (" + values.join(',') + ")");
+        var response = this.executeSQL.apply(this,args);
+        var id = data[primary_key_name] || this.getLastInsertedRowId();
+        var data_with_id = ActiveSupport.clone(data);
+        data_with_id[primary_key_name] = id;
+        this.notify('created',table,id,data_with_id);
+        return response;
+    },
+    updateMultitpleEntities: function updateMultitpleEntities(table, updates, conditions)
+    {
+        var args = [];
+        if(typeof(updates) !== 'string')
+        {
+            var values = [];
+            var keys = ActiveSupport.keys(updates).sort();
+            for (var i = 0; i < keys.length; ++i)
+            {
+                args.push(updates[keys[i]]);
+                values.push(this.quoteIdentifier(keys[i]) + " = ?");
+            }
+            updates = values.join(',');
+        }
+        args.unshift('UPDATE ' + table + ' SET ' + updates + this.buildWhereSQLFragment(conditions, args));
+        return this.executeSQL.apply(this, args);
+    },
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
+    {
+        var keys = ActiveSupport.keys(data).sort();
+        var args = [];
+        var values = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            args.push(data[keys[i]]);
+            values.push(this.quoteIdentifier(keys[i]) + " = ?");
+        }
+        args.push(id);
+        args.unshift("UPDATE " + table + " SET " + values.join(',') + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?");
+        var response = this.executeSQL.apply(this, args);
+        this.notify('updated',table,id,data);
+        return response;
+    },
+    calculateEntities: function calculateEntities(table, params, operation)
+    {
+        var process_count_query_result = function process_count_query_result(response)
+        {
+            if(!response)
+            {
+                return 0;
+            }
+            return parseInt(ActiveRecord.connection.iterableFromResultSet(response).iterate(0)['calculation'], 10);
+        };
+        var args = this.buildSQLArguments(table, params, operation);
+        return process_count_query_result(this.executeSQL.apply(this, args));
+    },
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
+    {
+        var args, response;
+        if (id === 'all')
+        {
+            args = ["DELETE FROM " + table];
+            var ids = [];
+            var ids_result_set = this.executeSQL('SELECT ' + this.quoteIdentifier(primary_key_name) + ' FROM ' + table);
+            if(!ids_result_set)
+            {
+                return null;
+            }
+            this.iterableFromResultSet(ids_result_set).iterate(function id_collector_iterator(row){
+                ids.push(row[primary_key_name]);
+            });
+            response = this.executeSQL.apply(this,args);
+            for(var i = 0; i < ids.length; ++i)
+            {
+                this.notify('destroyed',table,ids[i]);
+            }
+            return response;
+        }
+        else
+        {
+            args = ["DELETE FROM " + table + " WHERE " + this.quoteIdentifier(primary_key_name) + " = ?",id];
+            response = this.executeSQL.apply(this,args);
+            this.notify('destroyed',table,id);
+            return response;
+        }
+    },
+    findEntitiesById: function findEntityById(table, primary_key_name, ids)
+    {
+        var response = this.executeSQL.apply(this,['SELECT * FROM ' + table + ' WHERE ' + this.quoteIdentifier(primary_key_name) + ' IN (' + ids.join(',') + ')']);
+        if (!response)
+        {
+            return false;
+        }
+        else
+        {
+            return ActiveRecord.connection.iterableFromResultSet(response);
+        }
+    },
+    findEntities: function findEntities(table, params)
+    {
+        var args;
+        if (typeof(table) === 'string' && !table.match(/^\d+$/) && typeof(params) != 'object')
+        {
+            args = arguments;
+        }
+        else
+        {
+            args = this.buildSQLArguments(table, params, false);
+        }
+        var response = this.executeSQL.apply(this,args);
+        if (!response)
+        {
+            return false;
+        }
+        else
+        {
+            return ActiveRecord.connection.iterableFromResultSet(response);
+        }
+    },
+    buildSQLArguments: function buildSQLArguments(table, params, calculation)
+    {
+        var args = [];
+        var sql = 'SELECT ' + (calculation ? (calculation + ' AS calculation') : (params.select ? params.select.join(',') : '*')) + ' FROM ' + table +
+            this.buildWhereSQLFragment(params.where, args) +
+            (params.joins ? ' ' + params.joins : '') + 
+            (params.group ? ' GROUP BY ' + params.group : '') + 
+            (params.order ? ' ORDER BY ' + params.order : '') + 
+            (params.offset && params.limit ? ' LIMIT ' + params.offset + ',' + params.limit : '') + 
+            (!params.offset && params.limit ? ' LIMIT ' + params.limit : '');
+        args.unshift(sql);
+        return args;
+    },
+    buildWhereSQLFragment: function buildWhereSQLFragment(fragment, args)
+    {
+        var where, keys, i;
+        if(fragment && ActiveSupport.isArray(fragment))
+        {
+            for(i = 1; i < fragment.length; ++i)
+            {
+                args.push(fragment[i]);
+            }
+            return ' WHERE ' + fragment[0];
+        }
+        else if(fragment && typeof(fragment) !== "string")
+        {
+            where = '';
+            keys = ActiveSupport.keys(fragment);
+            for(i = 0; i < keys.length; ++i)
+            {
+                where += this.quoteIdentifier(keys[i]) + " = ? AND ";
+                var value;
+                if(typeof(fragment[keys[i]]) === 'number')
+                {
+                    value = fragment[keys[i]];
+                }
+                else if(typeof(fragment[keys[i]]) == 'boolean')
+                {
+                    value = parseInt(Number(fragment[keys[i]]),10);
+                }
+                else
+                {
+                    value = String(fragment[keys[i]]);
+                }
+                args.push(value);
+            }
+            where = ' WHERE ' + where.substring(0,where.length - 4);
+        }
+        else if(fragment)
+        {
+            where = ' WHERE ' + fragment;
+        }
+        else
+        {
+            where = '';
+        }
+        return where;
+    },
+    //schema
+    dropTable: function dropTable(table_name)
+    {
+        return this.executeSQL('DROP TABLE IF EXISTS ' + table_name);
+    },
+    addIndex: function addIndex(table_name,column_names,options)
+    {
+        
+    },
+    renameTable: function renameTable(old_table_name,new_table_name)
+    {
+        this.executeSQL('ALTER TABLE ' + old_table_name + ' RENAME TO ' + new_table_name);
+    },
+    removeIndex: function removeIndex(table_name,index_name)
+    {
+        
+    },
+    addColumn: function addColumn(table_name,column_name,data_type)
+    {
+        return this.executeSQL('ALTER TABLE ' + table_name + ' ADD COLUMN ' + this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+    },
+    fieldIn: function fieldIn(field, value)
+    {
+        if(value && value instanceof Date)
+        {
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
+        }
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
+        if (typeof(field) === 'string')
+        {
+            return String(value);
+        }
+        if (typeof(field) === 'number')
+        {
+            return String(value);
+        }
+        if(typeof(field) === 'boolean')
+        {
+            return String(parseInt(Number(value),10));
+        }
+        //array or object
+        if (typeof(value) === 'object' && !Migrations.objectIsFieldDefinition(field))
+        {
+            return ActiveSupport.JSON.stringify(value);
+        }
+    },
+    fieldOut: function fieldOut(field, value)
+    {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            //date handling
+            if(typeof(value) == 'string' && /date/.test(field.type.toLowerCase()))
+            {
+                return ActiveSupport.dateFromDateTime(value);
+            }
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
+        if (typeof(field) === 'string')
+        {
+            return value;
+        }
+        if(typeof(field) === 'boolean')
+        {
+            if(value === '0' || value === 0 || value === 'false')
+            {
+                value = false;
+            }
+            return !!value;
+        }
+        if (typeof(field) === 'number')
+        {
+            if (typeof(value) === 'number')
+            {
+                return String(str).replace(/^\s+|\s+$/g,"");
+            };
+            var t = ActiveSupport.trim(String(value));
+            return (t.length > 0 && !(/[^0-9.]/).test(t) && (/\.\d/).test(t)) ? parseFloat(Number(value)) : parseInt(Number(value),10);
+        }
+        //array or object (can come from DB (as string) or coding enviornment (object))
+        if ((typeof(value) === 'string' || typeof(value) === 'object') && (typeof(field) === 'object' && (typeof(field.length) !== 'undefined' || typeof(field.type) === 'undefined')))
+        {
+            if (typeof(value) === 'string')
+            {
+                return ActiveSupport.JSON.parse(value);
+            }
+            else
+            {
+                return value;
+            }
+        }
+    },
+    transaction: function transaction(proceed)
+    {
+        try
+        {
+            ActiveRecord.connection.executeSQL('BEGIN');
+            proceed();
+            ActiveRecord.connection.executeSQL('COMMIT');
+        }
+        catch(e)
+        {
+            ActiveRecord.connection.executeSQL('ROLLBACK');
+            return ActiveSupport.throwError(e);
+        }
+    }
+};
+
+Adapters.SQLite = ActiveSupport.extend(ActiveSupport.clone(Adapters.SQL),{
+    createTable: function createTable(table_name,columns)
+    {
+        var keys = ActiveSupport.keys(columns);
+        var fragments = [];
+        for (var i = 0; i < keys.length; ++i)
+        {
+            var key = keys[i];
+            if(columns[key].primaryKey)
+            {
+                var type = columns[key].type || 'INTEGER';
+                fragments.unshift(this.quoteIdentifier(key) + ' ' + type + ' PRIMARY KEY');
+            }
+            else
+            {
+                fragments.push(this.getColumnDefinitionFragmentFromKeyAndColumns(key,columns));
+            }
+        }
+        return this.executeSQL('CREATE TABLE IF NOT EXISTS ' + table_name + ' (' + fragments.join(',') + ')');
+    },
+    dropColumn: function dropColumn(table_name,column_name)
+    {
+        this.transaction(ActiveSupport.bind(function drop_column_transaction(){
+            var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
+            var temp_table_name = 'temp_' + table_name;
+            ActiveRecord.execute(description['sql'].replace(new RegExp('^CREATE\s+TABLE\s+' + table_name),'CREATE TABLE ' + temp_table_name).replace(new RegExp('(,|\()\s*' + column_name + '[\s\w]+(\)|,)'),function(){
+                return (args[1] == '(' ? '(' : '' ) + args[2];
+            }));
+            ActiveRecord.execute('INSERT INTO ' + temp_table_name + ' SELECT * FROM ' + table_name);
+            this.dropTable(table_name);
+            this.renameTable(temp_table_name,table_name);
+        },this));
+    }
+});
+
+/**
+ * In memory, non persistent storage.
+ * @alias ActiveRecord.Adapters.InMemory
+ * @property {ActiveRecord.Adapter}
+ */
+Adapters.InMemory = function InMemory(storage){
+    this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
+    this.lastInsertId = null;
+};
+
+ActiveSupport.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
+
+ActiveSupport.extend(Adapters.InMemory.prototype,{
+    schemaLess: true,
+    entityMissing: function entityMissing(id){
+        return {};
+    },
+    serialize: function serialize()
+    {
+        return ActiveSupport.JSON.stringify(this.storage);
+    },
+    executeSQL: function executeSQL(sql)
+    {
+        ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
+    },
+    insertEntity: function insertEntity(table, primary_key_name, data)
+    {
+        this.setupTable(table);
+        var max = 1;
+        var table_data = this.storage[table];
+        if(!data.id)
+        {
+            for(var id in table_data)
+            {
+                if(parseInt(id, 10) >= max)
+                {
+                    max = parseInt(id, 10) + 1;
+                }
+            }
+            data.id = max;
+        }
+        this.lastInsertId = data.id;
+        this.storage[table][data.id] = data;
+        this.notify('created',table,data.id,data);
+        return true;
+    },
+    getLastInsertedRowId: function getLastInsertedRowId()
+    {
+        return this.lastInsertId;
+    },
+    updateMultitpleEntities: function updateMultitpleEntities(table, updates, conditions)
+    {
+        
+    },
+    updateEntity: function updateEntity(table, primary_key_name, id, data)
+    {
+        this.setupTable(table);
+        this.storage[table][id] = data;
+        this.notify('updated',table,id,data);
+        return true;
+    },
+    calculateEntities: function calculateEntities(table, params, operation)
+    {
+        this.setupTable(table);
+        var entities = this.findEntities(table,params);
+        var parsed_operation = operation.match(/([A-Za-z]+)\(([^\)]+)\)/);
+        var operation_type = parsed_operation[1].toLowerCase();
+        var column_name = parsed_operation[2];
+        switch(operation_type){
+            case 'count':
+                return entities.length;
+            case 'max':
+                var max = 0;
+                for(var i = 0; i < entities.length; ++i)
+                {
+                    if(parseInt(entities[i][column_name], 10) > max)
+                    {
+                        max = parseInt(entities[i][column_name], 10);
+                    }
+                }
+                return max;
+            case 'min':
+                var min = 0;
+                if(entities[0])
+                {
+                    min = entities[0][column_name];
+                }
+                for(var i = 0; i < entities.length; ++i)
+                {
+                    if(entities[i][column_name] < min)
+                    {
+                        min = entities[i][column_name];
+                    }
+                }
+                return min;
+            case 'avg':
+            case 'sum':
+                var sum = 0;
+                for(var i = 0; i < entities.length; ++i)
+                {
+                    sum += entities[i][column_name];
+                }
+                return operation_type === 'avg' ? sum / entities.length : sum;
+        }
+    },
+    deleteEntity: function deleteEntity(table, primary_key_name, id)
+    {
+        this.setupTable(table);
+        if(!id || id === 'all')
+        {
+            for(var id_to_be_deleted in this.storage[table])
+            {
+                this.notify('destroyed',table,id_to_be_deleted);
+            }
+            this.storage[table] = {};
+            return true;
+        }
+        else if(this.storage[table][id])
+        {
+            delete this.storage[table][id];
+            this.notify('destroyed',table,id);
+            return true;
+        }
+        return false;
+    },
+    findEntitiesById: function findEntitiesById(table, primary_key_name, ids)
+    {
+        var table_data = this.storage[table];
+        var response = [];
+        for(var i = 0; i < ids.length; ++i)
+        {
+            var id = ids[i];
+            if(table_data[id])
+            {
+                response.push(table_data[id]);
+            }
+        }
+        return this.iterableFromResultSet(response);
+    },
+    findEntities: function findEntities(table, params)
+    {
+        if (typeof(table) === 'string' && !table.match(/^\d+$/) && typeof(params) != 'object')
+        {
+            //find by SQL
+
+            //replace ? in SQL strings
+            var sql = table;
+            var sql_args = ActiveSupport.arrayFrom(arguments).slice(1);
+            for(var i = 0; i < sql_args.length; ++i)
+            {
+                sql = sql.replace(/\?/,ActiveRecord.escape(sql_args[i]));
+            }
+            var response = this.paramsFromSQLString(sql);
+            table = response[0];
+            params = response[1];
+        }
+        else if(typeof(params) === 'undefined')
+        {
+            params = {};
+        }
+        this.setupTable(table);
+        var entity_array = [];
+        var table_data = this.storage[table];
+        if(params && params.where && params.where.id)
+        {
+            if(table_data[params.where.id])
+            {
+                entity_array.push(table_data[params.where.id]);
+            }
+        }
+        else
+        {
+            for(var id in table_data)
+            {
+                entity_array.push(table_data[id]);
+            }
+        }
+        var filters = [];
+        if(params && params.group)
+        {
+            filters.push(this.createGroupBy(params.group));
+        }
+        if(params && params.where)
+        {
+            filters.push(this.createWhere(params.where));
+        }
+        if(params && params.order)
+        {
+            filters.push(this.createOrderBy(params.order));
+        }
+        if(params && params.limit || params.offset)
+        {
+            filters.push(this.createLimit(params.limit,params.offset));
+        }
+        for(var i = 0; i < filters.length; ++i)
+        {
+            entity_array = filters[i](entity_array);
+        }
+        return this.iterableFromResultSet(entity_array);
+    },
+    paramsFromSQLString: function paramsFromSQLString(sql)
+    {
+        var params = {};
+        var select = /\s*SELECT\s+.+\s+FROM\s+(\w+)\s+/i;
+        var select_match = sql.match(select); 
+        var table = select_match[1];
+        sql = sql.replace(select,'');
+        var fragments = [
+            ['limit',/(^|\s+)LIMIT\s+(.+)$/i],
+            ['order',/(^|\s+)ORDER\s+BY\s+(.+)$/i],
+            ['group',/(^|\s+)GROUP\s+BY\s+(.+)$/i],
+            ['where',/(^|\s+)WHERE\s+(.+)$/i]
+        ];
+        for(var i = 0; i < fragments.length; ++i)
+        {
+            var param_name = fragments[i][0];
+            var matcher = fragments[i][1];
+            var match = sql.match(matcher);
+            if(match)
+            {
+                params[param_name] = match[2];
+                sql = sql.replace(matcher,'');
+            }
+        }
+        return [table,params];
+    },
+    transaction: function transaction(proceed)
+    {
+        var backup = {};
+        for(var table_name in this.storage)
+        {
+            backup[table_name] = ActiveSupport.clone(this.storage[table_name]);
+        }
+        try
+        {
+            proceed();
+        }
+        catch(e)
+        {
+            this.storage = backup;
+            return ActiveSupport.throwError(e);
+        }
+    },
+    /* PRVIATE */
+    iterableFromResultSet: function iterableFromResultSet(result)
+    {
+        result.iterate = function iterate(iterator)
+        {
+            if (typeof(iterator) === 'number')
+            {
+                if (this[iterator])
+                {
+                    return ActiveSupport.clone(this[iterator]);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                for (var i = 0; i < this.length; ++i)
+                {
+                    var row = ActiveSupport.clone(this[i]);
+                    iterator(row);
+                }
+            }
+        };
+        return result;
+    },
+    setupTable: function setupTable(table)
+    {
+        if(!this.storage[table])
+        {
+            this.storage[table] = {};
+        }
+    },
+    createWhere: function createWhere(where)
+    {   
+        if(ActiveSupport.isArray(where))
+        {
+            var where_fragment = where[0];
+            for(var i = 1; i < where.length; ++i)
+            {
+                where_fragment = where_fragment.replace(/\?/,ActiveRecord.escape(where[i]));
+            }
+            where = where_fragment;
+        }
+        if(typeof(where) === 'string')
+        {
+            return function json_result_where_processor(result_set)
+            {
+                var response = [];
+                var where_parser = new WhereParser();
+                var abstract_syntax_tree = where_parser.parse(where);
+                for(var i = 0; i < result_set.length; ++i)
+                {
+                    if(abstract_syntax_tree.execute(result_set[i],Adapters.InMemory.method_call_handler))
+                    {
+                        response.push(result_set[i]);
+                    }
+                }
+                return response;
+            };
+        }
+        else
+        {
+            return function json_result_where_processor(result_set)
+            {
+                var response = [];
+                for(var i = 0; i < result_set.length; ++i)
+                {
+                    var included = true;
+                    for(var column_name in where)
+                    {
+                        if((String(result_set[i][column_name])) != (String(where[column_name])))
+                        {
+                            included = false;
+                            break;
+                        }
+                    }
+                    if(included)
+                    {
+                        response.push(result_set[i]);
+                    }
+                }
+                return response;
+            };
+        }
+    },
+    createLimit: function createLimit(limit,offset)
+    {
+        return function json_result_limit_processor(result_set)
+        {
+            return result_set.slice(offset || 0,limit);
+        };
+    },
+    createGroupBy: function createGroupBy(group_by)
+    {
+        if(!group_by || group_by == '')
+        {
+            return function json_result_group_by_processor(result_set)
+            {
+                return result_set;
+            }
+        }
+        var group_key = group_by.replace(/(^[\s]+|[\s]+$)/g,'');
+        return function json_result_group_by_processor(result_set)
+        {
+            var response = [];
+            var indexed_by_group = {};
+            for(var i = 0; i < result_set.length; ++i)
+            {
+                indexed_by_group[result_set[i][group_key]] = result_set[i];
+            }
+            for(var group_key_value in indexed_by_group)
+            {
+                response.push(indexed_by_group[group_key_value]);
+            }
+            return response;
+        }
+    },
+    createOrderBy: function createOrderBy(order_by)
+    {
+        if(!order_by || order_by === '')
+        {
+            return function json_result_order_by_processor(result_set)
+            {
+                return result_set;
+            };
+        }
+        var order_statements = order_by.split(',');
+        var trimmed_order_statements = [];
+        for(var i = 0; i < order_statements.length; ++i)
+        {
+            trimmed_order_statements.push(order_statements[i].replace(/(^[\s]+|[\s]+$)/g,'').replace(/[\s]{2,}/g,'').toLowerCase());
+        }
+        return function json_result_order_by_processor(result_set)
+        {
+            for(var i = 0; i < trimmed_order_statements.length; ++i)
+            {
+                var trimmed_order_statements_bits = trimmed_order_statements[i].split(/\s/);
+                var column_name = trimmed_order_statements_bits[0];
+                var reverse = trimmed_order_statements_bits[1] && trimmed_order_statements_bits[1] === 'desc';
+                result_set = result_set.sort(function result_set_sorter(a,b){
+                    return a[column_name] < b[column_name] ? -1 : a[column_name] > b[column_name] ? 1 : 0;
+                });
+                if(reverse)
+                {
+                    result_set = result_set.reverse();
+                }
+            }
+            return result_set;
+        };
+    },
+    //schema
+    createTable: function createTable(table_name,columns)
+    {
+        if(!this.storage[table_name])
+        {
+            this.storage[table_name] = {};
+        }
+    },
+    dropTable: function dropTable(table_name)
+    {
+        delete this.storage[table_name];
+    },
+    addColumn: function addColumn(table_name,column_name,data_type)
+    {
+        return; //no action needed
+    },
+    removeColumn: function removeColumn(table_name,column_name)
+    {
+        return; //no action needed
+    },
+    addIndex: function addIndex(table_name,column_names,options)
+    {
+        return; //no action needed
+    },
+    removeIndex: function removeIndex(table_name,index_name)
+    {
+        return; //no action needed
+    },
+    fieldIn: function fieldIn(field, value)
+    {
+        if(value && value instanceof Date)
+        {
+            return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
+        }
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
+        return value;
+    },
+    fieldOut: function fieldOut(field, value)
+    {
+        if(Migrations.objectIsFieldDefinition(field))
+        {
+            //date handling
+            if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
+            {
+                return ActiveSupport.dateFromDateTime(value);
+            }
+            field = this.getDefaultValueFromFieldDefinition(field);
+        }
+        value = this.setValueFromFieldIfValueIsNull(field,value);
+        return value;
+    }
+});
+
+Adapters.InMemory.method_call_handler = function method_call_handler(name,row,args)
+{
+    if(!Adapters.InMemory.MethodCallbacks[name])
+    {
+        name = name.toLowerCase().replace(/\_[0-9A-Z-a-z]/g,function camelize_underscores(match){
+            return match.toUpperCase();
+        });
+    }
+    if(!Adapters.InMemory.MethodCallbacks[name])
+    {
+        return ActiveSupport.throwError(Errors.MethodDoesNotExist);
+    }
+    else
+    {
+        return Adapters.InMemory.MethodCallbacks[name].apply(Adapters.InMemory.MethodCallbacks[name],[row].concat(args || []));
+    }
+};
+Adapters.InMemory.MethodCallbacks = (function(){
+    var methods = {};
+    var math_methods = ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','random','round','sin','sqrt','tan'];
+    for(var i = 0; i < math_methods.length; ++i)
+    {
+        methods[math_methods[i]] = (function math_method_generator(i){
+            return function generated_math_method(){
+                return Math[math_methods[i]].apply(Math.math_methods[i],ActiveSupport.arrayFrom(arguments).slice(1));
+            };
+        })(i);
+    }
+    return methods;
+})();
+
+Adapters.InMemory.connect = function(storage){
+  return new Adapters.InMemory(storage || {});
+};
+ 
+/**
+ * Default adapter, will try to automatically pick the appropriate adapter
+ * for the current environment.
+ * @alias ActiveRecord.Adapters.Auto
+ * @property {ActiveRecord.Adapter}
+ */
+Adapters.Auto = {};
+Adapters.Auto.connect = function connect()
+{
+    if(typeof(Jaxer) !== 'undefined')
+    {
+        if(Jaxer.DB.connection.constructor == Jaxer.DB.MySQL.Connection)
+        {
+            return Adapters.JaxerMySQL.connect.apply(Adapters.JaxerMySQL.connect,arguments);
+        }
+        else
+        {
+            return Adapters.JaxerSQLite.connect.apply(Adapters.JaxerSQLite.connect,arguments);
+        }
+    }
+    else if(typeof(air) !== 'undefined')
+    {
+        return Adapters.AIR.connect.apply(Adapters.AIR.connect,arguments);
+    }
+    else
+    {
+        try{
+            return Adapters.Gears.connect.apply(Adapters.Gears.connect,arguments);
+        }catch(e){
+            return Adapters.InMemory.connect.apply(Adapters.InMemory.connect,arguments);
+        }
+    }
+};
+
+//var WhereLexer;
+var WhereParser;
+
+//(function() {
+
+// token types
+var $c$ = 0,
+    ERROR              = -1,
+    AND                = $c$++,
+    COMMA              = $c$++,
+    EQUAL              = $c$++,
+    FALSE              = $c$++,
+    GREATER_THAN       = $c$++,
+    GREATER_THAN_EQUAL = $c$++,
+    IDENTIFIER         = $c$++,
+    IN                 = $c$++,
+    LESS_THAN          = $c$++,
+    LESS_THAN_EQUAL    = $c$++,
+    LPAREN             = $c$++,
+    NOT_EQUAL          = $c$++,
+    NUMBER             = $c$++,
+    RPAREN             = $c$++,
+    STRING             = $c$++,
+    TRUE               = $c$++,
+    OR                 = $c$++,
+    WHITESPACE         = $c$++;
+
+// this is here mostly for debugging messages
+var TypeMap = [];
+TypeMap[AND]                = "AND";
+TypeMap[COMMA]              = "COMMA";
+TypeMap[EQUAL]              = "EQUAL";
+TypeMap[FALSE]              = "FALSE";
+TypeMap[GREATER_THAN]       = "GREATER_THAN";
+TypeMap[GREATER_THAN_EQUAL] = "GREATER_THAN_EQUAL";
+TypeMap[IDENTIFIER]         = "IDENTIFIER";
+TypeMap[IN]                 = "IN";
+TypeMap[LESS_THAN]          = "LESS_THAN";
+TypeMap[LESS_THAN_EQUAL]    = "LESS_THAN_EQUAL";
+TypeMap[LPAREN]             = "LPAREN";
+TypeMap[NOT_EQUAL]          = "NOT_EQUAL";
+TypeMap[NUMBER]             = "NUMBER";
+TypeMap[RPAREN]             = "RPAREN";
+TypeMap[STRING]             = "STRING";
+TypeMap[TRUE]               = "TRUE";
+TypeMap[OR]                 = "OR";
+TypeMap[WHITESPACE]         = "WHITESPACE";
+
+// map operators and keywords to their propery type
+var OperatorMap = {
+    "&&":    AND,
+    ",":     COMMA,
+    "||":    OR,
+    "<":     LESS_THAN,
+    "<=":    LESS_THAN_EQUAL,
+    "=":     EQUAL,
+    "!=":    NOT_EQUAL,
+    ">":     GREATER_THAN,
+    ">=":    GREATER_THAN_EQUAL,
+    "(":     LPAREN,
+    ")":     RPAREN
+};
+var KeywordMap = {
+    "and":   AND,
+    "false": FALSE,
+    "in":    IN,
+    "or":    OR,
+    "true":  TRUE
+};
+
+// Lexer token patterns
+var WHITESPACE_PATTERN = /^\s+/;
+var IDENTIFIER_PATTERN = /^[a-zA-Z\_][a-zA-Z\_]*/;
+var OPERATOR_PATTERN   = /^(?:&&|\|\||<=|<|=|!=|>=|>|,|\(|\))/i;
+var KEYWORD_PATTERN    = /^(true|or|in|false|and)\b/i;
+var STRING_PATTERN     = /^(?:'(\\.|[^'])*'|"(\\.|[^"])*")/;
+var NUMBER_PATTERN     = /^[1-9][0-9]*/;
+
+// Current lexeme to parse
+var currentLexeme;
+
+// *** Lexeme class ***
+
+/*
+ * Lexeme
+ * 
+ * @param {Number} type
+ * @param {String} text
+ */
+function Lexeme(type, text)
+{
+    this.type = type;
+    this.typeName = null;
+    this.text = text;
+}
+
+/*
+ * toString
+ * 
+ * @return {String}
+ */
+Lexeme.prototype.toString = function toString()
+{
+    if (this.typeName) 
+    {
+        return "[" + this.typeName + "]~" + this.text + "~";
+    }
+    else 
+    {
+        return "[" + this.type + "]~" + this.text + "~";
+    }
+};
+
+// *** Lexer class ***
+
+/*
+ * WhereLexer
+ */
+function WhereLexer()
+{
+    // initialize
+    this.setSource(null);
+}
+
+/*
+ * setSource
+ * 
+ * @param {String} source
+ */
+WhereLexer.prototype.setSource = function setSource(source)
+{
+    this.source = source;
+    this.offset = 0;
+    this.length = (source !== null) ? source.length : 0;
+
+    currentLexeme = null;
+};
+
+/*
+ * advance
+ */
+WhereLexer.prototype.advance = function advance()
+{
+    var inWhitespace = true;
+    var result = null;
+
+    while (inWhitespace) 
+    {
+        // assume not in whitespace
+        inWhitespace = false;
+
+        // clear possible last whitespace result
+        result = null;
+
+        if (this.offset < this.length) 
+        {
+            var match, text, type;
+
+            // NOTE: [KEL] Switching on the first character may speed things up
+            // here.
+
+            if ((match = WHITESPACE_PATTERN.exec(this.source)) !== null)
+            {
+                result = new Lexeme(WHITESPACE, match[0]);
+                inWhitespace = true;
+            }
+            else if ((match = OPERATOR_PATTERN.exec(this.source)) !== null) 
+            {
+                text = match[0];
+                type = OperatorMap[text.toLowerCase()];
+
+                result = new Lexeme(type, text);
+            }
+            else if ((match = KEYWORD_PATTERN.exec(this.source)) !== null) 
+            {
+                text = match[0];
+                type = KeywordMap[text.toLowerCase()];
+
+                result = new Lexeme(type, text);
+            }
+            else if ((match = STRING_PATTERN.exec(this.source)) !== null) 
+            {
+                result = new Lexeme(STRING, match[0]);
+            }
+            else if ((match = NUMBER_PATTERN.exec(this.source)) !== null) 
+            {
+                result = new Lexeme(NUMBER, match[0]);
+            }
+            else if ((match = IDENTIFIER_PATTERN.exec(this.source)) !== null) 
+            {
+                result = new Lexeme(IDENTIFIER, match[0]);
+            }
+            else
+            {
+                result = new Lexeme(ERROR, this.source);
+            }
+
+            // assign type name, if we have one
+            if (TypeMap[result.type]) 
+            {
+                result.typeName = TypeMap[result.type];
+            }
+
+            // update source state
+            var length = result.text.length;
+            this.offset += length;
+            this.source = this.source.substring(length);
+        }
+    }
+
+    // expose result
+    currentLexeme = result;
+
+    return result;
+};
+
+// Binary operator node
+
+/*
+ * BinaryOperatorNode
+ * 
+ * @param {Node} identifier
+ * @param {Number} identifier
+ * @param {Node} identifier
+ */
+function BinaryOperatorNode(lhs, operator, rhs)
+{
+    this.lhs = lhs;
+    this.operator = operator;
+    this.rhs = rhs;
+}
+
+/*
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
+{
+    var result = null;
+    var lhs = this.lhs.execute(row, functionProvider);
+
+    if (this.operator == IN)
+    {
+        // assume failure
+        result = false;
+
+        // see if the lhs value is in the rhs list
+        for (var i = 0; i < this.rhs.length; i++)
+        {
+            var rhs = this.rhs[i].execute(row, functionProvider);
+
+            if (lhs == rhs)
+            {
+                result = true;
+                break;
+            }
+        }
+    }
+    else
+    {
+        var rhs = this.rhs.execute(row, functionProvider);
+        
+        switch (this.operator)
+        {
+            case EQUAL:
+                result = (lhs === rhs);
+                break;
+                
+            case NOT_EQUAL:
+                result = (lhs !== rhs);
+                break;
+                
+            case LESS_THAN:
+                result = (lhs < rhs);
+                break;
+                
+            case LESS_THAN_EQUAL:
+                result = (lhs <= rhs);
+                break;
+                
+            case GREATER_THAN:
+                result = (lhs > rhs);
+                break;
+                
+            case GREATER_THAN_EQUAL:
+                result = (lhs >= rhs);
+                break;
+                
+            case AND:
+                result = (lhs && rhs);
+                break;
+                
+            case OR:
+                result = (lhs || rhs);
+                break;
+                
+            default:
+                return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+        }
+    }
+    
+    return result;
+};
+
+// Identifer node
+
+/*
+ * Parser.IdentifierNode
+ * 
+ * @param {Object} identifier
+ */
+function IdentifierNode(identifier)
+{
+    this.identifier = identifier;
+}
+
+/*
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+IdentifierNode.prototype.execute = function execute(row, functionProvider)
+{
+    return row[this.identifier];
+};
+
+// Function node
+
+/*
+ * FunctionNode
+ * 
+ * @param {String} name
+ * @param {Array} args
+ */
+function FunctionNode(name, args)
+{
+    this.name = name;
+    this.args = args;
+}
+
+/*
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+FunctionNode.prototype.execute = function execute(row, functionProvider)
+{
+    // evaluate arguments
+    var args = new Array(this.args.length);
+
+    for (var i = 0; i < this.args.length; i++)
+    {
+        args[i] = this.args[i].execute(row, functionProvider);
+    }
+
+    // evaluate function and return result
+    return functionProvider(this.name, row, args);
+};
+
+// Scalar node
+
+/*
+ * Parser.ScalarNode
+ */
+function ScalarNode(value)
+{
+    this.value = value;
+}
+
+/*
+ * execute
+ * 
+ * @param {Object} row
+ * @param {Function} functionProvider
+ */
+ScalarNode.prototype.execute = function execute(row, functionProvider)
+{
+    return this.value;
+};
+
+
+// Parser class
+
+/*
+ * WhereParser
+ */
+WhereParser = function WhereParser()
+{
+    this._lexer = new WhereLexer();
+};
+
+/*
+ * parse
+ * 
+ * @param {String} source
+ */
+WhereParser.prototype.parse = function parse(source)
+{
+    var result = null;
+
+    // clear current lexeme cache
+    currentLexeme = null;
+
+    // pass source to lexer
+    this._lexer.setSource(source);
+
+    // prime the lexeme pump
+    this._lexer.advance();
+
+    // parse it
+    while (currentLexeme !== null)
+    {
+        // fast fail
+        switch (currentLexeme.type)
+        {
+            case IDENTIFIER:
+            case FALSE:
+            case LPAREN:
+            case NUMBER:
+            case STRING:
+            case TRUE:
+                result = this.parseInExpression();
+                break;
+
+            default:
+                throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
+                return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
+        }
+    }
+    return result;
+};
+
+/*
+ * parseWhereExpression
+ */
+WhereParser.prototype.parseInExpression = function parseInExpression()
+{
+    var result = this.parseOrExpression();
+
+    while (currentLexeme !== null && currentLexeme.type === IN) 
+    {
+        // advance over 'in'
+        this._lexer.advance();
+
+        var rhs = [];
+
+        if (currentLexeme !== null && currentLexeme.type === LPAREN)
+        {
+            // advance over '('
+            this._lexer.advance();
+
+            while (currentLexeme !== null)
+            {
+                rhs.push(this.parseOrExpression());
+
+                if (currentLexeme !== null && currentLexeme.type === COMMA)
+                {
+                    this._lexer.advance();
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if (currentLexeme !== null && currentLexeme.type === RPAREN)
+            {
+                this._lexer.advance();
+
+                result = new BinaryOperatorNode(result, IN, rhs);
+            }
+            else
+            {
+                return ActiveSupport.throwError(new Error("'in' list did not end with a right parenthesis." + currentLexeme));
+            }
+        }
+        else
+        {
+            return ActiveSupport.throwError(new Error("'in' list did not start with a left parenthesis"));
+        }
+    }
+
+    return result;
+};
+
+/*
+ * parseOrExpression
+ */
+WhereParser.prototype.parseOrExpression = function parseOrExpression()
+{
+    var result = this.parseAndExpression();
+
+    while (currentLexeme !== null && currentLexeme.type === OR) 
+    {
+        // advance over 'or' or '||'
+        this._lexer.advance();
+
+        var rhs = this.parseAndExpression();
+
+        result = new BinaryOperatorNode(result, OR, rhs);
+    }
+
+    return result;
+};
+
+/*
+ * parseAndExpression
+ */
+WhereParser.prototype.parseAndExpression = function parseAndExpression()
+{
+    var result = this.parseEqualityExpression();
+
+    while (currentLexeme !== null && currentLexeme.type === AND) 
+    {
+        // advance over 'and' or '&&'
+        this._lexer.advance();
+
+        var rhs = this.parseEqualityExpression();
+
+        result = new BinaryOperatorNode(result, AND, rhs);
+    }
+
+    return result;
+};
+
+/*
+ * parseEqualityExpression
+ */
+WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression()
+{
+    var result = this.parseRelationalExpression();
+
+    if (currentLexeme !== null) 
+    {
+        var type = currentLexeme.type;
+
+        switch (type)
+        {
+            case EQUAL:
+            case NOT_EQUAL:
+                // advance over '=' or '!='
+                this._lexer.advance();
+
+                var rhs = this.parseRelationalExpression();
+
+                result = new BinaryOperatorNode(result, type, rhs);
+                break;
+        }
+    }
+
+    return result;
+};
+
+/*
+ * parseRelationalExpression
+ */
+WhereParser.prototype.parseRelationalExpression = function()
+{
+    var result = this.parseMemberExpression();
+
+    if (currentLexeme !== null) 
+    {
+        var type = currentLexeme.type;
+
+        switch (type)
+        {
+            case LESS_THAN:
+            case LESS_THAN_EQUAL:
+            case GREATER_THAN:
+            case GREATER_THAN_EQUAL:
+                // advance over '<', '<=', '>' or '>='
+                this._lexer.advance();
+
+                var rhs = this.parseMemberExpression();
+
+                result = new BinaryOperatorNode(result, type, rhs);
+                break;
+        }
+    }
+
+    return result;
+};
+
+/*
+ * parseMemberExpression
+ */
+WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
+{
+    var result = null;
+
+    if (currentLexeme !== null) 
+    {
+        switch (currentLexeme.type)
+        {
+            case IDENTIFIER:
+                result = new IdentifierNode(currentLexeme.text);
+                // advance over identifier
+                this._lexer.advance();
+
+                if (currentLexeme !== null && currentLexeme.type === LPAREN) 
+                {
+                    // this is a function
+                    var name = result.identifier;
+                    var args = [];
+
+                    // advance over '('
+                    this._lexer.advance();
+
+                    // process arguments
+                    while (currentLexeme !== null && currentLexeme.type !== RPAREN) 
+                    {
+                        args.push(this.parseOrExpression());
+
+                        if (currentLexeme !== null && currentLexeme.type === COMMA)
+                        {
+                            this._lexer.advance();
+                        }
+                    }
+
+                    // advance over ')'
+                    if (currentLexeme !== null) 
+                    {
+                        this._lexer.advance();
+                        result = new FunctionNode(name, args);
+                    }
+                    else 
+                    {
+                        return ActiveSupport.throwError(new Error("Function argument list was not closed with a right parenthesis."));
+                    }
+                }
+                break;
+
+            case TRUE:
+                result = new ScalarNode(true);
+
+                // advance over 'true'
+                this._lexer.advance();
+                break;
+
+            case FALSE:
+                result = new ScalarNode(false);
+
+                // advance over 'false'
+                this._lexer.advance();
+                break;
+
+            case NUMBER:
+                result = new ScalarNode(currentLexeme.text - 0);
+
+                // advance over number
+                this._lexer.advance();
+                break;
+
+            case STRING:
+                var text = currentLexeme.text;
+
+                result = new ScalarNode(text.substring(1, text.length - 1));
+
+                // advance over string
+                this._lexer.advance();
+                break;
+
+            case LPAREN:
+                // advance over '('
+                this._lexer.advance();
+
+                result = this.parseOrExpression();
+
+                if (currentLexeme !== null && currentLexeme.type === RPAREN)
+                {
+                    // advance over ')'
+                    this._lexer.advance();
+                }
+                else
+                {
+                    return ActiveSupport.throwError(new Error("Missing closing right parenthesis: " + currentLexeme));
+                }
+                break;
+        }
+    }
+
+    return result;
+};
+
+
+//})();
+
+//ActiveRecord.WhereLexer = WhereLexer;
+ActiveRecord.WhereParser = WhereParser;
+
+var Finders = {
+    mergeOptions: function mergeOptions(field_name, value, options)
+    {
+        if(!options){
+            options = {};
+        }
+        options = ActiveSupport.clone(options);
+        if(options.where)
+        {
+            options.where[field_name] = value;
+        }
+        else
+        {
+            options.where = {};
+            options.where[field_name] = value;
+        }
+        return options;
+    },
+    /**
+     * Generates a findByField method for a ActiveRecord.Class (User.findByName)
+     * @private
+     * @alias ActiveRecord.Finders.generateFindByField
+     * @param {Object} ActiveRecord.Class
+     * @param {String} field_name
+     */
+    generateFindByField: function generateFindByField(klass, field_name)
+    {
+        klass['findBy' + ActiveSupport.camelize(field_name, true)] = ActiveSupport.curry(function generated_find_by_field_delegator(klass, field_name, value, options){
+            return klass.find(ActiveSupport.extend(Finders.mergeOptions(field_name, value, options), {
+                first: true
+            }));
+        }, klass, field_name);
+    },
+    /**
+     * Generates a findAllByField method for a ActiveRecord.Class (User.findAllByName)
+     * @private
+     * @alias ActiveRecord.Finders.generateFindAllByField
+     * @param {Object} ActiveRecord.Class
+     * @param {String} field_name
+     */
+    generateFindAllByField: function generateFindAllByField(klass, field_name)
+    {
+        klass['findAllBy' + ActiveSupport.camelize(field_name, true)] = ActiveSupport.curry(function generated_find_all_by_field_delegator(klass, field_name, value, options){
+            return klass.find(ActiveSupport.extend(Finders.mergeOptions(field_name, value, options), {
+                all: true
+            }));
+        }, klass, field_name);
+    }
+};
+ActiveRecord.Finders = Finders;
+
+/**
+ * When using any finder method, the returned array will be extended
+ * with the methods in this namespace. A returned result set is still
+ * an instance of Array.
+ * @namespace {ActiveRecord.ResultSet}
+ */
+var ResultSet = {};
+
+ResultSet.InstanceMethods = {
+    /**
+     * Re-runs the query that generated the result set. This modifies the
+     * array in place and does not return a new array.
+     * @alias ActiveRecord.ResultSet.reload
+     */
+    reload: function reload(result_set,params,model){
+        result_set.length = 0;
+        var new_response = model.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
+        for(var i = 0; i < new_response.length; ++i)
+        {
+            result_set.push(new_response[i]);
+        }
+    },
+    /**
+     * Builds an array calling toObject() on each instance in the result
+     * set, thus reutrning a vanilla array of vanilla objects.
+     * @alias ActiveRecord.ResultSet.toArray
+     * @return {Array}
+     */
+    toArray: function toArray(result_set,params,model)
+    {
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items.push(result_set[i].toObject());
+        }
+        return items;
+    },
+    /**
+     * @alias ActiveRecord.ResultSet.toJSON
+     * @return {String}
+     */
+    toJSON: function toJSON(result_set,params,model)
+    {
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items.push(result_set[i].toSerializableObject());
+        }
+        return ActiveSupport.JSON.stringify(items);
+    },
+    /**
+     * @alias ActiveRecord.ResultSet.toXML
+     * @return {String}
+     */
+    toXML: function toXML(result_set,params,model)
+    {
+        var items = [];
+        for(var i = 0; i < result_set.length; ++i)
+        {
+            items.push(result_set[i].toSerializableObject());
+        }
+        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),items);
+    }
+};
+
+var Relationships = {
+    normalizeModelName: function(related_model_name)
+    {
+        var plural = ActiveSupport.camelize(related_model_name, true);
+        var singular = ActiveSupport.Inflector.singularize(plural) || plural;
+        return singular || plural;
+    },
+    normalizeForeignKey: function(foreign_key, related_model_name)
+    {
+        var plural = ActiveSupport.underscore(related_model_name).toLowerCase();
+        var singular = ActiveSupport.Inflector.singularize(plural) || plural;
+        if (!foreign_key || typeof(foreign_key) === 'undefined')
+        {
+            return (singular || plural) + '_id';
+        }
+        else
+        {
+            return foreign_key;
+        }
+    }
+};
+ActiveRecord.Relationships = Relationships;
+
+/**
+ * Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.
+ * @alias ActiveRecord.Class.hasOne
+ * @param {String} related_model_name
+ *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * @param {Object} [options]
+ *      Can contain {String} "foreignKey", {String} "name", {Boolean} "dependent" keys.
+ * @example
+ * 
+ *     User.hasOne(CreditCard);
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 3 methods
+ *     u.getCreditCard()
+ *     u.buildCreditCard()
+ *     u.createCreditCard()
+ */
+ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
+{
+    if(related_model_name && related_model_name.modelName)
+    {
+        related_model_name = related_model_name.modelName;
+    }
+    if(!options)
+    {
+        options = {};
+    }
+    related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
+    var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(related_model_name));
+    var class_methods = {};
+    var instance_methods = {};
+    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
+        var id = this.get(foreign_key);
+        if (id)
+        {
+            return ActiveRecord.Models[related_model_name].get(id);
+        }
+        else
+        {
+            return false;
+        }
+    }, related_model_name, foreign_key);
+    class_methods['build' + relationship_name] = instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+        return ActiveRecord.Models[related_model_name].build(params || {});
+    }, related_model_name, foreign_key);
+    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+        var record = ActiveRecord.Models[related_model_name].create(params || {});
+        if(this.get(this.constructor.primaryKeyName))
+        {
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
+        }
+        return record;
+    }, related_model_name, foreign_key);
+    ActiveSupport.extend(this.prototype, instance_methods);
+    ActiveSupport.extend(this, class_methods);
+    
+    //dependent
+    if(options.dependent)
+    {
+        this.observe('afterDestroy',function destroyRelatedDependent(record){
+            var child = record['get' + relationship_name]();
+            if(child)
+            {
+                child.destroy();
+            }
+        });
+    }
+};
+
+/**
+ * Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.
+ * @alias ActiveRecord.Class.hasMany
+ * @param {String} related_model_name
+ *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * @param {Object} [options]
+ *      Can contain {String} "foreignKey", {Sting} "name", {Boolean} "dependent", {String} "order" and {String} "where" keys.
+ * @example
+ *
+ *     User.hasMany('comments',{
+ *         dependent: true
+ *     });
+ *     var u = User.find(5);
+ *     //each User instance will gain the following 5 methods
+ *     u.createComment()
+ *     u.buildComment()
+ *     u.destroyComment()
+ *     u.getCommentList() //takes the same options as find()
+ *     u.getCommentCount() //takes the same options as count() 
+ */
+ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options){
+    if(related_model_name && related_model_name.modelName)
+    {
+        related_model_name = related_model_name.modelName;
+    }
+    if(!options)
+    {
+        options = {};
+    }
+    related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
+    var original_related_model_name = related_model_name;
+    var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(this.modelName));
+    var class_methods = {};
+    var instance_methods = {};
+    
+    if(options.through)
+    {
+        var through_model_name = Relationships.normalizeModelName(options.through);
+        instance_methods['get' + relationship_name + 'List'] = ActiveSupport.curry(function getRelatedListForThrough(through_model_name, related_model_name, foreign_key, params){
+            var related_list = this['get' + through_model_name + 'List']();
+            var ids = [];
+            var response = [];
+            for(var i = 0; i < related_list.length; ++i)
+            {
+                response.push(related_list[i]['get' + related_model_name]());
+            }
+            return response;
+        }, through_model_name, related_model_name, foreign_key);
+        
+        instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
+            if(!params)
+            {
+                params = {};
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = this.get(this.constructor.primaryKeyName);
+            return ActiveRecord.Models[through_model_name].count(params);
+        }, through_model_name, related_model_name, foreign_key);
+    }
+    else
+    {
+        instance_methods['destroy' + relationship_name] = class_methods['destroy' + relationship_name] = ActiveSupport.curry(function destroyRelated(related_model_name, foreign_key, params){
+            var record = ActiveRecord.Models[related_model_name].find((params && typeof(params.get) === 'function') ? params.get(params.constructor.primaryKeyName) : params);
+            if (record)
+            {
+                return record.destroy();
+            }
+            else
+            {
+                return false;
+            }
+        }, related_model_name, foreign_key);
+
+        instance_methods['get' + relationship_name + 'List'] = ActiveSupport.curry(function getRelatedList(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!id)
+            {
+                return this.constructor.resultSetFromArray([]);
+            }
+            if(!params)
+            {
+                params = {};
+            }
+            if(options.order)
+            {
+                params.order = options.order;
+            }
+            if(options.synchronize)
+            {
+                params.synchronize = options.synchronize;
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = id;
+            params.all = true;
+            return ActiveRecord.Models[related_model_name].find(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.curry(function getRelatedCount(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!id)
+            {
+                return 0;
+            }
+            if(!params)
+            {
+                params = {};
+            }
+            if(!params.where)
+            {
+                params.where = {};
+            }
+            params.where[foreign_key] = id;
+            return ActiveRecord.Models[related_model_name].count(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!params)
+            {
+                params = {};
+            }
+            params[foreign_key] = id;
+            return ActiveRecord.Models[related_model_name].build(params);
+        }, related_model_name, foreign_key);
+
+        instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+            var id = this.get(this.constructor.primaryKeyName);
+            if(!params)
+            {
+                params = {};
+            }
+            params[foreign_key] = id;
+            return ActiveRecord.Models[related_model_name].create(params);
+        }, related_model_name, foreign_key);
+    }
+    
+    ActiveSupport.extend(this.prototype, instance_methods);
+    ActiveSupport.extend(this, class_methods);
+    
+    //dependent
+    if(options.dependent)
+    {
+        this.observe('afterDestroy', function destroyDependentChildren(record){
+            var list = record['get' + relationship_name + 'List']();
+            ActiveRecord.connection.log('Relationships.hasMany destroy ' + list.length + ' dependent ' + related_model_name + ' children of ' + record.modelName);
+            for(var i = 0; i < list.length; ++i)
+            {
+                list[i].destroy();
+            }
+        });
+    }
+};
+
+/**
+ * Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.
+ * @alias ActiveRecord.Class.belongsTo
+ * @param {String} related_model_name
+ *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * @param {Object} [options]
+ *      Can contain {String} "foreignKey", {String} name, {String} "counter" keys.
+ * @example
+ *
+ *     Comment.belongsTo('User',{
+ *         counter: 'comment_count' //comment count must be a column in User
+ *     });
+ *     var c = Comment.find(5);
+ *     //each Comment instance will gain the following 3 methods
+ *     c.getUser()
+ *     c.buildUser()
+ *     c.createUser()
+ */
+ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options){
+    if(related_model_name && related_model_name.modelName)
+    {
+        related_model_name = related_model_name.modelName;
+    }
+    if(!options)
+    {
+        options = {};
+    }
+    related_model_name = Relationships.normalizeModelName(related_model_name);
+    var relationship_name = options.name ? Relationships.normalizeModelName(options.name) : related_model_name;
+    var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, related_model_name);
+    var class_methods = {};
+    var instance_methods = {};
+    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name,foreign_key){
+        var id = this.get(foreign_key);
+        if (id)
+        {
+            return ActiveRecord.Models[related_model_name].get(id);
+        }
+        else
+        {
+            return false;
+        }
+    }, related_model_name, foreign_key);
+    instance_methods['build' + relationship_name] = class_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+        var record = ActiveRecord.Models[related_model_name].build(params || {});
+        if(options.counter)
+        {
+            record[options.counter] = 1;
+        }
+        return record;
+    }, related_model_name, foreign_key);
+    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+        var record = this['build' + related_model_name](params);
+        if(record.save() && this.get(this.constructor.primaryKeyName))
+        {
+            this.updateAttribute(foreign_key, record.get(record.constructor.primaryKeyName));
+        }
+        return record;
+    }, related_model_name, foreign_key);
+    ActiveSupport.extend(this.prototype, instance_methods);
+    ActiveSupport.extend(this, class_methods);
+    
+    //counter
+    if(options.counter)
+    {
+        this.observe('afterDestroy', function decrementBelongsToCounter(record){
+            var child = record['get' + relationship_name]();
+            if(child)
+            {
+                var current_value = child.get(options.counter);
+                if(typeof(current_value) === 'undefined')
+                {
+                    current_value = 0;
+                }
+                child.updateAttribute(options.counter, Math.max(0, parseInt(current_value, 10) - 1));
+            }
+        });
+        this.observe('afterCreate', function incrementBelongsToCounter(record){
+            var child = record['get' + relationship_name]();
+            if(child)
+            {
+                var current_value = child.get(options.counter);
+                if(typeof(current_value) === 'undefined')
+                {
+                    current_value = 0;
+                }
+                child.updateAttribute(options.counter, parseInt(current_value, 10) + 1);
+            }
+        });
+    }
+};
+ 
+/**
+ * @namespace {ActiveRecord.Migrations}
+ * @example
+ * 
+ * Migrations
+ * ----------
+ * 
+ * Migrations are a method of versioining the database schema used by your
+ * application. All of your migrations must be defined in an object assigned
+ * to ActiveRecord.Migrations.migrations. The keys need not be numerically
+ * sequential, but must be numeric (i.e. 1,2,3 or 100,200,300).
+ * 
+ * Each migration object must have an up() and down() method which will
+ * recieve an ActiveRecord.Migrations.Schema object. createTable() and
+ * addColumn() both use the same syntax as define() to specify default
+ * values and field types.
+ * 
+ *     ActiveRecord.Migrations.migrations = {
+ *         1: {
+ *             up: function(schema){
+ *                 schema.createTable('one',{
+ *                     a: '',
+ *                     b: {
+ *                         type: 'TEXT',
+ *                         value: 'default'
+ *                     }
+ *                 });
+ *             },
+ *             down: function(schema){
+ *                 schema.dropTable('one');
+ *             }
+ *         },
+ *         2: {
+ *             up: function(schema){
+ *                 schema.addColumn('one','c');
+ *             },
+ *             down: function(schema){
+ *                 schema.dropColumn('one','c');
+ *             }
+ *         }
+ *     };
+ *     
+ *     ActiveRecord.Migrations.migrate(); //will migrate to the highest available (2 in this case)
+ *     ActiveRecord.Migrations.migrate(0); //migrates down below 1, effectively erasing the schema
+ *     ActiveRecord.Migrations.migrate(1); //migrates to version 1
+ */
+var Migrations = {
+    fieldTypesWithDefaultValues: {
+        'tinyint': 0,
+        'smallint': 0,
+        'mediumint': 0,
+        'int': 0,
+        'integer': 0,
+        'bigint': 0,
+        'float': 0,
+        'double': 0,
+        'double precision': 0,
+        'real': 0,
+        'decimal': 0,
+        'numeric': 0,
+
+        'date': '',
+        'datetime': '',
+        'timestamp': '',
+        'time': '',
+        'year': '',
+
+        'char': '',
+        'varchar': '',
+        'tinyblob': '',
+        'tinytext': '',
+        'blob': '',
+        'text': '',
+        'mediumtext': '',
+        'mediumblob': '',
+        'longblob': '',
+        'longtext': '',
+        
+        'enum': '',
+        'set': ''
+    },    
+    migrations: {},
+    /**
+     * Migrates a database schema to the given version.
+     * @alias ActiveRecord.Migrations.migrate
+     * @param {Number} target
+     */
+    migrate: function migrate(target)
+    {
+        if(typeof(target) === 'undefined' || target === false)
+        {
+            target = Migrations.max();
+        }
+        
+        Migrations.setup();
+        ActiveRecord.connection.log('Migrations.migrate(' + target + ') start.');
+        
+        var current_version = Migrations.current();
+        ActiveRecord.connection.log('Current schema version is ' + current_version);
+        
+        var migrations, i, versions;
+        Migrations.Meta.transaction(function(){
+            if(target > current_version)
+            {
+                migrations = Migrations.collectAboveIndex(current_version,target);
+                for(i = 0; i < migrations.length; ++i)
+                {
+                    ActiveRecord.connection.log('Migrating up to version ' + migrations[i][0]);
+                    migrations[i][1].up(Migrations.Schema);
+                    Migrations.Meta.create({
+                        version: migrations[i][0]
+                    });
+                }
+            }
+            else if(target < current_version)
+            {
+                migrations = Migrations.collectBelowIndex(current_version,target);
+                for(i = 0; i < migrations.length; ++i)
+                {
+                    ActiveRecord.connection.log('Migrating down to version ' + migrations[i][0]);
+                    migrations[i][1].down(Migrations.Schema);
+                }
+                versions = Migrations.Meta.find({
+                    all: true
+                });
+                for(i = 0; i < versions.length; ++i)
+                {
+                    if(versions[i].get('version') > target)
+                    {
+                        versions[i].destroy();
+                    }
+                }
+                ActiveRecord.connection.log('Migrate to version ' + target + ' complete.');
+            }
+            else
+            {
+                ActiveRecord.connection.log('Current schema version is current, no migrations were run.');
+            }
+        },function(e){
+            ActiveRecord.connection.log('Migration failed: ' + e);
+        });
+        ActiveRecord.connection.log('Migrations.migrate(' + target + ') finished.');
+    },
+    /**
+     * Returns the current schema version number.
+     * @alias ActiveRecord.Migrations.current
+     * @return {Number}
+     */
+    current: function current()
+    {
+        Migrations.setup();
+        return Migrations.Meta.max('version') || 0;
+    },
+    /**
+     * Returns the highest key name in the ActiveRecord.Migrations hash.
+     * @alias ActiveRecord.Migrations.max
+     * @return {Number}
+     */
+    max: function max()
+    {
+        var max_val = 0;
+        for(var key_name in Migrations.migrations)
+        {
+            key_name = parseInt(key_name, 10);
+            if(key_name > max_val)
+            {
+                max_val = key_name;
+            }
+        }
+        return max_val;
+    },
+    setup: function setMigrationsTable()
+    {
+        if(!Migrations.Meta)
+        {
+            Migrations.Meta = ActiveRecord.create('schema_migrations',{
+                version: 0
+            });
+            delete ActiveRecord.Models.SchemaMigrations;
+        }
+    },
+    /**
+     * Returns an array of [key_name,migration] pairs in the order they should be run to migrate down.
+     * @private
+     * @alias ActiveRecord.Migrations.collectBelowIndex
+     * @param {Number} index
+     * @param {Number} target
+     * @return {Array}
+     */
+    collectBelowIndex: function collectBelowIndex(index,target)
+    {
+        return [[index,Migrations.migrations[index]]].concat(Migrations.collectMigrations(index,target + 1,'down'));
+    },
+    /**
+     * Returns an array of [key_name,migration] pairs in the order they should be run to migrate up.
+     * @private
+     * @alias ActiveRecord.Migrations.collectAboveIndex
+     * @param {Number} index
+     * @param {Number} target
+     * @return {Array}
+     */
+    collectAboveIndex: function collectAboveIndex(index,target)
+    {
+        return Migrations.collectMigrations(index,target,'up');
+    },
+    collectMigrations: function collectMigrations(index,target,direction)
+    {
+        var keys = [];
+        for(var key_name in Migrations.migrations)
+        {
+            key_name = parseInt(key_name, 10);
+            if((direction === 'up' && key_name > index) || (direction === 'down' && key_name < index))
+            {
+                keys.push(key_name);
+            }
+        }
+        keys = keys.sort();
+        if(direction === 'down')
+        {
+            keys = keys.reverse();
+        }
+        var migrations = [];
+        for(var i = 0; i < keys.length; ++i)
+        {
+            if((direction === 'down' && typeof(target) !== 'undefined' && target > keys[i]) || (direction === 'up' && typeof(target) !== 'undefined' && target < keys[i]))
+            {
+                break;
+            }
+            migrations.push([keys[i],Migrations.migrations[keys[i]]]);
+        }
+        return migrations;
+    },
+    objectIsFieldDefinition: function objectIsFieldDefinition(object)
+    {
+        return typeof(object) === 'object' && ActiveSupport.keys(object).length === 2 && ('type' in object) && ('value' in object);
+    },
+    /**
+     * @namespace {ActiveRecord.Migrations.Schema} This object is passed to all migrations as the only parameter.
+     */
+    Schema: {
+        /**
+         * @alias ActiveRecord.Migrations.Schema.createTable
+         * @param {String} table_name
+         * @param {Object} columns
+         */
+        createTable: function createTable(table_name,columns)
+        {
+            return ActiveRecord.connection.createTable(table_name,columns);
+        },
+        /**
+         * @alias ActiveRecord.Migrations.Schema.dropTable
+         * @param {String} table_name
+         */
+        dropTable: function dropTable(table_name)
+        {
+            return ActiveRecord.connection.dropTable(table_name);
+        },
+        /**
+         * @alias ActiveRecord.Migrations.Schema.addColumn
+         * @param {String} table_name
+         * @param {String} column_name
+         * @param {mixed} [data_type]
+         */
+        addColumn: function addColumn(table_name,column_name,data_type)
+        {
+            return ActiveRecord.connection.addColumn(table_name,column_name,data_type);
+        },
+        /**
+         * @alias ActiveRecord.Migrations.Schema.dropColumn
+         * @param {String} table_name
+         * @param {String} column_name
+         */
+        dropColumn: function removeColumn(table_name,column_name)
+        {
+            return ActiveRecord.connection.dropColumn(table_name,column_name);
+        },
+        /**
+         * @alias ActiveRecord.Migrations.Schema.addIndex
+         * @param {String} table_name
+         * @param {Array} column_names
+         * @param {Object} options
+         */
+        addIndex: function addIndex(table_name,column_names,options)
+        {
+            return ActiveRecord.connection.addIndex(table_name,column_names,options);
+        },
+        /**
+         * @alias ActiveRecord.Migrations.Schema.removeIndex
+         * @param {String} table_name
+         * @param {String} index_name
+         */
+        removeIndex: function removeIndex(table_name,index_name)
+        {
+            return ActiveRecord.connection.removeIndex(table_name,index_name);
+        }
+    }
+};
+
+ActiveRecord.Migrations = Migrations;
+
+ActiveSupport.extend(ActiveRecord.ClassMethods,{
+    /**
+     * Adds the validator to the _validators array of a given ActiveRecord.Class.
+     * @alias ActiveRecord.Class.addValidator
+     * @param {Function} validator
+     */
+    addValidator: function addValidator(validator)
+    {
+        if(!this._validators)
+        {
+            this._validators = [];
+        }
+        this._validators.push(validator);
+    },
+    /**
+     * @alias ActiveRecord.Class.validatesPresenceOf
+     * @param {String} field
+     * @param {Object} [options]
+     */
+    validatesPresenceOf: function validatesPresenceOf(field, options)
+    {
+        options = ActiveSupport.extend({
+            
+        },options || {});
+        this.addValidator(function validates_presence_of_callback(){
+            if(!this.get(field) || this.get(field) === '')
+            {
+                this.addError(options.message || (field + ' is not present.'));
+            }
+        });
+    },
+    /**
+     * Accepts "min" and "max" numbers as options.
+     * @alias ActiveRecord.Class.validatesLengthOf
+     * @param {String} field
+     * @param {Object} [options]
+     */
+    validatesLengthOf: function validatesLengthOf(field, options)
+    {
+        options = ActiveSupport.extend({
+            min: 1,
+            max: 9999
+        },options || {});
+        //will run in scope of an ActiveRecord instance
+        this.addValidator(function validates_length_of_callback(){
+            var value = String(this.get(field));
+            if (value.length < options.min)
+            {
+                this.addError(options.message || (field + ' is too short.'));
+            }
+            if (value.length > options.max)
+            {
+                this.addError(options.message || (field + ' is too long.'));
+            }
+        });
+    }
+});
+ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+    /**
+     * @alias ActiveRecord.Instance.addError
+     * @param {String} message
+     * @param {String} field_name
+     */
+    addError: function addError(str, field)
+    {
+        var error = null;
+        if(field)
+        {
+            error = [str,field];
+            error.toString = function toString()
+            {
+                return str;
+            };
+        }
+        else
+        {
+            error = str;
+        }
+        this._errors.push(str);
+    },
+    _valid: function _valid()
+    {
+        this._errors = [];
+        var validators = this._getValidators();
+        for (var i = 0; i < validators.length; ++i)
+        {
+            validators[i].apply(this);
+        }
+        if (typeof(this.valid) === 'function')
+        {
+            this.valid();
+        }
+        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
+        return this._errors.length === 0;
+    },
+    _getValidators: function _getValidators()
+    {
+        return this.constructor._validators || [];
+    },
+    /**
+     * @alias ActiveRecord.Instance.getErrors
+     * @return {Array}
+     */
+    getErrors: function getErrors()
+    {
+        return this._errors;
+    }
+});
+ 
+ActiveRecord.asynchronous = false; //deprecated until we have HTML5 support
+
+var Synchronization = {};
+
+Synchronization.calculationNotifications = {};
+
+Synchronization.resultSetNotifications = {};
+
+Synchronization.notifications = {};
+
+Synchronization.setupNotifications = function setupNotifications(record)
+{
+    if(!record.get(record.constructor.primaryKeyName))
+    {
+        return false;
+    }
+    if(!Synchronization.notifications[record.tableName])
+    {
+        Synchronization.notifications[record.tableName] = {};
+    }
+    if(!Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]])
+    {
+        Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]] = {};
+    }    
+    return true;
+};
+
+Synchronization.triggerSynchronizationNotifications = function triggerSynchronizationNotifications(record,event_name)
+{
+    var found_records, internal_count_id;
+    if(!Synchronization.setupNotifications(record))
+    {
+        return false;
+    }
+    if(event_name === 'afterSave')
+    {
+        found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
+        for(internal_count_id in found_records)
+        {
+            if(internal_count_id !== record.internalCount)
+            {
+                var found_record = found_records[internal_count_id];
+                var keys = found_record.keys();
+                for(var i = 0; i < keys.length; ++i)
+                {
+                    var key_name = keys[i];
+                    found_record.set(key_name,record.get(key_name));
+                }
+                found_record.notify('synchronization:afterSave');
+            }
+        }
+    }
+    else if(event_name === 'afterDestroy' || event_name === 'afterCreate')
+    {
+        if(Synchronization.calculationNotifications[record.tableName])
+        {
+            for(var synchronized_calculation_count in Synchronization.calculationNotifications[record.tableName])
+            {
+                Synchronization.calculationNotifications[record.tableName][synchronized_calculation_count]();
+            }
+        }
+        if(Synchronization.resultSetNotifications[record.tableName])
+        {
+            for(var synchronized_result_set_count in Synchronization.resultSetNotifications[record.tableName])
+            {
+                var old_result_set = Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].resultSet;
+                var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
+                var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
+                var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
+                for(var x = 0; x < splices.length; ++x)
+                {
+                    if(event_name == 'afterCreate')
+                    {
+                        var to_synchronize = splices[x].slice(2);
+                        for(var s = 0; s < to_synchronize.length; ++s)
+                        {
+                            to_synchronize[s].synchronize();
+                        }
+                    }
+                    old_result_set.splice.apply(old_result_set,splices[x]);
+                }
+            }
+        }
+        if(event_name === 'afterDestroy')
+        {
+            found_records = Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]];
+            for(internal_count_id in found_records)
+            {
+                if(internal_count_id !== record.internalCount)
+                {
+                    found_records[internal_count_id].notify('synchronization:afterDestroy');
+                    Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id] = null;
+                    delete Synchronization.notifications[record.tableName][record[record.constructor.primaryKeyName]][internal_count_id];
+                }
+            }
+        }
+    }
+};
+
+ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+    /**
+     * Once synchronized a found instance will have it's values updated if
+     * other records with the same id change in the database.
+     * @alias ActiveRecord.Instance.synchronize
+     * @return {null}
+     */
+    synchronize: function synchronize()
+    {
+        if(!this.isSynchronized)
+        {
+            this.isSynchronized = true;
+            Synchronization.setupNotifications(this);
+            Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = this;
+        }
+    },
+    /**
+     * Stops the synchronization of the record with the database.
+     * @alias ActiveRecord.Instance.stop
+     * @return {null}
+     */
+    stop: function stop()
+    {
+        Synchronization.setupNotifications(this);
+        Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount] = null;
+        delete Synchronization.notifications[this.tableName][this[this.constructor.primaryKeyName]][this.internalCount];
+    }
+});
+
+Synchronization.synchronizedCalculationCount = 0;
+
+Synchronization.synchronizeCalculation = function synchronizeCalculation(klass,operation,params)
+{
+    ++Synchronization.synchronizedCalculationCount;
+    var callback = params.synchronize;
+    var callback_params = ActiveSupport.clone(params);
+    delete callback_params.synchronize;
+    if(!Synchronization.calculationNotifications[klass.tableName])
+    {
+        Synchronization.calculationNotifications[klass.tableName] = {};
+    }
+    Synchronization.calculationNotifications[klass.tableName][Synchronization.synchronizedCalculationCount] = (function calculation_synchronization_executer_generator(klass,operation,params,callback){
+        return function calculation_synchronization_executer(){
+            callback(klass[operation](callback_params));
+        };
+    })(klass,operation,params,callback);
+    Synchronization.calculationNotifications[klass.tableName][Synchronization.synchronizedCalculationCount]();
+    return (function calculation_synchronization_stop_generator(table_name,synchronized_calculation_count){
+        return function calculation_synchronization_stop(){
+            Synchronization.calculationNotifications[table_name][synchronized_calculation_count] = null;
+            delete Synchronization.calculationNotifications[table_name][synchronized_calculation_count];
+        };
+    })(klass.tableName,Synchronization.synchronizedCalculationCount);
+};
+
+Synchronization.synchronizedResultSetCount = 0;
+
+Synchronization.synchronizeResultSet = function synchronizeResultSet(klass,params,result_set)
+{
+    ++Synchronization.synchronizedResultSetCount;
+    if(!Synchronization.resultSetNotifications[klass.tableName])
+    {
+        Synchronization.resultSetNotifications[klass.tableName] = {};
+    }
+    Synchronization.resultSetNotifications[klass.tableName][Synchronization.synchronizedResultSetCount] = {
+        resultSet: result_set,
+        params: params
+    };
+    for(var i = 0; i < result_set.length; ++i)
+    {
+        result_set[i].synchronize();
+    }
+    result_set.stop = (function result_set_synchronization_stop_generator(table_name,synchronized_result_set_count){
+        return function stop(){
+            for(var i = 0; i < this.length; ++i)
+            {
+                this[i].stop();
+            }
+            Synchronization.resultSetNotifications[table_name][synchronized_result_set_count] = null;
+            delete Synchronization.resultSetNotifications[table_name][synchronized_result_set_count];
+        };
+    })(klass.tableName,Synchronization.synchronizedResultSetCount);
+};
+
+Synchronization.spliceArgumentsFromResultSetDiff = function spliceArgumentsFromResultSetDiff(a,b,event_name)
+{
+    var diffs = [];
+    if(event_name === 'afterCreate')
+    {
+        for(var i = 0; i < b.length; ++i)
+        {
+            if(!a[i] || (a[i] && (a[i][a[i].constructor.primaryKeyName] !== b[i][b[i].constructor.primaryKeyName])))
+            {
+                diffs.push([i,null,b[i]]);
+                break;
+            }
+        }
+    }
+    else if(event_name === 'afterDestroy')
+    {
+        for(var i = 0; i < a.length; ++i)
+        {
+            if(!b[i] || (b[i] && (b[i][b[i].constructor.primaryKeyName] !== a[i][a[i].constructor.primaryKeyName])))
+            {
+                diffs.push([i,1]);
+                break;
+            }
+        }
+    }
+    return diffs;
+};
+
+ActiveRecord.Synchronization = Synchronization;
+
+})();
+
+(function(){
+
+/**
+ * Adapter for browsers supporting a SQL implementation (Gears, HTML5).
+ * @alias ActiveRecord.Adapters.Gears
+ * @property {ActiveRecord.Adapter}
+ */
+ActiveRecord.Adapters.Gears = function Gears(db){
+    this.db = db;
+    ActiveSupport.extend(this,ActiveRecord.Adapters.InstanceMethods);
+    ActiveSupport.extend(this,ActiveRecord.Adapters.SQLite);
+    ActiveSupport.extend(this,{
+        executeSQL: function executeSQL(sql)
+        {
+            var args = ActiveSupport.arrayFrom(arguments);
+            ActiveRecord.connection.log("Adapters.Gears.executeSQL: " + sql + " [" + args.slice(1).join(',') + "]");
+            var response = ActiveRecord.connection.db.execute(sql,args.slice(1));
+            return response;
+        },
+        getLastInsertedRowId: function getLastInsertedRowId()
+        {
+            return this.db.lastInsertRowId;
+        },
+        iterableFromResultSet: function iterableFromResultSet(result)
+        {
+            var response = {
+                rows: []
+            };
+            var count = result.fieldCount();
+            var fieldNames = [];
+            for(var i = 0; i < count; ++i)
+            {
+                fieldNames[i] = result.fieldName(i);
+            }
+            while(result.isValidRow())
+            {
+                var row = {};
+                for(var i = 0; i < count; ++i)
+                {
+                    row[fieldNames[i]] = result.field(i);
+                }
+                response.rows.push(row);
+                result.next();
+            }
+            result.close();
+            response.iterate = ActiveRecord.Adapters.defaultResultSetIterator;
+            return response;
+        },
+        fieldListFromTable: function(table_name)
+        {
+            var response = {};
+            var description = ActiveRecord.connection.iterableFromResultSet(ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master WHERE tbl_name = "' + table_name + '"')).iterate(0);
+            var columns = description.sql.match(new RegExp('CREATE[\s]+TABLE[\s]+' + table_name + '[\s]+(\([^\)]+)'));
+            var parts = columns.split(',');
+            for(var i = 0; i < parts.length; ++i)
+            {
+                //second half of the statement should instead return the type that it is
+                response[parts[i].replace(/(^\s+|\s+$)/g,'')] = parts[i].replace(/^\w+\s?/,'');
+            }
+            return response;
+        }
+    });
+};
+ActiveRecord.Adapters.Gears.DatabaseUnavailableError = 'ActiveRecord.Adapters.Gears could not find a Google Gears database to connect to.';
+ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_name, size)
+{
+    var global_context = ActiveSupport.getGlobalContext();
+    var db = null;
+    
+    if(!(global_context.google && google.gears))
+    {
+        var gears_factory = null;
+        if('GearsFactory' in global_context)
+        {
+            gears_factory = new GearsFactory();
+        }
+        else if('ActiveXObject' in global_context)
+        {
+            try
+            {
+                gears_factory = new ActiveXObject('Gears.Factory');
+                if(gears_factory.getBuildInfo().indexOf('ie_mobile') !== -1)
+                {
+                    gears_factory.privateSetGlobalObject(this);
+                }
+            }
+            catch(e)
+            {
+                return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
+            }
+        }
+        else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
+        {
+            gears_factory = ActiveSupport.getGlobalContext().document.createElement("object");
+            gears_factory.style.display = "none";
+            gears_factory.width = 0;
+            gears_factory.height = 0;
+            gears_factory.type = "application/x-googlegears";
+            ActiveSupport.getGlobalContext().document.documentElement.appendChild(gears_factory);
+        }
+        
+        if(!gears_factory)
+        {
+            return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
+        }
+        
+        if(!('google' in global_context))
+        {
+            google = {};
+        }
+        
+        if(!('gears' in google))
+        {
+            google.gears = {
+                factory: gears_factory
+            };
+        }
+    }
+
+    db = google.gears.factory.create('beta.database');
+    db.open(typeof name == 'undefined' ? 'ActiveRecord' : name);
+        
+    return new ActiveRecord.Adapters.Gears(db);
+};
+
+})();

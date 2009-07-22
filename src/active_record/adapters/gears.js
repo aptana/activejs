@@ -54,12 +54,17 @@ ActiveRecord.Adapters.Gears = function Gears(db){
                 rows: []
             };
             var count = result.fieldCount();
+            var fieldNames = [];
+            for(var i = 0; i < count; ++i)
+            {
+                fieldNames[i] = result.fieldName(i);
+            }
             while(result.isValidRow())
             {
                 var row = {};
                 for(var i = 0; i < count; ++i)
                 {
-                    row[result.fieldName(i)] = result.field(i);
+                    row[fieldNames[i]] = result.field(i);
                 }
                 response.rows.push(row);
                 result.next();
@@ -140,7 +145,7 @@ ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_na
     }
 
     db = google.gears.factory.create('beta.database');
-    db.open(name || 'ActiveRecord');
+    db.open(typeof name == 'undefined' ? 'ActiveRecord' : name);
         
     return new ActiveRecord.Adapters.Gears(db);
 };

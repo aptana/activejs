@@ -31,17 +31,17 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * @alias ActiveRecord.Instance.set
      * @param {String} key
      * @param {mixed} value
-     * @param {Boolean} surpress_notifications Defaults to false
+     * @param {Boolean} suppress_notifications Defaults to false
      * @return {mixed} the value that was set
      */
-    set: function set(key, value, surpress_notifications)
+    set: function set(key, value, suppress_notifications)
     {
         if (typeof(this[key]) !== "function")
         {
             this[key] = value;
         }
         this._object[key] = value;
-        if(!surpress_notifications)
+        if(!suppress_notifications)
         {
             this.notify('set',key,value);
         }
@@ -124,11 +124,11 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     reload: function reload()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
-        var record = this.constructor.find(this.get(this.constructor.primaryKeyName));
+        var record = this.constructor.get(this._id);
         if (!record)
         {
             return false;
@@ -160,7 +160,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
             }
         }
@@ -172,7 +172,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.set('updated',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
         }
-        if (force_created_mode || !this.get(this.constructor.primaryKeyName))
+        if (force_created_mode || this._id === undefined)
         {
             if (this.notify('beforeCreate') === false)
             {
@@ -182,9 +182,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set('created',ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss'));
             }
-            var id = this.get(this.constructor.primaryKeyName);
             ActiveRecord.connection.insertEntity(this.tableName, this.constructor.primaryKeyName, this.toObject());
-            if(!id)
+            if(!this.get(this.constructor.primaryKeyName))
             {
                 this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             }
@@ -193,17 +192,18 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         }
         else
         {
-            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this.get(this.constructor.primaryKeyName), this.toObject());
+            ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this._id, this.toObject());
         }
         //apply field out conversions
         for (var key in this.constructor.fields)
         {
             if(!this.constructor.fields[key].primaryKey)
             {
-                //third param is to surpress observers
+                //third param is to suppress observers
                 this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
             }
         }
+        this._id = this.get(this.constructor.primaryKeyName);
         Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
         return this;
@@ -215,7 +215,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     destroy: function destroy()
     {
-        if (!this.get(this.constructor.primaryKeyName))
+        if (this._id === undefined)
         {
             return false;
         }
@@ -223,7 +223,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this.get(this.constructor.primaryKeyName));
+        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
         Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
@@ -308,6 +308,13 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         order: 'id DESC'
      *     });
      *     var users = User.find('SELECT * FROM users ORDER id DESC');
+     *
+     *     // If your primary key is not numeric, find(id) will not work.
+     *     // Use findBy<PrimaryKey>(id) or get(id) instead:
+     *
+     *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
+     *     commit = Commit.findById('cxfeea6'); // GOOD
+     *     commit = Commit.get('cxfeea6');      // GOOD
      */
     find: function find(params)
     {
@@ -393,7 +400,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var instance = this.find(id);
+            var instance = this.get(id);
             if(!instance)
             {
                 return false;
@@ -450,7 +457,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
-        if(typeof(id.length) !== 'undefined')
+        if (ActiveSupport.isArray(id))
         {
             var results = [];
             for(var i = 0; i < id.length; ++i)
@@ -461,7 +468,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var record = this.find(id);
+            var record = this.get(id);
             if(!record)
             {
                 return false;

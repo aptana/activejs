@@ -313,6 +313,8 @@
             "test/active_routes/matching.js",
             "test/active_routes/dispatch.js",
             "test/active_routes/history.js",
+
+            "test/active_support/active_support.js",
             
             "test/active_view/setup.js",
             "test/active_view/builder.js",

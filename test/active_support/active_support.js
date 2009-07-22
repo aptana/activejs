@@ -25,38 +25,25 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-ActiveTest.Tests.ActiveRecord.id = function(proceed)
+ActiveTest.Tests.ActiveSupport = {};
+ActiveTest.Tests.ActiveSupport.ActiveSupport = function(proceed)
 {
     with (ActiveTest)
     {
-        if (ActiveRecord.asynchronous)
-        {
+        // Inflector
+        assert(ActiveSupport.Inflector.pluralize('cat') == 'cats', 'pluralize(cat)');
+        assert(ActiveSupport.Inflector.pluralize('cats') == 'cats', 'pluralize(cats)');
 
-        }
-        else
-        {
-            var a = Custom.create({name: 'test'});
-            assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
+        assert(ActiveSupport.Inflector.singularize('cat') == 'cat', 'singularize(cat)');
+        assert(ActiveSupport.Inflector.singularize('cats') == 'cat', 'singularize(cats)');
 
-            var b = Guid.create({guid: '123', data: 'test'});
-            assert(Guid.primaryKeyName == 'guid', 'model.primaryKeyName');
-            assert(b.primaryKeyName == 'guid', 'record.primaryKeyName');
-            assert(Guid.findByGuid('123').data == 'test', 'findByGuid');
-            assert(Guid.get('123').data == 'test', 'get(guid)');
+        assert(ActiveSupport.Inflector.pluralize('person') == 'people', 'pluralize(person)');
+        assert(ActiveSupport.Inflector.pluralize('people') == 'people', 'pluralize(people)');
 
-            Guid.update('123', {data: 'changed'});
-            assert(b.reload() && b.data == 'changed', 'Guid.update && b.reload');
+        assert(ActiveSupport.Inflector.singularize('people') == 'person', 'singularize(people)');
+        assert(ActiveSupport.Inflector.singularize('person') == 'person', 'singularize(person)');
 
-            b.set('guid', 'abc');
-            assert(b.guid == 'abc', 'guid change');
-            b.save();
-            assert(!Guid.get('123'), 'old guid is gone');
-            assert(Guid.get('abc').data == 'changed', 'new guid is saved');
-
-            assert(Guid.destroy('abc') && Guid.count() == 0, 'Guid.destroy');
-
-            if(proceed)
-                proceed();
-        }
+        if(proceed)
+            proceed();
     }
 };

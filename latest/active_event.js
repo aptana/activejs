@@ -361,6 +361,17 @@ ActiveSupport = {
         }
     },
     /**
+     * Trim leading and trailing whitespace.
+     * @alias ActiveSupport.trim
+     * @param {String} str
+     * @return {String}
+     */
+    trim: function(str)
+    {
+        return (str || "").replace(/^\s+|\s+$/g,"");
+    },
+
+    /**
      * Emulates Prototype's Object.extend
      * @alias ActiveSupport.extend
      * @param {Object} destination
@@ -557,11 +568,11 @@ ActiveSupport = {
          */
         pluralize: function pluralize(word)
         {
-            var i;
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -570,7 +581,7 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase() === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
                     return plural;
                 }
@@ -594,11 +605,11 @@ ActiveSupport = {
          */
         singularize: function singularize(word)
         {
-            var i;
+            var i, lc = word.toLowerCase();
             for (i = 0; i < ActiveSupport.Inflector.Inflections.uncountable.length; i++)
             {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
-                if (word.toLowerCase() === uncountable || ActiveSupport.underscore(word.toLowerCase()).split('_').pop() === uncountable)
+                if (lc === uncountable)
                 {
                     return uncountable;
                 }
@@ -607,9 +618,9 @@ ActiveSupport = {
             {
                 var singular = ActiveSupport.Inflector.Inflections.irregular[i][0];
                 var plural   = ActiveSupport.Inflector.Inflections.irregular[i][1];
-                if ((word.toLowerCase() === singular) || (word === plural))
+                if ((lc === singular) || (lc === plural))
                 {
-                    return plural;
+                    return singular;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.singular.length; i++)
@@ -621,7 +632,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
-						return word;
+            return word;
         }
     },
     /**

@@ -156,7 +156,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var response = [];
         for(var i = 0; i < ids.length; ++i)
         {
-            var id = parseInt(ids[i],10);
+            var id = ids[i];
             if(table_data[id])
             {
                 response.push(table_data[id]);
@@ -190,9 +190,9 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var table_data = this.storage[table];
         if(params && params.where && params.where.id)
         {
-            if(table_data[parseInt(params.where.id, 10)])
+            if(table_data[params.where.id])
             {
-                entity_array.push(table_data[parseInt(params.where.id, 10)]);
+                entity_array.push(table_data[params.where.id]);
             }
         }
         else

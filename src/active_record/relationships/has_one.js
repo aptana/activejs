@@ -60,7 +60,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
         var id = this.get(foreign_key);
         if (id)
         {
-            return ActiveRecord.Models[related_model_name].find(id);
+            return ActiveRecord.Models[related_model_name].get(id);
         }
         else
         {

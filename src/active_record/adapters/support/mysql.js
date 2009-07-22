@@ -38,8 +38,8 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
             if(columns[key].primaryKey)
             {
                 var type = columns[key].type || 'INT';
-                fragments.unshift(key + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
-                fragments.push('PRIMARY KEY(' + key + ')');
+                fragments.unshift(this.quoteIdentifier(key) + ' ' + type + ' NOT NULL' + (type == 'INT' ? ' AUTO_INCREMENT' : ''));
+                fragments.push('PRIMARY KEY(' + this.quoteIdentifier(key) + ')');
             }
             else
             {
@@ -50,7 +50,7 @@ ActiveRecord.Adapters.MySQL = ActiveSupport.extend(ActiveSupport.clone(ActiveRec
     },
     dropColumn: function dropColumn(table_column,column_name)
     {
-        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + key);
+        return this.executeSQL('ALTER TABLE ' + table_name + ' DROP COLUMN ' + this.quoteIdentifier(key));
     }
 });
 

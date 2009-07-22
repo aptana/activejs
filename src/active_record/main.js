@@ -475,29 +475,24 @@ ActiveRecord = {
         //constructor
         model = ActiveRecord.Models[options.modelName] = function initialize(data)
         {
-            this.modelName = this.constructor.modelName;
-            this.tableName = this.constructor.tableName;
-            this.primaryKeyName = this.constructor.primaryKeyName;
             this._object = {};
             for(var key in data)
             {
-                //third param is to supress notifications on set
+                //third param is to suppress notifications on set
                 this.set(key,data[key],true);
             }
             this._errors = [];
-            for(var key in this.constructor.fields)
+            var fields = this.constructor.fields;
+            for(var key in fields)
             {
-                if(!this.constructor.fields[key].primaryKey)
+                var field = fields[key]
+                if(!field.primaryKey)
                 {
-                    var value = ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key));
-                    if(Migrations.objectIsFieldDefinition(value))
-                    {
-                        value = value.value;
-                    }
-                    //don't supress notifications on set since these are the processed values
-                    this.set(key,value);
+                    var value = ActiveRecord.connection.fieldOut(field,this.get(key));
+                    this.set(key,value,true);
                 }
             }
+            this._id = this.get(this.constructor.primaryKeyName);
             //performance optimization if no observers
             this.notify('afterInitialize', data);
         };
@@ -524,7 +519,7 @@ ActiveRecord = {
 				}
         if(methods && typeof(methods) !== 'function')
         {
-            ActiveSupport.extend(model.prototype, methods || {});
+            ActiveSupport.extend(model.prototype, methods);
         }
 
         //mixin class methods
@@ -561,6 +556,12 @@ ActiveRecord = {
         {
             model.primaryKeyName = custom_primary_key;
         }
+
+        ActiveSupport.extend(model.prototype, {
+          modelName: model.modelName,
+          tableName: model.tableName,
+          primaryKeyName: model.primaryKeyName
+        });
         
         //generate finders
         for(var key in model.fields)
@@ -568,6 +569,8 @@ ActiveRecord = {
             Finders.generateFindByField(model,key);
             Finders.generateFindAllByField(model,key);
         }
+        //get is a synonym for findBy<PrimaryKey>
+        model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
         
         //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
