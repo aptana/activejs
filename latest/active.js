@@ -6837,6 +6837,17 @@ var ActiveView = null;
  * The first construct, update(element).from(key) will set the content
  * of the specified element to the value of the specificed key
  * whenever the value of the key changes.
+ *
+ *     update(title_container).from('title');
+ * 
+ * You can update a particular attribute of an element by passing a key
+ * name to update(), or pull a particular key from another object by
+ * passing both an object and a key to from() (that object must however
+ * fire "get" and "set" events like ObservableHash, ActiveRecord or
+ * ActiveView).
+ * 
+ *     update(image_element,'src').from('image_src');
+ *     update(image_element,'src').from(image_active_record,'src');
  * 
  * The second construct is a generic way of observing when a key changes.
  * When "key" changes, the callback function will be called with the
@@ -6887,6 +6898,9 @@ var ActiveView = null;
  *     //instance.container == <ul><li>one</li><li>two</li><li>three</li></ul>
  *     items.pop();
  *     //instance.container == <ul><li>one</li><li>two</li></ul>
+ * 
+ * The collect() method will also accept a function that returns an Element
+ * in place of an ActiveView class.
  * 
  * ActiveRecord Data Binding Integration
  * -------------------------------------
