@@ -200,7 +200,7 @@ ActiveView.generateBinding = function generateBinding(instance)
                                         element.insertBefore((typeof(generated_element) === 'string'
                                             ? global_context.document.createTextNode(generated_element)
                                             : generated_element
-                                        ),element.childNodes[index + i]);
+                                        ),(typeof(element.childNodes[index + i]) == 'undefined' ? null : element.childNodes[index + i]));
                                         children[i] = element.childNodes[index + i];
                                     }
                                     collected_elements.splice.apply(collected_elements,[index,to_remove].concat(children));
