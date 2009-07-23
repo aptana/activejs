@@ -32,12 +32,14 @@ Adapters.SQL = {
         var keys = ActiveSupport.keys(data).sort();
         var values = [];
         var args = [];
+        var quoted_keys = [];
         for(var i = 0; i < keys.length; ++i)
         {
             args.push(data[keys[i]]);
             values.push('?');
+            quoted_keys.push(this.quoteIdentifier(keys[i]));
         }
-        args.unshift("INSERT INTO " + table + " (" + keys.map(this.quoteIdentifier).join(',') + ") VALUES (" + values.join(',') + ")");
+        args.unshift("INSERT INTO " + table + " (" + quoted_keys.join(',') + ") VALUES (" + values.join(',') + ")");
         var response = this.executeSQL.apply(this,args);
         var id = data[primary_key_name] || this.getLastInsertedRowId();
         var data_with_id = ActiveSupport.clone(data);

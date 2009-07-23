@@ -397,7 +397,7 @@ ActiveRecord = {
      * @alias ActiveRecord.autoMigrate
      * @property {Boolean}
      */
-     autoMigrate: true,
+    autoMigrate: true,
     /**
      * Tracks the number of records created.
      * @alias ActiveRecord.internalCounter
@@ -485,11 +485,16 @@ ActiveRecord = {
             var fields = this.constructor.fields;
             for(var key in fields)
             {
-                var field = fields[key]
+                var field = fields[key];
                 if(!field.primaryKey)
                 {
                     var value = ActiveRecord.connection.fieldOut(field,this.get(key));
-                    this.set(key,value,true);
+                    if(Migrations.objectIsFieldDefinition(value))
+                    {
+                        value = value.value;
+                    }
+                    //don't supress notifications on set since these are the processed values
+                    this.set(key,value);
                 }
             }
             this._id = this.get(this.constructor.primaryKeyName);
@@ -504,19 +509,19 @@ ActiveRecord = {
         ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
 
         //user defined methods take precedence
-				if(typeof(methods) == 'undefined')
-				{
-						//detect if the fields object is actually a methods object
-					  for(var method_name in fields)
-					  {
-						    if(typeof(fields[method_name]) == 'function')
-						    {
-							      methods = fields;
-							      fields = null; 
-						    }
-						    break;
-					  }
-				}
+        if(typeof(methods) == 'undefined')
+        {
+            //detect if the fields object is actually a methods object
+            for(var method_name in fields)
+            {
+                if(typeof(fields[method_name]) == 'function')
+                {
+                    methods = fields;
+                    fields = null; 
+                }
+                break;
+            }
+        }
         if(methods && typeof(methods) !== 'function')
         {
             ActiveSupport.extend(model.prototype, methods);
