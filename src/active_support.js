@@ -533,7 +533,7 @@ ActiveSupport = {
                 "money",
                 "rice",
                 "information",
-				"info",
+                "info",
                 "equipment"
             ]
         },
@@ -574,7 +574,7 @@ ActiveSupport = {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
                 if (lc === uncountable)
                 {
-                    return uncountable;
+                    return word;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
@@ -595,7 +595,7 @@ ActiveSupport = {
                     return word.replace(regex, replace_string);
                 }
             }
-						return word;
+            return word;
         },
         /**
          * Generates a singular version of an english word.
@@ -611,7 +611,7 @@ ActiveSupport = {
                 var uncountable = ActiveSupport.Inflector.Inflections.uncountable[i];
                 if (lc === uncountable)
                 {
-                    return uncountable;
+                    return word;
                 }
             }
             for (i = 0; i < ActiveSupport.Inflector.Inflections.irregular.length; i++)
