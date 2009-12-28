@@ -211,6 +211,10 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         {
             filters.push(this.createWhere(params.where));
         }
+        if(params && params.callback)
+        {
+            filters.push(this.createCallback(params.callback));
+        }
         if(params && params.order)
         {
             filters.push(this.createOrderBy(params.order));
@@ -355,6 +359,21 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             };
         }
     },
+    createCallback: function createCallback(callback)
+    {
+        return function json_result_callback_processor(result_set)
+        {
+            var response = [];
+            for(var i = 0; i < result_set.length; ++i)
+            {
+                if(callback(result_set[i]))
+                {
+                    response.push(result_set[i]);
+                }
+            }
+            return response;
+        };
+    },
     createLimit: function createLimit(limit,offset)
     {
         return function json_result_limit_processor(result_set)
@@ -487,7 +506,7 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,row,ar
     }
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
-        return ActiveSupport.throwError(Errors.MethodDoesNotExist);
+        return ActiveSupport.throwError(Errors.MethodDoesNotExist,'"' + name + '"' + ' was called from a sql statement.');
     }
     else
     {

@@ -93,6 +93,21 @@ ActiveTest.Tests.ActiveRecord.finders = function(proceed)
             assert(typeof(Comment.findAllByTitle) != 'undefined','findAllBy#{X} exists.');
             assert(Comment.findByTitle('a').title == a.title && Comment.findById(a.id).id == a.id,'findByX works');
             
+            //find by callback
+            var comments_found_by_callback = Comment.find({
+                callback: function(comment){
+                    return comment.title == 'b';
+                }
+            });
+            assert(comments_found_by_callback.length == 1 && comments_found_by_callback[0] && comments_found_by_callback[0].title == 'b','find({callback:function(){}})');
+            var comment_found_by_callback = Comment.find({
+                first: true,
+                callback: function(comment){
+                    return comment.title == 'c';
+                }
+            });
+            assert(comment_found_by_callback.title == 'c','find({callback:function(){},first:true})');
+            
             //test GROUP BY
             Comment.destroy('all');
             var one = Comment.create({title: 'a'});

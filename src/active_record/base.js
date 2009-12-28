@@ -283,7 +283,8 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
      * @example
      *
-     *     var user = User.find(5); //finds a single record
+     *     //finding single records
+     *     var user = User.find(5); 
      *     var user = User.find({
      *         first: true,
      *         where: {
@@ -294,7 +295,13 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         first: true,
      *         where: ['id = ?',5]
      *     });
+     *
+     *     //finding multiple records
      *     var users = User.find(); //finds all
+     *     var users = User.find(1,2,3); //finds ids 1,2,3
+     *     var users = User.find([1,2,3]); // finds ids 1,2,3
+     *     
+     *     //finding multiple records with complex where statements
      *     var users = User.find({
      *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
      *         order: 'id DESC'
@@ -307,7 +314,17 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         }
      *         order: 'id DESC'
      *     });
+     *     
+     *     //find using a complete SQL statement
      *     var users = User.find('SELECT * FROM users ORDER id DESC');
+     *
+     *     //find using a callback, "user" in this case only contains a hash
+     *     //of the user attributes, it is not an ActiveRecord instance
+     *     var users = User.find({
+     *         callback: function(user){
+     *              return user.name.toLowerCase() == 'a';
+     *         }
+     *     });
      *
      *     // If your primary key is not numeric, find(id) will not work.
      *     // Use findBy<PrimaryKey>(id) or get(id) instead:

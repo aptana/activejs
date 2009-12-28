@@ -153,7 +153,22 @@ Adapters.SQL = {
         }
         else
         {
-            return ActiveRecord.connection.iterableFromResultSet(response);
+            var iterable_response = ActiveRecord.connection.iterableFromResultSet(response);
+            if(params.callback)
+            {
+                var filtered_response = [];
+                iterable_response.iterate(function(row){
+                    if(params.callback(row))
+                    {
+                        filtered_response.push(row);
+                    }
+                });
+                return filtered_response;
+            }
+            else
+            {
+                return iterable_response;
+            }
         }
     },
     buildSQLArguments: function buildSQLArguments(table, params, calculation)

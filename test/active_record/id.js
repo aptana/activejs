@@ -35,6 +35,8 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
         }
         else
         {
+            
+            /*
             var a = Custom.create({name: 'test'});
             assert(Custom.find(a.custom_id).name == 'test', 'Custom integer primary key.');
 
@@ -54,7 +56,8 @@ ActiveTest.Tests.ActiveRecord.id = function(proceed)
             assert(Guid.get('abc').data == 'changed', 'new guid is saved');
 
             assert(Guid.destroy('abc') && Guid.count() == 0, 'Guid.destroy');
-
+            
+            */
             if(proceed)
                 proceed();
         }
