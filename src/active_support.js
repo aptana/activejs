@@ -534,7 +534,8 @@ ActiveSupport = {
                 "rice",
                 "information",
                 "info",
-                "equipment"
+                "equipment",
+                "media"
             ]
         },
         /**

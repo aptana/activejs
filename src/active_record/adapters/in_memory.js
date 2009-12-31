@@ -31,16 +31,22 @@
  * @property {ActiveRecord.Adapter}
  */
 Adapters.InMemory = function InMemory(storage){
-    this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
     this.lastInsertId = null;
+    this.setStorage(storage);
 };
 
 ActiveSupport.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
 
 ActiveSupport.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
-    entityMissing: function entityMissing(id){
+    entityMissing: function entityMissing(id)
+    {
         return {};
+    },
+    setStorage: function setStorage(storage)
+    {
+        this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
+        ActiveRecord.Indicies.initializeIndicies(storage);
     },
     serialize: function serialize()
     {
