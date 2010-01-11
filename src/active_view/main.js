@@ -539,7 +539,7 @@ var InstanceMethods = (function(){
 })();
 
 var ClassMethods = {
-
+    
 };
 
 var Errors = {

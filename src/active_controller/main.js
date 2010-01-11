@@ -44,8 +44,6 @@ ActiveController.create = function create(actions,methods)
         this.setRenderTarget(this.container);
         this.parent = parent;
         this.children = [];
-        this.history = ActiveSupport.clone(ActiveController.History);
-        this.history.callActionAtIndex = ActiveSupport.bind(this.history.callActionAtIndex,this);
         this.params = params || {};
         this.scope = new ActiveEvent.ObservableHash({});
         this.initialize();
@@ -91,7 +89,6 @@ ActiveController.createAction = function createAction(klass,action_name,action)
         this.notify('beforeCall',action_name,this.params);
         this.renderLayout();
         ActiveSupport.bind(action,this)();
-        this.history.history.push([action_name,this.params]);
         this.notify('afterCall',action_name,this.params);
     };
 };
@@ -140,11 +137,18 @@ var InstanceMethods = (function(){
         },
         renderLayout: function renderLayout()
         {
-            if(this.layout && !this.layoutRendered && typeof(this.layout) == 'function')
+            if(this.layout && !this.layoutInstance)
             {
-                this.layoutRendered = true;
+                if(!ActiveView.isActiveViewClass(this.layout))
+                {
+                    return ActiveSupport.throwError(Errors.LayoutIsNotActiveViewClass,this.container);
+                }
+                this.layout.prototype.originalStructure = this.layout.prototype.structure;
+                this.layout.prototype.structure = ActiveSupport.curry(this.layout.prototype.originalStructure,this);
+                this.layoutInstance = new this.layout();
+                this.setRenderTarget(this.layoutInstance.getTarget());
                 ActiveView.Builder.clearElement(this.container);
-                this.container.appendChild(this.layout.bind(this)());
+                this.container.appendChild(this.layoutInstance.container);
             }
         }
     };
@@ -205,6 +209,7 @@ var Errors = {
     BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
     InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
     UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: '),
-    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: ')
+    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: '),
+    LayoutIsNotActiveViewClass: ActiveSupport.createError('The layout defined by the controller is not an ActiveView class:')
 };
 ActiveController.Errors = Errors;

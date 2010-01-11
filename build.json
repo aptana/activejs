@@ -72,6 +72,7 @@
             "src/active_view/main.js",
             "src/active_view/builder.js",
             "src/active_view/binding.js",
+            "src/active_view/layout.js",
             "src/active_view/template.js",
             "src/active_view/footer.js"
         ]
@@ -81,7 +82,6 @@
         "build": [
             "src/active_controller/header.js",
             "src/active_controller/main.js",
-            "src/active_controller/history.js",
             "src/active_controller/footer.js"
         ]
     },
@@ -246,7 +246,7 @@
             "src/active_record/adapters/jaxer_mysql.js",
             "include_active_view",
             "include_active_controller",
-            "src/active_controller/server.js",
+            "src/active_controller/adapters/server.js",
             "src/active_controller/adapters/jaxer.js"
         ]
     },
