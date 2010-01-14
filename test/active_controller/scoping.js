@@ -57,8 +57,7 @@ ActiveTest.Tests.Controller.scoping = function(proceed)
             return div();
         });
         
-        var controller = new TestController();
-        controller.index();
+        TestController.index();
         
         if(proceed)
             proceed()
