@@ -179,6 +179,17 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         match = routes.match('/blog/post/5');
         routes.options.classSuffix = old_suffix;
         assert(match.name == 'post' && match.params.id == 5 && match.params.method == 'post' && match.params.object == 'BlogController','test of classSuffix');
+        
+        //test reverse lookup
+        var reverse_lookup_exact = routes.reverseLookup('article','article');
+        var reverse_lookup_exact_with_object = routes.reverseLookup(routes.scope.Article,'article');
+        var reverse_lookup_ambiguous_method = routes.reverseLookup('page','index');
+        var reverse_lookup_ambiguous_object_and_method = routes.reverseLookup('test','test');
+        
+        assert(reverse_lookup_exact.path == 'article/:id','reverseLookup() exact');
+        assert(reverse_lookup_exact_with_object.path == 'article/:id','reverseLookup() exact with ojbect');
+        assert(reverse_lookup_ambiguous_method.path == 'pages/:method','reverseLookup() ambiguous method');
+        assert(reverse_lookup_ambiguous_object_and_method.path == ':object/:method/:id','reverseLookup() ambiguous object and method');
     }
     if(proceed())
         proceed();

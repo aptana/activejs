@@ -28,12 +28,14 @@
 /**
  * Will match() the given path and call the dispatcher if one is found.
  * @alias ActiveRoutes.prototype.dispatch
- * @param {String} path
+ * @param {mixed} String path or route object.
  * @exception {ActiveRoutes.Errors.UnresolvableUrl}
  * @example
  *     var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
  *     routes.dispatch('/blog/post/5');
  *     //by default calls Blog.post({object:'blog',method: 'post',id: 5});
+ *     routes.dispatch({object:'blog',method: 'post',id: 5});
+ *     //calls same as above, but saves history, fires callbacks, etc
  */
 ActiveRoutes.prototype.dispatch = function dispatch(path)
 {
@@ -55,9 +57,17 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
     }
     else
     {
+        var reverse_lookup_result = this.reverseLookup(path.object,path.method);
+        if(!reverse_lookup_result)
+        {
+            return ActiveSupport.throwError(Errors.ReverseLookupFailed,path);
+        }
         route = {
-            params: path
+            params: path,
+            name: reverse_lookup_result.name,
+            path: reverse_lookup_result.path
         };
+        ActiveSupport.extend(route.params,reverse_lookup_result.params);
     }
     this.history.push(route);
     this.index = this.history.length - 1;

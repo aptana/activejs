@@ -42,10 +42,6 @@ ActiveTest.Tests.Routes.dispatch = function(proceed)
         routes.dispatch(test_scope.addressParams({zip:'83340',state:'id'}))
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '83340' && last_action.method == 'address','dispatcher called action from params');
-        
-        test_scope.callAddress({zip:'83340',state:'id'});
-        last_action = logged_actions.pop()[0];
-        assert(last_action.zip == '83340' && last_action.method == 'address','dispatcher called action from generated call method');
     }
     if(proceed())
         proceed();
