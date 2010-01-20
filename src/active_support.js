@@ -100,7 +100,15 @@ ActiveSupport = {
         }
         if(typeof(console) !== 'undefined')
         {
-            console.log.apply(console,arguments || []);
+            //console.log.apply not supported by IE
+            switch(arguments.length)
+            {
+                case 1: console.log(arguments[0]); break;
+                case 2: console.log(arguments[0],arguments[1]); break;
+                case 3: console.log(arguments[0],arguments[1],arguments[2]); break;
+                case 4: console.log(arguments[0],arguments[1],arguments[2],arguments[3]); break;
+                case 5: console.log(arguments[0],arguments[1],arguments[2],arguments[3],arguments[4]); break;
+            }
         }
     },
     /**
