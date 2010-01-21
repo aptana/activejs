@@ -82,7 +82,19 @@
         "build": [
             "src/active_controller/header.js",
             "src/active_controller/main.js",
+            "src/active_controller/routes.js",
             "src/active_controller/footer.js"
+        ]
+    },
+    {
+        "name": "include_active_support",
+        "build": [
+            "src/active_support/header.js",
+            "src/active_support/main.js",
+            "src/active_support/inflector.js",
+            "src/active_support/date.js",
+            "src/active_support/json.js",
+            "src/active_support/footer.js"
         ]
     },
     
@@ -91,7 +103,7 @@
         "output": "latest/active_support.js",
         "files": [
             "license.txt",
-            "src/active_support.js"
+            "include_active_support"
         ]
     },
     {
@@ -105,11 +117,31 @@
     },
     
     {
+        "name": "active_support_core",
+        "output": "latest/active_support.core.js",
+        "files": [
+            "license.txt",
+            "src/active_support/header.js",
+            "src/active_support/main.js",
+            "src/active_support/footer.js"
+        ]
+    },
+    {
+        "name": "active_support_core_packed",
+        "output": "latest/active_support.core.packed.js",
+        "compress": true,
+        "compress_prepend": "license.txt",
+        "files": [
+            "latest/active_support.core.js"
+        ]
+    },
+    
+    {
         "name": "active_event",
         "output": "latest/active_event.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js"
         ]
     },
@@ -128,7 +160,7 @@
         "output": "latest/active_routes.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_routes"
         ]
@@ -148,7 +180,7 @@
         "output": "latest/active_record.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_record",
             "src/active_record/adapters/gears.js"
@@ -169,7 +201,7 @@
         "output": "latest/active_record.jaxer.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_record",
             "src/active_record/adapters/support/mysql.js",
@@ -192,7 +224,7 @@
         "output": "latest/active_record.air.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_record",
             "src/active_record/adapters/air.js"
@@ -213,7 +245,7 @@
         "output": "latest/active.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_routes",
             "include_active_record",
@@ -237,7 +269,7 @@
         "output": "latest/active.jaxer.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_routes",
             "include_active_record",
@@ -266,7 +298,7 @@
         "output": "latest/active.air.js",
         "files": [
             "license.txt",
-            "src/active_support.js",
+            "include_active_support",
             "src/active_event.js",
             "include_active_routes",
             "include_active_record",
