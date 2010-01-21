@@ -28,7 +28,7 @@
 /**
  * Will match() the given path and call the dispatcher if one is found.
  * @alias ActiveRoutes.prototype.dispatch
- * @param {mixed} String path or route object.
+ * @param {mixed} String path or params object or route object.
  * @exception {ActiveRoutes.Errors.UnresolvableUrl}
  * @example
  *     var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
@@ -37,7 +37,7 @@
  *     routes.dispatch({object:'blog',method: 'post',id: 5});
  *     //calls same as above, but saves history, fires callbacks, etc
  */
-ActiveRoutes.prototype.dispatch = function dispatch(path)
+ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
 {
     var route;
     if(typeof(path) == 'string')
@@ -55,7 +55,7 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
             }
         }
     }
-    else
+    else if(path && !path.name && !path.path)
     {
         var reverse_lookup_result = this.reverseLookup(path.object,path.method);
         if(!reverse_lookup_result)
@@ -69,13 +69,20 @@ ActiveRoutes.prototype.dispatch = function dispatch(path)
         };
         ActiveSupport.extend(route.params,reverse_lookup_result.params);
     }
+    else
+    {
+        route = path;
+    }
     this.history.push(route);
     this.index = this.history.length - 1;
     if(this.notify('beforeDispatch',route,path) === false)
     {
         return false;
     }
-    this.dispatcher(route);
+    if(!surpress_dispatcher)
+    {
+        this.dispatcher(route);
+    }
     this.notify('afterDispatch',route,path);
 };
 

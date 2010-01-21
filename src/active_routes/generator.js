@@ -176,12 +176,10 @@ ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRout
     {
         var params_for_method_name = route.name + '_params';
         var url_for_method_name = route.name + '_url';
-        var call_method_name = 'call_' + route.name;
         if(current_route_set.options.camelizeGeneratedMethods)
         {
             params_for_method_name = ActiveSupport.camelize(params_for_method_name.replace(/\_/g,'-'));
             url_for_method_name = ActiveSupport.camelize(url_for_method_name.replace(/\_/g,'-'));
-            call_method_name = ActiveSupport.camelize(call_method_name.replace(/\_/g,'-'));
         }
         
         current_route_set.scope[params_for_method_name] = function generated_params_for(params){
@@ -199,10 +197,6 @@ ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRout
         
         current_route_set.scope[url_for_method_name] = function generated_url_for(params){
             return current_route_set.urlFor(current_route_set.scope[params_for_method_name](params));
-        };
-        
-        current_route_set.scope[call_method_name] = function generated_call(params){
-            return current_route_set.dispatch(current_route_set.scope[params_for_method_name](params));
         };
     }
 };

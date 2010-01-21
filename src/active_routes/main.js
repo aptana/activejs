@@ -125,11 +125,6 @@
  * To get the params to generate a url, a similar method is generated:
  * 
  *     Application.postParams({id: 5}) == {object:'Blog',method:'post',id:5};
- * 
- * To call a named route directly without round-tripping to a string and
- * back to params use:
- * 
- *     Application.callPost({id: 5});
  *
  * Dispatching
  * -----------
@@ -182,6 +177,21 @@ ActiveRoutes = function initialize(routes,scope,options)
     this.initialized = true;
 };
 ActiveEvent.extend(ActiveRoutes);
+
+/**
+ * @namespace {ActiveRoutes.Route} A Route object reffered to in
+ * the documentation is a psuedo class instance that will always
+ * contain the following properties:
+ *
+ *  - name {String}
+ *  - path {String}
+ *  - params {Object}
+ * 
+ * The route may optionally contain:
+ *
+ *  - orderedParams {Array}
+ *  - extension {String}
+ */
 
 /**
  * @alias ActiveRoutes.logging

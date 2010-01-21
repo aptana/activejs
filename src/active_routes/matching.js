@@ -185,7 +185,7 @@ ActiveRoutes.prototype.reverseLookup = function reverseLookup(class_name,action_
         class_name = this.classNameFromClass(class_name);
         if(!class_name)
         {
-            return ActiveSupport.throwError(Errors.ObjectNotInRouteSet,original_class_name,action_name);
+            return false;
         }
     }
     //look for object + method match
