@@ -260,19 +260,8 @@ ActiveSupport.getNativeJSONImplementation = function getNativeJSONImplementation
     USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
     NOT CONTROL.
 */
-
-/**
- * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
- */
-ActiveSupport.JSON = (function()
+ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplementation()
 {
-    //use native support if available
-    var native_implementation = ActiveSupport.getNativeJSONImplementation();
-    if(native_implementation)
-    {
-        return native_implementation;
-    }
-    
     function f(n) {
         // Format integers to have at least two digits.
         return n < 10 ? '0' + n : n;
@@ -420,7 +409,7 @@ ActiveSupport.JSON = (function()
          */
         parse: function (text, reviver) {
             var j;
-            
+    
             function walk(holder, key) {
                 var k, v, value = holder[key];
                 if (value && typeof value === 'object') {
@@ -437,7 +426,7 @@ ActiveSupport.JSON = (function()
                 }
                 return reviver.call(holder, key, value);
             }
-            
+    
             cx.lastIndex = 0;
             if (cx.test(text)) {
                 text = text.replace(cx, function (a) {
@@ -453,4 +442,9 @@ ActiveSupport.JSON = (function()
             return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
         }
     };
-})();
+};
+
+/**
+ * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+ */
+ActiveSupport.JSON = ActiveSupport.getNativeJSONImplementation() || ActiveSupport.getAlternateJSONImplementation();
