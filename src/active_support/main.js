@@ -269,7 +269,7 @@ ActiveSupport = {
      * @return {Function} wrapped
      * @example
      *
-     *     String.prototype.capitalize = String.prototype.capitalize.wrap( 
+     *     String.prototype.capitalize = ActiveSupport.wrap(String.prototype.capitalize, 
      *     function(proceed, eachWord) { 
      *         if (eachWord && this.include(" ")) {
      *             // capitalize each word in the string
