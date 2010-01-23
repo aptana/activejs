@@ -91,6 +91,7 @@ var ActiveTest = {
                             ++ActiveTest.error;
                             ActiveTest.log('Error after test' + (ActiveTest.lastNote ? ': ' + ActiveTest.lastNote : ''));
                             ActiveTest.log(e);
+                            throw e;
                             var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
                             ActiveTest.summary.push(output);
                             ActiveTest.log(output);
