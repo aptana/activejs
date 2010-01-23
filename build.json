@@ -97,6 +97,13 @@
             "src/active_support/footer.js"
         ]
     },
+    {
+        "name": "include_swfaddress",
+        "build": [
+            "lib/swfaddress.js",
+            "src/active_controller/adapters/swfaddress.js"
+        ]
+    },
     
     {
         "name": "active_support",
@@ -251,7 +258,8 @@
             "include_active_record",
             "src/active_record/adapters/gears.js",
             "include_active_view",
-            "include_active_controller"
+            "include_active_controller",
+            "include_swfaddress"
         ]
     },
     {
