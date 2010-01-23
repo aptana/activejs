@@ -43,11 +43,29 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         return {};
     },
+    /**
+     * @alias ActiveRecord.connection.setStorage
+     * @param {Object} storage
+     * Only for use with the InMemory adapter.
+     * 
+     * Sets the storage (in memory database hash) affter connect() has been called.
+     * 
+     *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
+     *     ActiveRecord.connection.setStorage({my_table:{...}});
+     */
     setStorage: function setStorage(storage)
     {
         this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
-        ActiveRecord.Indicies.initializeIndicies(storage);
+        ActiveRecord.Indicies.initializeIndicies(this.storage);
     },
+    /**
+     * @alias ActiveRecord.connection.serialize
+     * @return {String} json
+     * Only for use with the InMemory adapter.
+     *
+     * Returns a JSON representation of the storage hash that the InMemory adapter
+     * uses.
+     */
     serialize: function serialize()
     {
         return ActiveSupport.JSON.stringify(this.storage);

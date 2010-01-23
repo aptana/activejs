@@ -59,7 +59,20 @@ var Indicies = {
  * The afterSave and afterDestroy objects will only receive the data for a
  * given record (generated with instance.toObject()). The afterSave callback
  * will handle both the create and update scenarios.
+ *
+ *     Photo.addIndex('byName',{},{
+ *         afterSave: function(index,photo){
+ *             index[photo.name] = photo;
+ *         },
+ *         afterDestroy: function(index,photo){
+ *             delete index[photo.name];
+ *         }
+ *     });
+ *     var flower_record = Photo.create({name:'flower'});
+ *     Photo.indexed.byName.flower == flower_record;
  *     
+ * A more complicated example:
+ * 
  *     var index = {a:{},b:{},c:{}};
  *     
  *     Contact.addIndex('byLetter',index,{
@@ -90,6 +103,11 @@ var Indicies = {
  */
 ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
 {
+    if(!callbacks)
+    {
+        callbacks = index;
+        index = {};
+    }
     if(!this.indexed)
     {
         this.indexed = {};
@@ -98,12 +116,17 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
     {
         this.indexingCallbacks = {};
     }
+    if(!this.indexingCallbackObservers)
+    {
+        this.indexingCallbackObservers = {};
+    }
     this.indexed[name] = index || {};
-    this.indexingCallbacks[name] = {};
-    this.indexingCallbacks[name].afterSave = this.observe('afterSave',ActiveSupport.bind(function afterSaveIndexObserver(instance){
+    this.indexingCallbacks[name] = callbacks;
+    this.indexingCallbackObservers[name] = {};
+    this.indexingCallbackObservers[name].afterSave = this.observe('afterSave',ActiveSupport.bind(function afterSaveIndexObserver(instance){
         callbacks.afterSave(this.indexed[name],instance.toObject());
     },this));
-    this.indexingCallbacks[name].afterDestroy = this.observe('afterDestroy',ActiveSupport.bind(function afterDestroyIndexObserver(instance){
+    this.indexingCallbackObservers[name].afterDestroy = this.observe('afterDestroy',ActiveSupport.bind(function afterDestroyIndexObserver(instance){
         callbacks.afterDestroy(this.indexed[name],instance.toObject());
     },this));
 };
@@ -114,8 +137,8 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
  */
 ActiveRecord.ClassMethods.removeIndex = function removeIndex(name)
 {
-    this.stopObserving('afterSave',this.indexingCallbacks[name].afterSave);
-    this.stopObserving('afterDestroy',this.indexingCallbacks[name].afterDestroy);
+    this.stopObserving('afterSave',this.indexingCallbackObservers[name].afterSave);
+    this.stopObserving('afterDestroy',this.indexingCallbackObservers[name].afterDestroy);
     delete this.indexingCallbacks[name];
     delete this.indexed[name];
 };
