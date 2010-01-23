@@ -58,10 +58,10 @@ ActiveController.SWFAddressIntegration = {
     },
     setRoutesWrapper: function setRoutesWrapper(proceed,route_set)
     {
-        ActiveController.SWFAddressIntegration.start();
+        proceed(route_set);
         SWFAddress.addEventListener(SWFAddressEvent.EXTERNAL_CHANGE,ActiveController.SWFAddressIntegration.externalChangeHandler);
         route_set.observe('afterDispatch',ActiveController.SWFAddressIntegration.afterDispatchHandler);
-        proceed(route_set);
+        ActiveController.SWFAddressIntegration.start();
     },
     start: function start()
     {
@@ -82,4 +82,4 @@ ActiveController.SWFAddressIntegration = {
     }
 };
 
-ActiveController.setRoutes = ActiveSuppor.wrap(ActiveController.setRoutes,ActiveController.SWFAddressIntegration.setRoutesWrapper);
+ActiveController.setRoutes = ActiveSupport.wrap(ActiveController.setRoutes,ActiveController.SWFAddressIntegration.setRoutesWrapper);
