@@ -65,10 +65,6 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,or
     }
     else
     {
-        if(ActiveRoutes.logging)
-        {
-            ActiveSupport.log('ActiveRoutes: matched "' + original_path + '" with "' + (route.name || route.path) + '"');
-        }
         return route;
     }
 };

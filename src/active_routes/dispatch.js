@@ -63,15 +63,17 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
             return ActiveSupport.throwError(Errors.ReverseLookupFailed,path);
         }
         route = {
-            params: path,
+            params: ActiveSupport.clone(path),
             name: reverse_lookup_result.name,
             path: reverse_lookup_result.path
         };
+        path = this.urlFor(route.params);
         ActiveSupport.extend(route.params,reverse_lookup_result.params);
     }
     else
     {
-        route = path;
+        route = ActiveSupport.clone(path);
+        path = this.urlFor(route.params);
     }
     this.history.push(route);
     this.index = this.history.length - 1;
@@ -81,6 +83,11 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
     }
     if(!surpress_dispatcher)
     {
+        if(ActiveRoutes.logging)
+        {
+            ActiveSupport.log('ActiveRoutes: dispatching "' + path + '" to ' + route.params.object + '.' + route.params.method);
+        }
+        
         this.dispatcher(route);
     }
     this.notify('afterDispatch',route,path);
@@ -94,5 +101,7 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
  */
 ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
 {
-    this.scope[route.params.object][route.params.method](route.params);
+    //the second parameter prevents the action from trying to set the current route
+    //which was already set if the action was called from the dispatcher
+    this.scope[route.params.object][route.params.method](route.params,false);
 };

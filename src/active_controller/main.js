@@ -66,12 +66,17 @@ ActiveController.createAction = function createAction(klass,action_name,action)
         {
             this.params = arguments[0];
         }
+        var suppress_routes = (arguments.length == 2 && arguments[1] === false);
         this.notify('beforeCall',action_name,this.params);
         if(!this.setupComplete)
         {
             this.setup();
         }
         this.renderLayout();
+        if(ActiveController.routes && !suppress_routes)
+        {
+            ActiveController.setRoute(klass,action_name,this.params);
+        }
         ActiveSupport.bind(action,this)();
         this.notify('afterCall',action_name,this.params);
     };
@@ -106,7 +111,7 @@ var ClassMethods = (function(){
             }
             else
             {
-                this.container = ActiveController.createDefaultContainer();
+                this.container = this.getContainer();
             }
             this.setRenderTarget(this.container);
             if(this.params)
@@ -118,6 +123,10 @@ var ClassMethods = (function(){
                 this.initialize();
             }
             this.setupComplete = true;
+        },
+        getContainer: function getContainer()
+        {
+            return ActiveController.createDefaultContainer();
         },
         get: function get(key)
         {
@@ -220,7 +229,6 @@ var RenderFlags = {
     }
 };
 ActiveController.RenderFlags = RenderFlags;
-
 
 var Errors = {
     BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),

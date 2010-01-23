@@ -97,7 +97,7 @@
         {
             this.prototype[method_name] = ActiveSupport.curry(ActsAsTree.InstanceMethods[method_name],params);
         }
-    }
+    };
     
     ActsAsTree.ClassMethods = {
         
