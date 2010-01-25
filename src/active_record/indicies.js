@@ -71,7 +71,12 @@ var Indicies = {
  *     var flower_record = Photo.create({name:'flower'});
  *     Photo.indexed.byName.flower == flower_record;
  *     
- * A more complicated example:
+ * If you only need to index by a particular key as in the example above
+ * you can abbreviate the code above:
+ *
+ *     Photo.addIndex('byName','name'):
+ *
+ * A more complicated example, which pre fills an index object:
  * 
  *     var index = {a:{},b:{},c:{}};
  *     
@@ -93,8 +98,6 @@ var Indicies = {
  *     
  *     for(var id in Contact.indexed.byLetter.a){}
  * 
- * Indicies must be added before the InMemory adapter is initialized with data.
- * 
  * @alias ActiveRecord.Class.addIndex
  * @param {String} index_name
  * @param {Object} index 
@@ -105,8 +108,24 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
 {
     if(!callbacks)
     {
-        callbacks = index;
-        index = {};
+        if(typeof(index) == 'string')
+        {
+            var key_name = index;
+            index = {};
+            callbacks = {
+                afterSave: function afterSaveIndexCallback(index,item){
+                    index[item[key_name]] = photo;
+                },
+                afterDestroy: function afterDestroyIndexCallback(index,item){
+                    delete index[item[key_name]];
+                }
+            };
+        }
+        else
+        {
+            callbacks = index;
+            index = {};
+        }
     }
     if(!this.indexed)
     {
