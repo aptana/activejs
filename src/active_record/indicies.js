@@ -62,7 +62,7 @@ var Indicies = {
  *
  *     Photo.addIndex('byName',{},{
  *         afterSave: function(index,photo){
- *             index[photo.name] = photo;
+ *             index[photo.name] = photo.id;
  *         },
  *         afterDestroy: function(index,photo){
  *             delete index[photo.name];
@@ -114,7 +114,7 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
             index = {};
             callbacks = {
                 afterSave: function afterSaveIndexCallback(index,item){
-                    index[item[key_name]] = photo;
+                    index[item[key_name]] = item.id;
                 },
                 afterDestroy: function afterDestroyIndexCallback(index,item){
                     delete index[item[key_name]];
