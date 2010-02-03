@@ -82,7 +82,7 @@ ActiveController.createAction = function createAction(klass,action_name,action)
     };
 };
 
-ActiveController.createDefaultContainer = function createDefaultContainer()
+ActiveController.createDefaultElement = function createDefaultElement()
 {
     var global_context = ActiveSupport.getGlobalContext();
     var div = ActiveView.Builder.div();
@@ -111,7 +111,7 @@ var ClassMethods = (function(){
             }
             else
             {
-                this.container = this.getContainer();
+                this.container = this.createDefaultElement();
             }
             this.setRenderTarget(this.container);
             if(this.params)
@@ -124,9 +124,12 @@ var ClassMethods = (function(){
             }
             this.setupComplete = true;
         },
-        getContainer: function getContainer()
+        getElement: function getElement()
         {
-            return ActiveController.createDefaultContainer();
+            return this.container;
+        },
+        createDefaultElement: function createDefaultElement(){
+            return ActiveController.createDefaultElement();
         },
         get: function get(key)
         {
@@ -177,7 +180,7 @@ var ClassMethods = (function(){
                 this.layoutInstance = new this.layout();
                 this.setRenderTarget(this.layoutInstance.getTarget());
                 ActiveView.Builder.clearElement(this.container);
-                this.container.appendChild(this.layoutInstance.container);
+                this.container.appendChild(this.layoutInstance.getElement());
             }
         },
         createAction: function createAction(action_name,action)
@@ -207,8 +210,15 @@ var RenderFlags = {
         var container = params.target || this.getRenderTarget();
         if(container)
         {
-            ActiveView.Builder.clearElement(container);
-            container.appendChild(response);
+            if(params.transition)
+            {
+                params.transition(container,response);
+            }
+            else
+            {
+                ActiveView.Builder.clearElement(container);
+                container.appendChild(response);
+            }
         }
     },
     text: function text(text,params)
@@ -222,6 +232,10 @@ var RenderFlags = {
     target: function target(target,params)
     {
         //target only available for text + view, needs no processing
+    },
+    transition: function transition(target,params)
+    {
+        //transition only available for text + view, needs no processing
     },
     scope: function scope(scope,params)
     {
