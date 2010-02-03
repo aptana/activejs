@@ -71,8 +71,8 @@ var Indicies = {
  *     var flower_record = Photo.create({name:'flower'});
  *     Photo.indexed.byName.flower == flower_record;
  *     
- * If you only need to index by a particular key as in the example above
- * you can abbreviate the code above:
+ * If you only need and index of key => id pairs (name => id pairs in the
+ * example above), you can shorten the call to the following:
  *
  *     Photo.addIndex('byName','name'):
  *
