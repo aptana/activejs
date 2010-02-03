@@ -55,14 +55,14 @@
  * MyView is now a constructor which can be called with a scope / hash.
  * Data that is passed into the view can be retrieved with get() and set().
  * Once initialized, the DOM node returned by the main function will be
- * available in the "container" property. The convenience method "attachTo"
+ * available in the "getElement" method. The convenience method "attachTo"
  * will attach the container to a given Element.
  * 
  *     var MyView = ActiveView.create(function(){
  *         return this.builder.h2(this.get('title'));
  *     },{instance_methods});
  *     var instance = new MyView({title: 'The Title'});
- *     document.body.appendChild(instance.container);
+ *     document.body.appendChild(instance.getElement());
  *     //or
  *     instance.attachTo(document.body);
  * 
@@ -345,14 +345,14 @@
  *     var article_list_instance = new ArticleListView({
  *         list: articles
  *     });
- *     //article_list_instance.container == <div><h2>New Title...
+ *     //article_list_instance.getElement() == <div><h2>New Title...
  *     
  *     Article.create({
  *         title: 'Second Title',
  *         body: 'Second Body'
  *     });
  *     //articles.length == 2
- *     //article_list_instance.container == <div><h2>New Title...<h2>Second Title...
+ *     //article_list_instance.getElement() == <div><h2>New Title...<h2>Second Title...
  * 
  * Because the query matched all records, and the newly created article would fall
  * within that result set, the result set was automatically updated (a result of
@@ -444,18 +444,18 @@ ActiveView.render = function render(content,scope)
     }
     else if(ActiveView.isActiveViewInstance(content))
     {
-        return content.container;
+        return content.getElement();
     }
     else if(ActiveView.isActiveViewClass(content))
     {
-        return new content(scope).container;
+        return new content(scope).getElement();
     }
     return ActiveSupport.throwError(Errors.InvalidContent);
 };
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
-    return object && object.container && object.container.nodeType == 1 && object.scope && object.builder;
+    return object && object.getElement && object.getElement().nodeType == 1 && object.scope && object.builder;
 };
 
 ActiveView.isActiveViewClass = function isActiveViewClass(object)
@@ -523,12 +523,20 @@ var InstanceMethods = (function(){
         },
         /**
          * @alias ActiveView.prototype.attachTo
+         * Inserts the view's outer most container into the passed element.
          * @param {Element} element
          * @return {Element}
          */
         attachTo: function attachTo(element)
         {
-            element.appendChild(this.container);
+            element.appendChild(this.getElement());
+            return this.container;
+        },
+        /**
+         * @alias ActiveView.prototype.getElement
+         * @return {Element}
+         */
+        getElement: function getElement(){
             return this.container;
         },
         registerEventHandler: function registerEventHandler(element,event_name,observer)

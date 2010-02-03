@@ -153,9 +153,10 @@ Builder.generator = function generator(target,scope){
         var tag = Builder.tags[t];
         (function tag_iterator(tag){
             target[tag.toLowerCase()] = target[tag] = function tag_generator(){
-                var i, argument, attributes, text_nodes, elements, element;
+                var i, ii, argument, attributes, attribute_name, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
+                attributes = {};
                 for(i = 0; i < arguments.length; ++i)
                 {
                     argument = arguments[i];
@@ -169,19 +170,25 @@ Builder.generator = function generator(target,scope){
                     }
                     if(ActiveView.isActiveViewInstance(argument))
                     {
-                        elements.push(argument.container);
+                        elements.push(argument.getElement());
                     }
                     else if(ActiveView.isActiveViewClass(argument))
                     {
-                        elements.push(new argument(scope._object || {}).container);
+                        elements.push(new argument(scope._object || {}).getElement());
                     }
                     else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
                     {
-                        attributes = argument;
+                        for(attribute_name in argument)
+                        {
+                            attributes[attribute_name] = argument[attribute_name];
+                        }
                     }
                     else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
                     {
-                        elements = argument;
+                        for(ii = 0; ii < argument.length; ++ii)
+                        {
+                            elements.push(argument[ii]);
+                        }
                     }
                     else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
                     {

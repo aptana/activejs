@@ -1897,8 +1897,8 @@ ActiveTest.Tests.View.builder = function(proceed)
         });
         var deep_instance = new DeepView();
         var arguments_instance = new ArgumentsTestView();
-        assert(arguments_instance.container.firstChild.firstChild.nodeValue == 'one' && arguments_instance.container.firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
-        assert(deep_instance.container.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.nodeValue == 'test','deep builder node test');
+        assert(arguments_instance.getElement().firstChild.firstChild.nodeValue == 'one' && arguments_instance.getElement().firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
+        assert(deep_instance.getElement().firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.nodeValue == 'test','deep builder node test');
         
         if(proceed)
             proceed()
