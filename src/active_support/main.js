@@ -248,8 +248,9 @@ ActiveSupport = {
             var args = ActiveSupport.arrayFrom(arguments);
             args.shift();
             args.shift();
-            return function bound() {
-              return func.apply(object,args.concat(ActiveSupport.arrayFrom(arguments)));
+            return function bound()
+            {
+                return func.apply(object,args.concat(ActiveSupport.arrayFrom(arguments)));
             }
         }
     },
