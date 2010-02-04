@@ -238,10 +238,22 @@ ActiveSupport = {
         {
             return func;
         }
-        return function bound()
+        if(arguments.length < 3)
         {
-            return func.apply(object,arguments);
-        };
+            return function bound()
+            {
+                return func.apply(object,arguments);
+            };
+        }
+        else
+        {
+            var args = ActiveSupport.arrayFrom(arguments);
+            args.shift();
+            args.shift();
+            return function bound() {
+              return func.apply(object,args.concat(ActiveSupport.arrayFrom(arguments)));
+            }
+        }
     },
     /**
      * Emulates Prototype's Function.prototype.curry.
