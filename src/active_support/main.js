@@ -223,9 +223,7 @@ ActiveSupport = {
         return response;
     },
     /**
-     * Emulates Prototype's Function.prototype.bind. Unlike Prototype's
-     * version you must explicitly use curry() to pass extra arguments
-     * to the bound function.
+     * Emulates Prototype's Function.prototype.bind.
      * @alias ActiveSupport.bind
      * @param {Function} func
      * @param {Object} object
