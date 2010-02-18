@@ -55,7 +55,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:gears]
-    ],
+    ].flatten,
     'active.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
@@ -65,8 +65,8 @@ module ActiveJSHelper
       INCLUDES[:swfaddress],
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:gears]
-    ],
-    'test.js' => [
+    ].flatten,
+    File.join('..','test','test.js') => [
       File.join(SRC_DIR,'active_test.js'),
       Dir[File.join(TEST_DIR,'**/*.js')]
     ].flatten
