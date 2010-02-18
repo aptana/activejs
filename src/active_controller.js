@@ -5,3 +5,8 @@ if(typeof exports != "undefined"){
 }
 
 (function(){
+
+//= require <active_controller/main>
+//= require <active_controller/routes>
+
+})();
