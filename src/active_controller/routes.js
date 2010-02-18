@@ -37,10 +37,10 @@ ActiveController.setRoute = function setRoute(klass,action_name,params)
     if(ActiveController.routes)
     {
         var route = ActiveController.routes.reverseLookup(klass,action_name);
-        params.method = route.method;
-        params.object = route.object;
         if(route)
         {
+            params.method = route.params.method;
+            params.object = route.params.object;
             var final_route = ActiveSupport.clone(route);
             //need to deep copy the params
             final_route.params = ActiveSupport.clone(route.params);
