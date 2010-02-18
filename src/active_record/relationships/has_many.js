@@ -112,11 +112,11 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             {
                 params = {};
             }
-            if(options.order)
+            if(options.order && !('order' in params))
             {
                 params.order = options.order;
             }
-            if(options.synchronize)
+            if(options.synchronize && !('synchronize' in params))
             {
                 params.synchronize = options.synchronize;
             }
