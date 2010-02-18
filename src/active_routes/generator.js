@@ -62,6 +62,10 @@ ActiveRoutes.performParamSubstitution = function performParamSubstitution(path,r
             }
             path = path.replace(':' + p,params[p].toString());
         }
+        else if(p == 'path' && path.match(/\*/))
+        {
+            path = path.replace(/\*/,params[p]);
+        }
     }
     return path;
 };
