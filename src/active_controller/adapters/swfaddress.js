@@ -48,7 +48,7 @@ ActiveController.SWFAddressIntegration = {
             }
         }
     },
-    afterDispatchHandler: function afterDispatchHandler(routes_instance,route,path)
+    afterDispatchHandler: function afterDispatchHandler(route,path)
     {
         if(ActiveController.SWFAddressIntegration.enabled)
         {
