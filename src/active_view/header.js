@@ -1,3 +1,0 @@
-var ActiveView = null;
-
-(function(){
