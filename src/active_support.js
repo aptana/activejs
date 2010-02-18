@@ -1,9 +1,16 @@
+var ActiveSupport = null;
+
+if(typeof exports != "undefined"){
+    exports.ActiveSupport = ActiveSupport;
+}
+
+(function(global_context){
+
 /**
  * @namespace {ActiveSupport} Provides a number of methods from the
  *  Prototype.js framework, without modifying any built in prototypes to
  *  ensure compatibility and portability.
  */
-
 ActiveSupport = {
     /**
      * Returns the global context object (window in most implementations).
@@ -53,17 +60,6 @@ ActiveSupport = {
      */
     log: function log()
     {
-        if(typeof(Jaxer) !== 'undefined')
-        {
-            if (typeof Jaxer.console !== 'undefined') {
-                console.log.apply(console, arguments || []);
-            }
-            Jaxer.Log.info.apply(Jaxer.Log,arguments || []);
-        }
-        if(typeof(air) !== 'undefined')
-        {
-            air.Introspector.Console.log.apply(air.Introspector.Console,arguments || []);
-        }
         if(typeof(console) !== 'undefined')
         {
             //console.log.apply not supported by IE
@@ -404,52 +400,7 @@ ActiveSupport = {
     value: function value(value)
     {
         return typeof(value) === 'function' ? value() : value;
-    },
-    /**
-     * @alias ActiveSupport.synchronize
-     */
-    synchronize: function synchronize(execute,finish)
-    {
-        var scope = {};
-        var stack = [];
-        stack.waiting = {};
-        stack.add = function add(callback){
-            var wrapped = ActiveSupport.wrap(callback || function(){},function synchronizationWrapper(proceed){
-                var i = null;
-                var index = ActiveSupport.indexOf(stack,wrapped);
-                stack.waiting[index] = [proceed,ActiveSupport.arrayFrom(arguments)];
-                var all_present = true;
-                for(i = 0; i < stack.length; ++i)
-                {
-                    if(!stack.waiting[i])
-                    {
-                        all_present = false;
-                    }
-                }
-                if(all_present)
-                {
-                    for(i = 0; i < stack.length; ++i)
-                    {
-                        var item = stack.waiting[i];
-                        item[0].apply(item[0],item[1]);
-                        delete stack.waiting[i];
-                    }
-                }
-                if(all_present && i === stack.length)
-                {
-                    if(finish)
-                    {
-                        finish(scope);
-                    }
-                }
-            });
-            stack.push(wrapped);
-            return wrapped;
-        };
-        execute(stack,scope);
-        if(stack.length === 0 && finish)
-        {
-            finish(scope);
-        }
     }
 };
+
+})(this);
