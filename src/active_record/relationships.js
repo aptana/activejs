@@ -29,7 +29,7 @@ var Relationships = {
     normalizeModelName: function(related_model_name)
     {
         var plural = ActiveSupport.camelize(related_model_name, true);
-        var singular = ActiveSupport.Inflector.singularize(plural) || plural;
+        var singular = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(plural) || plural,true);
         return singular || plural;
     },
     normalizeForeignKey: function(foreign_key, related_model_name)
