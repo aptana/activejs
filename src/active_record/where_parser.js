@@ -297,7 +297,7 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
                 break;
                 
             default:
-                return ActiveSupport.throwError(new Error("Unknown operator type: " + this.operator));
+                throw new Error("Unknown operator type: " + this.operator);
         }
     }
     
@@ -428,7 +428,6 @@ WhereParser.prototype.parse = function parse(source)
 
             default:
                 throw new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme);
-                return ActiveSupport.throwError(new Error("Unrecognized starting token in where-clause:" + this._lexer.currentLexeme));
         }
     }
     return result;
@@ -475,12 +474,12 @@ WhereParser.prototype.parseInExpression = function parseInExpression()
             }
             else
             {
-                return ActiveSupport.throwError(new Error("'in' list did not end with a right parenthesis." + currentLexeme));
+                throw new Error("'in' list did not end with a right parenthesis." + currentLexeme);
             }
         }
         else
         {
-            return ActiveSupport.throwError(new Error("'in' list did not start with a left parenthesis"));
+            throw new Error("'in' list did not start with a left parenthesis");
         }
     }
 
@@ -629,7 +628,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     }
                     else 
                     {
-                        return ActiveSupport.throwError(new Error("Function argument list was not closed with a right parenthesis."));
+                        throw new Error("Function argument list was not closed with a right parenthesis.");
                     }
                 }
                 break;
@@ -677,7 +676,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 }
                 else
                 {
-                    return ActiveSupport.throwError(new Error("Missing closing right parenthesis: " + currentLexeme));
+                    throw new Error("Missing closing right parenthesis: " + currentLexeme);
                 }
                 break;
         }

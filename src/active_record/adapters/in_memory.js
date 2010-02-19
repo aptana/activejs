@@ -266,7 +266,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         catch(e)
         {
             this.storage = backup;
-            return ActiveSupport.throwError(e);
+            throw e;
         }
     },
     /* PRVIATE */
@@ -503,7 +503,7 @@ Adapters.InMemory.method_call_handler = function method_call_handler(name,row,ar
     }
     if(!Adapters.InMemory.MethodCallbacks[name])
     {
-        return ActiveSupport.throwError(Errors.MethodDoesNotExist,'"' + name + '"' + ' was called from a sql statement.');
+        throw Errors.MethodDoesNotExist.getErrorString('"' + name + '"' + ' was called from a sql statement.');
     }
     else
     {

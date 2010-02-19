@@ -423,7 +423,7 @@ ActiveView.render = function render(content,scope)
     {
         return new content(scope).getElement();
     }
-    return ActiveSupport.throwError(Errors.InvalidContent);
+    throw Errors.InvalidContent.getErrorString();
 };
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
@@ -452,7 +452,7 @@ var InstanceMethods = (function(){
             this.container = this.structure();
             if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
             {
-                return ActiveSupport.throwError(Errors.ViewDoesNotReturnContainer,typeof(this.container),this.container);
+                throw Errors.ViewDoesNotReturnContainer.getErrorString(typeof(this.container));
             }
             for(var key in this.scope._object)
             {
@@ -524,7 +524,7 @@ var ClassMethods = {
 };
 
 var Errors = {
-    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: '),
+    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: %'),
     InvalidContent: ActiveSupport.createError('The content to render was not a string, DOM element or ActiveView.'),
-    MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: ')
+    MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: Expected %. Recieved %:%')
 };

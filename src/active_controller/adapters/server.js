@@ -196,7 +196,7 @@ ActiveSupport.extend(ActiveController.RenderFlags,{
         var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + file;
         if(!ActiveController.Server.IO.exists(file))
         {
-            ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
+            throw ActiveController.Errors.FileDoesNotExist + file;
         }
         var content = new ActiveView.Template(ActiveController.Server.IO.read(file)).render(this.scope._object);
         this.set('content',content);
@@ -232,7 +232,7 @@ ActiveView.Template.Helpers.render = function render(params,scope)
     var file = ActiveController.Server.Environment.getApplicationRoot() + '/views/' + params.partial;
     if(!ActiveController.Server.IO.exists(file))
     {
-        ActiveSupport.throwError(ActiveController.Errors.FileDoesNotExist,file);
+        throw ActiveController.Errors.FileDoesNotExist + file;
     }
     return new ActiveView.Template(ActiveController.Server.IO.read(file)).render(scope || {});
 };

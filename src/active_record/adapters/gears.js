@@ -86,7 +86,7 @@ ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_na
             }
             catch(e)
             {
-                return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
+                throw ActiveRecord.Adapters.Gears.DatabaseUnavailableError;
             }
         }
         else if(('mimeTypes' in navigator) && ('application/x-googlegears' in navigator.mimeTypes))
@@ -101,7 +101,7 @@ ActiveRecord.Adapters.Gears.connect = function connect(name, version, display_na
         
         if(!gears_factory)
         {
-            return ActiveSupport.throwError(ActiveRecord.Adapters.Gears.DatabaseUnavailableError);
+            throw ActiveRecord.Adapters.Gears.DatabaseUnavailableError;
         }
         
         if(!('google' in global_context))

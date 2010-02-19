@@ -372,7 +372,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             if (replacer && typeof replacer !== 'function' &&
                     (typeof replacer !== 'object' ||
                      typeof replacer.length !== 'number')) {
-                return ActiveSupport.throwError(new Error('JSON.stringify'));
+                throw new Error('JSON.stringify');
             }
             return str('', {'': value});
         },
@@ -413,7 +413,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
                 return typeof reviver === 'function' ?
                     walk({'': j}, '') : j;
             }
-            return ActiveSupport.throwError(new SyntaxError('JSON.parse'));
+            throw new SyntaxError('JSON.parse');
         }
     };
 };

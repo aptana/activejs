@@ -18,15 +18,15 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,or
     }
     if(!this.objectExists(route.params.object))
     {
-        this.error = Errors.ObjectDoesNotExist + route.params.object;
+        this.error = Errors.ObjectDoesNotExist.getErrorString(route.params.object);
     }
     if(!this.methodExists(route.params.object,route.params.method))
     {
-        this.error = Errors.MethodDoesNotExist + route.params.object + '.' + route.params.method;
+        this.error = Errors.MethodDoesNotExist.getErrorString(route.params.object + '.' + route.params.method);
     }
     if(!this.methodCallable(route.params.object,route.params.method))
     {
-        this.error = Errors.MethodNotCallable + route.params.object + '.' + route.params.method;
+        this.error = Errors.MethodNotCallable.getErrorString(route.params.object + '.' + route.params.method);
     }
     if(this.error)
     {

@@ -20,11 +20,11 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
         {
             if(this.error)
             {
-                return ActiveSupport.throwError(this.error);
+                throw this.error;
             }
             else
             {
-                return ActiveSupport.throwError(Errors.UnresolvableUrl,path);
+                throw Errors.UnresolvableUrl.getErrorString(path);
             }
         }
     }
@@ -33,7 +33,7 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
         var reverse_lookup_result = this.reverseLookup(path.object,path.method);
         if(!reverse_lookup_result)
         {
-            return ActiveSupport.throwError(Errors.ReverseLookupFailed,path);
+            throw Errors.ReverseLookupFailed.getErrorString(path);
         }
         route = {
             params: ActiveSupport.clone(path),

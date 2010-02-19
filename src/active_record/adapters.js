@@ -62,7 +62,7 @@ ActiveRecord.execute = function execute()
 {
     if (!ActiveRecord.connection)
     {
-        return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
+        throw ActiveRecord.Errors.ConnectionNotEstablished.getErrorString();
     }
     return ActiveRecord.connection.executeSQL.apply(ActiveRecord.connection, arguments);
 };
@@ -114,7 +114,7 @@ ActiveRecord.transaction = function transaction(proceed,error)
         }
         else
         {
-            return ActiveSupport.throwError(e);
+            throw e;
         }
     }
 };
@@ -157,7 +157,7 @@ Adapters.InstanceMethods = {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
                 if(typeof(default_value) === 'undefined')
                 {
-                    return ActiveSupport.throwError(Errors.InvalidFieldType,(field ? (field.type || '[object]') : 'false'));
+                    throw Errors.InvalidFieldType.getErrorString(field ? (field.type || '[object]') : 'false');
                 }
                 return field.value || default_value;
             }

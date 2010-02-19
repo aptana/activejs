@@ -309,7 +309,7 @@ Adapters.SQL = {
         catch(e)
         {
             ActiveRecord.connection.executeSQL('ROLLBACK');
-            return ActiveSupport.throwError(e);
+            throw e;
         }
     }
 };

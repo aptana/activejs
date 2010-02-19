@@ -83,7 +83,7 @@ ActiveRecord.Adapters.AIR = function AIR(connection){
             catch(e)
             {
                 this.connection.rollback();
-                return ActiveSupport.throwError(e);
+                throw e;
             }
         }
     });

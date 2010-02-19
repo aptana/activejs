@@ -274,15 +274,15 @@ ActiveRoutes.prototype.addRoute = function addRoute()
     };
     if(!Validations.hasPath(route))
     {
-        return ActiveSupport.throwError(Errors.NoPathInRoute);
+        throw Errors.NoPathInRoute.getErrorString();
     }
     if(!Validations.hasObject(route))
     {
-        return ActiveSupport.throwError(Errors.NoObjectInRoute,route.path);
+        throw Errors.NoObjectInRoute.getErrorString(route.path);
     }
     if(!Validations.hasMethod(route))
     {
-        return ActiveSupport.throwError(Errors.NoMethodInRoute,route.path);
+        throw Errors.NoMethodInRoute.getErrorString(route.path);
     }
     if(this.initialized)
     {

@@ -120,7 +120,7 @@ end
 task :docs do
   require 'vendor/pdoc/lib/pdoc'
   PDoc.run({
-    :source_files => File.join(ActiveJSHelper::ROOT_DIR,'test.js'),
+    :source_files => File.join(ActiveJSHelper::DIST_DIR,'active.js'),
     :destination => ActiveJSHelper::DOCS_DIR,
     :index_page => 'README.markdown',
     :syntax_highlighter => :pygments,

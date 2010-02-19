@@ -61,7 +61,7 @@ ActiveController.createDefaultElement = function createDefaultElement()
     var div = ActiveView.Builder.div();
     if(!global_context.document.body)
     {
-        return ActiveSupport.throwError(Errors.BodyNotAvailable);
+        throw Errors.BodyNotAvailable.getErrorString();
     }
     global_context.document.body.appendChild(div);
     return div;
@@ -116,7 +116,7 @@ var ClassMethods = (function(){
         {
             if(typeof(params) !== 'object')
             {
-                return ActiveSupport.throwError(Errors.InvalidRenderParams);
+                throw Errors.InvalidRenderParams.getErrorString();
             }
             for(var flag_name in params || {})
             {
@@ -126,7 +126,7 @@ var ClassMethods = (function(){
                     {
                         ActiveSupport.log('ActiveController: render() failed with params:',params);
                     }
-                    return ActiveSupport.throwError(Errors.UnknownRenderFlag,flag_name);
+                    throw Errors.UnknownRenderFlag.getErrorString(flag_name);
                 }
                 ActiveSupport.bind(RenderFlags[flag_name],this)(params[flag_name],params);
             }
@@ -146,7 +146,7 @@ var ClassMethods = (function(){
             {
                 if(!ActiveView.isActiveViewClass(this.layout))
                 {
-                    return ActiveSupport.throwError(Errors.LayoutIsNotActiveViewClass,this.container);
+                    throw Errors.LayoutIsNotActiveViewClass.getErrorString(this.container);
                 }
                 this.layout.prototype.originalStructure = this.layout.prototype.structure;
                 this.layout.prototype.structure = ActiveSupport.curry(this.layout.prototype.originalStructure,this);
@@ -172,7 +172,7 @@ var RenderFlags = {
             var klass = ActiveSupport.getClass(view_class);
             if(!klass)
             {
-                return ActiveSupport.throwError(Errors.ViewDoesNotExist,view_class);
+                throw Errors.ViewDoesNotExist.getErrorString(view_class);
             }
         }
         else
@@ -220,8 +220,8 @@ ActiveController.RenderFlags = RenderFlags;
 var Errors = {
     BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
     InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
-    UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: '),
-    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: '),
-    LayoutIsNotActiveViewClass: ActiveSupport.createError('The layout defined by the controller is not an ActiveView class:')
+    UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: %'),
+    ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: %'),
+    LayoutIsNotActiveViewClass: ActiveSupport.createError('The layout defined by the controller is not an ActiveView class. Received: %')
 };
 ActiveController.Errors = Errors;

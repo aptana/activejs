@@ -81,41 +81,16 @@ ActiveSupport = {
      */
     createError: function createError(message)
     {
-        return new Error(message);
-    },
-    /**
-     * @alias ActiveSupport.logErrors
-     * @property {Boolean}
-     */
-    logErrors: true,
-    /**
-     * @alias ActiveSupport.throwErrors
-     * @property {Boolean}
-     */
-    throwErrors: true,
-    /**
-     * Accepts a variable number of arguments, that may be logged and thrown in
-     * @alias ActiveSupport.throwError
-     * @param {Error} error
-     * @return {null}
-     */
-    throwError: function throwError(error)
-    {
-        if(typeof(error) == 'string')
+        message.getErrorString = function getErrorString()
         {
-            error = new Error(error);
-        }
-        var error_arguments = ActiveSupport.arrayFrom(arguments).slice(1);
-        if(ActiveSupport.logErrors)
-        {
-            ActiveSupport.log.apply(ActiveSupport,['Throwing error:',error].concat(error_arguments));
-        }
-        if(ActiveSupport.throwErrors)
-        {
-            var e = ActiveSupport.clone(error);
-            e.message = e.message + error_arguments.join(',');
-            throw e;
-        }
+            var output = String(this);
+            for(var i = 0; i < arguments.length; ++i)
+            {
+                output = output.replace(/\%/,'toString' in arguments[i] ? arguments[i].toString() : String(arguments[i]));
+            }
+            return output;
+        };
+        return message;
     },
     /**
      * Returns an array from an array or array like object.

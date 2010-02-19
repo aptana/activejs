@@ -427,7 +427,7 @@ ActiveRecord = {
     {
         if (!ActiveRecord.connection)
         {
-            return ActiveSupport.throwError(ActiveRecord.Errors.ConnectionNotEstablished);
+            throw ActiveRecord.Errors.ConnectionNotEstablished.getErrorString();
         }
         
         if(typeof(options) === 'string')
