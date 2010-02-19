@@ -46,6 +46,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js'),
+      File.join(SRC_DIR,'active_routes.js'),
       File.join(SRC_DIR,'active_controller.js'),
       INCLUDES[:swfaddress]
     ].flatten,
@@ -61,15 +62,18 @@ module ActiveJSHelper
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js'),
+      File.join(SRC_DIR,'active_routes.js'),
       File.join(SRC_DIR,'active_controller.js'),
       INCLUDES[:swfaddress],
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:gears]
     ].flatten,
+    #test building
     File.join('..','test','test.js') => [
       File.join(SRC_DIR,'active_test.js'),
-      Dir[File.join(TEST_DIR,'**/*.js')]
-    ].flatten
+      Dir[File.join(TEST_DIR,'**/setup.js')],
+      Dir[File.join(TEST_DIR,'**/*.js')].reject{|item| item.match(/setup\.js$/)}
+    ].flatten.reject{|item| item.match(/\/test\/test.js$/)}
   }
   
   def self.sprocketize

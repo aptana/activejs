@@ -6,11 +6,11 @@ if(typeof exports != "undefined"){
 
 (function() {
 
-//=require <active_routes/main>
-//=require <active_routes/errors>
-//=require <active_routes/matching>
-//=require <active_routes/dispatch>
-//=require <active_routes/validations>
-//=require <active_routes/generator>
+//= require <active_routes/main>
+//= require <active_routes/errors>
+//= require <active_routes/matching>
+//= require <active_routes/dispatch>
+//= require <active_routes/validations>
+//= require <active_routes/generator>
 
 })();
