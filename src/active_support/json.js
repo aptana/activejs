@@ -77,15 +77,16 @@ ActiveSupport.XMLFromObject = function XMLFromObject(outer_key_name,object)
 
 ActiveSupport.getNativeJSONImplementation = function getNativeJSONImplementation()
 {    
-     //use native support if available
-     if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
-     {
-         return global_context.JSON;
-     }
-     else
-     {
-         return false;
-     }
+    var global_context = ActiveSupport.getGlobalContext();
+    //use native support if available
+    if(global_context && 'JSON' in global_context && 'stringify' in global_context.JSON && 'parse' in global_context.JSON)
+    {
+        return global_context.JSON;
+    }
+    else
+    {
+        return false;
+    }
 };
 
 /*
