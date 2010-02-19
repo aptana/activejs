@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.migrations = function()
+ActiveTest.Tests.Record.migrations = function()
 {
     with(ActiveTest)
     {

@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.relationships = function()
+ActiveTest.Tests.Record.relationships = function()
 {
     with(ActiveTest)
     {

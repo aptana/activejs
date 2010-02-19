@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.synchronization = function()
+ActiveTest.Tests.Record.synchronization = function()
 {
     with(ActiveTest)
     {

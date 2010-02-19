@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.date = function()
+ActiveTest.Tests.Record.date = function()
 {
     with(ActiveTest)
     {

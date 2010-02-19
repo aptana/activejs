@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.transactions = function()
+ActiveTest.Tests.Record.transactions = function()
 {
     with(ActiveTest)
     {

@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.indicies = function()
+ActiveTest.Tests.Record.indicies = function()
 {
     with(ActiveTest)
     {

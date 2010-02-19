@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.basic = function()
+ActiveTest.Tests.Record.basic = function()
 {
     with(ActiveTest)
     {

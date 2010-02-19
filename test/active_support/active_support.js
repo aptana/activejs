@@ -1,5 +1,5 @@
-ActiveTest.Tests.ActiveSupport = {};
-ActiveTest.Tests.ActiveSupport.ActiveSupport = function()
+ActiveTest.Tests.Support = {};
+ActiveTest.Tests.Support.active_support = function()
 {
     with (ActiveTest)
     {

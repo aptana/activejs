@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.finders = function()
+ActiveTest.Tests.Record.finders = function()
 {    
     with(ActiveTest)
     {

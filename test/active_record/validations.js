@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.validations = function()
+ActiveTest.Tests.Record.validations = function()
 {
     with(ActiveTest)
     {

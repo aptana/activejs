@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.cleanup = function()
+ActiveTest.Tests.Record.cleanup = function()
 {
     Comment.destroy('all');
     Post.destroy('all');

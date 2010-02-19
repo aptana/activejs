@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.id = function()
+ActiveTest.Tests.Record.id = function()
 {
     with (ActiveTest)
     {

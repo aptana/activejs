@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.teardown = function(proceed)
+ActiveTest.Tests.Record.teardown = function(proceed)
 {
     with(ActiveTest)
     {

@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.serialization = function()
+ActiveTest.Tests.Record.serialization = function()
 {
     with(ActiveTest)
     {

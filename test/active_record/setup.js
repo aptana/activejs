@@ -1,6 +1,6 @@
-ActiveTest.Tests.ActiveRecord = {};
+ActiveTest.Tests.Record = {};
 
-ActiveTest.Tests.ActiveRecord.setup = function()
+ActiveTest.Tests.Record.setup = function()
 {
     ActiveRecord.execute('DROP TABLE IF EXISTS schema_migrations');
     if(ActiveRecord.Migrations.Meta)

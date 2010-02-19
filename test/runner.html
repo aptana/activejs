@@ -3,17 +3,60 @@
     <!--[if IE ]>
       <script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
     <![endif]-->
-    <script src="../dist/active.js" runat="server"></script>
     <script src="../src/active_test.js" runat="server"></script>
-    <script src="test.js" runat="server"></script>
+    <script>
+      var loaded_scripts = {};
+      function load_script(url,test,callback){
+        if(loaded_scripts[url]){
+          if(callback)
+            callback();
+          return;
+        }
+        loaded_scripts[url] = true;
+        var e = document.createElement("script");
+        e.src = url;
+        e.type = "text/javascript";
+        document.getElementsByTagName('head')[0].appendChild(e);
+        if(test){
+          var interval = setInterval(function(){
+            if(test()){
+              clearInterval(interval);
+              callback();
+            }
+          },100);
+        }
+      };
     
-    <script runat="server">
       //put in dynamic loader so individual units can be run (i.e. only activesupport from the /dist/active_support.js file with no other files loaded)
       window.onload = function(){
         document.getElementById('test_runner_trigger').onclick = function(){
-          ActiveRecord.connect(ActiveRecord.Adapters[document.getElementById('test_type').value]);
-          ActiveRecord.logging = document.getElementById('enable_logging').checked;
-          ActiveTest.run(document.getElementById('test_group').value == 'All' ? false : document.getElementById('test_group').value);
+          var test_group = document.getElementById('test_group').value;
+          var connection_adapter = document.getElementById('test_type').value;
+          var logging = document.getElementById('enable_logging').checked;
+          var test_group_script_name = 'active_' + test_group.toLowerCase();
+          var test_group_module_name = 'Active' + test_group;
+          //load the requested module
+          load_script('../dist/' + (test_group == 'All' ? 'active' : test_group_script_name) + '.js',function(){
+            return typeof(window[test_group == 'All' ? 'ActiveSupport' : test_group_module_name]) != 'undefined';
+          },function(){
+            //load tests for requested module
+            load_script((test_group == 'All' ? '' : test_group_script_name + '/') + 'test.js',function(){
+              return typeof(ActiveTest.Tests[test_group == 'All' ? 'Support' : test_group]) != 'undefined';
+            },function(){
+              if(test_group == 'All' || test_group == 'Record'){
+                ActiveRecord.connect(ActiveRecord.Adapters[connection_adapter]);
+                ActiveRecord.logging = logging;
+                ActiveController.logging = logging;
+                ActiveView.logging = logging;
+                ActiveRoutes.logging = logging;
+              }else{
+                if('logging' in window[test_group_module_name]){
+                  window[test_group_module_name].logging = logging;
+                }
+              }
+              ActiveTest.run(test_group == 'All' ? false : test_group);
+            });
+          })
         };
       };
     </script>

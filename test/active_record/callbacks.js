@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.callbacks = function()
+ActiveTest.Tests.Record.callbacks = function()
 {
     with(ActiveTest)
     {
