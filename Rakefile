@@ -1,17 +1,19 @@
 require 'rake'
 require 'rake/packagetask'
 require 'yaml'
+require 'sprockets'
 
 module ActiveJSHelper
-  ROOT_DIR      = File.expand_path(File.dirname(__FILE__))
+  ROOT_DIR = File.expand_path(File.dirname(__FILE__))
   
-  SRC_DIR       = File.join(ROOT_DIR, 'src')
-  DIST_DIR      = File.join(ROOT_DIR, 'dist')
-  TEST_DIR      = File.join(ROOT_DIR, 'test')
-  VENDOR_DIR    = File.join(ROOT_DIR, 'vendor')
+  SRC_DIR = File.join(ROOT_DIR, 'src')
+  DIST_DIR = File.join(ROOT_DIR, 'dist')
+  DOCS_DIR = File.join(ROOT_DIR, 'docs')
+  TEST_DIR = File.join(ROOT_DIR, 'test')
+  VENDOR_DIR = File.join(ROOT_DIR, 'vendor')
   
-  VERSION       = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['ACTIVE_JS_VERSION']
-  
+  VERSION = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['ACTIVE_JS_VERSION']
+    
   INCLUDES = {
     :swfaddress => [
       File.join(VENDOR_DIR,'swfaddress/swfaddress.js'),
@@ -94,7 +96,6 @@ module ActiveJSHelper
   end
   
   def self.sprocketize
-    require_sprockets
     load_path = [SRC_DIR]
     DISTRIBUTIONS.each_pair do |distribution_name,source_files|
       flattened_source_files = source_files.clone.flatten
@@ -109,64 +110,20 @@ module ActiveJSHelper
     end
   end
   
-  def self.has_git?
-    begin
-      `git --version`
-      return true
-    rescue Error => e
-      return false
-    end
-  end
-  
-  def self.require_git
-    return if has_git?
-    puts "\nPrototype requires Git in order to load its dependencies."
-    puts "\nMake sure you've got Git installed and in your path."
-    puts "\nFor more information, visit:\n\n"
-    puts "  http://book.git-scm.com/2_installing_git.html"
-    exit
-  end
-  
-  def self.require_sprockets
-    require_submodule('Sprockets', 'sprockets')
-  end
-  
-  def self.get_submodule(name, path)
-    require_git
-    puts "\nYou seem to be missing #{name}. Obtaining it via git...\n\n"
-    
-    Kernel.system("git submodule init")
-    return true if Kernel.system("git submodule update vendor/#{path}")
-    # If we got this far, something went wrong.
-    puts "\nLooks like it didn't work. Try it manually:\n\n"
-    puts "  $ git submodule init"
-    puts "  $ git submodule update vendor/#{path}"
-    false
-  end
-  
-  def self.require_submodule(name, path)
-    begin
-      require path
-    rescue LoadError => e
-      # Wait until we notice that a submodule is missing before we bother the
-      # user about installing git. (Maybe they brought all the files over
-      # from a different machine.)
-      missing_file = e.message.sub('no such file to load -- ', '')
-      if missing_file == path
-        # Missing a git submodule.
-        retry if get_submodule(name, path)
-      else
-        # Missing a gem.
-        puts "\nIt looks like #{name} is missing the '#{missing_file}' gem. Just run:\n\n"
-        puts "  $ gem install #{missing_file}"
-        puts "\nand you should be all set.\n\n"
-      end
-      exit
-    end
-  end
 end
 
 desc "Builds the distribution."
 task :dist do
   ActiveJSHelper.sprocketize
+end
+
+task :docs do
+  require 'vendor/pdoc/lib/pdoc'
+  PDoc.run({
+    :source_files => File.join(ActiveJSHelper::ROOT_DIR,'test.js'),
+    :destination => ActiveJSHelper::DOCS_DIR,
+    :index_page => 'README.markdown',
+    :syntax_highlighter => :pygments,
+    :markdown_parser => :maruku
+  })
 end
