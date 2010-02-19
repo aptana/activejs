@@ -28,6 +28,10 @@ module ActiveJSHelper
   }
   
   DISTRIBUTIONS = {
+    'active_support.js' => [
+      File.join(SRC_DIR,'active_support.js'),
+      INCLUDES[:active_support_extensions]
+    ],
     'active_event.js' => [
       File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js')
@@ -49,14 +53,14 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_routes.js'),
       File.join(SRC_DIR,'active_controller.js'),
       INCLUDES[:swfaddress]
-    ].flatten,
+    ],
     'active_record.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:gears]
-    ].flatten,
+    ],
     'active.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
@@ -67,25 +71,38 @@ module ActiveJSHelper
       INCLUDES[:swfaddress],
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:gears]
-    ].flatten,
-    #test building
+    ],    
+    #ActiveJS combined tests
     File.join('..','test','test.js') => [
-      File.join(SRC_DIR,'active_test.js'),
       Dir[File.join(TEST_DIR,'**/setup.js')],
       Dir[File.join(TEST_DIR,'**/*.js')].reject{|item| item.match(/setup\.js$/)}
-    ].flatten.reject{|item| item.match(/\/test\/test.js$/)}
+    ].flatten.reject{|item| item.match(/\/test.js$/)}
   }
+  #individual test building
+  [
+    'active_event',
+    'active_view',
+    'active_routes',
+    'active_controller',
+    'active_record',
+    'active_support'
+  ].each do |group|
+    DISTRIBUTIONS[File.join('..','test',group,'test.js')] = [
+      Dir[File.join(TEST_DIR,group + '/setup.js')],
+      Dir[File.join(TEST_DIR,group + '/*.js')].reject{|item| item.match(/setup\.js$/)}
+    ].flatten.reject{|item| item.match(/\/test.js$/)}
+  end
   
   def self.sprocketize
     require_sprockets
     load_path = [SRC_DIR]
     DISTRIBUTIONS.each_pair do |distribution_name,source_files|
-      final_source_files = source_files.clone
-      final_source_files.unshift('LICENSE')
+      flattened_source_files = source_files.clone.flatten
+      flattened_source_files.unshift('LICENSE')
       secretary = Sprockets::Secretary.new(
         :root           => ROOT_DIR,
         :load_path      => load_path,
-        :source_files   => source_files,
+        :source_files   => flattened_source_files,
         :strip_comments => false
       )
       secretary.concatenation.save_to(File.join(DIST_DIR, distribution_name))

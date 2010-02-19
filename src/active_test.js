@@ -30,7 +30,7 @@ var ActiveTest = {
             ActiveTest.log(e);
         }
     },
-    run: function run()
+    run: function run(run_group_name)
     {
         ActiveTest.summary = [];
         ActiveTest.lastNote = '';
@@ -38,60 +38,63 @@ var ActiveTest = {
         ActiveTest.currentTestName = null;
         for(var group_name in ActiveTest.Tests)
         {
-            ActiveTest.log(group_name + ' Test Starting');
-            ActiveTest.pass = 0;
-            ActiveTest.fail = 0;
-            ActiveTest.error = 0;
-            var stack = [];
-            if(ActiveTest.Tests[group_name].setup)
+            if(!run_group_name || run_group_name == group_name)
             {
-                stack.push(function(){
-                    ActiveTest.Tests[group_name].setup();
-                });
-            }
-            for(var test_name in ActiveTest.Tests[group_name])
-            {
-                if(test_name !== 'setup' && test_name !== 'teardown' && test_name !== 'cleanup')
-                {            
-                    stack.push(ActiveSupport.curry(function(test_name){
-                        ActiveTest.currentTestName = test_name;
-                        try
+                ActiveTest.log(group_name + ' Test Starting');
+                ActiveTest.pass = 0;
+                ActiveTest.fail = 0;
+                ActiveTest.error = 0;
+                var stack = [];
+                if(ActiveTest.Tests[group_name].setup)
+                {
+                    stack.push(function(){
+                        ActiveTest.Tests[group_name].setup();
+                    });
+                }
+                for(var test_name in ActiveTest.Tests[group_name])
+                {
+                    if(test_name !== 'setup' && test_name !== 'teardown' && test_name !== 'cleanup')
+                    {            
+                        stack.push(ActiveSupport.curry(function(test_name){
+                            ActiveTest.currentTestName = test_name;
+                            try
+                            {
+                                ActiveTest.Tests[group_name][test_name]();
+                            }
+                            catch(e)
+                            {
+                                ++ActiveTest.error;
+                                ActiveTest.log('Error after test' + (ActiveTest.lastNote ? ': ' + ActiveTest.lastNote : ''));
+                                ActiveTest.log(e);
+                                throw e;
+                                var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
+                                ActiveTest.summary.push(output);
+                                ActiveTest.log(output);
+                            }
+                        },test_name));
+                        if(ActiveTest.Tests[group_name].cleanup)
                         {
-                            ActiveTest.Tests[group_name][test_name]();
+                            stack.push(function(){
+                                ActiveTest.Tests[group_name].cleanup();
+                            });
                         }
-                        catch(e)
-                        {
-                            ++ActiveTest.error;
-                            ActiveTest.log('Error after test' + (ActiveTest.lastNote ? ': ' + ActiveTest.lastNote : ''));
-                            ActiveTest.log(e);
-                            throw e;
-                            var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
-                            ActiveTest.summary.push(output);
-                            ActiveTest.log(output);
-                        }
-                    },test_name));
-                    if(ActiveTest.Tests[group_name].cleanup)
-                    {
-                        stack.push(function(){
-                            ActiveTest.Tests[group_name].cleanup();
-                        });
                     }
                 }
-            }
-            if(ActiveTest.Tests[group_name].teardown)
-            {
+                if(ActiveTest.Tests[group_name].teardown)
+                {
+                    stack.push(function(){
+                        ActiveTest.Tests[group_name].teardown();
+                    });
+                }
                 stack.push(function(){
-                    ActiveTest.Tests[group_name].teardown();
+                    ActiveTest.currentTestName = null;
+                    var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
+                    ActiveTest.summary.push(output);
+                    ActiveTest.log(output);
                 });
-            }
-            stack.push(function(){
-                ActiveTest.currentTestName = null;
-                var output = '[' + group_name + ' Pass:' + ActiveTest.pass +',Fail:' + ActiveTest.fail + ',Error:' + ActiveTest.error + ']';
-                ActiveTest.summary.push(output);
-                ActiveTest.log(output);
-            });
-            for(var i = 0; i < stack.length; ++i){
-                stack[i]();
+                for(var i = 0; i < stack.length; ++i){
+                    stack[i]();
+                }
             }
         }
         ActiveTest.log('SUMMARY');

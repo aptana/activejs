@@ -4,20 +4,33 @@
       <script type="text/javascript" src="http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js"></script>
     <![endif]-->
     <script src="../dist/active.js" runat="server"></script>
+    <script src="../src/active_test.js" runat="server"></script>
     <script src="test.js" runat="server"></script>
+    
     <script runat="server">
+      //put in dynamic loader so individual units can be run (i.e. only activesupport from the /dist/active_support.js file with no other files loaded)
       window.onload = function(){
         document.getElementById('test_runner_trigger').onclick = function(){
           ActiveRecord.connect(ActiveRecord.Adapters[document.getElementById('test_type').value]);
           ActiveRecord.logging = document.getElementById('enable_logging').checked;
-          ActiveTest.run();
+          ActiveTest.run(document.getElementById('test_group').value == 'All' ? false : document.getElementById('test_group').value);
         };
       };
     </script>
   </head>
   <body>
     <h1>ActiveJS Tests</h1>
-    <b>Type:</b>
+    <b>Test Group:</b>
+    <select id="test_group">
+      <option value="All">All</option>
+      <option value="Controller">ActiveController</option>
+      <option value="Event">ActiveEvent</option>
+      <option value="Record">ActiveRecord</option>
+      <option value="Routes">ActiveRoutes</option>
+      <option value="Support">ActiveSupport</option>
+      <option value="View">ActiveView</option>
+    </select>
+    <b>ActiveRecord Adapter:</b>
     <select id="test_type">
       <option value="Auto">Auto</option>
       <option value="InMemory">InMemory</option>

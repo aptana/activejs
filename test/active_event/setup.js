@@ -1,0 +1,1 @@
+ActiveTest.Tests.Event = {};
