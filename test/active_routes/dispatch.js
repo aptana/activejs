@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.dispatch = function(proceed)
+ActiveTest.Tests.Routes.dispatch = function()
 {
     with(ActiveTest)
     {
@@ -16,6 +16,4 @@ ActiveTest.Tests.Routes.dispatch = function(proceed)
         last_action = logged_actions.pop()[0];
         assert(last_action.zip == '83340' && last_action.method == 'address','dispatcher called action from params');
     }
-    if(proceed())
-        proceed();
 };

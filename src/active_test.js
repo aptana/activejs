@@ -46,7 +46,7 @@ var ActiveTest = {
             if(ActiveTest.Tests[group_name].setup)
             {
                 stack.push(function(){
-                    ActiveTest.Tests[group_name].setup(stack.shift());
+                    ActiveTest.Tests[group_name].setup();
                 });
             }
             for(var test_name in ActiveTest.Tests[group_name])
@@ -57,7 +57,7 @@ var ActiveTest = {
                         ActiveTest.currentTestName = test_name;
                         try
                         {
-                            ActiveTest.Tests[group_name][test_name](stack.shift());
+                            ActiveTest.Tests[group_name][test_name]();
                         }
                         catch(e)
                         {
@@ -73,7 +73,7 @@ var ActiveTest = {
                     if(ActiveTest.Tests[group_name].cleanup)
                     {
                         stack.push(function(){
-                            ActiveTest.Tests[group_name].cleanup(stack.shift());
+                            ActiveTest.Tests[group_name].cleanup();
                         });
                     }
                 }
@@ -81,7 +81,7 @@ var ActiveTest = {
             if(ActiveTest.Tests[group_name].teardown)
             {
                 stack.push(function(){
-                    ActiveTest.Tests[group_name].teardown(stack.shift());
+                    ActiveTest.Tests[group_name].teardown();
                 });
             }
             stack.push(function(){
@@ -90,7 +90,9 @@ var ActiveTest = {
                 ActiveTest.summary.push(output);
                 ActiveTest.log(output);
             });
-            stack.shift()();
+            for(var i = 0; i < stack.length; ++i){
+                stack[i]();
+            }
         }
         ActiveTest.log('SUMMARY');
         ActiveTest.log('-------');

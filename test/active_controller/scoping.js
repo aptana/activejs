@@ -1,4 +1,4 @@
-ActiveTest.Tests.Controller.scoping = function(proceed)
+ActiveTest.Tests.Controller.scoping = function()
 {
     with(ActiveTest)
     {
@@ -31,8 +31,5 @@ ActiveTest.Tests.Controller.scoping = function(proceed)
         });
         
         TestController.index();
-        
-        if(proceed)
-            proceed()
     }
 };

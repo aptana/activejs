@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.validation = function(proceed)
+ActiveTest.Tests.Routes.validation = function()
 {
     with(ActiveTest)
     {
@@ -66,6 +66,4 @@ ActiveTest.Tests.Routes.validation = function(proceed)
         assert(r.methodExists('object_one','method_two'),'Routes.methodExists()');
         assert(r.methodCallable('object_one','method_one'),'Routes.methodCallable()');
     }
-    if(proceed())
-        proceed();
 };

@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.history = function(proceed)
+ActiveTest.Tests.Routes.history = function()
 {
     with(ActiveTest)
     {
@@ -34,6 +34,4 @@ ActiveTest.Tests.Routes.history = function(proceed)
         var next_response = routes.next();
         assert(!next_response && routes.index == 2,'next() cannot traverse beyond history length');
     }
-    if(proceed())
-        proceed();
 };

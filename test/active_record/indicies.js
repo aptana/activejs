@@ -1,4 +1,4 @@
-ActiveTest.Tests.ActiveRecord.indicies = function(proceed)
+ActiveTest.Tests.ActiveRecord.indicies = function()
 {
     with(ActiveTest)
     {
@@ -24,6 +24,4 @@ ActiveTest.Tests.ActiveRecord.indicies = function(proceed)
             assert(!('byLetter' in User.indexed),'test index destruction');
         }
     }
-    if(proceed)
-        proceed();
 };

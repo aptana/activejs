@@ -1,4 +1,4 @@
-ActiveTest.Tests.View.builder = function(proceed)
+ActiveTest.Tests.View.builder = function()
 {
     with(ActiveTest)
     {
@@ -45,8 +45,5 @@ ActiveTest.Tests.View.builder = function(proceed)
         var arguments_instance = new ArgumentsTestView();
         assert(arguments_instance.getElement().firstChild.firstChild.nodeValue == 'one' && arguments_instance.getElement().firstChild.childNodes[2].tagName == 'B','mix and match of text and elements');
         assert(deep_instance.getElement().firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild.nodeValue == 'test','deep builder node test');
-        
-        if(proceed)
-            proceed()
     }
 };

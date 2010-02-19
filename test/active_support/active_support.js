@@ -1,5 +1,5 @@
 ActiveTest.Tests.ActiveSupport = {};
-ActiveTest.Tests.ActiveSupport.ActiveSupport = function(proceed)
+ActiveTest.Tests.ActiveSupport.ActiveSupport = function()
 {
     with (ActiveTest)
     {
@@ -15,8 +15,5 @@ ActiveTest.Tests.ActiveSupport.ActiveSupport = function(proceed)
 
         assert(ActiveSupport.Inflector.singularize('people') == 'person', 'singularize(people)');
         assert(ActiveSupport.Inflector.singularize('person') == 'person', 'singularize(person)');
-
-        if(proceed)
-            proceed();
     }
 };

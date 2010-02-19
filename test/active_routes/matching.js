@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.matching = function(proceed)
+ActiveTest.Tests.Routes.matching = function()
 {
     with(ActiveTest)
     {
@@ -164,6 +164,4 @@ ActiveTest.Tests.Routes.matching = function(proceed)
         assert(reverse_lookup_ambiguous_method.path == 'pages/:method','reverseLookup() ambiguous method');
         assert(reverse_lookup_ambiguous_object_and_method.path == ':object/:method/:id','reverseLookup() ambiguous object and method');
     }
-    if(proceed())
-        proceed();
 };

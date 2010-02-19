@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.generator = function(proceed)
+ActiveTest.Tests.Routes.generator = function()
 {
     with(ActiveTest)
     {
@@ -16,6 +16,4 @@ ActiveTest.Tests.Routes.generator = function(proceed)
         assert(test_scope.addressUrl({state:'wa',zip:'98102'}) == '/address/wa/98102','generated url with multiple params');
         assert(!routes.routes[5].params.state,'url generation does not contaminate params');
     }
-    if(proceed())
-        proceed();
 };

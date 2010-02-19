@@ -1,8 +1,7 @@
-ActiveTest.Tests.View.binding = function(proceed)
+ActiveTest.Tests.View.binding = function()
 {
     with(ActiveTest)
     {
-        if(proceed)
-            proceed()
+
     }
 };

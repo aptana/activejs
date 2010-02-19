@@ -1,4 +1,4 @@
-ActiveTest.Tests.Routes.normalize = function(proceed)
+ActiveTest.Tests.Routes.normalize = function()
 {
     with(ActiveTest)
     {
@@ -10,6 +10,4 @@ ActiveTest.Tests.Routes.normalize = function(proceed)
         assert(ActiveRoutes.normalizePath('//x//y/z') == 'x/y/z','deletes leading slash and multiple slash');
         assert(ActiveRoutes.normalizePath('/////one/two//three///four////') == 'one/two/three/four','combined');
     }
-    if(proceed())
-        proceed();
 };
