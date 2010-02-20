@@ -81,16 +81,17 @@ ActiveSupport = {
      */
     createError: function createError(message)
     {
-        message.getErrorString = function getErrorString()
-        {
-            var output = String(this);
-            for(var i = 0; i < arguments.length; ++i)
+        return {
+            getErrorString: function getErrorString()
             {
-                output = output.replace(/\%/,'toString' in arguments[i] ? arguments[i].toString() : String(arguments[i]));
+                var output = String(message);
+                for(var i = 0; i < arguments.length; ++i)
+                {
+                    output = output.replace(/\%/,arguments[i].toString ? arguments[i].toString() : String(arguments[i]));
+                }
+                return output;
             }
-            return output;
         };
-        return message;
     },
     /**
      * Returns an array from an array or array like object.
