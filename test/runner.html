@@ -14,7 +14,7 @@
         }
         loaded_scripts[url] = true;
         var e = document.createElement("script");
-        e.src = url;
+        e.src = url + '?time=' + new Date().getTime();
         e.type = "text/javascript";
         document.getElementsByTagName('head')[0].appendChild(e);
         if(test){
