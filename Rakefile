@@ -114,7 +114,12 @@ end
 
 desc "Builds the distribution."
 task :dist do
+  puts "Building ActiveJS distributions with Sprockets"
   ActiveJSHelper.sprocketize
+  ActiveJSHelper::DISTRIBUTIONS.each_pair do |target,payload|
+    puts "Built #{File.expand_path(File.join(ActiveJSHelper::DIST_DIR,target))}"
+  end
+  puts "Task complete."
 end
 
 task :docs do
