@@ -13,18 +13,19 @@ ActiveTest.Tests.Record.transactions = function()
         });
         assert(Comment.count() == count + 2,'Transaction COMMIT');
         try{
+            var c;
+            var d;
             Comment.transaction(function(){
-                var c = Comment.create({
+                c = Comment.create({
                     title: 'c'
                 });
-                var d = Comment.create({
+                d = Comment.create({
                     title: 'd'
                 });
                 throw 'error';
             });
-            
         }catch(e){
-            assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK without handler');
+            assert(Comment.count() == count + 2,'Transaction ROLLBACK without handler');
         }
         Comment.transaction(function(){
             var c = Comment.create({
@@ -35,7 +36,7 @@ ActiveTest.Tests.Record.transactions = function()
             });
             throw 'error';
         },function(e){
-            assert(Comment.count() == count + 2 && e.message == 'error','Transaction ROLLBACK with handler');
+            assert(Comment.count() == count + 2,'Transaction ROLLBACK with handler');
         });
         
     }
