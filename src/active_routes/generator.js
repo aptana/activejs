@@ -74,7 +74,7 @@ ActiveRoutes.prototype.urlFor = function urlFor(params)
         }
         if(found === false)
         {
-            return ActiveSupport.throwError(Errors.NamedRouteDoesNotExistError,params);
+            throw Errors.NamedRouteDoesNotExistError.getErrorString(params);
         }
         else
         {
