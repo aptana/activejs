@@ -38,6 +38,5 @@ ActiveTest.Tests.Record.transactions = function()
         },function(e){
             assert(Comment.count() == count + 2,'Transaction ROLLBACK with handler');
         });
-        
     }
 };
