@@ -2,6 +2,7 @@ require 'rake'
 require 'rake/packagetask'
 require 'yaml'
 require 'sprockets'
+require 'fileutils'
 
 module ActiveJSHelper
   ROOT_DIR = File.expand_path(File.dirname(__FILE__))
@@ -113,11 +114,23 @@ module ActiveJSHelper
 end
 
 desc "Builds the distribution."
-task :dist do
+task :dist, :copy_locations do |task,arguments|
   puts "Building ActiveJS distributions with Sprockets"
   ActiveJSHelper.sprocketize
   ActiveJSHelper::DISTRIBUTIONS.each_pair do |target,payload|
     puts "Built #{File.expand_path(File.join(ActiveJSHelper::DIST_DIR,target))}"
+  end
+  if !arguments[:copy_locations].nil?
+    arguments[:copy_locations].split(',').each do |location_pair|
+      source, target = location_pair.split(':')
+      source = File.expand_path(File.join(ActiveJSHelper::DIST_DIR,source))
+      target = File.expand_path(target)
+      FileUtils.copy(
+        source,
+        target
+      )
+      puts "Copied #{source} to #{target}"
+    end
   end
   puts "Task complete."
 end
