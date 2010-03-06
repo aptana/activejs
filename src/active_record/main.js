@@ -550,6 +550,9 @@ ActiveRecord = {
         //get is a synonym for findBy<PrimaryKey>
         model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
         
+        //setup relationship meta data container
+        model.relationships = [];
+        
         //create table for model if autoMigrate enabled
         if(ActiveRecord.autoMigrate)
         {
