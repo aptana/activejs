@@ -32,11 +32,17 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
     /**
      * Returns a "clean" version of the object, with just the data and no methods.
      * @alias ActiveRecord.Instance.toObject
+     * @param {Function} [transform_callback] Will recieve and should reutrn a hash of attributes.
      * @return {Object}
      */
-    toObject: function toObject()
+    toObject: function toObject(callback)
     {
-        return ActiveSupport.clone(this._object);
+        var response = ActiveSupport.clone(this._object);
+        if(callback)
+        {
+            response = callback(response);
+        }
+        return response;
     },
     /**
      * Returns an array of the column names that the instance contains.
@@ -123,8 +129,8 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     save: function save(force_created_mode)
     {
-        //callbacks/proxy not working
-        if (!this._valid())
+        this._validate();
+        if (!this.isValid())
         {
             return false;
         }
@@ -209,12 +215,13 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      * data they will serialize. By default this calls toObject(), but 
      * you can override this method to easily create custom JSON and XML
      * output.
+     * @param {Function} [transform_callback] Will recieve and should reutrn a hash of attributes.
      * @alias ActiveRecord.Instance.toSerializableObject
      * @return {Object}
      */
-    toSerializableObject: function toSerializableObject()
+    toSerializableObject: function toSerializableObject(callback)
     {
-        return this.toObject();
+        return this.toObject(callback);
     },
     /**
      * Serializes the record to an JSON string. If object_to_inject is passed
@@ -309,6 +316,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
     find: function find(params)
     {
         var result;
+        if(params === 0)
+        {
+            return false;
+        }
         if (!params)
         {
             params = {};
@@ -388,6 +399,15 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             }
             return responses;
         }
+        else if(ActiveSupport.isArray(id))
+        {
+            var responses = [];
+            for(var i = 0; i < id.length; ++i)
+            {
+                responses.push(this.destroy(id[i]));
+            }
+            return responses;
+        }
         else
         {
             var instance = this.get(id);
@@ -406,14 +426,26 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     build: function build(data)
     {
-        ++ActiveRecord.internalCounter;
-        var record = new this(ActiveSupport.clone(data));
-        record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
-        return record;
+        if(ActiveSupport.isArray(data))
+        {
+            var records = [];
+            for(var i = 0; i < data.length; ++i)
+            {
+                records.push(this.build(data[i]));
+            }
+            return records;
+        }
+        else
+        {
+            ++ActiveRecord.internalCounter;
+            var record = new this(ActiveSupport.clone(data));
+            record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
+            return record;
+        }
     },
     /**
      * @alias ActiveRecord.Class.create
-     * @param {Object} data 
+     * @param {Object} data
      * @return {ActiveRecord.Instance}
      * @example
      *     var u = User.create({
@@ -424,9 +456,21 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     create: function create(data)
     {
-        var record = this.build(data);
-        record.save(true);
-        return record;
+        if(ActiveSupport.isArray(data))
+        {
+            var records = [];
+            for(var i = 0; i < data.length; ++i)
+            {
+                records.push(this.create(data[i]));
+            }
+            return records;
+        }
+        else
+        {
+            var record = this.build(data);
+            record.save(true);
+            return record;
+        }
     },
     /**
      * @alias ActiveRecord.Class.update

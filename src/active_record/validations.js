@@ -25,7 +25,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         this.addValidator(function validates_presence_of_callback(){
             if(!this.get(field) || this.get(field) === '')
             {
-                this.addError(options.message || (field + ' is not present.'));
+                this.addError(options.message || (field + ' is not present.'),field);
             }
         });
     },
@@ -46,11 +46,11 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var value = String(this.get(field));
             if (value.length < options.min)
             {
-                this.addError(options.message || (field + ' is too short.'));
+                this.addError(options.message || (field + ' is too short.'),field);
             }
             if (value.length > options.max)
             {
-                this.addError(options.message || (field + ' is too long.'));
+                this.addError(options.message || (field + ' is too long.'),field);
             }
         });
     }
@@ -69,31 +69,35 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             error = [str,field];
             error.toString = function toString()
             {
-                return str;
+                return field ? field + ": " + str : str;
             };
         }
         else
         {
             error = str;
         }
-        this._errors.push(str);
+        this._errors.push(error);
     },
-    _valid: function _valid()
+    isValid: function isValid()
+    {
+        return this._errors.length === 0;
+    },
+    _validate: function _validate()
     {
         this._errors = [];
-        var validators = this._getValidators();
+        var validators = this.getValidators();
         for (var i = 0; i < validators.length; ++i)
         {
             validators[i].apply(this);
         }
-        if (typeof(this.valid) === 'function')
+        if (typeof(this.validate) === 'function')
         {
-            this.valid();
+            this.validate();
         }
-        ActiveRecord.connection.log('ActiveRecord.valid()? ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
+        ActiveRecord.connection.log('ActiveRecord.validate() ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
-    _getValidators: function _getValidators()
+    getValidators: function getValidators()
     {
         return this.constructor._validators || [];
     },
