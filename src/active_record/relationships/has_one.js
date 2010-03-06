@@ -16,6 +16,7 @@
  */
 ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
 {
+    this.relationships.push(['hasOne',related_model_name,options]);
     if(related_model_name && related_model_name.modelName)
     {
         related_model_name = related_model_name.modelName;

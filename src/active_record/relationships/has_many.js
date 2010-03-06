@@ -18,7 +18,9 @@
  *     u.getCommentList() //takes the same options as find()
  *     u.getCommentCount() //takes the same options as count() 
  */
-ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options){
+ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options)
+{
+    this.relationships.push(['hasMany',related_model_name,options]);
     if(related_model_name && related_model_name.modelName)
     {
         related_model_name = related_model_name.modelName;

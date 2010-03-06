@@ -16,7 +16,9 @@
  *     c.buildUser()
  *     c.createUser()
  */
-ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options){
+ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options)
+{
+    this.relationships.push(['belongsTo',related_model_name,options]);
     if(related_model_name && related_model_name.modelName)
     {
         related_model_name = related_model_name.modelName;
