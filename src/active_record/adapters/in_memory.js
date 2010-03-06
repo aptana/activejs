@@ -79,7 +79,16 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
         this.setupTable(table);
-        this.storage[table][id] = data;
+        if(data[primary_key_name] != id)
+        {
+            //edge case where id has changed
+            this.storage[table][data[primary_key_name]] = data;
+            delete this.storage[table][id];
+        }
+        else
+        {
+            this.storage[table][id] = data;
+        }
         this.notify('updated',table,id,data);
         return true;
     },
