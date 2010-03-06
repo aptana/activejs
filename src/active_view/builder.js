@@ -116,6 +116,43 @@ var Builder = {
     addMethods: function addMethods(methods)
     {
         ActiveSupport.extend(Builder,methods || {});
+    },
+    processNodeArgument: function processNodeArgument(elements,attributes,argument)
+    {
+        if(typeof(argument) === 'undefined' || argument === null || argument === false)
+        {
+            continue;
+        }
+        if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
+        {
+            argument = argument();
+        }
+        if(ActiveView.isActiveViewInstance(argument))
+        {
+            elements.push(argument.getElement());
+        }
+        else if(ActiveView.isActiveViewClass(argument))
+        {
+            elements.push(new argument(scope._object || {}).getElement());
+        }
+        else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
+        {
+            for(attribute_name in argument)
+            {
+                attributes[attribute_name] = argument[attribute_name];
+            }
+        }
+        else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
+        {
+            for(ii = 0; ii < argument.length; ++ii)
+            {
+                Builder.processNodeArgument(elements,attributes,argument[ii]);
+            }
+        }
+        else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
+        {
+            elements.push(argument);
+        }
     }
 };
 
@@ -125,48 +162,14 @@ Builder.generator = function generator(target,scope){
     {
         var tag = Builder.tags[t];
         (function tag_iterator(tag){
-            target[tag.toLowerCase()] = target[tag] = function tag_generator(){
+            target[tag.toLowerCase()] = target[tag] = function node_generator(){
                 var i, ii, argument, attributes, attribute_name, text_nodes, elements, element;
                 text_nodes = [];
                 elements = [];
                 attributes = {};
                 for(i = 0; i < arguments.length; ++i)
                 {
-                    argument = arguments[i];
-                    if(typeof(argument) === 'undefined' || argument === null || argument === false)
-                    {
-                        continue;
-                    }
-                    if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
-                    {
-                        argument = argument();
-                    }
-                    if(ActiveView.isActiveViewInstance(argument))
-                    {
-                        elements.push(argument.getElement());
-                    }
-                    else if(ActiveView.isActiveViewClass(argument))
-                    {
-                        elements.push(new argument(scope._object || {}).getElement());
-                    }
-                    else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
-                    {
-                        for(attribute_name in argument)
-                        {
-                            attributes[attribute_name] = argument[attribute_name];
-                        }
-                    }
-                    else if(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument)
-                    {
-                        for(ii = 0; ii < argument.length; ++ii)
-                        {
-                            elements.push(argument[ii]);
-                        }
-                    }
-                    else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
-                    {
-                        elements.push(argument);
-                    }
+                    Builder.processNodeArgument(elements,attributes,arguments[i]);
                 }
                 element = Builder.createElement(tag,attributes);
                 for(i = 0; i < elements.length; ++i)
@@ -195,3 +198,22 @@ Builder.generator(Builder);
  * @property {Object}
  */
 ActiveView.Builder = Builder;
+
+//Ajax Library integration
+(function(){
+    var global_context = ActiveSupport.getGlobalContext();
+    //Prototype
+    if(global_context.Prototype && global_context.Prototype.Browser && global_context.Prototype.Browser.IE && global_context.Element && global_context.Element.extend)
+    {
+        ActiveView.Builder.extendCreatedElement = function extendCreatedElementForPrototype(element){
+          return Element.extend(element);
+        };
+    };
+    //MooTools
+    if(global_context.MooTools && global_context.Browser && global_context.Browser.Engine.trident && global_context.document.id)
+    {
+        ActiveView.Builder.extendCreatedElement = function extendCreatedElementForMooTools(element){
+            return global_context.document.id(element);
+        };
+    }
+});
