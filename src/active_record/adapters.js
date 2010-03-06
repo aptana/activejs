@@ -1,14 +1,14 @@
  /**
  * @namespace {ActiveRecord.Adapters}
  */
- var Adapters = {};
+var Adapters = {};
 
 /**
  * null if no connection is active, or the class that created the connection.
  * @alias ActiveRecord.adapter
  * @property {mixed}
  */
-ActiveRecord.adapter = null;
+ActiveRecord.adapters = [];
 
 /**
  * null if no connection is active, or the connection object.
@@ -25,7 +25,7 @@ ActiveRecord.connection = null;
  * @example
  * 
  *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *     ActiveRecord.adapter === ActiveRecord.Adapters.JaxerSQLite;
+ *     ActiveRecord.adapters === [ActiveRecord.Adapters.JaxerSQLite];
  *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
  *     //or you can have ActiveRecord try to auto detect the enviornment
  *     ActiveRecord.connect();
@@ -34,13 +34,22 @@ ActiveRecord.connect = function connect(adapter)
 {   
     if(!adapter)
     {
-        ActiveRecord.connection = Adapters.Auto.connect.apply(Adapters.Auto, ActiveSupport.arrayFrom(arguments).slice(1));
-        ActiveRecord.adapter = ActiveRecord.connection.constructor;
+        var connection = Adapters.Auto.connect.apply(Adapters.Auto, ActiveSupport.arrayFrom(arguments).slice(1));
+        if(connection)
+        {
+            ActiveRecord.connection = connection;
+        }
+        ActiveRecord.adapters.push(ActiveRecord.connection.constructor);
     }
     else
     {
-        ActiveRecord.adapter = adapter;
-        ActiveRecord.connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
+        var connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
+        
+        if(connection)
+        {
+            ActiveRecord.connection = connection;
+        }
+        ActiveRecord.adapters.push(adapter);
     }
     ActiveEvent.extend(ActiveRecord.connection);
     if(!ActiveRecord.connection.preventConnectedNotification)
