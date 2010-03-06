@@ -23,7 +23,7 @@ ActiveTest.Tests.Record.setup = function()
     ActiveRecord.execute('DROP TABLE IF EXISTS reserved');
     
     //define Posts via SQL
-    if(ActiveRecord.adapter == ActiveRecord.Adapters.JaxerMySQL)
+    if(ActiveSupport.indexOf(ActiveRecord.adapters,ActiveRecord.Adapters.JaxerMySQL) != -1)
     {
         ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts(id INT NOT NULL AUTO_INCREMENT, user_id INT, title VARCHAR(255), body TEXT, PRIMARY KEY(id))');
     }
