@@ -15,6 +15,7 @@ if(typeof exports != "undefined"){
 //= require <active_record/adapters/support/sql>
 //= require <active_record/adapters/support/sqlite>
 //= require <active_record/adapters/in_memory>
+//= require <active_record/adapters/rest>
 //= require <active_record/adapters/auto>
 //= require <active_record/where_parser>
 //= require <active_record/finders>
