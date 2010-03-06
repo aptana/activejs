@@ -240,7 +240,7 @@ ActiveSupport = {
     {
         return function wrapped()
         {
-            wrapper.apply(this,[ActiveSupport.bind(func,this)].concat(ActiveSupport.arrayFrom(arguments)));
+            return wrapper.apply(this,[ActiveSupport.bind(func,this)].concat(ActiveSupport.arrayFrom(arguments)));
         };
     },
     /**
