@@ -127,43 +127,58 @@ ActiveSupport.extend(Adapters.REST,{
             Adapters.REST.wrappedMethods[model.modelName].klass[method_name] = model[method_name] = ActiveSupport.wrap(model[method_name],Adapters.REST.classWrapperGenerators[method_name](model,mapping_fragment));
         }
     },
-    getPersistenceParams: function getPersistenceParams(model,params,http_params)
+    getPersistencePostBody: function getPersistencePostBody(model,params,http_params,mapping_fragment)
     {
-        var final_params = {};
+        var params_container_name = ActiveSupport.Inflector.singularize(model.tableName);
+        var transform = false;
+        if(Adapters.REST.mapping[model.modelName].outbound_transform)
+        {
+            transform = Adapters.REST.mapping[model.modelName].outbound_transform;
+        }
         if(params)
         {
             if(ActiveSupport.isArray(params))
             {
-                
+                var plural_params_container_name = model.tableName;
+                var final_params = {};
+                ActiveSupport.extend(final_params,http_params || {});
+                final_params[plural_params_container_name] = params;
+                console.log('json_body',final_params);
+                return ActiveSupport.JSON.stringify(final_params);
             }
             else
             {
-                if(Adapters.REST.mapping[model.modelName].outbound_transform)
+                var final_params = [];
+                for(var param_name in http_params || {})
                 {
-                    Adapters.REST.mapping[model.modelName].outbound_transform(params);
+                    final_params.push(param_name + '=' + encodeURIComponent(http_params[param_name]));
+                }
+                if(transform)
+                {
+                    transform(params);
                 }
                 for(var param_name in params)
                 {
-                    final_params[ActiveSupport.Inflector.singularize(model.tableName) + '[' + param_name + ']'] = params[param_name];
+                    final_params.push(params_container_name + '[' + param_name + ']',encodeURIComponent(params[param_name]));
                 }
+                return final_params.join('&');
             }
         }
-        ActiveSupport.extend(final_params,http_params || {});
-        return final_params;
+        return '';
     },
     getPersistenceSuccessCallback: function getPersistenceSuccessCallback(instance,callback)
     {
         return function on_success_callback(transport){
             console.log('success: transport.responseJSON',transport.responseJSON);
-            /*
-            if(transport.responseJSON.id)
+            if(instance)
             {
-                transport.responseJSON.id = transport.responseJSON.id + 100; //TODO: remove this when testing is complete
+                instance.updateAttributes(transport.responseJSON);
             }
-            */
-            instance.updateAttributes(transport.responseJSON);
             //TODO: handle array case
-            callback(instance,true);
+            if(callback && typeof(callback) == 'function')
+            {
+                callback(instance,true);
+            }
         };
     },
     getPersistenceFailureCallback: function getPersistenceCallbacks(instance,callback)
@@ -187,11 +202,15 @@ ActiveSupport.extend(Adapters.REST,{
                 {
                     instance.addError('An unknown server error occurred.');
                 }
+            }
+            if(callback && typeof(callback) == 'function')
+            {
                 callback(instance,false);
             }
         };
     },
-    substituteUrlParams: function substituteUrlParams(url,params){
+    substituteUrlParams: function substituteUrlParams(url,params)
+    {
         return url.replace(/(\:[\w\-]+)/g,function(fragment){
             var key = fragment.substr(1);
             return params[key] || fragment;
@@ -204,7 +223,7 @@ ActiveSupport.extend(Adapters.REST,{
         {
             if(typeof(mapping_fragment[2]) == 'function')
             {
-                http_params = mapping_fragment[2]()
+                http_params = mapping_fragment[2]();
             }
             else
             {
@@ -221,24 +240,43 @@ ActiveSupport.extend(Adapters.REST,{
         return Adapters.REST.createAjaxRequest(
             Adapters.REST.substituteUrlParams(url,instance_params),
             http_method.toUpperCase(),
-            Adapters.REST.getPersistenceParams(model,instance_params,http_params),
+            Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),
             Adapters.REST.getPersistenceSuccessCallback(instance,callback),
             Adapters.REST.getPersistenceFailureCallback(instance,callback)
         );
     },
-    createAjaxRequest: function createAjaxRequest(url,http_method,parameters,on_success,on_failure)
+    getPersistenceUrlExtensions: function getPersistenceUrlExtensions(url,http_method)
     {
-        console.log('new ajax request:',url,{
-            method: http_method,
-            parameters: parameters,
+        var extensions = '';
+        extensions += url.match(/\?/) ? '&' : '?';
+        if(window._auth_token)
+        {
+            extensions += 'authenticity_token=' + encodeURIComponent(window._auth_token) + '&';
+        }
+        extensions += '_method=' + http_method.toUpperCase();
+        return extensions;
+    },
+    createAjaxRequest: function createAjaxRequest(url,http_method,post_body,on_success,on_failure)
+    {
+        console.log('new Ajax.Request',{
+            contentType: 'application/json',
+            method: http_method, //_method param is also generated in getPersistencePostBody
+            postBody: post_body,
             onSuccess: on_success,
-            onFailure: on_failure
+            onFailure: on_failure,
+            onException: function(e){
+                console.log('exception:',e);
+            }
         });
-        return new Ajax.Request(url,{
-            method: http_method,
-            parameters: parameters,
+        return new Ajax.Request(url + Adapters.REST.getPersistenceUrlExtensions(url,http_method),{
+            contentType: 'application/json',
+            method: http_method, //_method param is also generated in getPersistencePostBody
+            postBody: post_body, //FIX: double encoding bug
             onSuccess: on_success,
-            onFailure: on_failure
+            onFailure: on_failure,
+            onException: function(e){
+                console.log('exception:',e);
+            }
         });
     }
 });
@@ -248,11 +286,13 @@ Adapters.REST.classWrapperGenerators = {
     {
         return function generated_class_create_wrapper(proceed,attributes,callback){
             var instance = proceed(attributes);
+            var model_name = model.modelName;
             if(instance && callback)
             {
+                console.log('instance',instance,'attributes',attributes);
                 if(ActiveSupport.isArray(attributes))
                 {
-                    if(Adapters.REST.mapping.batch_create)
+                    if(Adapters.REST.mapping[model_name].batch_create)
                     {
                         var params_array = [];
                         for(var i = 0; i < instance.length; ++i)
@@ -262,7 +302,7 @@ Adapters.REST.classWrapperGenerators = {
                                 return attributes;
                             }));
                         }
-                        Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping.batch_create,params_array,callback);
+                        Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].batch_create,params_array,callback);
                     }
                     else
                     {
@@ -283,7 +323,6 @@ Adapters.REST.classWrapperGenerators = {
                     }),callback);
                 }
             }
-            console.log('return instance',instance);
             return instance;
         };
     },
@@ -291,18 +330,19 @@ Adapters.REST.classWrapperGenerators = {
     {
         return function generated_class_update_wrapper(proceed,id,attributes,callback){
             var instance = proceed(id,attributes);
+            var model_name = model.modelName;
             if(instance && callback)
             {
                 if(ActiveSupport.isArray(id))
                 {
-                    if(Adapters.REST.mapping.batch_update)
+                    if(Adapters.REST.mapping[model_name].batch_update)
                     {
                         var params_array = [];
                         for(var i = 0; i < instance.length; ++i)
                         {
                             params_array.push(instance[i].toObject());
                         }
-                        Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping.batch_update,params_array,callback);
+                        Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].batch_update,params_array,callback);
                     }
                     else
                     {
@@ -324,25 +364,30 @@ Adapters.REST.classWrapperGenerators = {
     {
         return function generated_class_destroy_wrapper(proceed,id,callback){
             var response = proceed(id);
+            var model_name = model.modelName;
             if(callback)
             {
                 if(ActiveSupport.isArray(id))
                 {
-                    if(Adapters.REST.mapping.batch_destroy)
+                    if(Adapters.REST.mapping[model_name].batch_destroy)
                     {
-                        Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping.batch_destroy,params_array,callback);
+                        Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].batch_destroy,params_array,callback);
                     }
                     else
                     {
                         for(var i = 0; i < id.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,instance.toObject(),callback);
+                            Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,{
+                                id: id
+                            },callback);
                         }
                     }
                 }
                 else
                 {
-                    Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,instance.toObject(),callback);
+                    Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,{
+                        id: id
+                    },callback);
                 }
             }
             return response;
@@ -357,7 +402,7 @@ Adapters.REST.instanceWrapperGenerators = {
             var instance = proceed(key,value);
             if(instance && callback)
             {
-                
+                Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(),callback);
             }
             return instance;
         };
@@ -368,7 +413,7 @@ Adapters.REST.instanceWrapperGenerators = {
             var instance = proceed(attributes);
             if(instance && callback)
             {
-                
+                Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(),callback);
             }
             return instance;
         };
@@ -391,7 +436,7 @@ Adapters.REST.instanceWrapperGenerators = {
             var response = proceed();
             if(callback)
             {
-                
+                Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,instance.toObject(),callback);
             }
             return response;
         };
