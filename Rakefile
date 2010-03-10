@@ -26,7 +26,8 @@ module ActiveJSHelper
     :active_support_extensions => [
       File.join(SRC_DIR,'active_support/inflector.js'),
       File.join(SRC_DIR,'active_support/date.js'),
-      File.join(SRC_DIR,'active_support/json.js')
+      File.join(SRC_DIR,'active_support/json.js'),
+      File.join(SRC_DIR,'active_support/callback_queue.js'),
     ]
   }
   
