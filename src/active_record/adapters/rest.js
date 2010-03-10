@@ -37,7 +37,7 @@ ActiveSupport.extend(Adapters.REST,{
     performInitialDataLoad: function performInitialDataLoad(initial_data_location)
     {
         var url = initial_data_location[0];
-        var http_method = initial_data_location[1].toLowerCase() || 'POST';
+        var http_method = initial_data_location[1].toLowerCase() || 'post';
         var http_params = Adapters.REST.getHTTPParamsFromMappingFragment(initial_data_location);
         Adapters.REST.createAjaxRequest(
             url,
@@ -142,8 +142,14 @@ ActiveSupport.extend(Adapters.REST,{
                 var plural_params_container_name = model.tableName;
                 var final_params = {};
                 ActiveSupport.extend(final_params,http_params || {});
+                if(transform)
+                {
+                    for(var i = 0; i < params.length; ++i)
+                    {
+                        transform(params[i]);
+                    }
+                }
                 final_params[plural_params_container_name] = params;
-                console.log('json_body',final_params);
                 return ActiveSupport.JSON.stringify(final_params);
             }
             else
@@ -159,7 +165,7 @@ ActiveSupport.extend(Adapters.REST,{
                 }
                 for(var param_name in params)
                 {
-                    final_params.push(params_container_name + '[' + param_name + ']',encodeURIComponent(params[param_name]));
+                    final_params.push(params_container_name + '[' + param_name + ']=' + encodeURIComponent(params[param_name]));
                 }
                 return final_params.join('&');
             }
@@ -172,9 +178,18 @@ ActiveSupport.extend(Adapters.REST,{
             console.log('success: transport.responseJSON',transport.responseJSON);
             if(instance)
             {
-                instance.updateAttributes(transport.responseJSON);
+                if(ActiveSupport.isArray(instance))
+                {
+                    for(var i = 0; i < instance.length; ++i)
+                    {
+                        instance[i].updateAttributes(transport.responseJSON[i]);
+                    }
+                }
+                else
+                {
+                    instance.updateAttributes(transport.responseJSON);
+                }
             }
-            //TODO: handle array case
             if(callback && typeof(callback) == 'function')
             {
                 callback(instance,true);
@@ -235,49 +250,46 @@ ActiveSupport.extend(Adapters.REST,{
     createPersistenceRequest: function createPersistenceRequest(model,instance,mapping_fragment,instance_params,callback)
     {
         var url = mapping_fragment[0];
-        var http_method = mapping_fragment[1].toLowerCase() || 'POST';
+        var http_method = mapping_fragment[1].toLowerCase() || 'post';
         var http_params = Adapters.REST.getHTTPParamsFromMappingFragment(mapping_fragment);
+        http_params = Adapters.REST.extendHTTPParams(http_params,http_method);
         return Adapters.REST.createAjaxRequest(
             Adapters.REST.substituteUrlParams(url,instance_params),
-            http_method.toUpperCase(),
+            http_method.toLowerCase(),
             Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),
             Adapters.REST.getPersistenceSuccessCallback(instance,callback),
             Adapters.REST.getPersistenceFailureCallback(instance,callback)
         );
     },
-    getPersistenceUrlExtensions: function getPersistenceUrlExtensions(url,http_method)
+    extendHTTPParams: function extendHTTPParams(http_params,http_method)
     {
-        var extensions = '';
-        extensions += url.match(/\?/) ? '&' : '?';
+        if(!http_params)
+        {
+            http_params = {};
+        }
         if(window._auth_token)
         {
-            extensions += 'authenticity_token=' + encodeURIComponent(window._auth_token) + '&';
+            http_params.authenticity_token = window._auth_token;
         }
-        extensions += '_method=' + http_method.toUpperCase();
-        return extensions;
+        http_params._method = http_method.toLowerCase();
+        return http_params;
     },
     createAjaxRequest: function createAjaxRequest(url,http_method,post_body,on_success,on_failure)
     {
-        console.log('new Ajax.Request',{
-            contentType: 'application/json',
-            method: http_method, //_method param is also generated in getPersistencePostBody
+        var post_body_is_json = post_body && (post_body.substr(0,1) == '{' || post_body.substr(0,1) == '[');
+        var final_url = url;
+        var final_params = {
+            contentType: post_body_is_json ? 'application/json' : 'application/x-www-form-urlencoded',
+            method: http_method,
             postBody: post_body,
             onSuccess: on_success,
             onFailure: on_failure,
-            onException: function(e){
-                console.log('exception:',e);
+            onException: function(e,ee){
+                console.log('exception:',e,ee);
             }
-        });
-        return new Ajax.Request(url + Adapters.REST.getPersistenceUrlExtensions(url,http_method),{
-            contentType: 'application/json',
-            method: http_method, //_method param is also generated in getPersistencePostBody
-            postBody: post_body, //FIX: double encoding bug
-            onSuccess: on_success,
-            onFailure: on_failure,
-            onException: function(e){
-                console.log('exception:',e);
-            }
-        });
+        };
+        console.log('new Ajax.Request',final_url,final_params);
+        return new Ajax.Request(final_url,final_params);
     }
 });
 
@@ -289,7 +301,6 @@ Adapters.REST.classWrapperGenerators = {
             var model_name = model.modelName;
             if(instance && callback)
             {
-                console.log('instance',instance,'attributes',attributes);
                 if(ActiveSupport.isArray(attributes))
                 {
                     if(Adapters.REST.mapping[model_name].batch_create)
@@ -306,12 +317,22 @@ Adapters.REST.classWrapperGenerators = {
                     }
                     else
                     {
+                        var created_items = [];
+                        var callback_queue = new ActiveSupport.CallbackQueue(function(){
+                            //this will be called when all of the ajax requests have finished
+                            if(callback && typeof(callback) == 'function')
+                            {
+                                callback(created_items);
+                            }
+                        });
                         for(var i = 0; i < instance.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance[i].toObject(function(attributes){
+                            Adapters.REST.createPersistenceRequest(model,instance[i],mapping_fragment,instance[i].toObject(function(attributes){
                                 delete attributes.id;
                                 return attributes;
-                            }),callback);
+                            }),callback_queue.push(function(created_item){
+                                created_items.push(created_item);
+                            }));
                         }
                     }
                 }
@@ -342,13 +363,23 @@ Adapters.REST.classWrapperGenerators = {
                         {
                             params_array.push(instance[i].toObject());
                         }
-                        Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].batch_update,params_array,callback);
+                        Adapters.REST.createPersistenceRequest(model,instance[i],Adapters.REST.mapping[model_name].batch_update,params_array,callback);
                     }
                     else
                     {
+                        var updated_items = [];
+                        var callback_queue = new ActiveSupport.CallbackQueue(function(){
+                            //this will be called when all of the ajax requests have finished
+                            if(callback && typeof(callback) == 'function')
+                            {
+                                callback(updated_items);
+                            }
+                        });
                         for(var i = 0; i < instance.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance[i].toObject(),callback);
+                            Adapters.REST.createPersistenceRequest(model,instance[i],mapping_fragment,instance[i].toObject(),callback_queue.push(function(updated_item){
+                                updated_items.push(updated_item);
+                            }));
                         }
                     }
                 }
@@ -371,15 +402,23 @@ Adapters.REST.classWrapperGenerators = {
                 {
                     if(Adapters.REST.mapping[model_name].batch_destroy)
                     {
+                        var params_array = [];
+                        for(var i = 0; i < id.length; ++i)
+                        {
+                            params_array.push({
+                                id: id
+                            });
+                        }
                         Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].batch_destroy,params_array,callback);
                     }
                     else
                     {
+                        var callback_queue = new ActiveSupport.CallbackQueue(callback);
                         for(var i = 0; i < id.length; ++i)
                         {
                             Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,{
                                 id: id
-                            },callback);
+                            },callback_queue.push(function(){}));
                         }
                     }
                 }
@@ -449,6 +488,37 @@ Adapters.REST.Errors = {
 };
 
 /*
+
+Test
+    - class.create
+        - test with failure
+    - class.update
+        - test with failure
+    - class.destroy
+        - test with failure
+    - class.batch_create with batch_create
+        - test with failure
+    - class.batch_create with create
+        - test with failure
+    - class.batch_update with batch_update
+        - test with failure
+    - class.batch_update with update
+        - test with failure
+    - class.batch_destroy with batch_destroy
+        - test with failure
+    - class.batch_destroy with destroy
+        - test with failure
+    - instance.updateAttribute
+        - test with failure
+    - instance.updateAttributes
+        - test with failure
+    - instance.save
+        - test with failure
+    - instance.destroy
+        - test with failure
+
+*/
+/*
 ActiveRecord.ClassMethods.search = function search(query,proceed,extra_query_params){
   new Ajax.Request('/' + this.tableName + '/search.json',{
     method: 'get',
@@ -458,25 +528,4 @@ ActiveRecord.ClassMethods.search = function search(query,proceed,extra_query_par
     }
   });
 };
-*/
-
-/*
-
-create: ['/bookmarks.json','POST'],
-update: ['/bookmarks/:id.json','PUT'],
-destroy: ['/bookmarks/:id.json','DELETE'],
-batch_create: ['/bookmarks/batch.json','CREATE'],
-batch_destroy: ['/bookmarks/batch.jsopn','DELETE']
-
-success: function() {
-  var status = this.getStatus();
-  return !status || (status >= 200 && status < 300);
-},
-
-getStatus: function() {
-  try {
-    return this.transport.status || 0;
-  } catch (e) { return 0 }
-},
-
 */

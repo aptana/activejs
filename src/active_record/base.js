@@ -487,16 +487,21 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      *         {title: 'Title for 5'},
      *         {title: 'Title for 7'}
      *     ]);
+     *     //or pass an array of ids and a hash of attributes
+     *     Article.update([5,7],{
+     *         featured: false
+     *     });
      */
     update: function update(id, attributes)
     {
         //array of ids and array of attributes passed in
         if (ActiveSupport.isArray(id))
         {
+            var attributes_is_array = ActiveSupport.isArray(attributes);
             var results = [];
             for(var i = 0; i < id.length; ++i)
             {
-                results.push(this.update(id[i], attributes[i]));
+                results.push(this.update(id[i], attributes_is_array ? attributes[i] : attributes));
             }
             return results;
         }
