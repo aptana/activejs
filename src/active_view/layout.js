@@ -1,13 +1,4 @@
-var Layout = {
-    create: function create(structure,methods)
-    {
-        var view_class = ActiveView.create(structure,methods)
-        ActiveSupport.extend(view_class.prototype,Layout.InstanceMethods);
-        return view_class;
-    }
-};
-
-Layout.InstanceMethods = {
+ActiveSupport.extend(InstanceMethods,{
     setTarget: function setTarget(target)
     {
         this._target = target;
@@ -17,6 +8,13 @@ Layout.InstanceMethods = {
     {
         return this._target;
     }
-};
+});
 
-ActiveView.Layout = Layout;
+ActiveView.yieldGenerator = function yieldGenerator()
+{
+    return function yield(element)
+    {
+        element = element || ActiveView.defaultStructure();
+        this.setTarget(element);
+    };
+};
