@@ -117,7 +117,7 @@ var Builder = {
     {
         ActiveSupport.extend(Builder,methods || {});
     },
-    processNodeArgument: function processNodeArgument(elements,attributes,argument)
+    processNodeArgument: function processNodeArgument(elements,attributes,scope,argument)
     {
         if(typeof(argument) === 'undefined' || argument === null || argument === false)
         {
@@ -146,7 +146,7 @@ var Builder = {
         {
             for(ii = 0; ii < argument.length; ++ii)
             {
-                Builder.processNodeArgument(elements,attributes,argument[ii]);
+                Builder.processNodeArgument(elements,attributes,scope,argument[ii]);
             }
         }
         else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
@@ -167,7 +167,7 @@ var Builder = {
                     attributes = {};
                     for(i = 0; i < arguments.length; ++i)
                     {
-                        Builder.processNodeArgument(elements,attributes,arguments[i]);
+                        Builder.processNodeArgument(elements,attributes,scope,arguments[i]);
                     }
                     element = Builder.createElement(tag,attributes);
                     for(i = 0; i < elements.length; ++i)
