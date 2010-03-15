@@ -153,42 +153,43 @@ var Builder = {
         {
             elements.push(argument);
         }
+    },
+    generator: function generator(target,scope)
+    {
+        var global_context = ActiveSupport.getGlobalContext();
+        for(var t = 0; t < Builder.tags.length; ++t)
+        {
+            var tag = Builder.tags[t];
+            (function tag_iterator(tag){
+                target[tag.toLowerCase()] = target[tag] = function node_generator(){
+                    var i, ii, argument, attributes, attribute_name, elements, element;
+                    elements = [];
+                    attributes = {};
+                    for(i = 0; i < arguments.length; ++i)
+                    {
+                        Builder.processNodeArgument(elements,attributes,arguments[i]);
+                    }
+                    element = Builder.createElement(tag,attributes);
+                    for(i = 0; i < elements.length; ++i)
+                    {
+                        if(elements[i] && elements[i].nodeType === 1)
+                        {
+                            element.appendChild(elements[i]);
+                        }
+                        else
+                        {
+                            element.appendChild(global_context.document.createTextNode(String(elements[i])));
+                        }
+                    }
+                    return element;
+                };
+            })(tag);
+        }
     }
 };
 
-Builder.generator = function generator(target,scope){
-    var global_context = ActiveSupport.getGlobalContext();
-    for(var t = 0; t < Builder.tags.length; ++t)
-    {
-        var tag = Builder.tags[t];
-        (function tag_iterator(tag){
-            target[tag.toLowerCase()] = target[tag] = function node_generator(){
-                var i, ii, argument, attributes, attribute_name, text_nodes, elements, element;
-                text_nodes = [];
-                elements = [];
-                attributes = {};
-                for(i = 0; i < arguments.length; ++i)
-                {
-                    Builder.processNodeArgument(elements,attributes,arguments[i]);
-                }
-                element = Builder.createElement(tag,attributes);
-                for(i = 0; i < elements.length; ++i)
-                {
-                    if(elements[i] && elements[i].nodeType === 1)
-                    {
-                        element.appendChild(elements[i]);
-                    }
-                    else
-                    {
-                        element.appendChild(global_context.document.createTextNode(String(elements[i])));
-                    }
-                }
-                return element;
-            };
-        })(tag);
-    }
-};
 Builder.generator(Builder);
+
 
 /**
  * Contains all DOM generator methods, b(), h1(), etc. This object can

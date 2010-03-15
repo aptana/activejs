@@ -29,7 +29,7 @@
  * Data that is passed into the view can be retrieved with get() and set().
  * Once initialized, the DOM node returned by the main function will be
  * available in the "getElement" method. The convenience method "attachTo"
- * will attach the container to a given Element.
+ * will attach the element to a given Element.
  * 
  *     var MyView = ActiveView.create(function(){
  *         return this.builder.h2(this.get('title'));
@@ -61,10 +61,10 @@
  * nodes or an array of DOM nodes.
  * 
  *     var MyView = ActiveView.create(function(){
- *         var container = this.builder.div(
+ *         var element = this.builder.div(
  *             this.builder.span('Some text.')
  *         );
- *         return container;
+ *         return element;
  *     });
  *     
  * You can use the "with" construct to eliminate the need to call tyhis.builder.
@@ -74,9 +74,9 @@
  *     
  *     var MyView = ActiveView.create(function(){
  *         with(this.builder){
- *             var container = div(span('Some text.'));
+ *             var element = div(span('Some text.'));
  *         }
- *         return container;
+ *         return element;
  *     });
  *     
  * Builder methods can also accept a hash of attributes, text nodes, or functions
@@ -120,7 +120,7 @@
  * 
  *     var MyView = ActiveView.create(function(){
  *         with(this.builder){
- *             var container = div({className: 'result_set_container'},
+ *             return div({className: 'result_set_element'},
  *                 PaginationView,
  *                 hr,
  *                 new ResultSetView({
@@ -160,7 +160,7 @@
  * become attached to the document.
  * 
  *     with(this.builder){
- *         var container = div(
+ *         var element = div(
  *             this.linkOne = a({href: '#'},'Link One'),
  *             this.linkTwo = a({href: '#'},'Link Two')
  *         );
@@ -198,7 +198,7 @@
  * of the specified element to the value of the specificed key
  * whenever the value of the key changes.
  *
- *     update(title_container).from('title');
+ *     update(title_element).from('title');
  * 
  * You can update a particular attribute of an element by passing a key
  * name to update(), or pull a particular key from another object by
@@ -214,40 +214,40 @@
  * new value.
  * 
  *     var MyView = ActiveView.create(function(){
- *         var container = this.builder.h2();
+ *         var element = this.builder.h2();
  *         with(this.binding){
- *             update(container).from('title');
+ *             update(element).from('title');
  *             when('title').changes(function(title){
  *                 console.log('title was changed to:',title);
  *             });
  *         }
- *         return container;
+ *         return element;
  *     });
  *     var instance = new MyView({title: 'The Title'});
- *     //instance.container == <h2>The Title</h2>
+ *     //instance.element == <h2>The Title</h2>
  *     instance.set('title','New Title');
- *     //instance.container == <h2>New Title</h2>
+ *     //instance.element == <h2>New Title</h2>
  *     
  * The third construct is the data binding equivelent of a loop. It
  * will iterate over a given array, render a new view with each item
  * in that array, collecting the resulting DOM nodes and inserting it
- * into the given container. If the array is modified with pop(),
+ * into the given element. If the array is modified with pop(),
  * push(), shift(), unshift() or splice() the resulting DOM nodes will
  * be inserted, updated or removed.
  * 
  *     var ListView = ActiveView.create(function(){
- *         var container = this.builder.ul();
+ *         var element = this.builder.ul();
  *         with(this.binding){
- *             collect(ListItemView).from('items').into(container);
+ *             collect(ListItemView).from('items').into(element);
  *         }
- *         return container;
+ *         return element;
  *     });
  *     var ListItemView = ActiveView.create(function(){
- *         var container = this.builder.li();
+ *         var element = this.builder.li();
  *         with(this.binding){
- *             update(container).from('body');
+ *             update(element).from('body');
  *         }
- *         return container;
+ *         return element;
  *     });
  *     var items = [
  *         {body: 'one'},
@@ -255,9 +255,9 @@
  *         {body: 'three'}
  *     ];
  *     var instance = new ListView(items);
- *     //instance.container == <ul><li>one</li><li>two</li><li>three</li></ul>
+ *     //instance.element == <ul><li>one</li><li>two</li><li>three</li></ul>
  *     items.pop();
- *     //instance.container == <ul><li>one</li><li>two</li></ul>
+ *     //instance.element == <ul><li>one</li><li>two</li></ul>
  * 
  * The collect() method will also accept a function that returns an Element
  * in place of an ActiveView class.
@@ -282,24 +282,24 @@
  *     
  *     var ArticleView = ActiveView.create(function(){
  *         with(this.builder){
- *             var container = div(
- *                 this.titleContainer = h2(),
- *                 this.bodyContainer = p()
+ *             var element = div(
+ *                 this.titleelement = h2(),
+ *                 this.bodyelement = p()
  *             );
  *         }
  *         with(this.binding){
- *             update(this.titleContainer).from('title');
- *             update(this.bodyContainer).from('body');
+ *             update(this.titleelement).from('title');
+ *             update(this.bodyelement).from('body');
  *         }
- *         return container;
+ *         return element;
  *     });
  *     
  *     var article_one_view = new ArticleView(article_one);
- *     //article_one_view.container == <div><h2>First Title</h2><p>First Body</p></div>
+ *     //article_one_view.element == <div><h2>First Title</h2><p>First Body</p></div>
  *     
  *     article_one.set('title','New Title');
  *     article_one.save();
- *     //article_one_view.container == <div><h2>New Title</h2><p>First Body</p></div>
+ *     //article_one_view.element == <div><h2>New Title</h2><p>First Body</p></div>
  * 
  * ActiveRecord.ResultSet objects are designed to integrate with the collect()
  * data binding construct. If a result set should change as a result of records
@@ -307,9 +307,9 @@
  * accordingly.
  * 
  *     var ArticleListView = ActiveView.create(function(){
- *         var container = this.builder.div();
- *         this.binding.collect(ArticleView).from('list').into(container);
- *         return container;
+ *         var element = this.builder.div();
+ *         this.binding.collect(ArticleView).from('list').into(element);
+ *         return element;
  *     });
  *     var articles = Article.find({
  *         all: true,
@@ -389,8 +389,8 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
  * 
  * This method is normalizes or renders a variety of inputs. Strings or
  * Element objects are returned untouched, ActiveView instances will have
- * their DOM container returned, ActiveView classes will be rendered and
- * the DOM container returned. If a function is passed in it will be called
+ * their DOM element returned, ActiveView classes will be rendered and
+ * the DOM element returned. If a function is passed in it will be called
  * with the passed scope. That function should return a string or Element.
  * 
  * @alias ActiveView.render
@@ -433,7 +433,7 @@ ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 
 ActiveView.isActiveViewClass = function isActiveViewClass(object)
 {
-    return object && object.prototype && object.prototype.structure && object.prototype.setupScope && object.prototype.registerEventHandler;
+    return object && object.prototype && object.prototype.structure && object.prototype.setupScope;
 };
 
 var InstanceMethods = (function(){
@@ -449,10 +449,14 @@ var InstanceMethods = (function(){
             this.builder = {};
             Builder.generator(this.builder,this.scope);
             ActiveView.generateBinding(this);
-            this.container = this.structure();
-            if(!this.container || !this.container.nodeType || this.container.nodeType !== 1)
+            var response = this.structure(ActiveView.yieldGenerator());
+            if(response && !this.element)
             {
-                throw Errors.ViewDoesNotReturnContainer.getErrorString(typeof(this.container));
+                this.element = response;
+            }
+            if(!this.element || !this.element.nodeType || this.element.nodeType !== 1)
+            {
+                throw Errors.ViewDoesNotReturnelement.getErrorString(typeof(this.element));
             }
             for(var key in this.scope._object)
             {
@@ -496,25 +500,22 @@ var InstanceMethods = (function(){
         },
         /**
          * @alias ActiveView.prototype.attachTo
-         * Inserts the view's outer most container into the passed element.
+         * Inserts the view's outer most element into the passed element.
          * @param {Element} element
          * @return {Element}
          */
         attachTo: function attachTo(element)
         {
             element.appendChild(this.getElement());
-            return this.container;
+            return this.element;
         },
         /**
          * @alias ActiveView.prototype.getElement
          * @return {Element}
          */
-        getElement: function getElement(){
-            return this.container;
-        },
-        registerEventHandler: function registerEventHandler(element,event_name,observer)
+        getElement: function getElement()
         {
-            this.eventHandlers.push([element,event_name,observer]);
+            return this.element;
         }
     };
 })();
@@ -524,7 +525,7 @@ var ClassMethods = {
 };
 
 var Errors = {
-    ViewDoesNotReturnContainer: ActiveSupport.createError('The view constructor must return a DOM element. Returned: %'),
+    ViewDoesNotReturnelement: ActiveSupport.createError('The view constructor must return a DOM element, or set this.element as a DOM element. View constructor returned: %'),
     InvalidContent: ActiveSupport.createError('The content to render was not a string, DOM element or ActiveView.'),
     MismatchedArguments: ActiveSupport.createError('Incorrect argument type passed: Expected %. Recieved %:%')
 };

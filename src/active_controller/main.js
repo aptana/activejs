@@ -74,19 +74,19 @@ var ClassMethods = (function(){
             this.setupComplete = false;
             this.params = {};
             this.scope = new ActiveEvent.ObservableHash({});
-            this.container = false;
+            this.element = false;
         },
-        setup: function setup(container,params)
+        setup: function setup(element,params)
         {
-            if(container)
+            if(element)
             {
-                this.container = container;
+                this.element = element;
             }
             else
             {
-                this.container = this.createDefaultElement();
+                this.element = this.createDefaultElement();
             }
-            this.setRenderTarget(this.container);
+            this.setRenderTarget(this.element);
             if(this.params)
             {
                 ActiveSupport.extend(this.params,params);
@@ -99,7 +99,7 @@ var ClassMethods = (function(){
         },
         getElement: function getElement()
         {
-            return this.container;
+            return this.element;
         },
         createDefaultElement: function createDefaultElement(){
             return ActiveController.createDefaultElement();
@@ -146,14 +146,12 @@ var ClassMethods = (function(){
             {
                 if(!ActiveView.isActiveViewClass(this.layout))
                 {
-                    throw Errors.LayoutIsNotActiveViewClass.getErrorString(this.container);
+                    throw Errors.LayoutIsNotActiveViewClass.getErrorString(this.element);
                 }
-                this.layout.prototype.originalStructure = this.layout.prototype.structure;
-                this.layout.prototype.structure = ActiveSupport.curry(this.layout.prototype.originalStructure,this);
                 this.layoutInstance = new this.layout();
                 this.setRenderTarget(this.layoutInstance.getTarget());
-                ActiveView.Builder.clearElement(this.container);
-                this.container.appendChild(this.layoutInstance.getElement());
+                ActiveView.Builder.clearElement(this.element);
+                this.element.appendChild(this.layoutInstance.getElement());
             }
         },
         createAction: function createAction(action_name,action)
@@ -180,26 +178,26 @@ var RenderFlags = {
             klass = view_class;
         }
         var response = ActiveView.render(klass,params.scope || this.scope);
-        var container = params.target || this.getRenderTarget();
-        if(container)
+        var element = params.target || this.getRenderTarget();
+        if(element)
         {
             if(params.transition)
             {
-                params.transition(container,response);
+                params.transition(element,response);
             }
             else
             {
-                ActiveView.Builder.clearElement(container);
-                container.appendChild(response);
+                ActiveView.Builder.clearElement(element);
+                element.appendChild(response);
             }
         }
     },
     text: function text(text,params)
     {
-        var container = params.target || this.getRenderTarget();
-        if(container)
+        var element = params.target || this.getRenderTarget();
+        if(element)
         {
-            container.innerHTML = text;
+            element.innerHTML = text;
         }
     },
     target: function target(target,params)
@@ -218,7 +216,7 @@ var RenderFlags = {
 ActiveController.RenderFlags = RenderFlags;
 
 var Errors = {
-    BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no container was passed and document.body is not available'),
+    BodyNotAvailable: ActiveSupport.createError('Controller could not attach to a DOM element, no element was passed and document.body is not available'),
     InvalidRenderParams: ActiveSupport.createError('The parameter passed to render() was not an object.'),
     UnknownRenderFlag: ActiveSupport.createError('The following render flag does not exist: %'),
     ViewDoesNotExist: ActiveSupport.createError('The specified view does not exist: %'),
