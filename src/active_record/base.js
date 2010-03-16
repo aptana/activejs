@@ -171,7 +171,13 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         }
         else
         {
+            if(this.notify('beforeUpdate') === false)
+            {
+                return false;
+            }
             ActiveRecord.connection.updateEntity(this.tableName, this.constructor.primaryKeyName, this._id, this.toObject());
+            //afterUpdate is not a synchronization event, afterSave covers all cases
+            this.notify('afterUpdate');
         }
         //apply field out conversions
         for (var key in this.constructor.fields)

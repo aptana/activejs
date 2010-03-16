@@ -208,7 +208,7 @@
  *
  * Lifecycle
  * ---------
- * There are 8 currently supported lifecycle events which allow granular control
+ * There are 10 currently supported lifecycle events which allow granular control
  * over your data, and are convenient to build user interface components and
  * interactions around on the client side:
  * 
@@ -218,6 +218,8 @@
  * - afterSave
  * - beforeCreate
  * - afterCreate
+ * - beforeUpdate
+ * - afterUpdate
  * - beforeDestroy
  * - afterDestroy
  * 
