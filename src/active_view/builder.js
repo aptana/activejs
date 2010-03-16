@@ -121,7 +121,7 @@ var Builder = {
     {
         if(typeof(argument) === 'undefined' || argument === null || argument === false)
         {
-            continue;
+            return;
         }
         if(typeof(argument) === 'function' && !ActiveView.isActiveViewClass(argument))
         {
