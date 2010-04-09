@@ -516,6 +516,14 @@ var InstanceMethods = (function(){
         getElement: function getElement()
         {
             return this.element;
+        },
+        getScope: function getScope()
+        {
+            return this.scope;
+        },
+        exportScope: function exportScope()
+        {
+            return ActiveSupport.clone(this.scope);
         }
     };
 })();
