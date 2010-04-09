@@ -388,7 +388,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * on the record. If "all" is passed as the ids, all records will be found
      * and destroyed.
      * @alias ActiveRecord.Class.destroy
-     * @param {Number} id 
+     * @param {Number} id
      * @return {Boolean}
      */
     destroy: function destroy(id)
@@ -410,7 +410,15 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var responses = [];
             for(var i = 0; i < id.length; ++i)
             {
-                responses.push(this.destroy(id[i]));
+                var instance = this.get(id);
+                if(!instance)
+                {
+                    responses.push(false);
+                }
+                else
+                {
+                    responses.push(instance.destroy());
+                }
             }
             return responses;
         }
@@ -437,7 +445,10 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var records = [];
             for(var i = 0; i < data.length; ++i)
             {
-                records.push(this.build(data[i]));
+                ++ActiveRecord.internalCounter;
+                var record = new this(ActiveSupport.clone(data));
+                record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
+                records.push(record);
             }
             return records;
         }
@@ -467,7 +478,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var records = [];
             for(var i = 0; i < data.length; ++i)
             {
-                records.push(this.create(data[i]));
+                var record = this.build(data);
+                record.save(true);
+                records.push(record);
             }
             return records;
         }
@@ -484,7 +497,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      * @param {Object} attributes
      * @return {ActiveRecord.Instance}
      * @example
-     * 
+     *
      *     Article.update(3,{
      *         title: 'New Title'
      *     });
@@ -500,14 +513,21 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     update: function update(id, attributes)
     {
-        //array of ids and array of attributes passed in
         if (ActiveSupport.isArray(id))
         {
             var attributes_is_array = ActiveSupport.isArray(attributes);
             var results = [];
             for(var i = 0; i < id.length; ++i)
             {
-                results.push(this.update(id[i], attributes_is_array ? attributes[i] : attributes));
+                var record = this.get(id);
+                if(!record)
+                {
+                    results.push(false);
+                }
+                else
+                {
+                    results.push(record.updateAttributes(attributes_is_array ? attributes[i] : attributes));
+                }
             }
             return results;
         }
