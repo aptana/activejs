@@ -410,7 +410,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var responses = [];
             for(var i = 0; i < id.length; ++i)
             {
-                var instance = this.get(id);
+                var instance = this.get(id[i]);
                 if(!instance)
                 {
                     responses.push(false);
@@ -446,7 +446,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             for(var i = 0; i < data.length; ++i)
             {
                 ++ActiveRecord.internalCounter;
-                var record = new this(ActiveSupport.clone(data));
+                var record = new this(ActiveSupport.clone(data[i]));
                 record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
                 records.push(record);
             }
@@ -478,7 +478,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var records = [];
             for(var i = 0; i < data.length; ++i)
             {
-                var record = this.build(data);
+                var record = this.build(data[i]);
                 record.save(true);
                 records.push(record);
             }
@@ -519,7 +519,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var results = [];
             for(var i = 0; i < id.length; ++i)
             {
-                var record = this.get(id);
+                var record = this.get(id[i]);
                 if(!record)
                 {
                     results.push(false);
