@@ -132,6 +132,10 @@ ActiveSupport = {
      */
     indexOf: function indexOf(array,item,i)
     {
+        if(Array.prototype.indexOf)
+        {
+            return array.indexOf(item,i);
+        }
         i = i || (0);
         var length = array.length;
         if(i < 0)
@@ -163,6 +167,28 @@ ActiveSupport = {
             if(!(ActiveSupport.indexOf(values,arr[i]) > -1))
             {
                 response.push(arr[i]);
+            }
+        }
+        return response;
+    },
+    /**
+     * Emulates Array.prototype.map.
+     * @alias ActiveSupport.map
+     * @param {Array} array
+     * @param {Function} iterator
+     * @param {Function} [context]
+     * @return {Array}
+     */
+    map: function map(array,iterator,context)
+    {
+        var length = array.length;
+        context = context || window;
+        var response = new Array(length);
+        for(var i = 0; i < length; ++i)
+        {
+            if(array[i])
+            {
+                response[i] = iterator.call(context,array[i],i,array);
             }
         }
         return response;
@@ -259,6 +285,21 @@ ActiveSupport = {
         return keys_array;
     },
     /**
+     * Returns an array of values from an object.
+     * @alias ActiveSupport.values
+     * @param {Object} object
+     * @return {Array}
+     */
+    values: function values(object)
+    {
+        var values_array = [];
+        for (var property_name in object)
+        {
+            values_array.push(object[property_name]);
+        }
+        return values_array;
+    },
+    /**
      * Emulates Prototype's String.prototype.underscore
      * @alias ActiveSupport.underscore
      * @param {String} str
@@ -323,11 +364,10 @@ ActiveSupport = {
      * @param {String} str
      * @return {String}
      */
-    trim: function(str)
+    trim: function trim(str)
     {
         return (str || "").replace(/^\s+|\s+$/g,"");
     },
-
     /**
      * Emulates Prototype's Object.extend
      * @alias ActiveSupport.extend
@@ -352,30 +392,6 @@ ActiveSupport = {
     clone: function clone(object)
     {
         return ActiveSupport.extend({}, object);
-    },
-    
-    /**
-     * If the value passed is a function the value passed will be returned,
-     * otherwise a function returning the value passed will be returned.
-     * @alias ActiveSupport.proc
-     * @param {mixed} proc
-     * @return {Function}
-     */
-    proc: function proc(proc)
-    {
-        return typeof(proc) === 'function' ? proc : function(){return proc;};
-    },
-    
-    /**
-     * If the value passed is a function, the function is called and the value
-     * returned, otherwise the value passed in is returned.
-     * @alias ActiveSupport.value
-     * @param {mixed} value
-     * @return {scalar}
-     */
-    value: function value(value)
-    {
-        return typeof(value) === 'function' ? value() : value;
     }
 };
 
