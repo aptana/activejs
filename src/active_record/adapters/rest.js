@@ -39,12 +39,17 @@ ActiveSupport.extend(Adapters.REST,{
         var url = initial_data_location[0];
         var http_method = initial_data_location[1].toLowerCase() || 'post';
         var http_params = Adapters.REST.getHTTPParamsFromMappingFragment(initial_data_location);
+        var response_processor_callback = initial_data_location[3];
         Adapters.REST.createAjaxRequest(
             url,
             http_method,
             http_params,
             function initial_data_load_on_success(transport){
                 var json_data = transport.responseJSON || eval(transport.responseText); //TODO: remove eval
+                if(response_processor_callback)
+                {
+                    json_data = response_processor_callback(json_data);
+                }
                 for(var model_name in Adapters.REST.mapping)
                 {
                     var model = ActiveRecord.Models[model_name];
@@ -172,10 +177,15 @@ ActiveSupport.extend(Adapters.REST,{
         }
         return '';
     },
-    getPersistenceSuccessCallback: function getPersistenceSuccessCallback(instance,callback)
+    getPersistenceSuccessCallback: function getPersistenceSuccessCallback(mapping_fragment,instance,callback)
     {
         return function on_success_callback(transport){
-            console.log('success: transport.responseJSON',transport.responseJSON);
+            var response_processor_callback = mapping_fragment[3];
+            if(response_processor_callback)
+            {
+                transport.responseJSON = response_processor_callback(transport.responseJSON);
+            }
+            //console.log('success: transport.responseJSON',transport.responseJSON);
             if(instance)
             {
                 if(ActiveSupport.isArray(instance))
@@ -196,10 +206,10 @@ ActiveSupport.extend(Adapters.REST,{
             }
         };
     },
-    getPersistenceFailureCallback: function getPersistenceCallbacks(instance,callback)
+    getPersistenceFailureCallback: function getPersistenceFailureCallback(mapping_fragment,instance,callback)
     {
         return function on_failure_callback(transport){
-            console.log('failure: transport',transport);
+            //console.log('failure: transport',transport);
             if(instance)
             {
                 //TODO: handle array case
@@ -257,8 +267,8 @@ ActiveSupport.extend(Adapters.REST,{
             Adapters.REST.substituteUrlParams(url,instance_params),
             http_method.toLowerCase(),
             Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),
-            Adapters.REST.getPersistenceSuccessCallback(instance,callback),
-            Adapters.REST.getPersistenceFailureCallback(instance,callback)
+            Adapters.REST.getPersistenceSuccessCallback(mapping_fragment,instance,callback),
+            Adapters.REST.getPersistenceFailureCallback(mapping_fragment,instance,callback)
         );
     },
     extendHTTPParams: function extendHTTPParams(http_params,http_method)
@@ -285,10 +295,10 @@ ActiveSupport.extend(Adapters.REST,{
             onSuccess: on_success,
             onFailure: on_failure,
             onException: function(e,ee){
-                console.log('exception:',e,ee);
+                //console.log('exception:',e,ee);
             }
         };
-        console.log('new Ajax.Request',final_url,final_params);
+        //console.log('new Ajax.Request',final_url,final_params);
         return new Ajax.Request(final_url,final_params);
     }
 });
