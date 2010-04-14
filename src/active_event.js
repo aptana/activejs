@@ -214,8 +214,14 @@ ActiveEvent.extend = function extend(object){
     
     object._objectEventSetup = function _objectEventSetup(event_name)
     {
-        this._observers = this._observers || {};
-        this._observers[event_name] = this._observers[event_name] || [];
+        if(!this._observers)
+        {
+            this._observers = {};
+        }
+        if(!(event_name in this._observers))
+        {
+            this._observers[event_name] = [];
+        }
     };
     
     /**

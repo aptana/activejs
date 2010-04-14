@@ -1,3 +1,6 @@
+var global_context = ActiveSupport.getGlobalContext();
+var ie = !!(global_context.attachEvent && !global_context.opera);
+
 var Builder = {
     tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
         'BR BUTTON CAPTION CENTER CITE CODE COL COLGROUP DD DEL DFN DIR DIV DL DT EM EMBED FIELDSET ' +
@@ -19,8 +22,6 @@ var Builder = {
     cache: {},
     createElement: function createElement(tag_name,attributes)
     {
-        var global_context = ActiveSupport.getGlobalContext();
-        var ie = !!(global_context.attachEvent && !global_context.opera);
         attributes = attributes || {};
         tag_name = tag_name.toLowerCase();
         var element;
@@ -65,8 +66,6 @@ var Builder = {
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
-        var global_context = ActiveSupport.getGlobalContext();
-        var ie = !!(global_context.attachEvent && !global_context.opera);
         var transitions = {
             className: 'class',
             htmlFor:   'for'

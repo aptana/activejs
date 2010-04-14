@@ -446,8 +446,7 @@ var InstanceMethods = (function(){
             {
                 ActiveSupport.log('ActiveView: initialized with scope:',scope);
             }
-            this.builder = {};
-            Builder.generator(this.builder,this.scope);
+            this.builder = ActiveView.Builder;
             ActiveView.generateBinding(this);
             var response = this.structure(ActiveView.yieldGenerator());
             if(response && !this.element)

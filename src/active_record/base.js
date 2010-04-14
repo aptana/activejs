@@ -16,7 +16,10 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         this._object[key] = value;
         if(!suppress_notifications)
         {
-            this.notify('set',key,value);
+            if(this._observers && ('set' in this._observers))
+            {
+                this.notify('set',key,value);
+            }
         }
     },
     /**

@@ -473,29 +473,47 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     {
         return; //no action needed
     },
+    cachedObjectIsFieldDefinitionResults: {},
+    cachedGetDefaultValueFromFieldDefinitionResults: {},
     fieldIn: function fieldIn(field, value)
     {
         if(value && value instanceof Date)
         {
             return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
         }
-        if(Migrations.objectIsFieldDefinition(field))
+        if(typeof(this.cachedObjectIsFieldDefinitionResults[field]) == 'undefined')
         {
-            field = this.getDefaultValueFromFieldDefinition(field);
+            this.cachedObjectIsFieldDefinitionResults[field] = Migrations.objectIsFieldDefinition(field);
+        }
+        if(this.cachedObjectIsFieldDefinitionResults[field])
+        {
+            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[field]) == 'undefined')
+            {
+                this.cachedGetDefaultValueFromFieldDefinitionResults[field] = this.getDefaultValueFromFieldDefinition(field);
+            }
+            field = this.cachedGetDefaultValueFromFieldDefinitionResults[field];
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     },
     fieldOut: function fieldOut(field, value)
     {
-        if(Migrations.objectIsFieldDefinition(field))
+        if(typeof(this.cachedObjectIsFieldDefinitionResults[field]) == 'undefined')
+        {
+            this.cachedObjectIsFieldDefinitionResults[field] = Migrations.objectIsFieldDefinition(field);
+        }
+        if(this.cachedObjectIsFieldDefinitionResults[field])
         {
             //date handling
             if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
             {
                 return ActiveSupport.dateFromDateTime(value);
             }
-            field = this.getDefaultValueFromFieldDefinition(field);
+            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[field]) == 'undefined')
+            {
+                this.cachedGetDefaultValueFromFieldDefinitionResults[field] = this.getDefaultValueFromFieldDefinition(field);
+            }
+            field = this.cachedGetDefaultValueFromFieldDefinitionResults[field];
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
