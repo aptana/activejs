@@ -46,7 +46,6 @@
               if(test_group == 'All' || test_group == 'Record'){
                 ActiveRecord.connect(ActiveRecord.Adapters[connection_adapter]);
                 ActiveRecord.logging = logging;
-                ActiveController.logging = logging;
                 ActiveView.logging = logging;
                 ActiveRoutes.logging = logging;
               }else{
@@ -75,10 +74,7 @@
     </select>
     <b>ActiveRecord Adapter:</b>
     <select id="test_type">
-      <option value="Auto">Auto</option>
       <option value="InMemory">InMemory</option>
-      <option value="Gears">Gears</option>
-      <option value="Mozilla">Mozilla</option>
     </select>
     &nbsp;
     <b>Logging?</b>
