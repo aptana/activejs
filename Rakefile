@@ -18,10 +18,7 @@ module ActiveJSHelper
   INCLUDES = {
     :swfaddress => [
       File.join(VENDOR_DIR,'swfaddress/swfaddress.js'),
-      File.join(SRC_DIR,'active_controller/adapters/swfaddress.js')
-    ],
-    :gears => [
-      File.join(SRC_DIR,'active_record/adapters/gears.js')
+      File.join(SRC_DIR,'active_view/routing.js')
     ],
     :active_support_extensions => [
       File.join(SRC_DIR,'active_support/inflector.js'),
@@ -43,27 +40,19 @@ module ActiveJSHelper
     'active_view.js' => [
       File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js'),
-      File.join(SRC_DIR,'active_view.js')
+      File.join(SRC_DIR,'active_view.js'),
+      INCLUDES[:swfaddress]
     ],
     'active_routes.js' => [
       File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_routes.js')
     ],
-    'active_controller.js' => [
-      File.join(SRC_DIR,'active_support.js'),
-      File.join(SRC_DIR,'active_event.js'),
-      File.join(SRC_DIR,'active_view.js'),
-      File.join(SRC_DIR,'active_routes.js'),
-      File.join(SRC_DIR,'active_controller.js'),
-      INCLUDES[:swfaddress]
-    ],
     'active_record.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
-      File.join(SRC_DIR,'active_record.js'),
-      INCLUDES[:gears]
+      File.join(SRC_DIR,'active_record.js')
     ],
     'active.js' => [
       File.join(SRC_DIR,'active_support.js'),
@@ -71,10 +60,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js'),
       File.join(SRC_DIR,'active_routes.js'),
-      File.join(SRC_DIR,'active_controller.js'),
-      INCLUDES[:swfaddress],
-      File.join(SRC_DIR,'active_record.js'),
-      INCLUDES[:gears]
+      File.join(SRC_DIR,'active_record.js')
     ],    
     #ActiveJS combined tests
     File.join('..','test','test.js') => [
@@ -87,7 +73,6 @@ module ActiveJSHelper
     'active_event',
     'active_view',
     'active_routes',
-    'active_controller',
     'active_record',
     'active_support'
   ].each do |group|
