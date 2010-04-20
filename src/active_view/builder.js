@@ -187,7 +187,6 @@ var Builder = {
     }
 };
 
-Builder.generator(Builder);
 
 
 /**
@@ -197,7 +196,8 @@ Builder.generator(Builder);
  * @alias ActiveView.Builder
  * @property {Object}
  */
-ActiveView.Builder = Builder;
+ActiveView.Builder = {};
+Builder.generator(ActiveView.Builder);
 
 //Ajax Library integration
 (function(){

@@ -4,7 +4,6 @@ var ActiveView = null;
 
 //= require <active_view/main>
 //= require <active_view/builder>
-//= require <active_view/binding>
-//= require <active_view/layout>
+//= require <active_view/states>
 
 })();

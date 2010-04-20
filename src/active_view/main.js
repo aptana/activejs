@@ -428,7 +428,7 @@ ActiveView.render = function render(content,scope)
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
-    return object && object.getElement && object.getElement().nodeType == 1 && object.scope && object.builder;
+    return object && object.getElement && object.getElement().nodeType == 1 && object.scope;
 };
 
 ActiveView.isActiveViewClass = function isActiveViewClass(object)
@@ -440,15 +440,14 @@ var InstanceMethods = (function(){
     return {
         initialize: function initialize(scope,parent)
         {
-            this.parent = parent;
+            this.setParent(parent);
+            this.children = {};
             this.setupScope(scope);
             if(ActiveView.logging)
             {
                 ActiveSupport.log('ActiveView: initialized with scope:',scope);
             }
-            this.builder = ActiveView.Builder;
-            ActiveView.generateBinding(this);
-            var response = this.structure(ActiveView.yieldGenerator());
+            var response = this.structure();
             if(response && !this.element)
             {
                 this.element = response;
@@ -461,6 +460,22 @@ var InstanceMethods = (function(){
             {
                 this.scope.set(key,this.scope._object[key]);
             }
+        },
+        setParent: function setParent(parent)
+        {
+            this.parent = parent;
+        },
+        getParent: function getParent()
+        {
+            return this.parent;
+        },
+        addChild: function addChild(name,child)
+        {
+            this.children[name] = child;
+        },
+        getChildren: function getChildren()
+        {
+            return this.children;
         },
         setupScope: function setupScope(scope)
         {
