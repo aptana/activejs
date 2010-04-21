@@ -143,7 +143,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             if(!this.constructor.fields[key].primaryKey)
             {
                 //third param is to suppress observers
-                this.set(key,ActiveRecord.connection.fieldIn(this.constructor.fields[key],this.get(key)),true);
+                this.set(key,ActiveRecord.connection.fieldIn(key,this.constructor.fields[key],this.get(key)),true);
             }
         }
         if (this.notify('beforeSave') === false)
@@ -188,7 +188,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
             if(!this.constructor.fields[key].primaryKey)
             {
                 //third param is to suppress observers
-                this.set(key,ActiveRecord.connection.fieldOut(this.constructor.fields[key],this.get(key)),true);
+                this.set(key,ActiveRecord.connection.fieldOut(key,this.constructor.fields[key],this.get(key)),true);
             }
         }
         this._id = this.get(this.constructor.primaryKeyName);

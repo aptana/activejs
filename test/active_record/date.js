@@ -15,7 +15,7 @@ ActiveTest.Tests.Record.date = function()
         var a = ModelWithDates.create({
             name: 'a'
         });
-        assert(ActiveSupport.dateFormat(a.get('created'),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/) && ActiveSupport.dateFormat(a.get('updated'),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/),'created and updated set via date field');
+        assert(ActiveSupport.dateFormat(ActiveSupport.dateFromDateTime(a.get('created')),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/) && ActiveSupport.dateFormat(ActiveSupport.dateFromDateTime(a.get('updated')),'yyyy-mm-dd HH:MM:ss').match(/^\d{4}/),'created and updated set via date field');
         var old_date = a.get('updated');
         a.set('updated','');
         a.save();

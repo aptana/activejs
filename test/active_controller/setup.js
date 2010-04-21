@@ -1,1 +1,0 @@
-ActiveTest.Tests.Controller = {};

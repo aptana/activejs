@@ -2,11 +2,6 @@ ActiveTest.Tests.Record = {};
 
 ActiveTest.Tests.Record.setup = function()
 {
-    ActiveRecord.execute('DROP TABLE IF EXISTS schema_migrations');
-    if(ActiveRecord.Migrations.Meta)
-    {
-        delete ActiveRecord.Migrations.Meta;
-    }
     ActiveRecord.execute('DROP TABLE IF EXISTS posts');
     ActiveRecord.execute('DROP TABLE IF EXISTS comments');
     ActiveRecord.execute('DROP TABLE IF EXISTS users');

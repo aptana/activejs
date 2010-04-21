@@ -31,31 +31,15 @@ ActiveRecord.connection = null;
  *     ActiveRecord.connect();
  */
 ActiveRecord.connect = function connect(adapter)
-{   
-    if(!adapter)
+{
+    var connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
+    if(connection)
     {
-        var connection = Adapters.Auto.connect.apply(Adapters.Auto, ActiveSupport.arrayFrom(arguments).slice(1));
-        if(connection)
-        {
-            ActiveRecord.connection = connection;
-        }
-        ActiveRecord.adapters.push(ActiveRecord.connection.constructor);
+        ActiveRecord.connection = connection;
     }
-    else
-    {
-        var connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
-        
-        if(connection)
-        {
-            ActiveRecord.connection = connection;
-        }
-        ActiveRecord.adapters.push(adapter);
-    }
+    ActiveRecord.adapters.push(adapter);
     ActiveEvent.extend(ActiveRecord.connection);
-    if(!ActiveRecord.connection.preventConnectedNotification)
-    {
-        ActiveRecord.notify('connected');
-    }
+    ActiveRecord.notify('connected');
 };
 
 /**
@@ -153,6 +137,46 @@ Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
     }
 };
 
+Adapters.objectIsFieldDefinition = function objectIsFieldDefinition(object)
+{
+    return typeof(object) === 'object' && ActiveSupport.keys(object).length === 2 && ('type' in object) && ('value' in object);
+};
+
+Adapters.fieldTypesWithDefaultValues = {
+    'tinyint': 0,
+    'smallint': 0,
+    'mediumint': 0,
+    'int': 0,
+    'integer': 0,
+    'bigint': 0,
+    'float': 0,
+    'double': 0,
+    'double precision': 0,
+    'real': 0,
+    'decimal': 0,
+    'numeric': 0,
+
+    'date': '',
+    'datetime': '',
+    'timestamp': '',
+    'time': '',
+    'year': '',
+
+    'char': '',
+    'varchar': '',
+    'tinyblob': '',
+    'tinytext': '',
+    'blob': '',
+    'text': '',
+    'mediumtext': '',
+    'mediumblob': '',
+    'longblob': '',
+    'longtext': '',
+    
+    'enum': '',
+    'set': ''
+};
+
 
 Adapters.InstanceMethods = {
     setValueFromFieldIfValueIsNull: function setValueFromFieldIfValueIsNull(field,value)
@@ -161,7 +185,7 @@ Adapters.InstanceMethods = {
         if (value === null || typeof(value) === 'undefined')
         {
             //default value was in field specification
-            if(Migrations.objectIsFieldDefinition(field))
+            if(Adapters.objectIsFieldDefinition(field))
             {
                 var default_value = this.getDefaultValueFromFieldDefinition(field);
                 if(typeof(default_value) === 'undefined')
@@ -200,23 +224,11 @@ Adapters.InstanceMethods = {
     },
     getDefaultValueFromFieldDefinition: function getDefaultValueFromFieldDefinition(field)
     {
-        return field.value ? field.value : Migrations.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
+        return field.value ? field.value : Adapters.fieldTypesWithDefaultValues[field.type ? field.type.replace(/\(.*/g,'').toLowerCase() : ''];
     },
     quoteIdentifier: function quoteIdentifier(name)
     {
       return '"' + name + '"';
-    },
-    log: function log()
-    {
-        if(!ActiveRecord.logging)
-        {
-            return;
-        }
-        if(arguments[0])
-        {
-            arguments[0] = 'ActiveRecord: ' + arguments[0];
-        }
-        return ActiveSupport.log.apply(ActiveSupport,arguments || {});
     }
 };
 

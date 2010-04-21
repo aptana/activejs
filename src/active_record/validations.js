@@ -94,7 +94,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
         {
             this.validate();
         }
-        ActiveRecord.connection.log('ActiveRecord.validate() ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
+        ActiveSupport.log('ActiveRecord.validate() ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
         return this._errors.length === 0;
     },
     getValidators: function getValidators()

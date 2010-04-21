@@ -368,12 +368,6 @@ ActiveRecord = {
      */
     logging: false,
     /**
-     * Will automatically create a table when create() is called. Defaults to true.
-     * @alias ActiveRecord.autoMigrate
-     * @property {Boolean}
-     */
-    autoMigrate: true,
-    /**
      * Tracks the number of records created.
      * @alias ActiveRecord.internalCounter
      * @property {Number}
@@ -463,8 +457,8 @@ ActiveRecord = {
                 var field = fields[key];
                 if(!field.primaryKey)
                 {
-                    var value = ActiveRecord.connection.fieldOut(field,this.get(key));
-                    if(Migrations.objectIsFieldDefinition(value))
+                    var value = ActiveRecord.connection.fieldOut(key,field,this.get(key));
+                    if(Adapters.objectIsFieldDefinition(value))
                     {
                         value = value.value;
                     }
@@ -554,12 +548,6 @@ ActiveRecord = {
         
         //setup relationship meta data container
         model.relationships = [];
-        
-        //create table for model if autoMigrate enabled
-        if(ActiveRecord.autoMigrate)
-        {
-            Migrations.Schema.createTable(options.tableName,ActiveSupport.clone(model.fields));
-        }
         
         return model;
     }

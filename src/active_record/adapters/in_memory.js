@@ -45,7 +45,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     executeSQL: function executeSQL(sql)
     {
-        ActiveRecord.connection.log('Adapters.InMemory could not execute SQL:' + sql);
+        ActiveSupport.log('Adapters.InMemory could not execute SQL:' + sql);
     },
     insertEntity: function insertEntity(table, primary_key_name, data)
     {
@@ -475,45 +475,45 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     cachedObjectIsFieldDefinitionResults: {},
     cachedGetDefaultValueFromFieldDefinitionResults: {},
-    fieldIn: function fieldIn(field, value)
+    fieldIn: function fieldIn(key_name, field, value)
     {
         if(value && value instanceof Date)
         {
             return ActiveSupport.dateFormat(value,'yyyy-mm-dd HH:MM:ss');
         }
-        if(typeof(this.cachedObjectIsFieldDefinitionResults[field]) == 'undefined')
+        if(typeof(this.cachedObjectIsFieldDefinitionResults[key_name]) == 'undefined')
         {
-            this.cachedObjectIsFieldDefinitionResults[field] = Migrations.objectIsFieldDefinition(field);
+            this.cachedObjectIsFieldDefinitionResults[key_name] = Adapters.objectIsFieldDefinition(field);
         }
-        if(this.cachedObjectIsFieldDefinitionResults[field])
+        if(this.cachedObjectIsFieldDefinitionResults[key_name])
         {
-            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[field]) == 'undefined')
+            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[key_name]) == 'undefined')
             {
-                this.cachedGetDefaultValueFromFieldDefinitionResults[field] = this.getDefaultValueFromFieldDefinition(field);
+                this.cachedGetDefaultValueFromFieldDefinitionResults[key_name] = this.getDefaultValueFromFieldDefinition(field);
             }
-            field = this.cachedGetDefaultValueFromFieldDefinitionResults[field];
+            field = this.cachedGetDefaultValueFromFieldDefinitionResults[key_name];
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
     },
-    fieldOut: function fieldOut(field, value)
+    fieldOut: function fieldOut(key_name, field, value)
     {
-        if(typeof(this.cachedObjectIsFieldDefinitionResults[field]) == 'undefined')
+        if(typeof(this.cachedObjectIsFieldDefinitionResults[key_name]) == 'undefined')
         {
-            this.cachedObjectIsFieldDefinitionResults[field] = Migrations.objectIsFieldDefinition(field);
+            this.cachedObjectIsFieldDefinitionResults[key_name] = Adapters.objectIsFieldDefinition(field);
         }
-        if(this.cachedObjectIsFieldDefinitionResults[field])
+        if(this.cachedObjectIsFieldDefinitionResults[key_name])
         {
             //date handling
             if(field.type.toLowerCase().match(/date/) && typeof(value) == 'string')
             {
                 return ActiveSupport.dateFromDateTime(value);
             }
-            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[field]) == 'undefined')
+            if(typeof(this.cachedGetDefaultValueFromFieldDefinitionResults[key_name]) == 'undefined')
             {
-                this.cachedGetDefaultValueFromFieldDefinitionResults[field] = this.getDefaultValueFromFieldDefinition(field);
+                this.cachedGetDefaultValueFromFieldDefinitionResults[key_name] = this.getDefaultValueFromFieldDefinition(field);
             }
-            field = this.cachedGetDefaultValueFromFieldDefinitionResults[field];
+            field = this.cachedGetDefaultValueFromFieldDefinitionResults[key_name];
         }
         value = this.setValueFromFieldIfValueIsNull(field,value);
         return value;
