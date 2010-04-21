@@ -349,28 +349,19 @@ ActiveView.logging = false;
  * @param {Object} [instance_methods]
  * @return {ActiveView}
  */
-ActiveView.create = function create(structure,methods)
+ActiveView.create = function create(structure,methods,states)
 {
-    if(typeof(options) === 'function')
-    {
-        options = {
-            structure: options
-        };
-    }
-    var klass = function klass(){
+    var klass = function klass(scope){
+        this.setupScope(scope);
+        ActiveView.setupStateObserver(this,states || {});
         this.initialize.apply(this,arguments);
     };
+    klass.prototype.structure = structure;
     ActiveSupport.extend(klass,ClassMethods);
     ActiveSupport.extend(klass.prototype,methods || {});
     ActiveSupport.extend(klass.prototype,InstanceMethods);
-    klass.prototype.structure = structure || ActiveView.defaultStructure;
     ActiveEvent.extend(klass);
     return klass;
-};
-
-ActiveView.defaultStructure = function defaultStructure()
-{
-    return ActiveView.Builder.div();
 };
 
 ActiveView.makeArrayObservable = function makeArrayObservable(array)
@@ -383,49 +374,6 @@ ActiveView.makeArrayObservable = function makeArrayObservable(array)
     array.makeObservable('splice');
 };
 
-/**
- * This method is not usually called directly but is utilized by data
- * bindings and ActiveControllers.
- * 
- * This method is normalizes or renders a variety of inputs. Strings or
- * Element objects are returned untouched, ActiveView instances will have
- * their DOM element returned, ActiveView classes will be rendered and
- * the DOM element returned. If a function is passed in it will be called
- * with the passed scope. That function should return a string or Element.
- * 
- * @alias ActiveView.render
- * @param {mixed} content
- * @param {Object} [scope]
- * @return {mixed}
- */
-ActiveView.render = function render(content,scope)
-{
-    if(!scope)
-    {
-        scope = {};
-    }
-    
-    //if content is a function, that function can return nodes or an ActiveView class or instance
-    if(typeof(content) === 'function' && !ActiveView.isActiveViewClass(content))
-    {
-        content = content(scope);
-    }
-    
-    if(content && (typeof(content) == 'string' || content.nodeType == 1))
-    {
-        return content;
-    }
-    else if(ActiveView.isActiveViewInstance(content))
-    {
-        return content.getElement();
-    }
-    else if(ActiveView.isActiveViewClass(content))
-    {
-        return new content(scope).getElement();
-    }
-    throw Errors.InvalidContent.getErrorString();
-};
-
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
     return object && object.getElement && object.getElement().nodeType == 1 && object.scope;
@@ -436,13 +384,38 @@ ActiveView.isActiveViewClass = function isActiveViewClass(object)
     return object && object.prototype && object.prototype.structure && object.prototype.setupScope;
 };
 
+ActiveView.setupStateObserver = function setupStateObservers(instance,states)
+{
+    instance.scope.observe('set',function(_property_name,new_value,old_value){
+        for(var property_name in states)
+        {
+            if(property_name == _property_name)
+            {
+                if(typeof(states[property_name]) == 'function')
+                {
+                    states[property_name].apply(instance,[new_value,old_value])
+                }
+                else
+                {
+                    for(var state_name in states[property_name])
+                    {
+                        if(new_value == state_name)
+                        {
+                            states[property_name][state_name].apply(instance,[old_value])
+                        }
+                    }
+                }
+            }
+        }
+    });
+};
+
 var InstanceMethods = (function(){
     return {
         initialize: function initialize(scope,parent)
         {
             this.setParent(parent);
             this.children = {};
-            this.setupScope(scope);
             if(ActiveView.logging)
             {
                 ActiveSupport.log('ActiveView: initialized with scope:',scope);
@@ -450,7 +423,7 @@ var InstanceMethods = (function(){
             var response = this.structure();
             if(response && !this.element)
             {
-                this.element = response;
+                this.setElement(response);
             }
             if(!this.element || !this.element.nodeType || this.element.nodeType !== 1)
             {
@@ -522,6 +495,10 @@ var InstanceMethods = (function(){
         {
             element.appendChild(this.getElement());
             return this.element;
+        },
+        setElement: function setElement(element)
+        {
+            this.element = element;
         },
         /**
          * @alias ActiveView.prototype.getElement

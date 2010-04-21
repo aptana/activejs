@@ -423,20 +423,26 @@ var ObservableHash = function ObservableHash(object)
 
 ObservableHash.prototype.set = function set(key,value)
 {
+    var old_value = this._object[key];
     this._object[key] = value;
-    this.notify('set',key,value);
+    if(this._observers && this._observers.set)
+    {
+        this.notify('set',key,value);
+    }
     return value;
 };
 
 ObservableHash.prototype.get = function get(key)
 {
-    this.notify('get',key);
     return this._object[key];
 };
 
 ObservableHash.prototype.unset = function unset(key)
 {
-    this.notify('unset',key);
+    if(this._observers && this._observers.unset)
+    {
+        this.notify('unset',key);
+    }
     var value = this._object[key];
     delete this._object[key];
     return value;

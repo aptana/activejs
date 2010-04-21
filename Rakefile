@@ -25,6 +25,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support/date.js'),
       File.join(SRC_DIR,'active_support/json.js'),
       File.join(SRC_DIR,'active_support/callback_queue.js'),
+      File.join(SRC_DIR,'active_support/dom.js')
     ]
   }
   
@@ -39,9 +40,9 @@ module ActiveJSHelper
     ],
     'active_view.js' => [
       File.join(SRC_DIR,'active_support.js'),
+      File.join(SRC_DIR,'active_support/dom.js'),
       File.join(SRC_DIR,'active_event.js'),
-      File.join(SRC_DIR,'active_view.js'),
-      INCLUDES[:swfaddress]
+      File.join(SRC_DIR,'active_view.js')
     ],
     'active_routes.js' => [
       File.join(SRC_DIR,'active_support.js'),
@@ -60,7 +61,8 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js'),
       File.join(SRC_DIR,'active_routes.js'),
-      File.join(SRC_DIR,'active_record.js')
+      File.join(SRC_DIR,'active_record.js'),
+      INCLUDES[:swfaddress]
     ],    
     #ActiveJS combined tests
     File.join('..','test','test.js') => [
