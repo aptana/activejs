@@ -57,7 +57,7 @@ var Builder = {
                     {
                         Builder.processNodeArgument(elements,attributes,scope,arguments[i]);
                     }
-                    element = ActiveSupport.DOM.createElement(tag,attributes);
+                    element = ActiveSupport.DOM.create(tag,attributes);
                     for(i = 0; i < elements.length; ++i)
                     {
                         if(elements[i] && elements[i].nodeType === 1)

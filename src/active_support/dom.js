@@ -13,8 +13,24 @@ ActiveSupport.DOM = {
         'cellspacing': 'cellSpacing',
         'cellpadding': 'cellPadding'
     },
+    keyCodes: {
+        KEY_BACKSPACE: 8,
+        KEY_TAB:       9,
+        KEY_RETURN:   13,
+        KEY_ESC:      27,
+        KEY_LEFT:     37,
+        KEY_UP:       38,
+        KEY_RIGHT:    39,
+        KEY_DOWN:     40,
+        KEY_DELETE:   46,
+        KEY_HOME:     36,
+        KEY_END:      35,
+        KEY_PAGEUP:   33,
+        KEY_PAGEDOWN: 34,
+        KEY_INSERT:   45
+    },
     cache: {},
-    createElement: function createElement(tag_name,attributes)
+    create: function create(tag_name,attributes)
     {
         attributes = attributes || {};
         tag_name = tag_name.toLowerCase();
@@ -34,29 +50,56 @@ ActiveSupport.DOM = {
             tag += '>';
             delete attributes.name;
             delete attributes.type;
-            element = ActiveSupport.DOM.extendCreatedElement(global_context.document.createElement(tag));
+            element = ActiveSupport.DOM.extend(global_context.document.createElement(tag));
         }
         else
         {
             if(!ActiveSupport.DOM.cache[tag_name])
             {
-                ActiveSupport.DOM.cache[tag_name] = ActiveSupport.DOM.extendCreatedElement(global_context.document.createElement(tag_name));
+                ActiveSupport.DOM.cache[tag_name] = ActiveSupport.DOM.extend(global_context.document.createElement(tag_name));
             }
             element = ActiveSupport.DOM.cache[tag_name].cloneNode(false);
         }
         ActiveSupport.DOM.writeAttribute(element,attributes);
         return element;
     },
-    extendCreatedElement: function extendCreatedElement(element)
+    extend: function extend(element)
     {
         return element;
     },
-    clearElement: function clearElement(element)
+    clear: function clear(element)
     {
         while(element.firstChild)
         {
             element.removeChild(element.firstChild);
         }
+    },
+    collect: function collect(target_element,elements,callback,context)
+    {
+        if(callback)
+        {
+            var arguments_for_bind = arguments_array.slice(4);
+            if(typeof(context) != 'undefined')
+            {
+                arguments_for_bind.unshift(context);
+            }
+            if(arguments_for_bind.length > 0)
+            {
+                arguments_for_bind.unshift(callback);
+                callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+            }
+            var collected_elements = [];
+            for(var i = 0; i < array.length; ++i)
+            {
+                collected_elements.push(callback(array[i]));
+            }
+            elements = collected_elements;
+        }
+        for(var i = 0; i < elements.length; ++i)
+        {
+            target_element.appendChild(elements[i]);
+        }
+        return elements;
     },
     writeAttribute: function writeAttribute(element,name,value)
     {
@@ -106,64 +149,163 @@ ActiveSupport.DOM = {
         }
         return element;
     },
-    addEventListener: function addEventListener(element,event_name,callback,context){
+    documentReadyObservers: [],
+    observe: function observe(element,event_name,callback,context)
+    {
         //bind context to context and curried arguments if applicable
         var arguments_array = ActiveSupport.arrayFrom(arguments);
         var arguments_for_bind = arguments_array.slice(4);
         if(typeof(context) != 'undefined')
         {
-            arguments_for_bind.shift(context);
+            arguments_for_bind.unshift(context);
         }
         if(arguments_for_bind.length > 0)
         {
-            arguments_for_bind.shift(callback);
-            callback = ActiveSupport.bind.apply(arguments_for_bind);
+            arguments_for_bind.unshift(callback);
+            callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+        }
+        
+        //dom:ready support
+        if(element == ActiveSupport.getGlobalContext().document && event_name == 'ready')
+        {
+            ActiveSupport.DOM.documentReadyObservers.push(callback);
+            return;
         }
         
         //create callback wrapper
         var callback_wrapper = function callback_wrapper(event){
-            return callback(event || window.event,function stop_callback(){
-                event.cancelBubble = true;
-                event.returnValue = false;
-            },function remove_event_listener(){
-                if(element.removeEventListener)
-                {
-                    element.removeEventListener(event_name,callback_wrapper,false);
+            if(!event)
+            {
+                event = window.event;
+            }
+            return callback(
+                event,
+                //event.srcElement ? (event.srcElement.nodeType == 3 ? event.srcElement.parentNode : event.srcElement) : null,
+                function stop_callback(){
+                    event.cancelBubble = true;
+                    event.returnValue = false;
+                    if(event.preventDefault)
+                    {
+                        event.preventDefault();
+                    }
+                    if(event.stopPropagation)
+                    {
+                        event.stopPropagation();
+                    }                
+                },function remove_event_listener(){
+                    if(element.removeEventListener)
+                    {
+                        element.removeEventListener(event_name,callback_wrapper,false);
+                    }
+                    else
+                    {
+                        element.detachEvent("on" + event_name,callback_wrapper);
+                    }
                 }
-                else
-                {
-                    element.detachEvent("on" + event_name,callback_wrapper);
-                }
-            });
+            );
         };
         
         //attach event listener
         if(element.addEventListener)
         {
-            element.addEventListener(event_name,callback,false);
+            element.addEventListener(event_name,callback_wrapper,false);
         }
         else
         {
-            element.attachEvent('on' + event_name,callback);
+            element.attachEvent('on' + event_name,callback_wrapper);
         }
         
         return callback_wrapper;
     }
 };
 
+/*
+Ported from Prototype.js usage:
+    
+    ActiveSupport.DOM.observe(document,'ready',function(){
+    
+    });
+*/
+(function() {
+  /* Support for the DOMContentLoaded event is based on work by Dan Webb,
+     Matthias Miller, Dean Edwards, John Resig, and Diego Perini. */
+
+  var timer;
+  var loaded = false;
+  
+  function fire_content_loaded_event()
+  {
+      if(loaded)
+      {
+          return;
+      }
+      if(timer)
+      {
+          window.clearTimeout(timer);
+      }
+      loaded = true;
+      if(ActiveSupport.DOM.documentReadyObservers.length > 0)
+      {
+          for(var i = 0; i < ActiveSupport.DOM.documentReadyObservers.length; ++i)
+          {
+              ActiveSupport.DOM.documentReadyObservers[i]();
+          }
+          ActiveSupport.DOM.documentReadyObservers = [];
+      }
+  };
+
+  function check_ready_state(event,stop,stop_observing)
+  {
+      if(document.readyState === 'complete')
+      {
+          stop_observing();
+          fire_content_loaded_event();
+      }
+  };
+
+  function poll_do_scroll()
+  {
+      try
+      {
+          document.documentElement.doScroll('left');
+      }
+      catch(e)
+      {
+          timer = window.setTimeout(poll_do_scroll);
+          return;
+      }
+      fire_content_loaded_event();
+  };
+
+  if(document.addEventListener)
+  {
+      document.addEventListener('DOMContentLoaded',fire_content_loaded_event,false);
+  }
+  else
+  {
+      ActiveSupport.DOM.observe(document,'readystatechange',check_ready_state);
+      if(window == top)
+      {
+          timer = window.setTimeout(poll_do_scroll);
+      }
+  }
+  
+  ActiveSupport.DOM.observe(window,'load',fire_content_loaded_event);
+})();
+
 //Ajax Library integration
 (function(){
     //Prototype
     if(global_context.Prototype && global_context.Prototype.Browser && global_context.Prototype.Browser.IE && global_context.Element && global_context.Element.extend)
     {
-        ActiveSupport.DOM.extendCreatedElement = function extendCreatedElementForPrototype(element){
+        ActiveSupport.DOM.extend = function extendForPrototype(element){
           return Element.extend(element);
         };
     };
     //MooTools
     if(global_context.MooTools && global_context.Browser && global_context.Browser.Engine.trident && global_context.document.id)
     {
-        ActiveSupport.DOM.extendCreatedElement = function extendCreatedElementForMooTools(element){
+        ActiveSupport.DOM.extend = function extendForMooTools(element){
             return global_context.document.id(element);
         };
     }
