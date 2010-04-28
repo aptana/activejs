@@ -45,7 +45,7 @@ ActiveSupport.extend(Adapters.REST,{
             http_method,
             http_params,
             function initial_data_load_on_success(transport){
-                var json_data = transport.responseJSON || eval(transport.responseText); //TODO: remove eval
+                var json_data = transport.responseJSON; //TODO: remove eval
                 if(response_processor_callback)
                 {
                     json_data = response_processor_callback(json_data);
@@ -293,13 +293,10 @@ ActiveSupport.extend(Adapters.REST,{
             method: http_method,
             postBody: post_body,
             onSuccess: on_success,
-            onFailure: on_failure,
-            onException: function(e,ee){
-                //console.log('exception:',e,ee);
-            }
+            onFailure: on_failure
         };
-        //console.log('new Ajax.Request',final_url,final_params);
-        return new Ajax.Request(final_url,final_params);
+        //console.log('new ActiveSupport.Request',final_url,final_params);
+        return new ActiveSupport.Request(final_url,final_params);
     }
 });
 

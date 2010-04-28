@@ -25,7 +25,8 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support/date.js'),
       File.join(SRC_DIR,'active_support/json.js'),
       File.join(SRC_DIR,'active_support/callback_queue.js'),
-      File.join(SRC_DIR,'active_support/dom.js')
+      File.join(SRC_DIR,'active_support/dom.js'),
+      File.join(SRC_DIR,'active_support/request.js')
     ]
   }
   
@@ -59,8 +60,8 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
-      File.join(SRC_DIR,'active_view.js'),
       File.join(SRC_DIR,'active_routes.js'),
+      File.join(SRC_DIR,'active_view.js'),
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:swfaddress]
     ],    
