@@ -5,7 +5,7 @@ var Builder = {
         'KBD LABEL LEGEND LI LINK MAP MENU META NOBR NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
         'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
         'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
-    processNodeArgument: function processNodeArgument(elements,attributes,scope,argument)
+    processNodeArgument: function processNodeArgument(elements,attributes,argument)
     {
         if(typeof(argument) === 'undefined' || argument === null || argument === false)
         {
@@ -15,13 +15,13 @@ var Builder = {
         {
             argument = argument();
         }
-        if(ActiveView.isActiveViewInstance(argument))
+        if(ActiveView.isActiveViewInstance(argument) || typeof(argument.getElement) == 'function')
         {
             elements.push(argument.getElement());
         }
         else if(ActiveView.isActiveViewClass(argument))
         {
-            elements.push(new argument(scope._object || {}).getElement());
+            elements.push(new argument().getElement());
         }
         else if(typeof(argument) !== 'string' && typeof(argument) !== 'number' && !(argument !== null && typeof argument === "object" && 'splice' in argument && 'join' in argument) && !(argument && argument.nodeType === 1))
         {
@@ -34,7 +34,7 @@ var Builder = {
         {
             for(ii = 0; ii < argument.length; ++ii)
             {
-                Builder.processNodeArgument(elements,attributes,scope,argument[ii]);
+                Builder.processNodeArgument(elements,attributes,argument[ii]);
             }
         }
         else if((argument && argument.nodeType === 1) || typeof(argument) === 'string' || typeof(argument) === 'number')
@@ -55,7 +55,7 @@ var Builder = {
                     attributes = {};
                     for(i = 0; i < arguments.length; ++i)
                     {
-                        Builder.processNodeArgument(elements,attributes,scope,arguments[i]);
+                        Builder.processNodeArgument(elements,attributes,arguments[i]);
                     }
                     element = ActiveSupport.DOM.create(tag,attributes);
                     for(i = 0; i < elements.length; ++i)

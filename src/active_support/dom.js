@@ -73,25 +73,66 @@ ActiveSupport.DOM = {
         {
             element.removeChild(element.firstChild);
         }
+        return element;
+    },
+    hide: function hide(element)
+    {
+        element.style.display = 'none';
+        return element;
+    },
+    show: function show(element)
+    {
+        element.style.display = '';
+        return element;
+    },
+    remove: function remove(element)
+    {
+        element.parentNode.removeChild(element);
+        return element;
+    },
+    insert: function insert(element,content,position)
+    {
+        if(content && typeof(content.getElement) == 'function')
+        {
+            content = content.getElement();
+        }
+        if(!content || !content.nodeType || content.nodeType !== 1)
+        {
+            content = global_context.document.createTextNode(String(content));
+        }
+        if(!position)
+        {
+            position = 'bottom';
+        }
+        switch(position)
+        {
+            case 'top': element.insertBefore(content,element.firstChild); break;
+            case 'bottom': element.appendChild(content); break;
+            case 'before': element.parentNode.insertBefore(content,element); break;
+            case 'after': element.parentNode.insertBefore(content,element.nextSibling); break;
+        }
+        return element;
+    },
+    update: function update(element,content,position)
+    {
+        ActiveSupport.DOM.clear(element);
+        ActiveSupport.DOM.insert(element,content,position);
     },
     collect: function collect(target_element,elements,callback,context)
     {
         if(callback)
         {
-            var arguments_for_bind = arguments_array.slice(4);
-            if(typeof(context) != 'undefined')
-            {
-                arguments_for_bind.unshift(context);
-            }
+            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_for_bind = arguments_array.slice(3);
             if(arguments_for_bind.length > 0)
             {
                 arguments_for_bind.unshift(callback);
                 callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
             }
             var collected_elements = [];
-            for(var i = 0; i < array.length; ++i)
+            for(var i = 0; i < elements.length; ++i)
             {
-                collected_elements.push(callback(array[i]));
+                collected_elements.push(callback(elements[i]));
             }
             elements = collected_elements;
         }
@@ -153,22 +194,30 @@ ActiveSupport.DOM = {
     observe: function observe(element,event_name,callback,context)
     {
         //bind context to context and curried arguments if applicable
-        var arguments_array = ActiveSupport.arrayFrom(arguments);
-        var arguments_for_bind = arguments_array.slice(4);
-        if(typeof(context) != 'undefined')
+        if(arguments.length > 3)
         {
-            arguments_for_bind.unshift(context);
-        }
-        if(arguments_for_bind.length > 0)
-        {
-            arguments_for_bind.unshift(callback);
-            callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_for_bind = arguments_array.slice(3);
+            if(arguments_for_bind.length > 0)
+            {
+                arguments_for_bind.unshift(callback);
+                callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+            }
         }
         
         //dom:ready support
         if(element == ActiveSupport.getGlobalContext().document && event_name == 'ready')
         {
-            ActiveSupport.DOM.documentReadyObservers.push(callback);
+            if(ActiveSupport.DOM.documentReadyObservers == null)
+            {
+                //ActiveSupport.DOM.documentReadyObservers will be null if the document is ready
+                //if so, trigger the observer now
+                callback();
+            }
+            else
+            {
+                ActiveSupport.DOM.documentReadyObservers.push(callback);
+            }
             return;
         }
         
@@ -250,7 +299,7 @@ Ported from Prototype.js usage:
           {
               ActiveSupport.DOM.documentReadyObservers[i]();
           }
-          ActiveSupport.DOM.documentReadyObservers = [];
+          ActiveSupport.DOM.documentReadyObservers = null;
       }
   };
 

@@ -29,7 +29,8 @@
  * The path portion of a route is a URI string. Parameters that will be passed
  * to the method called are represented with a colon. Names are optional, but
  * the path and the params together must declare "object" and "method"
- * parameters. The following are all valid routes:
+ * parameters. If no method is specified it will default to "dispatch".
+ * The following are all valid routes:
  * 
  *     var routes = new ActiveRoutes([
  *       ['root','/',{object:'Pages',method:'index'}],
@@ -150,6 +151,12 @@ ActiveRoutes = function initialize(routes,scope,options)
     this.initialized = true;
 };
 ActiveEvent.extend(ActiveRoutes);
+
+ActiveRoutes.routes = false;
+ActiveRoutes.setRoutes = function setRoutes(routes)
+{
+    ActiveRoutes.routes = routes;
+};
 
 /**
  * @namespace {ActiveRoutes.Route} A Route object reffered to in
@@ -279,10 +286,6 @@ ActiveRoutes.prototype.addRoute = function addRoute()
     if(!Validations.hasObject(route))
     {
         throw Errors.NoObjectInRoute.getErrorString(route.path);
-    }
-    if(!Validations.hasMethod(route))
-    {
-        throw Errors.NoMethodInRoute.getErrorString(route.path);
     }
     if(this.initialized)
     {

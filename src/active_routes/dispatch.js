@@ -10,7 +10,7 @@
  *     routes.dispatch({object:'blog',method: 'post',id: 5});
  *     //calls same as above, but saves history, fires callbacks, etc
  */
-ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
+ActiveRoutes.prototype.dispatch = function dispatch(path,suppress_dispatcher)
 {
     var route;
     if(typeof(path) == 'string')
@@ -54,7 +54,7 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,surpress_dispatcher)
     {
         return false;
     }
-    if(!surpress_dispatcher)
+    if(!suppress_dispatcher)
     {
         if(ActiveRoutes.logging)
         {

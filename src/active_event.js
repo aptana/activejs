@@ -62,6 +62,13 @@
  *         //this will only be called once
  *     });
  * 
+ * You can bind and curry your observers by adding extra arguments, which
+ * will be passed to ActiveSupport.bind:
+ * 
+ *     Message.observe('sent',function(curried_argument,message,text){
+ *         //this == context
+ *     },context,curried_argument);
+ * 
  * Control Flow
  * ------------
  * When notify() is called, if any of the registered observers for that event
@@ -109,41 +116,6 @@
  *     
  *     var rating_two = new Control.Rating('rating_two');  
  *     rating_two.observe('afterChange',function(new_value){});
- * 
- * MethodCallObserver
- * ------------------
- * The makeObservable() method permanently modifies the method that will
- * become observable. If you need to temporarily observe a method call without
- * permanently modifying it, use observeMethod(). Pass the name of the
- * method to observe and the observer function will receive all of the
- * arguments passed to the method. An ActiveEvent.MethodCallObserver object is
- * returned from the call to observeMethod(), which has a stop() method on it.
- * Once stop() is called, the method is returned to it's original state. You
- * can optionally pass another function to observeMethod(), if you do the
- * MethodCallObserver will be automatically stopped when that function
- * finishes executing.
- * 
- *     var h = new Hash({});
- *     ActiveEvent.extend(h);
- *     
- *     var observer = h.observeMethod('set',function(key,value){
- *         console.log(key + '=' + value);
- *     });
- *     h.set('a','one');
- *     h.set('a','two');
- *     observer.stop();
- *     
- *     //console now contains:
- *     //"a = one"
- *     //"b = two"
- *     
- *     //the following does the same as above
- *     h.observeMethod('set',function(key,value){
- *         console.log(key + '=' + value);
- *     },function(){
- *         h.set('a','one');
- *         h.set('b','two');
- *     });
  */
 var ActiveEvent = null;
 
@@ -174,8 +146,13 @@ ActiveEvent.extend = function extend(object){
     /**
      * Wraps the given method_name with a function that will call the method,
      *  then trigger an event with the same name as the method. This can
-     *  safely be applied to virtually any method, including built in
+     *  safely be applied to any method, including built in
      *  Objects (Array.pop, etc), but cannot be undone.
+     * 
+     *     MyObject.makeObservable('myMethod');
+     *     MyObject.myMethod('a','b');
+     *     //called myMethod, and called MyObject.notify('myMethod','a','b');
+     * 
      * @alias ActiveEvent.ObservableObject.makeObservable
      * @param {String} method_name
      */
@@ -198,20 +175,6 @@ ActiveEvent.extend = function extend(object){
         }
     };
     
-    /**
-     * Similiar to makeObservable(), but after the callback is called, the
-     *  method will be returned to it's original state and will no longer
-     *  be observable.
-     * @alias ActiveEvent.ObservableObject.observeMethod
-     * @param {String} method_name
-     * @param {Function} observe
-     * @param {Function} [callback]
-     */
-    object.observeMethod = function observeMethod(method_name,observer,scope)
-    {
-        return new ActiveEvent.MethodCallObserver([[this,method_name]],observer,scope);
-    };
-    
     object._objectEventSetup = function _objectEventSetup(event_name)
     {
         if(!this._observers)
@@ -228,10 +191,22 @@ ActiveEvent.extend = function extend(object){
      * @alias ActiveEvent.ObservableObject.observe
      * @param {String} event_name
      * @param {Function} observer
+     * @param {Object} [context]
      * @return {Function} observer
      */
-    object.observe = function observe(event_name,observer)
+    object.observe = function observe(event_name,observer,context)
     {
+        if(arguments.length > 2)
+        {
+            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_for_bind = arguments_array.slice(2);
+            if(arguments_for_bind.length > 0)
+            {
+                arguments_for_bind.unshift(observer);
+                observer = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+            }
+        }
+        
         if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
@@ -276,16 +251,28 @@ ActiveEvent.extend = function extend(object){
     };
     
     /**
-     * Works exactly like observe(), but will stopObserving() after the next
+     * Works exactly like observe(), but will stopObserving() after the first
      *   time the event is fired.
      * @alias ActiveEvent.ObservableObject.observeOnce
      * @param {String} event_name
      * @param {Function} observer
+     * @param {Object} [context]
      * @return {Function} The observer that was passed in will be wrapped,
      *  this generated / wrapped observer is returned.
      */
-    object.observeOnce = function observeOnce(event_name,outer_observer)
+    object.observeOnce = function observeOnce(event_name,outer_observer,context)
     {
+        if(arguments.length > 2)
+        {
+            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_for_bind = arguments_array.slice(2);
+            if(arguments_for_bind.length > 0)
+            {
+                arguments_for_bind.unshift(outer_observer);
+                outer_observer = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+            }
+        }
+        
         var inner_observer = ActiveSupport.bind(function bound_inner_observer(){
             outer_observer.apply(this,arguments);
             this.stopObserving(event_name,inner_observer);
@@ -390,42 +377,16 @@ ActiveEvent.extend = function extend(object){
     }
 };
 
-ActiveEvent.MethodCallObserver = function MethodCallObserver(methods,observer,scope)
-{
-    this.stop = function stop(){
-        for(var i = 0; i < this.methods.length; ++i)
-        {
-            this.methods[i][0][this.methods[i][1]] = this.originals[i];
-        }
-    };
-    this.methods = methods;
-    this.originals = [];
-    for(var i = 0; i < this.methods.length; ++i)
-    {
-        this.originals.push(this.methods[i][0][this.methods[i][1]]);
-        this.methods[i][0][this.methods[i][1]] = ActiveSupport.wrap(this.methods[i][0][this.methods[i][1]],function(proceed){
-            var args = ActiveSupport.arrayFrom(arguments).slice(1);
-            observer.apply(this,args);
-            return proceed.apply(this,args);
-        });
-    }
-    if(scope)
-    {
-        scope();
-        this.stop();
-    }
-};
-
 var ObservableHash = function ObservableHash(object)
 {
     this._object = object || {};
 };
 
-ObservableHash.prototype.set = function set(key,value)
+ObservableHash.prototype.set = function set(key,value,suppress_observers)
 {
     var old_value = this._object[key];
     this._object[key] = value;
-    if(this._observers && this._observers.set)
+    if(this._observers && this._observers.set && !suppress_observers)
     {
         this.notify('set',key,value);
     }

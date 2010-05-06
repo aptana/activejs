@@ -82,7 +82,8 @@ ActiveRoutes.prototype.match = function(path){
         var route_path_length = route_path_components.length;
         var valid = true;
         //length of path components must match, but must treat "/blog", "/blog/action", "/blog/action/id" the same
-        if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*'){
+        if(path_length <= route_path_length || route_path_components[route_path_components.length - 1] == '*')
+        {
             for(var ii = 0; ii < route_path_components.length; ++ii)
             {
                 var path_component = path_components[ii];
