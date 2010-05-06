@@ -190,6 +190,36 @@ ActiveSupport.DOM = {
         }
         return element;
     },
+    hasClassName: function hasClassName(element,class_name)
+    {
+        if(!element)
+        {
+            return false;
+        }
+        var element_class_name = element.className;
+        return (element_class_name.length > 0 && (element_class_name == class_name || new RegExp("(^|\\s)" + class_name + "(\\s|$)").test(element_class_name)));
+    },
+    addClassName: function addClassName(element,class_name)
+    {
+        if(!element)
+        {
+            return false;
+        }
+        if(!ActiveSupport.DOM.hasClassName(element,class_name))
+        {
+            element.className += (element.className ? ' ' : '') + class_name;
+        }
+        return element;
+    },
+    removeClassName: function removeClassName(element,class_name)
+    {
+        if(!element)
+        {
+            return false;
+        }
+        element.className = element.className.replace(new RegExp("(^|\\s+)" + class_name + "(\\s+|$)"),' ').replace(/^\s+/, '').replace(/\s+$/, '');
+        return element;
+    },
     documentReadyObservers: [],
     observe: function observe(element,event_name,callback,context)
     {
