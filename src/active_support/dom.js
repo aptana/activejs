@@ -96,20 +96,30 @@ ActiveSupport.DOM = {
         {
             content = content.getElement();
         }
-        if(!content || !content.nodeType || content.nodeType !== 1)
+        if(ActiveSupport.isArray(content))
         {
-            content = global_context.document.createTextNode(String(content));
+            for(var i = 0; i < content.length; ++i)
+            {
+                ActiveSupport.DOM.insert(element,content[i],position);
+            }
         }
-        if(!position)
+        else
         {
-            position = 'bottom';
-        }
-        switch(position)
-        {
-            case 'top': element.insertBefore(content,element.firstChild); break;
-            case 'bottom': element.appendChild(content); break;
-            case 'before': element.parentNode.insertBefore(content,element); break;
-            case 'after': element.parentNode.insertBefore(content,element.nextSibling); break;
+            if(!content || !content.nodeType || content.nodeType !== 1)
+            {
+                content = global_context.document.createTextNode(String(content));
+            }
+            if(!position)
+            {
+                position = 'bottom';
+            }
+            switch(position)
+            {
+                case 'top': element.insertBefore(content,element.firstChild); break;
+                case 'bottom': element.appendChild(content); break;
+                case 'before': element.parentNode.insertBefore(content,element); break;
+                case 'after': element.parentNode.insertBefore(content,element.nextSibling); break;
+            }
         }
         return element;
     },
