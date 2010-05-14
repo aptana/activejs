@@ -15,7 +15,7 @@ ActiveRecord.eventNames = [
 (function(){
     for (var i = 0; i < ActiveRecord.eventNames.length; ++i)
     {
-        ActiveRecord.ClassMethods[ActiveRecord.eventNames[i]] = ActiveRecord.InstanceMethods[ActiveRecord.eventNames[i]] = ActiveSupport.curry(function event_name_delegator(event_name, observer){
+        ActiveRecord.ClassMethods[ActiveRecord.eventNames[i]] = ActiveRecord.InstanceMethods[ActiveRecord.eventNames[i]] = ActiveSupport.Function.curry(function event_name_delegator(event_name, observer){
             return this.observe(event_name, observer);
         },ActiveRecord.eventNames[i]);
     }
@@ -39,7 +39,7 @@ ActiveRecord.observe = function observe(event_name,observer)
             var model_observer;
             for(var model_name in ActiveRecord.Models)
             {
-                model_observer = ActiveSupport.curry(observer,ActiveRecord.Models[model_name]);
+                model_observer = ActiveSupport.Function.curry(observer,ActiveRecord.Models[model_name]);
                 observers.push(model_observer);
                 ActiveRecord.Models[model_name].observe(event_name,model_observer);
             }
@@ -53,7 +53,7 @@ ActiveRecord.observe = function observe(event_name,observer)
 (function(){
     for (var i = 0; i < ActiveRecord.eventNames.length; ++i)
     {
-        ActiveRecord[ActiveRecord.eventNames[i]] = ActiveSupport.curry(function event_name_delegator(event_name, observer){
+        ActiveRecord[ActiveRecord.eventNames[i]] = ActiveSupport.Function.curry(function event_name_delegator(event_name, observer){
             ActiveRecord.observe(event_name, observer);
         },ActiveRecord.eventNames[i]);
     }

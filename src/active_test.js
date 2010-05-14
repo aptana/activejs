@@ -55,7 +55,7 @@ var ActiveTest = {
                 {
                     if(test_name !== 'setup' && test_name !== 'teardown' && test_name !== 'cleanup')
                     {            
-                        stack.push(ActiveSupport.curry(function(test_name){
+                        stack.push(ActiveSupport.Function.curry(function(test_name){
                             ActiveTest.currentTestName = test_name;
                             try
                             {

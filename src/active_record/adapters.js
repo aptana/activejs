@@ -32,7 +32,7 @@ ActiveRecord.connection = null;
  */
 ActiveRecord.connect = function connect(adapter)
 {
-    var connection = adapter.connect.apply(adapter, ActiveSupport.arrayFrom(arguments).slice(1));
+    var connection = adapter.connect.apply(adapter, ActiveSupport.Array.from(arguments).slice(1));
     if(connection)
     {
         ActiveRecord.connection = connection;
@@ -120,7 +120,7 @@ Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
     {
         if (this.rows[iterator])
         {
-            return ActiveSupport.clone(this.rows[iterator]);
+            return ActiveSupport.Object.clone(this.rows[iterator]);
         }
         else
         {
@@ -131,7 +131,7 @@ Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
     {
         for (var i = 0; i < this.rows.length; ++i)
         {
-            var row = ActiveSupport.clone(this.rows[i]);
+            var row = ActiveSupport.Object.clone(this.rows[i]);
             iterator(row);
         }
     }
@@ -139,7 +139,7 @@ Adapters.defaultResultSetIterator = function defaultResultSetIterator(iterator)
 
 Adapters.objectIsFieldDefinition = function objectIsFieldDefinition(object)
 {
-    return typeof(object) === 'object' && ActiveSupport.keys(object).length === 2 && ('type' in object) && ('value' in object);
+    return typeof(object) === 'object' && ActiveSupport.Object.keys(object).length === 2 && ('type' in object) && ('value' in object);
 };
 
 Adapters.fieldTypesWithDefaultValues = {

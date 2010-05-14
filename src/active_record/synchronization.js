@@ -64,8 +64,8 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
             for(var synchronized_result_set_count in Synchronization.resultSetNotifications[record.tableName])
             {
                 var old_result_set = Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].resultSet;
-                var new_params = ActiveSupport.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
-                var new_result_set = record.constructor.find(ActiveSupport.extend(new_params,{synchronize: false}));
+                var new_params = ActiveSupport.Object.clone(Synchronization.resultSetNotifications[record.tableName][synchronized_result_set_count].params);
+                var new_result_set = record.constructor.find(ActiveSupport.Object.extend(new_params,{synchronize: false}));
                 var splices = Synchronization.spliceArgumentsFromResultSetDiff(old_result_set,new_result_set,event_name);
                 for(var x = 0; x < splices.length; ++x)
                 {
@@ -97,7 +97,7 @@ Synchronization.triggerSynchronizationNotifications = function triggerSynchroniz
     }
 };
 
-ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
      * Once synchronized a found instance will have it's values updated if
      * other records with the same id change in the database.
@@ -132,7 +132,7 @@ Synchronization.synchronizeCalculation = function synchronizeCalculation(klass,o
 {
     ++Synchronization.synchronizedCalculationCount;
     var callback = params.synchronize;
-    var callback_params = ActiveSupport.clone(params);
+    var callback_params = ActiveSupport.Object.clone(params);
     delete callback_params.synchronize;
     if(!Synchronization.calculationNotifications[klass.tableName])
     {

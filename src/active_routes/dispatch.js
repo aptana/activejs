@@ -36,16 +36,16 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,suppress_dispatcher)
             throw Errors.ReverseLookupFailed.getErrorString(path);
         }
         route = {
-            params: ActiveSupport.clone(path),
+            params: ActiveSupport.Object.clone(path),
             name: reverse_lookup_result.name,
             path: reverse_lookup_result.path
         };
         path = this.urlFor(route.params);
-        ActiveSupport.extend(route.params,reverse_lookup_result.params);
+        ActiveSupport.Object.extend(route.params,reverse_lookup_result.params);
     }
     else
     {
-        route = ActiveSupport.clone(path);
+        route = ActiveSupport.Object.clone(path);
         path = this.urlFor(route.params);
     }
     this.history.push(route);

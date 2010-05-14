@@ -14,7 +14,7 @@ ResultSet.InstanceMethods = {
      */
     reload: function reload(result_set,params,model){
         result_set.length = 0;
-        var new_response = model.find(ActiveSupport.extend(ActiveSupport.clone(params),{synchronize: false}));
+        var new_response = model.find(ActiveSupport.Object.extend(ActiveSupport.Object.clone(params),{synchronize: false}));
         for(var i = 0; i < new_response.length; ++i)
         {
             result_set.push(new_response[i]);
@@ -59,6 +59,6 @@ ResultSet.InstanceMethods = {
         {
             items.push(result_set[i].toSerializableObject());
         }
-        return ActiveSupport.XMLFromObject(ActiveSupport.Inflector.pluralize(model.modelName),items);
+        return ActiveSupport.XMLFromObject(ActiveSupport.String.pluralize(model.modelName),items);
     }
 };

@@ -127,7 +127,7 @@ ActiveRoutes = function initialize(routes,scope,options)
      * @property {Array}
      */
     this.history = [];
-    this.options = ActiveSupport.extend({
+    this.options = ActiveSupport.Object.extend({
         classSuffix: '',
         camelizeObjectName: true,
         camelizeMethodName: true,

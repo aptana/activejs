@@ -437,7 +437,7 @@ ActiveRecord = {
         var model = null;
         if(!options.modelName)
         {
-            var model_name = ActiveSupport.camelize(ActiveSupport.Inflector.singularize(options.tableName) || options.tableName);
+            var model_name = ActiveSupport.String.camelize(ActiveSupport.String.singularize(options.tableName) || options.tableName);
             options.modelName = model_name.charAt(0).toUpperCase() + model_name.substring(1);
         }
 
@@ -475,7 +475,7 @@ ActiveRecord = {
         model.primaryKeyName = 'id';
         
         //mixin instance methods
-        ActiveSupport.extend(model.prototype, ActiveRecord.InstanceMethods);
+        ActiveSupport.Object.extend(model.prototype, ActiveRecord.InstanceMethods);
 
         //user defined methods take precedence
         if(typeof(methods) == 'undefined')
@@ -493,11 +493,11 @@ ActiveRecord = {
         }
         if(methods && typeof(methods) !== 'function')
         {
-            ActiveSupport.extend(model.prototype, methods);
+            ActiveSupport.Object.extend(model.prototype, methods);
         }
 
         //mixin class methods
-        ActiveSupport.extend(model, ActiveRecord.ClassMethods);
+        ActiveSupport.Object.extend(model, ActiveRecord.ClassMethods);
 
         //add lifecycle abilities
         ActiveEvent.extend(model);
@@ -531,7 +531,7 @@ ActiveRecord = {
             model.primaryKeyName = custom_primary_key;
         }
 
-        ActiveSupport.extend(model.prototype, {
+        ActiveSupport.Object.extend(model.prototype, {
           modelName: model.modelName,
           tableName: model.tableName,
           primaryKeyName: model.primaryKeyName
@@ -544,7 +544,7 @@ ActiveRecord = {
             Finders.generateFindAllByField(model,key);
         }
         //get is a synonym for findBy<PrimaryKey>
-        model.get = model['findBy' + ActiveSupport.camelize(model.primaryKeyName, true)];
+        model.get = model['findBy' + ActiveSupport.String.camelize(model.primaryKeyName, true)];
         
         //setup relationship meta data container
         model.relationships = [];

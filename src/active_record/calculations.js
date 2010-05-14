@@ -1,4 +1,4 @@
-ActiveSupport.extend(ActiveRecord.ClassMethods,{
+ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     processCalculationParams: function processCalculationParams(operation,params)
     {
         if(!params)

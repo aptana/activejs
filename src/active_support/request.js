@@ -26,18 +26,18 @@ ActiveSupport.Request = function Request(url,options)
         evalJSON: true,
         evalJS: true
     };
-    ActiveSupport.extend(this.options,options || {});
+    ActiveSupport.Object.extend(this.options,options || {});
     this.options.method = this.options.method.toLowerCase();
     this.url = url;
     this.transport = ActiveSupport.Request.getTransport();
     this.request(url);
 };
 
-ActiveSupport.extend(ActiveSupport.Request.prototype,{
+ActiveSupport.Object.extend(ActiveSupport.Request.prototype,{
     request: function request()
     {
         this.method = this.options.method;
-        var params = ActiveSupport.clone(this.options.parameters);
+        var params = ActiveSupport.Object.clone(this.options.parameters);
         if(this.method != 'get' && this.method != 'post')
         {
             params['_method'] = this.method;
@@ -69,9 +69,9 @@ ActiveSupport.extend(ActiveSupport.Request.prototype,{
         this.transport.open(this.method.toUpperCase(),this.url,this.options.asynchronous);
         if(this.options.asynchronous)
         {
-            window.setTimeout(ActiveSupport.bind(this.respondToReadyState,this),1000);
+            window.setTimeout(ActiveSupport.Function.bind(this.respondToReadyState,this),1000);
         }
-        this.transport.onreadystatechange = ActiveSupport.bind(this.onStateChange,this);
+        this.transport.onreadystatechange = ActiveSupport.Function.bind(this.onStateChange,this);
         this.setRequestHeaders();
         this.body = this.method == 'post' ? (this.options.postBody || params) : null;
         this.transport.send(this.body);
@@ -197,7 +197,7 @@ ActiveSupport.extend(ActiveSupport.Request.prototype,{
     }
 });
 
-ActiveSupport.extend(ActiveSupport.Request,{
+ActiveSupport.Object.extend(ActiveSupport.Request,{
     events: [
         'Uninitialized',
         'Loading',
@@ -232,7 +232,7 @@ ActiveSupport.extend(ActiveSupport.Request,{
             var values = params[param_name];
             if(values && typeof values == 'object')
             {
-                if(ActiveSupport.isArray(values))
+                if(ActiveSupport.Object.isArray(values))
                 {
                     var values_response = [];
                     for(var i = 0; i < values.length; ++i)
@@ -289,7 +289,7 @@ ActiveSupport.Response = function Response(request)
         this.responseJSON = this.getResponseJSON();
     }
 };
-ActiveSupport.extend(ActiveSupport.Response.prototype,{
+ActiveSupport.Object.extend(ActiveSupport.Response.prototype,{
     getStatusText: function getStatusText()
     {
         try

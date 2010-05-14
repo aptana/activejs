@@ -1,20 +1,15 @@
 /**
+ * ActiveSupport.JSONFromObject(object) -> String
  * Serializes an object to a JSON string.
- * @alias ActiveSupport.JSONFromObject
- * @param {Object} object
- * @return {String} json
- */ 
+ **/ 
 ActiveSupport.JSONFromObject = function JSONFromObject(object)
 {
     return ActiveSupport.JSON.stringify(object);
 };
 
 /**
+ * ActiveSupport.XMLFromObject(outer_key_name,object) -> String
  * Serializes an object to an XML string.
- * @alias ActiveSupport.XMLFromObject
- * @param {String} outer_key_name
- * @param {Object} object
- * @return {String} xml
  */ 
 ActiveSupport.XMLFromObject = function XMLFromObject(outer_key_name,object)
 {
@@ -44,7 +39,7 @@ ActiveSupport.XMLFromObject = function XMLFromObject(outer_key_name,object)
             {
                 for(var i = 0; i < value.length; ++i)
                 {
-                    response += wrap_value(ActiveSupport.Inflector.singularize(key_name) || key_name,value[i],indent + 1);
+                    response += wrap_value(ActiveSupport.String.singularize(key_name) || key_name,value[i],indent + 1);
                 }
             }
             else
@@ -296,7 +291,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             partial,
             value = holder[key];
         if (value && typeof value === 'object' &&
-                typeof value.toJSON === 'function' && !ActiveSupport.isArray(value)) {
+                typeof value.toJSON === 'function' && !ActiveSupport.Object.isArray(value)) {
             value = value.toJSON(key);
         }
         if (typeof rep === 'function') {
@@ -362,9 +357,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
     
     return {
         /**
-         * @alias ActiveSupport.JSON.stringify
-         * @param {Object} value
-         * @return {String}
+         * ActiveSupport.JSON.stringify(object) -> String
          */
         stringify: function (value, replacer, space) {
             var i;
@@ -386,9 +379,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             return str('', {'': value});
         },
         /**
-         * @alias ActiveSupport.JSON.parse
-         * @param {String} text
-         * @return {Object}
+         * ActiveSupport.JSON.parse(json_string) -> Object
          */
         parse: function (text, reviver) {
             var j;
@@ -428,6 +419,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
 };
 
 /**
- * @namespace {ActiveSupport.JSON} Provides JSON support if a native implementation is not available.
+ * ActiveSupport.JSON
+ * Provides JSON support, will use the browser's native implementation if it is available and complies with the JSON spec.
  */
 ActiveSupport.JSON = ActiveSupport.getNativeJSONImplementation() || ActiveSupport.getAlternateJSONImplementation();

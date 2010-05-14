@@ -1,10 +1,8 @@
 /**
+ * ActiveSupport.dateFromDateTime(date_time) -> Date
+ * - date_time (String): in "yyyy-mm-dd HH:MM:ss" format
  * Generates a JavaScript Date object from a MySQL DATETIME formatted
- * string (yyyy-mm-dd HH:MM:ss).
- * @alias ActiveSupport.dateFromDateTime
- * @param {String} date_time
- * @return {Date}
- */
+ **/
 ActiveSupport.dateFromDateTime = function dateFromDateTime(date_time)
 {
     var parts = date_time.replace(/^([0-9]{2,4})-([0-1][0-9])-([0-3][0-9]) (?:([0-2][0-9]):([0-5][0-9]):([0-5][0-9]))?$/,"$1 $2 $3 $4 $5 $6").split(' ');
@@ -26,20 +24,21 @@ ActiveSupport.dateFromDateTime = function dateFromDateTime(date_time)
  */
  
 /**
+ * ActiveSupport.dateFormat(format) -> String
+ * ActiveSupport.dateFormat(date,format[,convert_to_local_time = false]) -> String
+ * - date (Date): If no date is passed the current Date will be used.
+ * - format (String)
+ * - convert_to_local_time [Boolean]
+ * 
  * See: http://blog.stevenlevithan.com/archives/date-time-format
  * 
  * If convert_to_local_time is true the Date object will be assume to be GMT
  * and be converted from GMT to the local time. Local time will be the local
  * time of the server if running server side, or local time of the client
  * side if running in the browser.
- * @alias ActiveSupport.dateFormat
- * @param {Date} date
- * @param {String} format
- * @param {Boolean} [convert_to_local_time]
- * @return {String}
- * @example
- *     ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
- */
+ *
+ *    ActiveSupport.dateFormat('yyyy-mm-dd HH:MM:ss');
+ **/
 ActiveSupport.dateFormat = (function date_format_wrapper()
 {
     var token = /d{1,4}|m{1,4}|yy(?:yy)?|([HhMsTt])\1?|[LloSZ]|"[^"]*"|'[^']*'/g,

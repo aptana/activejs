@@ -8,7 +8,7 @@ ActiveView.Routing = {
     {
         if(!ActiveView.Routing.startObserver && !ActiveView.Routing.ready)
         {
-            ActiveView.Routing.startObserver = ActiveSupport.DOM.observe(ActiveSupport.getGlobalContext().document,'ready',function document_ready_observer(){
+            ActiveView.Routing.startObserver = ActiveSupport.Element.observe(ActiveSupport.getGlobalContext().document,'ready',function document_ready_observer(){
                 ActiveView.Routing.ready = true;
                 ActiveView.Routing.routes.dispatch(ActiveView.Routing.getCurrentPath());
             });
@@ -76,7 +76,7 @@ ActiveView.Routing = {
     },
     generateRoutingMethod: function generateRoutingMethod(view_class,route_name)
     {
-        view_class.getInstance()[route_name] = ActiveSupport.wrap(view_class.getInstance()[route_name],function wrapped_generated_routing_handler(proceed,params){
+        view_class.getInstance()[route_name] = ActiveSupport.Function.wrap(view_class.getInstance()[route_name],function wrapped_generated_routing_handler(proceed,params){
             ActiveView.Routing.setRoute(view_class,route_name,params);
             proceed(params);
         });
@@ -97,10 +97,10 @@ ActiveView.Routing = {
         }
         params.method = route_name;
         params.object = 'Routing';
-        var final_route = ActiveSupport.clone(route);
+        var final_route = ActiveSupport.Object.clone(route);
         //need to deep copy the params
-        final_route.params = ActiveSupport.clone(route.params);
-        ActiveSupport.extend(final_route.params,params || {});
+        final_route.params = ActiveSupport.Object.clone(route.params);
+        ActiveSupport.Object.extend(final_route.params,params || {});
         //dispatch the route, but suppress the actual dispatcher
         ActiveView.Routing.routes.dispatch(final_route,true);
     },

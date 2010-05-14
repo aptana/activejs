@@ -8,9 +8,9 @@ Adapters.InMemory = function InMemory(storage){
     this.setStorage(storage);
 };
 
-ActiveSupport.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
+ActiveSupport.Object.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
 
-ActiveSupport.extend(Adapters.InMemory.prototype,{
+ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     schemaLess: true,
     entityMissing: function entityMissing(id)
     {
@@ -178,7 +178,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
 
             //replace ? in SQL strings
             var sql = table;
-            var sql_args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var sql_args = ActiveSupport.Array.from(arguments).slice(1);
             for(var i = 0; i < sql_args.length; ++i)
             {
                 sql = sql.replace(/\?/,ActiveRecord.escape(sql_args[i]));
@@ -266,7 +266,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
         var backup = {};
         for(var table_name in this.storage)
         {
-            backup[table_name] = ActiveSupport.clone(this.storage[table_name]);
+            backup[table_name] = ActiveSupport.Object.clone(this.storage[table_name]);
         }
         try
         {
@@ -287,7 +287,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             {
                 if (this[iterator])
                 {
-                    return ActiveSupport.clone(this[iterator]);
+                    return ActiveSupport.Object.clone(this[iterator]);
                 }
                 else
                 {
@@ -298,7 +298,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
             {
                 for (var i = 0; i < this.length; ++i)
                 {
-                    var row = ActiveSupport.clone(this[i]);
+                    var row = ActiveSupport.Object.clone(this[i]);
                     iterator(row);
                 }
             }
@@ -314,7 +314,7 @@ ActiveSupport.extend(Adapters.InMemory.prototype,{
     },
     createWhere: function createWhere(where)
     {   
-        if(ActiveSupport.isArray(where))
+        if(ActiveSupport.Object.isArray(where))
         {
             var where_fragment = where[0];
             for(var i = 1; i < where.length; ++i)
@@ -544,7 +544,7 @@ Adapters.InMemory.MethodCallbacks = (function(){
     {
         methods[math_methods[i]] = (function math_method_generator(i){
             return function generated_math_method(){
-                return Math[math_methods[i]].apply(Math.math_methods[i],ActiveSupport.arrayFrom(arguments).slice(1));
+                return Math[math_methods[i]].apply(Math.math_methods[i],ActiveSupport.Array.from(arguments).slice(1));
             };
         })(i);
     }

@@ -1,4 +1,4 @@
-ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
      * Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.
      * @alias ActiveRecord.Instance.set
@@ -40,7 +40,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toObject: function toObject(callback)
     {
-        var response = ActiveSupport.clone(this._object);
+        var response = ActiveSupport.Object.clone(this._object);
         if(callback)
         {
             response = callback(response);
@@ -241,7 +241,7 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toJSON: function toJSON(object_to_inject)
     {
-        return ActiveSupport.JSON.stringify(ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
+        return ActiveSupport.JSON.stringify(ActiveSupport.Object.extend(this.toSerializableObject(),object_to_inject || {}));
     },
     /**
      * Serializes the record to an XML string. If object_to_inject is passed
@@ -252,10 +252,10 @@ ActiveSupport.extend(ActiveRecord.InstanceMethods,{
      */
     toXML: function toXML(object_to_inject)
     {
-        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.extend(this.toSerializableObject(),object_to_inject || {}));
+        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.Object.extend(this.toSerializableObject(),object_to_inject || {}));
     }
 });
-ActiveSupport.extend(ActiveRecord.ClassMethods,{
+ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     /**
      * Find a given record, or multiple records matching the passed conditions.
      * @alias ActiveRecord.Class.find
@@ -366,7 +366,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             else if (params && ((typeof(params) == 'object' && 'length' in params && 'slice' in params) || ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1)))
             {
                 //find by multiple ids
-                var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.arrayFrom(arguments) : params;
+                var ids = ((typeof(params) == 'number' || typeof(params) == 'string') && arguments.length > 1) ? ActiveSupport.Array.from(arguments) : params;
                 result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,ids);
             }
             else
@@ -377,7 +377,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             var response = [];
             if (result)
             {
-                result.iterate(ActiveSupport.bind(function result_iterator(row){
+                result.iterate(ActiveSupport.Function.bind(function result_iterator(row){
                     response.push(this.build(row));
                 }, this));
             }
@@ -408,7 +408,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
             }
             return responses;
         }
-        else if(ActiveSupport.isArray(id))
+        else if(ActiveSupport.Object.isArray(id))
         {
             var responses = [];
             for(var i = 0; i < id.length; ++i)
@@ -443,13 +443,13 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     build: function build(data)
     {
-        if(ActiveSupport.isArray(data))
+        if(ActiveSupport.Object.isArray(data))
         {
             var records = [];
             for(var i = 0; i < data.length; ++i)
             {
                 ++ActiveRecord.internalCounter;
-                var record = new this(ActiveSupport.clone(data[i]));
+                var record = new this(ActiveSupport.Object.clone(data[i]));
                 record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
                 records.push(record);
             }
@@ -458,7 +458,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         else
         {
             ++ActiveRecord.internalCounter;
-            var record = new this(ActiveSupport.clone(data));
+            var record = new this(ActiveSupport.Object.clone(data));
             record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
             return record;
         }
@@ -476,7 +476,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     create: function create(data)
     {
-        if(ActiveSupport.isArray(data))
+        if(ActiveSupport.Object.isArray(data))
         {
             var records = [];
             for(var i = 0; i < data.length; ++i)
@@ -516,9 +516,9 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     update: function update(id, attributes)
     {
-        if (ActiveSupport.isArray(id))
+        if (ActiveSupport.Object.isArray(id))
         {
-            var attributes_is_array = ActiveSupport.isArray(attributes);
+            var attributes_is_array = ActiveSupport.Object.isArray(attributes);
             var results = [];
             for(var i = 0; i < id.length; ++i)
             {
@@ -578,7 +578,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         }
         for(var method_name in ResultSet.InstanceMethods)
         {
-            result_set[method_name] = ActiveSupport.curry(ResultSet.InstanceMethods[method_name],result_set,params,this);
+            result_set[method_name] = ActiveSupport.Function.curry(ResultSet.InstanceMethods[method_name],result_set,params,this);
         }
         if(params.synchronize)
         {

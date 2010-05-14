@@ -22,7 +22,7 @@ var Validations = {
 
 ActiveRoutes.prototype.objectExists = function(object_name)
 {
-    return !!ActiveSupport.getClass(object_name,this.scope);
+    return !!this.scope[object_name];
 };
 
 ActiveRoutes.prototype.getMethod = function(object_name,method_name)

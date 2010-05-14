@@ -30,7 +30,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(related_model_name));
     var class_methods = {};
     var instance_methods = {};
-    instance_methods['get' + relationship_name] = ActiveSupport.curry(function getRelated(related_model_name, foreign_key){
+    instance_methods['get' + relationship_name] = ActiveSupport.Function.curry(function getRelated(related_model_name, foreign_key){
         var id = this.get(foreign_key);
         if (id)
         {
@@ -41,10 +41,10 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
             return false;
         }
     }, related_model_name, foreign_key);
-    class_methods['build' + relationship_name] = instance_methods['build' + relationship_name] = ActiveSupport.curry(function buildRelated(related_model_name, foreign_key, params){
+    class_methods['build' + relationship_name] = instance_methods['build' + relationship_name] = ActiveSupport.Function.curry(function buildRelated(related_model_name, foreign_key, params){
         return ActiveRecord.Models[related_model_name].build(params || {});
     }, related_model_name, foreign_key);
-    instance_methods['create' + relationship_name] = ActiveSupport.curry(function createRelated(related_model_name, foreign_key, params){
+    instance_methods['create' + relationship_name] = ActiveSupport.Function.curry(function createRelated(related_model_name, foreign_key, params){
         var record = ActiveRecord.Models[related_model_name].create(params || {});
         if(this.get(this.constructor.primaryKeyName))
         {
@@ -52,8 +52,8 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
         }
         return record;
     }, related_model_name, foreign_key);
-    ActiveSupport.extend(this.prototype, instance_methods);
-    ActiveSupport.extend(this, class_methods);
+    ActiveSupport.Object.extend(this.prototype, instance_methods);
+    ActiveSupport.Object.extend(this, class_methods);
     
     //dependent
     if(options.dependent)

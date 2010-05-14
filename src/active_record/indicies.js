@@ -115,10 +115,10 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
     this.indexed[name] = index || {};
     this.indexingCallbacks[name] = callbacks;
     this.indexingCallbackObservers[name] = {};
-    this.indexingCallbackObservers[name].afterSave = this.observe('afterSave',ActiveSupport.bind(function afterSaveIndexObserver(instance){
+    this.indexingCallbackObservers[name].afterSave = this.observe('afterSave',ActiveSupport.Function.bind(function afterSaveIndexObserver(instance){
         callbacks.afterSave(this.indexed[name],instance.toObject());
     },this));
-    this.indexingCallbackObservers[name].afterDestroy = this.observe('afterDestroy',ActiveSupport.bind(function afterDestroyIndexObserver(instance){
+    this.indexingCallbackObservers[name].afterDestroy = this.observe('afterDestroy',ActiveSupport.Function.bind(function afterDestroyIndexObserver(instance){
         callbacks.afterDestroy(this.indexed[name],instance.toObject());
     },this));
 };

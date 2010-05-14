@@ -15,10 +15,10 @@ ActiveSupport.CallbackQueue.prototype.setOnComplete = function setOnComplete(on_
 
 ActiveSupport.CallbackQueue.prototype.push = function push(callback)
 {
-    var wrapped = ActiveSupport.wrap(callback || (function(){}),ActiveSupport.bind(function callback_queue_wrapper(proceed){
+    var wrapped = ActiveSupport.Function.wrap(callback || (function(){}),ActiveSupport.Function.bind(function callback_queue_wrapper(proceed){
         var i = null;
-        var index = ActiveSupport.indexOf(this.stack,wrapped);
-        this.waiting[index] = [proceed,ActiveSupport.arrayFrom(arguments).slice(1)];
+        var index = ActiveSupport.Array.indexOf(this.stack,wrapped);
+        this.waiting[index] = [proceed,ActiveSupport.Array.from(arguments).slice(1)];
         var all_present = true;
         for(i = 0; i < this.stack.length; ++i)
         {

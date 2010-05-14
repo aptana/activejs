@@ -8,7 +8,7 @@ document:
 */
 Adapters.REST = {};
 
-ActiveSupport.extend(Adapters.REST,{
+ActiveSupport.Object.extend(Adapters.REST,{
     mapping: {},
     wrappedMethods: {},
     connect: function connect(initial_data_location,mapping)
@@ -23,7 +23,7 @@ ActiveSupport.extend(Adapters.REST,{
             }
             for(var action_name in mapping[model_name])
             {
-                if(ActiveSupport.indexOf(['search','outbound_transform','inbound_transform'],action_name) == -1)
+                if(ActiveSupport.Array.indexOf(['search','outbound_transform','inbound_transform'],action_name) == -1)
                 {
                     Adapters.REST.generateWrapper(action_name,model,mapping[model_name][action_name]);
                 }
@@ -114,7 +114,7 @@ ActiveSupport.extend(Adapters.REST,{
         }
         if(!Adapters.REST.wrappedMethods[model.modelName].instance[method_name])
         {
-            Adapters.REST.wrappedMethods[model.modelName].instance[method_name] = model.prototype[method_name] = ActiveSupport.wrap(model.prototype[method_name],Adapters.REST.instanceWrapperGenerators[method_name](model,mapping_fragment));
+            Adapters.REST.wrappedMethods[model.modelName].instance[method_name] = model.prototype[method_name] = ActiveSupport.Function.wrap(model.prototype[method_name],Adapters.REST.instanceWrapperGenerators[method_name](model,mapping_fragment));
         }
     },
     generateClassWrapper: function generateClassWrapper(method_name,model,mapping_fragment)
@@ -129,12 +129,12 @@ ActiveSupport.extend(Adapters.REST,{
         }
         if(!Adapters.REST.wrappedMethods[model.modelName].klass[method_name])
         {
-            Adapters.REST.wrappedMethods[model.modelName].klass[method_name] = model[method_name] = ActiveSupport.wrap(model[method_name],Adapters.REST.classWrapperGenerators[method_name](model,mapping_fragment));
+            Adapters.REST.wrappedMethods[model.modelName].klass[method_name] = model[method_name] = ActiveSupport.Function.wrap(model[method_name],Adapters.REST.classWrapperGenerators[method_name](model,mapping_fragment));
         }
     },
     getPersistencePostBody: function getPersistencePostBody(model,params,http_params,mapping_fragment)
     {
-        var params_container_name = ActiveSupport.Inflector.singularize(model.tableName);
+        var params_container_name = ActiveSupport.String.singularize(model.tableName);
         var transform = false;
         if(Adapters.REST.mapping[model.modelName].outbound_transform)
         {
@@ -142,11 +142,11 @@ ActiveSupport.extend(Adapters.REST,{
         }
         if(params)
         {
-            if(ActiveSupport.isArray(params))
+            if(ActiveSupport.Object.isArray(params))
             {
                 var plural_params_container_name = model.tableName;
                 var final_params = {};
-                ActiveSupport.extend(final_params,http_params || {});
+                ActiveSupport.Object.extend(final_params,http_params || {});
                 if(transform)
                 {
                     for(var i = 0; i < params.length; ++i)
@@ -188,7 +188,7 @@ ActiveSupport.extend(Adapters.REST,{
             //console.log('success: transport.responseJSON',transport.responseJSON);
             if(instance)
             {
-                if(ActiveSupport.isArray(instance))
+                if(ActiveSupport.Object.isArray(instance))
                 {
                     for(var i = 0; i < instance.length; ++i)
                     {
@@ -308,7 +308,7 @@ Adapters.REST.classWrapperGenerators = {
             var model_name = model.modelName;
             if(instance && callback)
             {
-                if(ActiveSupport.isArray(attributes))
+                if(ActiveSupport.Object.isArray(attributes))
                 {
                     if(Adapters.REST.mapping[model_name].batch_create)
                     {
@@ -361,7 +361,7 @@ Adapters.REST.classWrapperGenerators = {
             var model_name = model.modelName;
             if(instance && callback)
             {
-                if(ActiveSupport.isArray(id))
+                if(ActiveSupport.Object.isArray(id))
                 {
                     if(Adapters.REST.mapping[model_name].batch_update)
                     {
@@ -405,7 +405,7 @@ Adapters.REST.classWrapperGenerators = {
             var model_name = model.modelName;
             if(callback)
             {
-                if(ActiveSupport.isArray(id))
+                if(ActiveSupport.Object.isArray(id))
                 {
                     if(Adapters.REST.mapping[model_name].batch_destroy)
                     {

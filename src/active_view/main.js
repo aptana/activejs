@@ -136,7 +136,7 @@
  * by Builder will automatically have the Prototype or MooTools Element
  * extensions attached. To integrate with another library or your own code: 
  * 
- *     ActiveSupport.DOM.extend = function(element){
+ *     ActiveSupport.Element.extend = function(element){
  *         MyLibrary.extendElement(element);
  *         return element;
  *     };
@@ -330,9 +330,9 @@ ActiveView.create = function create(structure,methods)
     };
     klass.instance = false;
     klass.prototype.structure = structure;
-    ActiveSupport.extend(klass,ClassMethods);
-    ActiveSupport.extend(klass.prototype,InstanceMethods);
-    ActiveSupport.extend(klass.prototype,methods || {});
+    ActiveSupport.Object.extend(klass,ClassMethods);
+    ActiveSupport.Object.extend(klass.prototype,InstanceMethods);
+    ActiveSupport.Object.extend(klass.prototype,methods || {});
     ActiveEvent.extend(klass);
     return klass;
 };
@@ -462,7 +462,7 @@ var InstanceMethods = (function(){
         },
         exportScope: function exportScope()
         {
-            return ActiveSupport.clone(this.scope);
+            return ActiveSupport.Object.clone(this.scope);
         }
     };
 })();

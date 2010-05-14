@@ -63,7 +63,7 @@
  *     });
  * 
  * You can bind and curry your observers by adding extra arguments, which
- * will be passed to ActiveSupport.bind:
+ * will be passed to ActiveSupport.Function.bind:
  * 
  *     Message.observe('sent',function(curried_argument,message,text){
  *         //this == context
@@ -161,8 +161,8 @@ ActiveEvent.extend = function extend(object){
         if(this[method_name])
         {
             this._objectEventSetup(method_name);
-            this[method_name] = ActiveSupport.wrap(this[method_name],function wrapped_observer(proceed){
-                var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            this[method_name] = ActiveSupport.Function.wrap(this[method_name],function wrapped_observer(proceed){
+                var args = ActiveSupport.Array.from(arguments).slice(1);
                 var response = proceed.apply(this,args);
                 args.unshift(method_name);
                 this.notify.apply(this,args);
@@ -198,19 +198,19 @@ ActiveEvent.extend = function extend(object){
     {
         if(arguments.length > 2)
         {
-            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_array = ActiveSupport.Array.from(arguments);
             var arguments_for_bind = arguments_array.slice(2);
             if(arguments_for_bind.length > 0)
             {
                 arguments_for_bind.unshift(observer);
-                observer = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+                observer = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
             }
         }
         
         if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
-            if(!(ActiveSupport.indexOf(this._observers[event_name],observer) > -1))
+            if(!(ActiveSupport.Array.indexOf(this._observers[event_name],observer) > -1))
             {
                 this._observers[event_name].push(observer);
             }
@@ -238,7 +238,7 @@ ActiveEvent.extend = function extend(object){
         this._objectEventSetup(event_name);
         if(event_name && observer)
         {
-            this._observers[event_name] = ActiveSupport.without(this._observers[event_name],observer);
+            this._observers[event_name] = ActiveSupport.Array.without(this._observers[event_name],observer);
         }
         else if(event_name)
         {
@@ -264,16 +264,16 @@ ActiveEvent.extend = function extend(object){
     {
         if(arguments.length > 2)
         {
-            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_array = ActiveSupport.Array.from(arguments);
             var arguments_for_bind = arguments_array.slice(2);
             if(arguments_for_bind.length > 0)
             {
                 arguments_for_bind.unshift(outer_observer);
-                outer_observer = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+                outer_observer = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
             }
         }
         
-        var inner_observer = ActiveSupport.bind(function bound_inner_observer(){
+        var inner_observer = ActiveSupport.Function.bind(function bound_inner_observer(){
             outer_observer.apply(this,arguments);
             this.stopObserving(event_name,inner_observer);
         },this);
@@ -298,7 +298,7 @@ ActiveEvent.extend = function extend(object){
         }
         this._objectEventSetup(event_name);
         var collected_return_values = [];
-        var args = ActiveSupport.arrayFrom(arguments).slice(1);
+        var args = ActiveSupport.Array.from(arguments).slice(1);
         for(var i = 0; i < this._observers[event_name].length; ++i)
         {
             var response = this._observers[event_name][i].apply(this._observers[event_name][i],args);
@@ -332,11 +332,11 @@ ActiveEvent.extend = function extend(object){
             {
                 return [];
             }
-            var args = ActiveSupport.arrayFrom(arguments).slice(1);
+            var args = ActiveSupport.Array.from(arguments).slice(1);
             var collected_return_values = [];
             if(object.notify)
             {
-                object_args = ActiveSupport.arrayFrom(arguments).slice(1);
+                object_args = ActiveSupport.Array.from(arguments).slice(1);
                 object_args.unshift(this);
                 object_args.unshift(event_name);
                 var collected_return_values_from_object = object.notify.apply(object,object_args);

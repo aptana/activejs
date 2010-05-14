@@ -6,7 +6,7 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,or
     }
     if(this.options.camelizeObjectName)
     {
-        route.params.object = ActiveSupport.camelize(route.params.object,true);
+        route.params.object = ActiveSupport.String.camelize(route.params.object,true);
     }
     if(route.params.requirements)
     {
@@ -66,8 +66,8 @@ ActiveRoutes.prototype.match = function(path){
     var path_length = path_components.length;
     for(var i = 0; i < this.routes.length; ++i)
     {
-        var route = ActiveSupport.clone(this.routes[i]);
-        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var route = ActiveSupport.Object.clone(this.routes[i]);
+        route.params = ActiveSupport.Object.clone(this.routes[i].params || {});
         route.extension = extension;
         route.orderedParams = [];
         
@@ -173,7 +173,7 @@ ActiveRoutes.prototype.reverseLookup = function reverseLookup(class_name,action_
         var route = this.routes[i];
         if(route.params.object && route.params.object.toLowerCase() == class_name.toLowerCase() && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
         {
-            var final_route = ActiveSupport.clone(route);
+            var final_route = ActiveSupport.Object.clone(route);
             final_route.method = action_name;
             return final_route;
         }
@@ -184,7 +184,7 @@ ActiveRoutes.prototype.reverseLookup = function reverseLookup(class_name,action_
         var route = this.routes[i];
         if((!route.params.object || route.path.match(/(^|\/)\:object($|\/)/)) && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
         {
-            var final_route = ActiveSupport.clone(route);
+            var final_route = ActiveSupport.Object.clone(route);
             final_route.method = action_name;
             final_route.object = class_name;
             return route;

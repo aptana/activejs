@@ -1,4 +1,4 @@
-ActiveSupport.extend(ActiveRecord.ClassMethods,{
+ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     /**
      * Adds the validator to the _validators array of a given ActiveRecord.Class.
      * @alias ActiveRecord.Class.addValidator
@@ -19,7 +19,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     validatesPresenceOf: function validatesPresenceOf(field, options)
     {
-        options = ActiveSupport.extend({
+        options = ActiveSupport.Object.extend({
             
         },options || {});
         this.addValidator(function validates_presence_of_callback(){
@@ -37,7 +37,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
      */
     validatesLengthOf: function validatesLengthOf(field, options)
     {
-        options = ActiveSupport.extend({
+        options = ActiveSupport.Object.extend({
             min: 1,
             max: 9999
         },options || {});
@@ -55,7 +55,7 @@ ActiveSupport.extend(ActiveRecord.ClassMethods,{
         });
     }
 });
-ActiveSupport.extend(ActiveRecord.InstanceMethods,{
+ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
      * @alias ActiveRecord.Instance.addError
      * @param {String} message

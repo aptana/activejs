@@ -79,7 +79,7 @@ ActiveRoutes.prototype.urlFor = function urlFor(params)
         else
         {
             var final_params = {};
-            var found_params = ActiveSupport.clone(this.routes[found].params);
+            var found_params = ActiveSupport.Object.clone(this.routes[found].params);
             for(var name in found_params)
             {
                 final_params[name] = found_params[name];
@@ -102,19 +102,19 @@ ActiveRoutes.prototype.urlFor = function urlFor(params)
     
     if(this.options.camelizeMethodName)
     {
-        params.method = ActiveSupport.camelize(params.method,false);
+        params.method = ActiveSupport.String.camelize(params.method,false);
     }
     
     if(this.options.camelizeObjectName)
     {
-        params.object = ActiveSupport.camelize(params.object,true);
+        params.object = ActiveSupport.String.camelize(params.object,true);
     }
     
     //first past for exact match
     for(var i = 0; i < this.routes.length; ++i)
     {
-        var route = ActiveSupport.clone(this.routes[i]);
-        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var route = ActiveSupport.Object.clone(this.routes[i]);
+        route.params = ActiveSupport.Object.clone(this.routes[i].params || {});
         var path = route.path;
         if((route.params.method || '').toLowerCase() == (params.method || '').toLowerCase() && (route.params.object || '').toLowerCase() == (params.object || '').toLowerCase())
         {
@@ -130,8 +130,8 @@ ActiveRoutes.prototype.urlFor = function urlFor(params)
     //match that requires param replacement
     for(var i = 0; i < this.routes.length; ++i)
     {
-        var route = ActiveSupport.clone(this.routes[i]);
-        route.params = ActiveSupport.clone(this.routes[i].params || {});
+        var route = ActiveSupport.Object.clone(this.routes[i]);
+        route.params = ActiveSupport.Object.clone(this.routes[i].params || {});
         var path = route.path;
         if(route.params.object == params.object)
         {
@@ -155,8 +155,8 @@ ActiveRoutes.prototype.generateMethodsForRoute = function generateMethodsForRout
         var url_for_method_name = route.name + '_url';
         if(current_route_set.options.camelizeGeneratedMethods)
         {
-            params_for_method_name = ActiveSupport.camelize(params_for_method_name.replace(/\_/g,'-'));
-            url_for_method_name = ActiveSupport.camelize(url_for_method_name.replace(/\_/g,'-'));
+            params_for_method_name = ActiveSupport.String.camelize(params_for_method_name.replace(/\_/g,'-'));
+            url_for_method_name = ActiveSupport.String.camelize(url_for_method_name.replace(/\_/g,'-'));
         }
         
         current_route_set.scope[params_for_method_name] = function generated_params_for(params){

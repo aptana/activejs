@@ -1,7 +1,7 @@
 var global_context = ActiveSupport.getGlobalContext();
 var ie = !!(global_context.attachEvent && !global_context.opera);
 
-ActiveSupport.DOM = {
+ActiveSupport.Element = {
     ieAttributeTranslations: {
         'class': 'className',
         'checked': 'defaultChecked',
@@ -30,6 +30,9 @@ ActiveSupport.DOM = {
         KEY_INSERT:   45
     },
     cache: {},
+    /**
+     * ActiveSupport.Element.create(tag_name,attributes_hash) -> Element
+     **/
     create: function create(tag_name,attributes)
     {
         attributes = attributes || {};
@@ -50,23 +53,26 @@ ActiveSupport.DOM = {
             tag += '>';
             delete attributes.name;
             delete attributes.type;
-            element = ActiveSupport.DOM.extend(global_context.document.createElement(tag));
+            element = ActiveSupport.Element.extend(global_context.document.createElement(tag));
         }
         else
         {
-            if(!ActiveSupport.DOM.cache[tag_name])
+            if(!ActiveSupport.Element.cache[tag_name])
             {
-                ActiveSupport.DOM.cache[tag_name] = ActiveSupport.DOM.extend(global_context.document.createElement(tag_name));
+                ActiveSupport.Element.cache[tag_name] = ActiveSupport.Element.extend(global_context.document.createElement(tag_name));
             }
-            element = ActiveSupport.DOM.cache[tag_name].cloneNode(false);
+            element = ActiveSupport.Element.cache[tag_name].cloneNode(false);
         }
-        ActiveSupport.DOM.writeAttribute(element,attributes);
+        ActiveSupport.Element.writeAttribute(element,attributes);
         return element;
     },
     extend: function extend(element)
     {
         return element;
     },
+    /**
+     * ActiveSupport.Element.clear(element) -> Element
+     **/
     clear: function clear(element)
     {
         while(element.firstChild)
@@ -75,32 +81,47 @@ ActiveSupport.DOM = {
         }
         return element;
     },
+    /**
+     * ActiveSupport.Element.hide(element) -> Element
+     **/
     hide: function hide(element)
     {
         element.style.display = 'none';
         return element;
     },
+    /**
+     * ActiveSupport.Element.show(element) -> Element
+     **/
     show: function show(element)
     {
         element.style.display = '';
         return element;
     },
+    /**
+     * ActiveSupport.Element.remove(element) -> Element
+     **/
     remove: function remove(element)
     {
         element.parentNode.removeChild(element);
         return element;
     },
+    /**
+     * ActiveSupport.Element.insert(element,content[,position]) -> Element
+     * - element (Element)
+     * - content (String | Number | Element)
+     * - position (String): "top", "bottom", "before", "after"
+     **/
     insert: function insert(element,content,position)
     {
         if(content && typeof(content.getElement) == 'function')
         {
             content = content.getElement();
         }
-        if(ActiveSupport.isArray(content))
+        if(ActiveSupport.Object.isArray(content))
         {
             for(var i = 0; i < content.length; ++i)
             {
-                ActiveSupport.DOM.insert(element,content[i],position);
+                ActiveSupport.Element.insert(element,content[i],position);
             }
         }
         else
@@ -123,21 +144,25 @@ ActiveSupport.DOM = {
         }
         return element;
     },
+    /**
+     * ActiveSupport.Element.update(element,content[,position])
+     * Works exactly like update, 
+     **/
     update: function update(element,content,position)
     {
-        ActiveSupport.DOM.clear(element);
-        ActiveSupport.DOM.insert(element,content,position);
+        ActiveSupport.Element.clear(element);
+        ActiveSupport.Element.insert(element,content,position);
     },
     collect: function collect(target_element,elements,callback,context)
     {
         if(callback)
         {
-            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_array = ActiveSupport.Array.from(arguments);
             var arguments_for_bind = arguments_array.slice(3);
             if(arguments_for_bind.length > 0)
             {
                 arguments_for_bind.unshift(callback);
-                callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+                callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
             }
             var collected_elements = [];
             for(var i = 0; i < elements.length; ++i)
@@ -193,7 +218,7 @@ ActiveSupport.DOM = {
                     }
                     else
                     {
-                        element.setAttribute(ActiveSupport.DOM.ieAttributeTranslations[name] || name,value);
+                        element.setAttribute(ActiveSupport.Element.ieAttributeTranslations[name] || name,value);
                     }
                 }
             }
@@ -215,7 +240,7 @@ ActiveSupport.DOM = {
         {
             return false;
         }
-        if(!ActiveSupport.DOM.hasClassName(element,class_name))
+        if(!ActiveSupport.Element.hasClassName(element,class_name))
         {
             element.className += (element.className ? ' ' : '') + class_name;
         }
@@ -236,27 +261,27 @@ ActiveSupport.DOM = {
         //bind context to context and curried arguments if applicable
         if(arguments.length > 3)
         {
-            var arguments_array = ActiveSupport.arrayFrom(arguments);
+            var arguments_array = ActiveSupport.Array.from(arguments);
             var arguments_for_bind = arguments_array.slice(3);
             if(arguments_for_bind.length > 0)
             {
                 arguments_for_bind.unshift(callback);
-                callback = ActiveSupport.bind.apply(ActiveSupport,arguments_for_bind);
+                callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
             }
         }
         
         //dom:ready support
         if(element == ActiveSupport.getGlobalContext().document && event_name == 'ready')
         {
-            if(ActiveSupport.DOM.documentReadyObservers == null)
+            if(ActiveSupport.Element.documentReadyObservers == null)
             {
-                //ActiveSupport.DOM.documentReadyObservers will be null if the document is ready
+                //ActiveSupport.Element.documentReadyObservers will be null if the document is ready
                 //if so, trigger the observer now
                 callback();
             }
             else
             {
-                ActiveSupport.DOM.documentReadyObservers.push(callback);
+                ActiveSupport.Element.documentReadyObservers.push(callback);
             }
             return;
         }
@@ -311,7 +336,7 @@ ActiveSupport.DOM = {
 /*
 Ported from Prototype.js usage:
     
-    ActiveSupport.DOM.observe(document,'ready',function(){
+    ActiveSupport.Element.observe(document,'ready',function(){
     
     });
 */
@@ -333,13 +358,13 @@ Ported from Prototype.js usage:
           window.clearTimeout(timer);
       }
       loaded = true;
-      if(ActiveSupport.DOM.documentReadyObservers.length > 0)
+      if(ActiveSupport.Element.documentReadyObservers.length > 0)
       {
-          for(var i = 0; i < ActiveSupport.DOM.documentReadyObservers.length; ++i)
+          for(var i = 0; i < ActiveSupport.Element.documentReadyObservers.length; ++i)
           {
-              ActiveSupport.DOM.documentReadyObservers[i]();
+              ActiveSupport.Element.documentReadyObservers[i]();
           }
-          ActiveSupport.DOM.documentReadyObservers = null;
+          ActiveSupport.Element.documentReadyObservers = null;
       }
   };
 
@@ -372,14 +397,14 @@ Ported from Prototype.js usage:
   }
   else
   {
-      ActiveSupport.DOM.observe(document,'readystatechange',check_ready_state);
+      ActiveSupport.Element.observe(document,'readystatechange',check_ready_state);
       if(window == top)
       {
           timer = window.setTimeout(poll_do_scroll);
       }
   }
   
-  ActiveSupport.DOM.observe(window,'load',fire_content_loaded_event);
+  ActiveSupport.Element.observe(window,'load',fire_content_loaded_event);
 })();
 
 //Ajax Library integration
@@ -387,14 +412,14 @@ Ported from Prototype.js usage:
     //Prototype
     if(global_context.Prototype && global_context.Prototype.Browser && global_context.Prototype.Browser.IE && global_context.Element && global_context.Element.extend)
     {
-        ActiveSupport.DOM.extend = function extendForPrototype(element){
+        ActiveSupport.Element.extend = function extendForPrototype(element){
           return Element.extend(element);
         };
     };
     //MooTools
     if(global_context.MooTools && global_context.Browser && global_context.Browser.Engine.trident && global_context.document.id)
     {
-        ActiveSupport.DOM.extend = function extendForMooTools(element){
+        ActiveSupport.Element.extend = function extendForMooTools(element){
             return global_context.document.id(element);
         };
     }
