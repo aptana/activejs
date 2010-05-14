@@ -367,7 +367,7 @@ var InstanceMethods = (function(){
             {
                 ActiveSupport.log('ActiveView: initialized with scope:',scope);
             }
-            var response = this.structure(ActiveView.Builder);
+            var response = this.structure(ActiveView.Builder,ActiveSupport.Element);
             if(response && !this.element)
             {
                 this.setElement(response);
