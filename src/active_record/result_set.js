@@ -14,7 +14,7 @@ ResultSet.InstanceMethods = {
      */
     reload: function reload(result_set,params,model){
         result_set.length = 0;
-        var new_response = model.find(ActiveSupport.Object.extend(ActiveSupport.Object.clone(params),{synchronize: false}));
+        var new_response = model.find(ActiveSupport.Object.extend(ActiveSupport.Object.clone(params)));
         for(var i = 0; i < new_response.length; ++i)
         {
             result_set.push(new_response[i]);

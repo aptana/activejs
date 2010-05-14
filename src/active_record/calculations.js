@@ -15,14 +15,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     },
     performCalculation: function performCalculation(operation,params,sql_fragment)
     {
-        if(params && params.synchronize)
-        {
-            return Synchronization.synchronizeCalculation(this,operation,params);
-        }
-        else
-        {
-            return ActiveRecord.connection.calculateEntities(this.tableName,this.processCalculationParams(operation,params),sql_fragment);
-        }
+        return ActiveRecord.connection.calculateEntities(this.tableName,this.processCalculationParams(operation,params),sql_fragment);
     },
     /**
      * options can contain all params that find() can

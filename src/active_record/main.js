@@ -156,55 +156,6 @@
  *         order: 'id DESC',
  *         limit: 10
  *     });
- * 
- * Synchronization
- * ---------------
- * It is sometimes useful to keep records that have already been found in synch
- * with the database. Each found record has a synchronize() method that will keep
- * the values of that record in synch with the database. If you pass the parameter
- * synchronize: true to find(), all objects will have their values synchronized,
- * and in addition the result set itself will update as objects are destroyed or
- * created. Both features are relatively expensive operations, and are not
- * automatically garbage collected/stopped when the record or result set goes
- * out of scope, so you will need to explicitly stop both record and result set
- * synchronization.
- * 
- *     var aaron = User.findByName('aaron');
- *     aaron.synchronize();
- * 
- *     var aaron_clone = User.findByName('aaron');
- *     aaron_clone.set('name','Aaron!');
- *     aaron_clone.save();
- * 
- *     aaron.get('name') === 'Aaron!';
- *     aaron.stop(); //record will no longer be synchronized
- * 
- *     var users = User.find({
- *         all: true,
- *         synchronize: true
- *     });
- *     //users contains aaron
- *     aaron.destroy();
- *     //users will no longer contain aaron
- *     users.stop(); //result set will no longer be synchronized
- * 
- * Calculations (count, min, max, etc) can also be synchronized. As a second
- * parameter to the calculation function, pass a hash with a synchronize
- * property that contains a function. That function will be called when the
- * result of the calculation changes. Instead of returning the value of the
- * calculation the initial call to the calculation function will return a
- * function that will stop the synchronization.
- *
- *     var current_count;
- *     var stop = User.count({
- *         synchronize: function(updated_count){
- *             current_count = updated_count;
- *         }
- *     });
- *     var new_user = User.create({params}); //current_count incremented
- *     new_user.destroy();  //current_count decremented
- *     stop();
- *     User.create({params}); //current_count unchanged
  *
  * Lifecycle
  * ---------

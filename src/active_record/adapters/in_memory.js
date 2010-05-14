@@ -281,7 +281,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     /* PRVIATE */
     iterableFromResultSet: function iterableFromResultSet(result)
     {
-        result.iterate = function iterate(iterator)
+        result.iterate = function iterate(iterator,context)
         {
             if (typeof(iterator) === 'number')
             {
@@ -299,7 +299,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
                 for (var i = 0; i < this.length; ++i)
                 {
                     var row = ActiveSupport.Object.clone(this[i]);
-                    iterator(row);
+                    iterator.apply(context,[row]);
                 }
             }
         };

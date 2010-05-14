@@ -169,7 +169,6 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
             {
                 this.set(this.constructor.primaryKeyName, ActiveRecord.connection.getLastInsertedRowId());
             }
-            Synchronization.triggerSynchronizationNotifications(this,'afterCreate');
             this.notify('afterCreate');
         }
         else
@@ -192,7 +191,6 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
             }
         }
         this._id = this.get(this.constructor.primaryKeyName);
-        Synchronization.triggerSynchronizationNotifications(this,'afterSave');
         this.notify('afterSave');
         return this;
     },
@@ -212,7 +210,6 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
             return false;
         }
         ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
-        Synchronization.triggerSynchronizationNotifications(this,'afterDestroy');
         if (this.notify('afterDestroy') === false)
         {
             return false;
@@ -267,7 +264,6 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *          order: String
      *          limit: Number
      *          offset: Number
-     *          synchronize: Boolean
      * @return {mixed}
      *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
      * @example
@@ -377,9 +373,9 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
             var response = [];
             if (result)
             {
-                result.iterate(ActiveSupport.Function.bind(function result_iterator(row){
+                result.iterate(function result_iterator(row){
                     response.push(this.build(row));
-                }, this));
+                },this);
             }
             this.resultSetFromArray(response,params);
             this.notify('afterFind',response,params);
@@ -579,10 +575,6 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         for(var method_name in ResultSet.InstanceMethods)
         {
             result_set[method_name] = ActiveSupport.Function.curry(ResultSet.InstanceMethods[method_name],result_set,params,this);
-        }
-        if(params.synchronize)
-        {
-            Synchronization.synchronizeResultSet(this,params,result_set);
         }
         return result_set;
     }
