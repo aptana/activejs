@@ -1,17 +1,12 @@
 /**
- * @namespace {ActiveEvent}
- * @example
- * 
- * ActiveEvent
- * ===========
+ * == ActiveEvent ==
  * 
  * ActiveEvent allows you to create observable events, and attach event
  * handlers to any class or object.
  *
  * Setup
  * -----
- * Before you can use ActiveEvent you must call extend a given class or object
- * with ActiveEvent's methods. If you extend a class, both the class itself
+ * Before you can use ActiveEvent you call [[ActiveEvent.extend]]. If you extend a class, both the class itself
  * will become observable, as well as all of it's instances.
  *
  *     ActiveEvent.extend(MyClass); //class and all instances are observable
@@ -20,9 +15,8 @@
  * Creating Events
  * ---------------
  * You can create an event inside any method of your class or object by calling
- * the notify() method with name of the event followed by any arguments to be
- * passed to observers. You can also have an existing method fire an event with
- * the same name as the method using makeObservable().
+ * the `notify` method with name of the event followed by any arguments to be
+ * passed to observers.
  * 
  *     var Message = function(){};
  *     ActiveEvent.extend(Message);
@@ -31,18 +25,13 @@
  *         this.notify('sent',text);
  *     };
  * 
- *     //make an existing method observable
- *     var observable_hash = new Hash({});
- *     ActiveEvent.extend(observable_hash);
- *     observable_hash.makeObservable('set');
- * 
  * Observing Events
  * ----------------
- * To observe an event call the observe() method with the name of the event you
+ * To observe an event call the `observe` method with the name of the event you
  * want to observe, and the observer function. The observer function will
- * receive any additional arguments passed to notify(). If observing a class,
+ * receive any additional arguments passed to `notify`. If observing a class,
  * the instance that triggered the event will always be the first argument
- * passed to the observer. observeOnce() works just like observe() in every
+ * passed to the observer. `observeOnce` works just like `observe` in every
  * way, but is only called once.
  * 
  *     Message.observe('sent',function(message,text){
@@ -57,13 +46,13 @@
  *     observable_hash.observe('set',function(key,value){
  *         console.log('observable_hash.set: ' + key + '=' + value);
  *     });
- 
+ *
  *     observable_hash.observeOnce('set',function(key,value){
  *         //this will only be called once
  *     });
  * 
  * You can bind and curry your observers by adding extra arguments, which
- * will be passed to ActiveSupport.Function.bind:
+ * will be passed to [[ActiveSupport.Function.bind]]:
  * 
  *     Message.observe('sent',function(curried_argument,message,text){
  *         //this == context
@@ -71,13 +60,13 @@
  * 
  * Control Flow
  * ------------
- * When notify() is called, if any of the registered observers for that event
- * return false, no other observers will be called and notify() will return
+ * When `notify` is called, if any of the registered observers for that event
+ * return false, no other observers will be called and `notify` will return
  * false. Returning null or not calling return will not stop the event.
  *
- * Otherwise notify() will return an array of the
+ * Otherwise `notify` will return an array of the
  * collected return values from any registered observer functions. Observers
- * can be unregistered with the stopObserving() method. If no observer is
+ * can be unregistered with the `stopObserving` method. If no observer is
  * passed, all observers of that object or class with the given event name
  * will be unregistered. If no event name and no observer is passed, all
  * observers of that object or class will be unregistered.
@@ -107,74 +96,49 @@
  * Object.options
  * --------------
  * If an object has an options property that contains a callable function with
- * the same name as an event triggered with <b>notify()</b>, it will be
- * treated just like an instance observer. So the following code is equivalent:
+ * the same name as an event triggered with `notify`, it will be
+ * treated just like an instance observer.
  *
- *     var rating_one = new Control.Rating('rating_one',{  
- *         afterChange: function(new_value){}    
- *     });  
- *     
- *     var rating_two = new Control.Rating('rating_two');  
- *     rating_two.observe('afterChange',function(new_value){});
- */
+ *     var Widget = function(options){
+ *         this.options = options;
+ *     };
+ *     ActiveEvent.extend(Widget);
+ *  
+ *     var my_widget = new Widget({
+ *         afterChange: function(){}
+ *     });
+ *     //equivelent to:
+ *     var my_widget = new Widget();
+ *     my_widget.observe('afterChange',function(){});
+ **/
 var ActiveEvent = null;
 
 if(typeof exports != "undefined"){
     exports.ActiveEvent = ActiveEvent;
 }
 
-/**
- * @namespace {ActiveEvent.ObservableObject} After calling
- *  ActiveEvent.extend(object), the given object will inherit the
- *  methods in this namespace. If the given object has a prototype
- *  (is a class constructor), the object's prototype will inherit
- *  these methods as well.
- */
-
+/** section: ActiveEvent
+ * mixin Observable
+ * After calling [[ActiveEvent.extend]], the given object will inherit the
+ * methods in this namespace. If the given object has a prototype
+ * (is a class constructor), the object's prototype will inherit
+ * these methods as well.
+ **/
 (function(){
 
 ActiveEvent = {};
 
+/** section: ActiveEvent
+ * ActiveEvent
+ * See [ActiveEvent tutorial](../index.html).
+ **/
+
 /**
- * After extending a given object, it will inherit the methods described in
- *  ActiveEvent.ObservableObject.
- * @alias ActiveEvent.extend
- * @param {Object} object
- */
+ * ActiveEvent.extend(object) -> Object
+ * Mixin [[Observable]] to the given object.
+ **/
 ActiveEvent.extend = function extend(object){
-    
-    /**
-     * Wraps the given method_name with a function that will call the method,
-     *  then trigger an event with the same name as the method. This can
-     *  safely be applied to any method, including built in
-     *  Objects (Array.pop, etc), but cannot be undone.
-     * 
-     *     MyObject.makeObservable('myMethod');
-     *     MyObject.myMethod('a','b');
-     *     //called myMethod, and called MyObject.notify('myMethod','a','b');
-     * 
-     * @alias ActiveEvent.ObservableObject.makeObservable
-     * @param {String} method_name
-     */
-    object.makeObservable = function makeObservable(method_name)
-    {
-        if(this[method_name])
-        {
-            this._objectEventSetup(method_name);
-            this[method_name] = ActiveSupport.Function.wrap(this[method_name],function wrapped_observer(proceed){
-                var args = ActiveSupport.Array.from(arguments).slice(1);
-                var response = proceed.apply(this,args);
-                args.unshift(method_name);
-                this.notify.apply(this,args);
-                return response;
-            });
-        }
-        if(this.prototype)
-        {
-            this.prototype.makeObservable(method_name);
-        }
-    };
-    
+        
     object._objectEventSetup = function _objectEventSetup(event_name)
     {
         if(!this._observers)
@@ -188,12 +152,8 @@ ActiveEvent.extend = function extend(object){
     };
     
     /**
-     * @alias ActiveEvent.ObservableObject.observe
-     * @param {String} event_name
-     * @param {Function} observer
-     * @param {Object} [context]
-     * @return {Function} observer
-     */
+     * Observable.observe(event_name,observer[,context]) -> Function
+     **/
     object.observe = function observe(event_name,observer,context)
     {
         if(arguments.length > 2)
@@ -226,13 +186,11 @@ ActiveEvent.extend = function extend(object){
     };
     
     /**
+     * Observable.stopObserving([event_name][,observer]) -> null
      * Removes a given observer. If no observer is passed, removes all
-     *   observers of that event. If no event is passed, removes all
-     *   observers of the object.
-     * @alias ActiveEvent.ObservableObject.stopObserving
-     * @param {String} [event_name]
-     * @param {Function} [observer]
-     */
+     * observers of that event. If no event is passed, removes all
+     * observers of the object.
+     **/
     object.stopObserving = function stopObserving(event_name,observer)
     {
         this._objectEventSetup(event_name);
@@ -251,15 +209,12 @@ ActiveEvent.extend = function extend(object){
     };
     
     /**
-     * Works exactly like observe(), but will stopObserving() after the first
-     *   time the event is fired.
-     * @alias ActiveEvent.ObservableObject.observeOnce
-     * @param {String} event_name
-     * @param {Function} observer
-     * @param {Object} [context]
-     * @return {Function} The observer that was passed in will be wrapped,
-     *  this generated / wrapped observer is returned.
-     */
+     * Observable.observeOnce(event_name,observer[,context]) -> Function
+     * Works exactly like `observe`, but will `stopObserving` after the first
+     * time the event is fired. Note that the observer that is passed in will
+     * be wrapped by another function which will be returned. The returned
+     * function can then be passed to `stopObserving`
+     **/
     object.observeOnce = function observeOnce(event_name,outer_observer,context)
     {
         if(arguments.length > 2)
@@ -283,13 +238,11 @@ ActiveEvent.extend = function extend(object){
     };
     
     /**
-     * Triggers event_name with the passed arguments.
-     * @alias ActiveEvent.ObservableObject.notify
-     * @param {String} event_name
-     * @param {mixed} [args]
-     * @return {mixed} Array of return values, or false if the event was
-     *  stopped by an observer.
-     */
+     * Observable.notify(event_name[,argument]) -> Array | Boolean
+     * Triggers event_name with the passed arguments, accepts a variable number of arguments.
+     * Returns an Array of values returned by the registered observers, or false if the event was
+     * stopped by an observer.
+     **/
     object.notify = function notify(event_name)
     {
         if(!this._observers || !this._observers[event_name] || (this._observers[event_name] && this._observers[event_name].length == 0))
@@ -315,13 +268,10 @@ ActiveEvent.extend = function extend(object){
     };
     if(object.prototype)
     {
-        object.prototype.makeObservable = object.makeObservable;
-        object.prototype.observeMethod = object.observeMethod;
         object.prototype._objectEventSetup = object._objectEventSetup;
         object.prototype.observe = object.observe;
         object.prototype.stopObserving = object.stopObserving;
         object.prototype.observeOnce = object.observeOnce;
-        
         object.prototype.notify = function notify_instance(event_name)
         {
             if(

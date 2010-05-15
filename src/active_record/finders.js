@@ -16,13 +16,6 @@ var Finders = {
         }
         return options;
     },
-    /**
-     * Generates a findByField method for a ActiveRecord.Class (User.findByName)
-     * @private
-     * @alias ActiveRecord.Finders.generateFindByField
-     * @param {Object} ActiveRecord.Class
-     * @param {String} field_name
-     */
     generateFindByField: function generateFindByField(klass, field_name)
     {
         klass['findBy' + ActiveSupport.String.camelize(field_name, true)] = ActiveSupport.Function.curry(function generated_find_by_field_delegator(klass, field_name, value, options){
@@ -31,13 +24,6 @@ var Finders = {
             }));
         }, klass, field_name);
     },
-    /**
-     * Generates a findAllByField method for a ActiveRecord.Class (User.findAllByName)
-     * @private
-     * @alias ActiveRecord.Finders.generateFindAllByField
-     * @param {Object} ActiveRecord.Class
-     * @param {String} field_name
-     */
     generateFindAllByField: function generateFindAllByField(klass, field_name)
     {
         klass['findAllBy' + ActiveSupport.String.camelize(field_name, true)] = ActiveSupport.Function.curry(function generated_find_all_by_field_delegator(klass, field_name, value, options){

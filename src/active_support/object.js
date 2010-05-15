@@ -1,3 +1,6 @@
+/**
+ * ActiveSupport.Object
+ **/
 ActiveSupport.Object = {
     /**
      * ActiveSupport.Object.isArray(object) -> Boolean
@@ -8,6 +11,7 @@ ActiveSupport.Object = {
     },
     /**
      * ActiveSupport.Object.keys(object) -> Array
+     * Returns an array of keys from an object.
      **/
     keys: function keys(object)
     {

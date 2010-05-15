@@ -1,12 +1,8 @@
 ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
+     * ActiveRecord.Model#set(key,value[,suppress_notifications = false]) -> null
      * Sets a given key on the object. You must use this method to set a property, properties assigned directly (instance.key_name = value) will not persist to the database and may cause errors.
-     * @alias ActiveRecord.Instance.set
-     * @param {String} key
-     * @param {mixed} value
-     * @param {Boolean} suppress_notifications Defaults to false
-     * @return {mixed} the value that was set
-     */
+     **/
     set: function set(key, value, suppress_notifications)
     {
         if (typeof(this[key]) !== "function")
@@ -23,21 +19,18 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         }
     },
     /**
+     * ActiveRecord.Model#get(key) -> mixed
      * Get a given key on the object. If your field name is a reserved word, or the name of a method (save, updateAttribute, etc) you must use the get() method to access the property. For convenience non reserved words (title, user_id, etc) can be accessed directly (instance.key_name)
-     * @alias ActiveRecord.Instance.get
-     * @param {String} key
-     * @return {mixed}
-     */
+     **/
     get: function get(key)
     {
         return this._object[key];
     },
     /**
-     * Returns a "clean" version of the object, with just the data and no methods.
-     * @alias ActiveRecord.Instance.toObject
-     * @param {Function} [transform_callback] Will recieve and should reutrn a hash of attributes.
-     * @return {Object}
-     */
+     * ActiveRecord.Model#toObject([transform_callback]) -> Object
+     * Returns a vanilla version of the object, with just the data and no methods.
+     * - transform_callback (Function) Will recieve and should reutrn a hash of attributes.
+     **/
     toObject: function toObject(callback)
     {
         var response = ActiveSupport.Object.clone(this._object);
@@ -48,10 +41,9 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return response;
     },
     /**
+     * ActiveRecord.Model#keys() -> Array
      * Returns an array of the column names that the instance contains.
-     * @alias ActiveRecord.Instance.keys
-     * @return {Array}
-     */
+     **/
     keys: function keys()
     {
         var keys_array = [];
@@ -62,10 +54,9 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return keys_array;
     },
     /**
+     * ActiveRecord.Model#values() -> Array
      * Returns an array of the column values that the instance contains.
-     * @alias ActiveRecord.Instance.values
-     * @return {Array}
-     */
+     **/
     values: function values()
     {
         var values_array = [];
@@ -76,21 +67,18 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return values_array;
     },
     /**
+     * ActiveRecord.Model#updateAttribute(key,value) -> Boolean
      * Sets a given key on the object and immediately persists that change to the database triggering any callbacks or validation .
-     * @alias ActiveRecord.Instance.updateAttribute
-     * @param {String} key
-     * @param {mixed} value
-     */
+     **/
     updateAttribute: function updateAttribute(key, value)
     {
         this.set(key, value);
         return this.save();
     },
     /**
+     * ActiveRecord.Model#updateAttributes(attributes) -> Boolean
      * Updates all of the passed attributes on the record and then calls save().
-     * @alias ActiveRecord.Instance.updateAttributes
-     * @param {Object} attributes
-     */
+     **/
     updateAttributes: function updateAttributes(attributes)
     {
         for(var key in attributes)
@@ -100,10 +88,9 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return this.save();
     },
     /**
+     * ActiveRecord.Model#reload() -> Boolean
      * Loads the most current data for the object from the database.
-     * @alias ActiveRecord.Instance.reload
-     * @return {Boolean}
-     */
+     **/
     reload: function reload()
     {
         if (this._id === undefined)
@@ -124,12 +111,10 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
+     * ActiveRecord.Model#save([force_created_mode = false]) -> Boolean
+     * - force_created_mode (Boolean): Defaults to false, will force the record to act as if it was created even if an id property was passed.
      * Persists the object, creating or updating as nessecary. 
-     * @alias ActiveRecord.Instance.save
-     * @param {Boolean} force_created_mode Defaults to false, will force the
-     *     record to act as if it was created even if an id property was passed.
-     * @return {Boolean}
-     */
+     **/
     save: function save(force_created_mode)
     {
         this._validate();
@@ -195,10 +180,9 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return this;
     },
     /**
+     * ActiveRecord.Model#destroy() -> Boolean
      * Removes the object from the database, but does not destroy the object in memory itself.
-     * @alias ActiveRecord.Instance.destroy
-     * @return {Boolean}
-     */
+     **/
     destroy: function destroy()
     {
         if (this._id === undefined)
@@ -217,56 +201,42 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return true;
     },
     /**
-     * toJSON and toXML will call this instead of toObject() to get the
+     * ActiveRecord.Model#toSerializableObject([transform_callback]) -> Object
+     * toJSON will call this instead of toObject() to get the
      * data they will serialize. By default this calls toObject(), but 
-     * you can override this method to easily create custom JSON and XML
-     * output.
-     * @param {Function} [transform_callback] Will recieve and should reutrn a hash of attributes.
-     * @alias ActiveRecord.Instance.toSerializableObject
-     * @return {Object}
-     */
+     * you can override this method to easily create custom JSON output.
+     * - transform_callback (Function): Will recieve and should reutrn a hash of attributes.
+     **/
     toSerializableObject: function toSerializableObject(callback)
     {
         return this.toObject(callback);
     },
     /**
+     * ActiveRecord.Model#toJSON([object_to_inject]) -> String
      * Serializes the record to an JSON string. If object_to_inject is passed
      * that object will override any values of the record.
-     * @alias ActiveRecord.Instance.toJSON
-     * @param {Object} [object_to_inject]
-     * @return {String}
-     */
+     **/
     toJSON: function toJSON(object_to_inject)
     {
         return ActiveSupport.JSON.stringify(ActiveSupport.Object.extend(this.toSerializableObject(),object_to_inject || {}));
-    },
-    /**
-     * Serializes the record to an XML string. If object_to_inject is passed
-     * that object will override any values of the record.
-     * @alias ActiveRecord.Instance.toXML
-     * @param {Object} [object_to_inject]
-     * @return {String}
-     */
-    toXML: function toXML(object_to_inject)
-    {
-        return ActiveSupport.XMLFromObject(this.modelName,ActiveSupport.Object.extend(this.toSerializableObject(),object_to_inject || {}));
     }
 });
 ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     /**
-     * Find a given record, or multiple records matching the passed conditions.
-     * @alias ActiveRecord.Class.find
-     * @param {mixed} params
-     *      Can be an integer to try and find a record by id, a complete SQL statement String, or Object of params, params may contain:
-     *          select: Array of columns to select (default ['*'])
-     *          where: String or Object or Array
-     *          joins: String
-     *          order: String
-     *          limit: Number
-     *          offset: Number
-     * @return {mixed}
-     *      If finding a single record, response will be Boolean false or ActiveRecord.Instance. Otherwise an Array of ActiveRecord.Instance s will be returned (which may be empty).
-     * @example
+     * ActiveRecord.Model.find(id) -> Boolean | Object
+     * ActiveRecord.Model.find(array_of_ids) -> Array
+     * ActiveRecord.Model.find(params) -> Array
+     * ActiveRecord.Model.find(sql_statement) -> Array
+     * 
+     * Find a given record, or multiple records matching the passed conditions. Params may contain:
+     *
+     * - select (Array) of columns to select, default ['*']
+     * - where (String | Object | Array)
+     * - joins (String)
+     * - order (String)
+     * - limit (Number)
+     * - offset (Number)
+     * - callback (Function)
      *
      *     //finding single records
      *     var user = User.find(5); 
@@ -291,6 +261,12 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
      *         order: 'id DESC'
      *     });
+     *
+     *     var users = User.find({
+     *         where: ['name = ? AND password = ?','alice',md5('pass')],
+     *         order: 'id DESC'
+     *     });
+     *
      *     //using the where syntax below, the parameters will be properly escaped
      *     var users = User.find({
      *         where: {
@@ -317,7 +293,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
      *     commit = Commit.findById('cxfeea6'); // GOOD
      *     commit = Commit.get('cxfeea6');      // GOOD
-     */
+     **/
     find: function find(params)
     {
         var result;
@@ -383,13 +359,11 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
+     * ActiveRecord.Model.destroy(id) -> Boolean | String
      * Deletes a given id (if it exists) calling any callbacks or validations
      * on the record. If "all" is passed as the ids, all records will be found
      * and destroyed.
-     * @alias ActiveRecord.Class.destroy
-     * @param {Number} id
-     * @return {Boolean}
-     */
+     **/
     destroy: function destroy(id)
     {
         if(id == 'all')
@@ -432,11 +406,9 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
+     * ActiveRecord.Model.build(attributes) -> Object
      * Identical to calling create(), but does not save the record.
-     * @alias ActiveRecord.Class.build
-     * @param {Object} data
-     * @return {ActiveRecord.Instance}
-     */
+     **/
     build: function build(data)
     {
         if(ActiveSupport.Object.isArray(data))
@@ -460,16 +432,14 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * @alias ActiveRecord.Class.create
-     * @param {Object} data
-     * @return {ActiveRecord.Instance}
-     * @example
+     * ActiveRecord.Model.create(attributes) -> Object
+     * 
      *     var u = User.create({
      *         name: 'alice',
      *         password: 'pass'
      *     });
      *     u.id //will now contain the id of the user
-     */
+     **/
     create: function create(data)
     {
         if(ActiveSupport.Object.isArray(data))
@@ -491,12 +461,8 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * @alias ActiveRecord.Class.update
-     * @param {Number} id
-     * @param {Object} attributes
-     * @return {ActiveRecord.Instance}
-     * @example
-     *
+     * ActiveRecord.Model.update(id,attributes) -> Object
+     * 
      *     Article.update(3,{
      *         title: 'New Title'
      *     });
@@ -509,7 +475,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *     Article.update([5,7],{
      *         featured: false
      *     });
-     */
+     **/
     update: function update(id, attributes)
     {
         if (ActiveSupport.Object.isArray(id))
@@ -542,30 +508,25 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
     },
     /**
-     * @alias ActiveRecord.Class.updateAll
-     * @param {Object} updates
-     *      A string of updates to make, or a Hash of column value pairs.
-     * @param {String} [conditions]
-     *      Optional where condition, or Hash of column name, value pairs.
-     */
+     * ActiveRecord.Model.updateAll(updates[,conditions]) -> null
+     * - updates (Object | String) A string of updates to make, or a Hash of column value pairs.
+     * - conditions (String): Optional where condition, or Hash of column name, value pairs.
+     **/
     updateAll: function updateAll(updates, conditions)
     {
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
+     * ActiveRecord.Model.resultSetFromArray(result_set[,find_params]) -> Array 
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
      * the construction of custom result set objects from arrays where result 
      * sets are expected. This will modify the array that is passed in and
      * return the same array object.
-     * @alias ActiveRecord.Class.resultSetFromArray
-     * @param {Array} result_set
-     * @param {Object} [params]
-     * @return {Array}
-     * @example
+     *
      *     var one = Comment.find(1);
      *     var two = Comment.find(2);
      *     var result_set = Comment.resultSetFromArray([one,two]);
-     */
+     **/
     resultSetFromArray: function resultSetFromArray(result_set,params)
     {
         if(!params)

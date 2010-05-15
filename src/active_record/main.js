@@ -1,9 +1,5 @@
 /**
- * @namespace {ActiveRecord}
- * @example
- * 
- * ActiveRecord
- * ============
+ * == ActiveRecord ==
  * 
  * ActiveRecord.js is a cross browser, cross platform, stand-alone object
  * relational mapper. It shares a very similar vocabulary to the Ruby
@@ -299,77 +295,56 @@
  *     TreeNode.hasMany(TreeNode,{name: 'child'});
  *     //instance now have, getParent(), getChildList(), methods
  * 
- * Missing Features
- * ----------------
- * ActiveRecord.js will not support all of the advanced features of the Ruby
- * ActiveRecord implementation, but several key features are currently missing
- * and will be added soon:
- * 
- * - complete set of default validations from ActiveRecord::Validations::ClassMethods
- * - ActsAsList
- * - ActsAsTree
- * - hasMany :through (which will likely be the only supported many to many relationship)
- * 
- */
+ **/
+ 
+/**
+ * ActiveRecord
+ **/
 ActiveRecord = {
     /**
+     * ActiveRecord.logging -> Boolean
      * Defaults to false.
-     * @alias ActiveRecord.logging
-     * @property {Boolean}
-     */
+     **/
     logging: false,
     /**
+     * ActiveRecord.internalCounter -> Number
      * Tracks the number of records created.
-     * @alias ActiveRecord.internalCounter
-     * @property {Number}
-     */
+     **/
     internalCounter: 0,
     /**
+     * ActiveRecord.Models -> Object
      * Contains model_name, ActiveRecord.Class pairs.
-     * @alias ActiveRecord.Models
-     * @property {Object} 
-     */
+     **/
     Models: {},
     /**
-     * @namespace {ActiveRecord.Class} Each generated class will inherit all of
-     * the methods in this class, in addition to the ones dynamically generated
-     * by finders, validators, relationships, or your own definitions.
-     */
-    /**
+     * ActiveRecord.ClassMethods
      * Contains all methods that will become available to ActiveRecord classes.
-     * @alias ActiveRecord.ClassMethods
-     * @property {Object} 
-     */
+     **/
     ClassMethods: {},
     /**
-     * @namespace {ActiveRecord.Instance} Each found instance will inherit all of
-      * the methods in this class, in addition to the ones dynamically generated
-      * by finders, validators, relationships, or your own definitions.
-     */
-    /**
+     * ActiveRecord.InstanceMethods -> Object
      * Contains all methods that will become available to ActiveRecord instances.
-     * @alias ActiveRecord.InstanceMethods
-     * @property {Object}
-     */
+     **/
     InstanceMethods: {},
     /**
+     * ActiveRecord.create(table_name[,fields][,instance_methods]) -> ActiveRecord.Model
+     * ActiveRecord.create(options[,fields][,instance_methods]) -> ActiveRecord.Model
      * Creates an ActiveRecord class, returning the class and storing it inside
      * ActiveRecord.Models[model_name]. model_name is a singularized,
      * capitalized form of table name.
-     * @example
-     *     var User = ActiveRecord.create('users');
+     *
+     *     var User = ActiveRecord.create('users',{
+     *         id: 0,
+     *         name: ''
+     *     });
      *     var u = User.find(5);
-     * @alias ActiveRecord.create
-     * @param {String} table_name
-     * @param {Object} fields
-     *      Should consist of column name, default value pairs. If an empty
-     *      array or empty object is set as the default, any arbitrary data
-     *      can be set and will automatically be serialized when saved. To
-     *      specify a specific type, set the value to an object that contains
-     *      a "type" key, with optional "length" and "value" keys.
-     * @param {Object} [methods]
-     * @return {Object}
-     */
+     * 
+     * The fields hash should consist of column name, default value pairs. If an empty
+     * array or empty object is set as the default, any arbitrary data
+     * can be set and will automatically be serialized when saved. To
+     * specify a specific type, set the value to an object that contains
+     * a "type" key, with optional "length" and "value" keys.
+     **/
     create: function create(options, fields, methods)
     {
         if (!ActiveRecord.connection)
@@ -503,33 +478,7 @@ ActiveRecord = {
         return model;
     }
 };
-ActiveRecord.define = ActiveRecord.create;
 
 /**
- * If the table for your ActiveRecord does not exist, this will define the
- * ActiveRecord and automatically create the table.
- * @alias ActiveRecord.define
- * @param {String} table_name
- * @param {Object} fields
- *      Should consist of column name, default value pairs. If an empty array or empty object is set as the default, any arbitrary data can be set and will automatically be serialized when saved. To specify a specific type, set the value to an object that contains a "type" key, with optional "length" and "value" keys.
- * @param {Object} [methods]
- * @param {Function} [readyCallback]
- *      Must be specified if running in asynchronous mode.
- * @return {Object}
- * @example
- * 
- *     var User = ActiveRecord.define('users',{
- *         name: '',
- *         password: '',
- *         comment_count: 0,
- *         profile: {
- *             type: 'text',
- *             value: ''
- *         },
- *         serializable_field: {}
- *     });
- *     var u = User.create({
- *         name: 'alice',
- *         serializable_field: {a: '1', b: '2'}
- *     }); 
- */
+ * ActiveRecord.Model  
+ **/

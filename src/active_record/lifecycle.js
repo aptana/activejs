@@ -22,12 +22,11 @@ ActiveRecord.eventNames = [
 })();
 
 /**
+ * ActiveRecord.observe(event_name,callback) -> Array
  * Observe an event on all models. observer will be called with model_class, model_instance.
- * @alias ActiveRecord.observe
- * @param {String} event_name
- * @param {Function} observer
- * @return {Array} Array of observers 
- */
+ *
+ *     ActiveRecord.observe('afterDestroy',function(model,instance){});
+ **/
 ActiveRecord.old_observe = ActiveRecord.observe;
 ActiveRecord.observe = function observe(event_name,observer)
 {

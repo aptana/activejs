@@ -24,7 +24,10 @@ var Indicies = {
 };
 
 /**
- * Warning: this functionality is only available when using the InMemory adapter.
+ * ActiveRecord.Model.addIndex(name,index,callbacks) -> null
+ * - index_name (name)
+ * - index (Object)
+ * - callbacks (Object): Must contain "afterSave" and "afterDestroy" keys containing callback functions.
  * 
  * Allows the construction of arbitrary data indicies from data in your models.
  * Indicies will stay up to date as records are created, saved or destroyed.
@@ -70,13 +73,7 @@ var Indicies = {
  *     Contact.create({name: 'Abbey'});
  *     
  *     for(var id in Contact.indexed.byLetter.a){}
- * 
- * @alias ActiveRecord.Class.addIndex
- * @param {String} index_name
- * @param {Object} index 
- * @param {Object} callbacks
- *     Must contain "afterSave" and "afterDestroy" keys containing callback functions.
- */
+ **/
 ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
 {
     if(!callbacks)
@@ -124,9 +121,8 @@ ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)
 };
 
 /**
- * @alias ActiveRecord.Class.removeIndex
- * @param {String} index_name
- */
+ * ActiveRecord.Model.removeIndex(index_name) -> null
+ **/
 ActiveRecord.ClassMethods.removeIndex = function removeIndex(name)
 {
     this.stopObserving('afterSave',this.indexingCallbackObservers[name].afterSave);

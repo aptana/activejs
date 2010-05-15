@@ -1,3 +1,5 @@
+//Infinite thanks to [Kevin Lindsey](http://www.kevlindev.com/)
+
 //var WhereLexer;
 var WhereParser;
 
@@ -79,14 +81,8 @@ var NUMBER_PATTERN     = /^[1-9][0-9]*/;
 // Current lexeme to parse
 var currentLexeme;
 
-// *** Lexeme class ***
+// Lexeme class
 
-/*
- * Lexeme
- * 
- * @param {Number} type
- * @param {String} text
- */
 function Lexeme(type, text)
 {
     this.type = type;
@@ -94,11 +90,6 @@ function Lexeme(type, text)
     this.text = text;
 }
 
-/*
- * toString
- * 
- * @return {String}
- */
 Lexeme.prototype.toString = function toString()
 {
     if (this.typeName) 
@@ -111,22 +102,14 @@ Lexeme.prototype.toString = function toString()
     }
 };
 
-// *** Lexer class ***
+// Lexer class
 
-/*
- * WhereLexer
- */
 function WhereLexer()
 {
     // initialize
     this.setSource(null);
 }
 
-/*
- * setSource
- * 
- * @param {String} source
- */
 WhereLexer.prototype.setSource = function setSource(source)
 {
     this.source = source;
@@ -136,9 +119,6 @@ WhereLexer.prototype.setSource = function setSource(source)
     currentLexeme = null;
 };
 
-/*
- * advance
- */
 WhereLexer.prototype.advance = function advance()
 {
     var inWhitespace = true;
@@ -216,13 +196,6 @@ WhereLexer.prototype.advance = function advance()
 
 // Binary operator node
 
-/*
- * BinaryOperatorNode
- * 
- * @param {Node} identifier
- * @param {Number} identifier
- * @param {Node} identifier
- */
 function BinaryOperatorNode(lhs, operator, rhs)
 {
     this.lhs = lhs;
@@ -230,12 +203,6 @@ function BinaryOperatorNode(lhs, operator, rhs)
     this.rhs = rhs;
 }
 
-/*
- * execute
- * 
- * @param {Object} row
- * @param {Function} functionProvider
- */
 BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 {
     var result = null;
@@ -306,22 +273,11 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
 
 // Identifer node
 
-/*
- * Parser.IdentifierNode
- * 
- * @param {Object} identifier
- */
 function IdentifierNode(identifier)
 {
     this.identifier = identifier;
 }
 
-/*
- * execute
- * 
- * @param {Object} row
- * @param {Function} functionProvider
- */
 IdentifierNode.prototype.execute = function execute(row, functionProvider)
 {
     return row[this.identifier];
@@ -329,24 +285,12 @@ IdentifierNode.prototype.execute = function execute(row, functionProvider)
 
 // Function node
 
-/*
- * FunctionNode
- * 
- * @param {String} name
- * @param {Array} args
- */
 function FunctionNode(name, args)
 {
     this.name = name;
     this.args = args;
 }
 
-/*
- * execute
- * 
- * @param {Object} row
- * @param {Function} functionProvider
- */
 FunctionNode.prototype.execute = function execute(row, functionProvider)
 {
     // evaluate arguments
@@ -363,20 +307,11 @@ FunctionNode.prototype.execute = function execute(row, functionProvider)
 
 // Scalar node
 
-/*
- * Parser.ScalarNode
- */
 function ScalarNode(value)
 {
     this.value = value;
 }
 
-/*
- * execute
- * 
- * @param {Object} row
- * @param {Function} functionProvider
- */
 ScalarNode.prototype.execute = function execute(row, functionProvider)
 {
     return this.value;
@@ -385,19 +320,11 @@ ScalarNode.prototype.execute = function execute(row, functionProvider)
 
 // Parser class
 
-/*
- * WhereParser
- */
 WhereParser = function WhereParser()
 {
     this._lexer = new WhereLexer();
 };
 
-/*
- * parse
- * 
- * @param {String} source
- */
 WhereParser.prototype.parse = function parse(source)
 {
     var result = null;
@@ -433,9 +360,6 @@ WhereParser.prototype.parse = function parse(source)
     return result;
 };
 
-/*
- * parseWhereExpression
- */
 WhereParser.prototype.parseInExpression = function parseInExpression()
 {
     var result = this.parseOrExpression();
@@ -486,9 +410,6 @@ WhereParser.prototype.parseInExpression = function parseInExpression()
     return result;
 };
 
-/*
- * parseOrExpression
- */
 WhereParser.prototype.parseOrExpression = function parseOrExpression()
 {
     var result = this.parseAndExpression();
@@ -506,9 +427,6 @@ WhereParser.prototype.parseOrExpression = function parseOrExpression()
     return result;
 };
 
-/*
- * parseAndExpression
- */
 WhereParser.prototype.parseAndExpression = function parseAndExpression()
 {
     var result = this.parseEqualityExpression();
@@ -526,9 +444,6 @@ WhereParser.prototype.parseAndExpression = function parseAndExpression()
     return result;
 };
 
-/*
- * parseEqualityExpression
- */
 WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression()
 {
     var result = this.parseRelationalExpression();
@@ -554,9 +469,6 @@ WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression
     return result;
 };
 
-/*
- * parseRelationalExpression
- */
 WhereParser.prototype.parseRelationalExpression = function()
 {
     var result = this.parseMemberExpression();
@@ -584,9 +496,6 @@ WhereParser.prototype.parseRelationalExpression = function()
     return result;
 };
 
-/*
- * parseMemberExpression
- */
 WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 {
     var result = null;

@@ -1,7 +1,8 @@
 require 'rake'
 require 'rake/packagetask'
 require 'yaml'
-require 'sprockets'
+require 'vendor/pdoc/lib/pdoc'
+require 'vendor/sprockets/lib/sprockets'
 require 'fileutils'
 
 module ActiveJSHelper
@@ -14,18 +15,13 @@ module ActiveJSHelper
   VENDOR_DIR = File.join(ROOT_DIR, 'vendor')
   
   VERSION = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['ACTIVE_JS_VERSION']
-    
+  
+  SOURCE_FILE_FOR_DOCS = File.join(DIST_DIR, 'source_for_docs.js')
+  
   INCLUDES = {
     :swfaddress => [
       File.join(VENDOR_DIR,'swfaddress/swfaddress.js'),
       File.join(SRC_DIR,'active_view/routing.js')
-    ],
-    :active_support_core => [
-      File.join(SRC_DIR,'active_support.js'),
-      File.join(SRC_DIR,'active_support/array.js'),
-      File.join(SRC_DIR,'active_support/function.js'),
-      File.join(SRC_DIR,'active_support/string.js'),
-      File.join(SRC_DIR,'active_support/object.js')
     ],
     :active_support_extensions => [
       File.join(SRC_DIR,'active_support/inflector.js'),
@@ -37,34 +33,42 @@ module ActiveJSHelper
     ]
   }
   
+  DISTRIBUTION_FOR_DOC_GENERATION = [
+    File.join(SRC_DIR,'active_support.js'),
+    INCLUDES[:active_support_extensions],
+    File.join(SRC_DIR,'active_event.js'),
+    File.join(SRC_DIR,'active_routes.js'),
+    File.join(SRC_DIR,'active_record.js')
+  ]
+  
   DISTRIBUTIONS = {
     'active_support.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions]
     ],
     'active_event.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js')
     ],
     'active_view.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_support/element.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js')
     ],
     'active_routes.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_routes.js')
     ],
     'active_record.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_record.js')
     ],
     'active.js' => [
-      INCLUDES[:active_support_core],
+      File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_routes.js'),
@@ -107,6 +111,16 @@ module ActiveJSHelper
     end
   end
   
+  def self.sprocketize_for_docs
+    flattened_source_files = DISTRIBUTION_FOR_DOC_GENERATION.clone.flatten
+    secretary = Sprockets::Secretary.new(
+      :root           => ROOT_DIR,
+      :load_path      => [SRC_DIR],
+      :source_files   => flattened_source_files,
+      :strip_comments => false
+    )
+    secretary.concatenation.save_to(SOURCE_FILE_FOR_DOCS)
+  end
 end
 
 desc "Builds the distribution."
@@ -131,13 +145,26 @@ task :dist, :copy_locations do |task,arguments|
   puts "Task complete."
 end
 
+desc "Builds the documentation"
 task :docs do
-  require 'vendor/pdoc/lib/pdoc'
+  rm_rf Dir.glob(File.join(ActiveJSHelper::DOCS_DIR, "*"))
+  ActiveJSHelper.sprocketize_for_docs
   PDoc.run({
-    :source_files => File.join(ActiveJSHelper::DIST_DIR,'active.js'),
+    :source_files => [ActiveJSHelper::SOURCE_FILE_FOR_DOCS],
     :destination => ActiveJSHelper::DOCS_DIR,
-    :index_page => 'README.markdown',
     :syntax_highlighter => :pygments,
-    :markdown_parser => :maruku
+    :markdown_parser => :bluecloth,
+    :src_code_href => proc { |file|
+      "http://github.com/aptana/activejs/#{file}"
+    },
+    :pretty_urls => false,
+    :bust_cache => true,
+    :name => 'ActiveJS',
+    :short_name => 'ActiveJS',
+    :home_url => 'http://activejs.org',
+    :doc_url => 'http://activejs.org/api',
+    :version => ActiveJSHelper::VERSION,
+    :copyright_notice => 'This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/MIT/">MIT License</a>.' 
   })
+  FileUtils.rm(ActiveJSHelper::SOURCE_FILE_FOR_DOCS)
 end

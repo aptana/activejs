@@ -1,11 +1,14 @@
 /**
+ * ActiveRecord.Model.hasOne(related_model_name[,options]) -> null
  * Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.
- * @alias ActiveRecord.Class.hasOne
- * @param {String} related_model_name
- *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
- * @param {Object} [options]
- *      Can contain {String} "foreignKey", {String} "name", {Boolean} "dependent" keys.
- * @example
+ * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * - options (Object)
+ *  
+ * Options can contain:
+ * 
+ * - foreignKey (String)
+ * - name (String)
+ * - dependent (Boolean)
  * 
  *     User.hasOne(CreditCard);
  *     var u = User.find(5);

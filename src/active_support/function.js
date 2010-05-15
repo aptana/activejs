@@ -1,8 +1,11 @@
+/**
+ * ActiveSupport.Function
+ **/
 ActiveSupport.Function = {
     /**
-     * ActiveSupport.methodize(function) -> Function
+     * ActiveSupport.Function.methodize(function) -> Function
      * Emulates Prototype's [Function.prototype.methodize](http://api.prototypejs.org/language/function/prototype/methodize/) including curry functionality.
-     */
+     **/
     methodize: function methodize(func)
     {
         if(func._methodized)
@@ -15,7 +18,7 @@ ActiveSupport.Function = {
         };
     },
     /**
-     * ActiveSupport.Function.bind(function,context[,argument][,...]) -> Function
+     * ActiveSupport.Function.bind(function,context[,argument]) -> Function
      * Emulates Prototype's [Function.prototype.bind](http://api.prototypejs.org/language/function/prototype/bind/) including curry functionality.
      **/
     bind: function bind(func,object)
@@ -43,7 +46,7 @@ ActiveSupport.Function = {
         }
     },
     /**
-     * ActiveSupport.Function.curry(function[,argument][,...]) -> Function
+     * ActiveSupport.Function.curry(function[,argument]) -> Function
      * Emulates Prototype's [Function.prototype.curry](http://api.prototypejs.org/language/function/prototype/curry/).
      **/
     curry: function curry(func)

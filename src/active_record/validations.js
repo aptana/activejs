@@ -1,9 +1,8 @@
 ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     /**
-     * Adds the validator to the _validators array of a given ActiveRecord.Class.
-     * @alias ActiveRecord.Class.addValidator
-     * @param {Function} validator
-     */
+     * ActiveRecord.Model.addValidator(callback) -> null
+     * Adds the validator to the _validators array of a given ActiveRecord.Model.
+     **/
     addValidator: function addValidator(validator)
     {
         if(!this._validators)
@@ -13,10 +12,8 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         this._validators.push(validator);
     },
     /**
-     * @alias ActiveRecord.Class.validatesPresenceOf
-     * @param {String} field
-     * @param {Object} [options]
-     */
+     * ActiveRecord.Model.validatesPresenceOf(field_name[,options])
+     **/
     validatesPresenceOf: function validatesPresenceOf(field, options)
     {
         options = ActiveSupport.Object.extend({
@@ -30,11 +27,9 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         });
     },
     /**
+     * ActiveRecord.Model.validatesLengthOf(field_name[,options]) -> null
      * Accepts "min" and "max" numbers as options.
-     * @alias ActiveRecord.Class.validatesLengthOf
-     * @param {String} field
-     * @param {Object} [options]
-     */
+     **/
     validatesLengthOf: function validatesLengthOf(field, options)
     {
         options = ActiveSupport.Object.extend({
@@ -57,10 +52,8 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
 });
 ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
-     * @alias ActiveRecord.Instance.addError
-     * @param {String} message
-     * @param {String} field_name
-     */
+     * ActiveRecord.Model#addError(message[,field_name]) -> null
+     **/
     addError: function addError(str, field)
     {
         var error = null;
@@ -102,9 +95,8 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         return this.constructor._validators || [];
     },
     /**
-     * @alias ActiveRecord.Instance.getErrors
-     * @return {Array}
-     */
+     * ActiveRecord.Model#getErrors() -> Array
+     **/
     getErrors: function getErrors()
     {
         return this._errors;

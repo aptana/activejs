@@ -1,8 +1,7 @@
 /**
+ * ActiveRecord.Adapters.InMemory
  * In memory, non persistent storage.
- * @alias ActiveRecord.Adapters.InMemory
- * @property {ActiveRecord.Adapter}
- */
+ **/
 Adapters.InMemory = function InMemory(storage){
     this.lastInsertId = null;
     this.setStorage(storage);
@@ -17,28 +16,22 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
         return {};
     },
     /**
-     * @alias ActiveRecord.connection.setStorage
-     * @param {Object} storage
-     * Only for use with the InMemory adapter.
-     * 
+     * ActiveRecord.connection.setStorage(storage) -> null
      * Sets the storage (in memory database hash) affter connect() has been called.
      * 
      *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
      *     ActiveRecord.connection.setStorage({my_table:{...}});
-     */
+     **/
     setStorage: function setStorage(storage)
     {
         this.storage = typeof(storage) === 'string' ? ActiveSupport.JSON.parse(storage) : (storage || {});
         ActiveRecord.Indicies.initializeIndicies(this.storage);
     },
     /**
-     * @alias ActiveRecord.connection.serialize
-     * @return {String} json
-     * Only for use with the InMemory adapter.
-     *
+     * ActiveRecord.connection.serialize() -> String
      * Returns a JSON representation of the storage hash that the InMemory adapter
      * uses.
-     */
+     **/
     serialize: function serialize()
     {
         return ActiveSupport.JSON.stringify(this.storage);
@@ -278,7 +271,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
             throw e;
         }
     },
-    /* PRVIATE */
+    //PRVIATE
     iterableFromResultSet: function iterableFromResultSet(result)
     {
         result.iterate = function iterate(iterator,context)

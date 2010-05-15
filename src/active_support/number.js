@@ -1,0 +1,4 @@
+/**
+ * ActiveSupport.Number
+ **/
+ActiveSupport.Number = {};

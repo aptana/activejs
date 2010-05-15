@@ -1,19 +1,15 @@
-/*
-Supports an indentical API to Prototype's Ajax.Request/Response with the following differences:
-
-- No exception handling / onException callbacks
-- No Ajax.Responders
-
-You can mimic Ajax.Responder functionality:
-
-    //only needs to be done once per app, but no enabled by default
-    ActiveEvent.extend(ActiveSupport.Request); 
-    
-    ActiveSupport.Request.observe('onComplete',function(request,response,header_json){
-    
-    });
-*/
-
+/**
+ * class ActiveSupport.Request
+ * 
+ * Supports an indentical API to Prototype's [Ajax.Request/Response](http://api.prototypejs.org/ajax/),
+ * but does not include handling / onException callbacks or Ajax.Responders.
+ *
+ * You can mimic Ajax.Responder functionality with ActiveEvent:
+ * 
+ *     //only needs to be done once per app, but not enabled by default
+ *     ActiveEvent.extend(ActiveSupport.Request);
+ *     ActiveSupport.Request.observe('onComplete',function(request,response,header_json){});
+ **/
 ActiveSupport.Request = function Request(url,options)
 {
     this._complete = false;

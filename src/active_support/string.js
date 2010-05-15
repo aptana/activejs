@@ -1,3 +1,6 @@
+/**
+ * ActiveSupport.String
+ **/
 ActiveSupport.String = {
     /**
      * ActiveSupport.String.underscore(string) -> String

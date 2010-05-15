@@ -1,15 +1,15 @@
 /**
+ * ActiveRoutes#dispatch(path[,suppress_dispatcher = false]) -> Boolean
  * Will match() the given path and call the dispatcher if one is found.
- * @alias ActiveRoutes.prototype.dispatch
- * @param {mixed} String path or params object or route object.
- * @exception {ActiveRoutes.Errors.UnresolvableUrl}
- * @example
+ * 
  *     var routes = new ActiveRoutes([['post','/blog/post/:id',{object:'blog',method: 'post'}]]);
+ *     
  *     routes.dispatch('/blog/post/5');
- *     //by default calls Blog.post({object:'blog',method: 'post',id: 5});
+ *     //calls Blog.post({object:'blog',method: 'post',id: 5});
+ *     
  *     routes.dispatch({object:'blog',method: 'post',id: 5});
- *     //calls same as above, but saves history, fires callbacks, etc
- */
+ *     //calls Blog.post({object:'blog',method: 'post',id: 5});
+ **/
 ActiveRoutes.prototype.dispatch = function dispatch(path,suppress_dispatcher)
 {
     var route;
@@ -64,14 +64,14 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,suppress_dispatcher)
         this.dispatcher(route);
     }
     this.notify('afterDispatch',route,path);
+    return true;
 };
 
 /**
+ * ActiveRoutes#defaultDispatcher -> Function
  * If no "dispatcher" key is passed into the options to contstruct a route set
  *  this is used. It will call scope.object_name.method_name(route.params)
- * @property {Function}
- * @alias ActiveRoutes.prototype.defaultDispatcher
- */
+ **/
 ActiveRoutes.prototype.defaultDispatcher = function defaultDispatcher(route)
 {
     //the second parameter prevents the action from trying to set the current route

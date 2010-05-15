@@ -1,11 +1,16 @@
 /**
+ * ActiveRecord.Model.hasMany(related_model_name[,options]) -> null
  * Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.
- * @alias ActiveRecord.Class.hasMany
- * @param {String} related_model_name
- *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
- * @param {Object} [options]
- *      Can contain {String} "foreignKey", {Sting} "name", {Boolean} "dependent", {String} "order" and {String} "where" keys.
- * @example
+ * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * - options (Object)
+ * 
+ * Options can contain:
+ * 
+ * - foreignKey (String)
+ * - name (String)
+ * - dependent (Boolean)
+ * - order (String)
+ * - where (String)
  *
  *     User.hasMany('comments',{
  *         dependent: true
@@ -17,7 +22,7 @@
  *     u.destroyComment()
  *     u.getCommentList() //takes the same options as find()
  *     u.getCommentCount() //takes the same options as count() 
- */
+ **/
 ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options)
 {
     this.relationships.push(['hasMany',related_model_name,options]);
@@ -90,10 +95,6 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             if(options.order && !('order' in params))
             {
                 params.order = options.order;
-            }
-            if(options.synchronize && !('synchronize' in params))
-            {
-                params.synchronize = options.synchronize;
             }
             if(!params.where)
             {

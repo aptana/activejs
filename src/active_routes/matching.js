@@ -43,13 +43,12 @@ ActiveRoutes.prototype.checkAndCleanRoute = function checkAndCleanRoute(route,or
 };
 
 /**
- * @alias ActiveRoutes.prototype.match
- * @param {String} path
- * @return {mixed} false if no match, otherwise the matching route.
- * @example
- * var route = routes.match('/blog/post/5');<br/>
- * route == {object: 'blog',method: 'post', id: 5};
- */
+ * ActiveRoutes#match(path) -> Object | Boolean
+ * Matches the string path, returning the matching route, or false if no match was found.
+ * 
+ *     var route = routes.match('/blog/post/5');
+ *     route == {object: 'blog',method: 'post', id: 5};
+ **/
 ActiveRoutes.prototype.match = function(path){
     var original_path = path;
     this.error = false;
@@ -132,74 +131,6 @@ ActiveRoutes.prototype.match = function(path){
             {
                 return this.checkAndCleanRoute(route,original_path);
             }
-        }
-    }
-    return false;
-};
-
-/**
- * @alias ActiveRoutes.prototype.reverseLookup
- * @param {mixed} Object klass or string class name
- * @param {String} action_name
- * @return {mixed} false if no match, otherwise the matching route.
- * @example
- * var route = routes.reverseLookup({object: 'blog',method: 'post'});
- * //route.path == '/blog/post/:id'
- */
-ActiveRoutes.prototype.reverseLookup = function reverseLookup(class_name,action_name)
-{
-    var lower_case_action_name = action_name.toLowerCase();
-    if(typeof(class_name) != 'string')
-    {
-        var original_class_name = class_name;
-        class_name = this.classNameFromClass(class_name);
-        if(!class_name)
-        {
-            return false;
-        }
-    }
-    //look for object + method match
-    for(var i = 0; i < this.routes.length; ++i)
-    {
-        var route = this.routes[i];
-        if(route.params.object && route.params.object.toLowerCase() == class_name.toLowerCase() && route.params.method && route.params.method.toLowerCase() == lower_case_action_name)
-        {
-            return route;
-        }
-    }
-    //look for object + :method match
-    for(var i = 0; i < this.routes.length; ++i)
-    {
-        var route = this.routes[i];
-        if(route.params.object && route.params.object.toLowerCase() == class_name.toLowerCase() && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
-        {
-            var final_route = ActiveSupport.Object.clone(route);
-            final_route.method = action_name;
-            return final_route;
-        }
-    }
-    //look for :object + :method match
-    for(var i = 0; i < this.routes.length; ++i)
-    {
-        var route = this.routes[i];
-        if((!route.params.object || route.path.match(/(^|\/)\:object($|\/)/)) && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
-        {
-            var final_route = ActiveSupport.Object.clone(route);
-            final_route.method = action_name;
-            final_route.object = class_name;
-            return route;
-        }
-    }
-    return false;
-};
-
-ActiveRoutes.prototype.classNameFromClass = function classNameFromClass(klass)
-{
-    for(var class_name in this.scope)
-    {
-        if(this.scope[class_name] == klass)
-        {
-            return class_name;
         }
     }
     return false;

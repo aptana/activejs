@@ -1,3 +1,6 @@
+/**
+ * ActiveSupport.Array
+ **/
 ActiveSupport.Array = {
     /**
      * ActiveSupport.Array.from(object) -> Array
@@ -60,7 +63,7 @@ ActiveSupport.Array = {
         return response;
     },
     /**
-     * ActiveSupport.Array.map(array,iterator[,context])
+     * ActiveSupport.Array.map(array,iterator[,context]) -> Array
      * Emulates Array.prototype.map for browsers that do not support it.
      **/
     map: function map(array,iterator,context)

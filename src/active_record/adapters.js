@@ -1,35 +1,26 @@
- /**
- * @namespace {ActiveRecord.Adapters}
- */
+/**
+ * ActiveRecord.Adapters
+ **/
 var Adapters = {};
 
 /**
- * null if no connection is active, or the class that created the connection.
- * @alias ActiveRecord.adapter
- * @property {mixed}
- */
+ * ActiveRecord.adapters -> Array
+ * A list of the connected adapters.
+ **/
 ActiveRecord.adapters = [];
 
 /**
+ * ActiveRecord.connection -> null | Object
  * null if no connection is active, or the connection object.
- * @alias ActiveRecord.connection
- * @property {mixed}
- */
+ **/
 ActiveRecord.connection = null;
 
 /**
+ * ActiveRecord.connect(adapter[,adapter_arguments]) -> null
  * Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.
- * @alias ActiveRecord.connect
- * @param {Object} adapter
- * @param {mixed} [args]
- * @example
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.JaxerSQLite,'path_to_database_file');
- *     ActiveRecord.adapters === [ActiveRecord.Adapters.JaxerSQLite];
- *     ActiveRecord.connection.executeSQL('SELECT * FROM sqlite_master');
- *     //or you can have ActiveRecord try to auto detect the enviornment
- *     ActiveRecord.connect();
- */
+ *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
+ **/
 ActiveRecord.connect = function connect(adapter)
 {
     var connection = adapter.connect.apply(adapter, ActiveSupport.Array.from(arguments).slice(1));
@@ -43,14 +34,13 @@ ActiveRecord.connect = function connect(adapter)
 };
 
 /**
+ * ActiveRecord.execute(sql_statement) -> Array
+ * Accepts a variable number of arguments.
+ *  
  * Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.
- * @alias ActiveRecord.execute
- * @param {String} sql
- * @return {mixed}
- * @example
  *
  *     ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
- */
+ **/
 ActiveRecord.execute = function execute()
 {
     if (!ActiveRecord.connection)
@@ -61,18 +51,16 @@ ActiveRecord.execute = function execute()
 };
 
 /**
+ * ActiveRecord.escape(value[,suppress_quotes = false]) -> Number | String
  * Escapes a given argument for use in a SQL string. By default
  * the argument passed will also be enclosed in quotes.
- * @alias ActiveRecord.escape
- * @param {mixed} argument
- * @param {Boolean} [supress_quotes] Defaults to false.
- * @return {mixed}
+ * 
  * ActiveRecord.escape(5) == 5
  * ActiveRecord.escape('tes"t') == '"tes\"t"';
- */
-ActiveRecord.escape = function escape(argument,supress_quotes)
+ **/
+ActiveRecord.escape = function escape(argument,suppress_quotes)
 {
-    var quote = supress_quotes ? '' : '"';
+    var quote = suppress_quotes ? '' : '"';
     return typeof(argument) == 'number'
         ? argument
         : quote + String(argument).replace(/\"/g,'\\"').replace(/\\/g,'\\\\').replace(/\0/g,'\\0') + quote
@@ -81,18 +69,16 @@ ActiveRecord.escape = function escape(argument,supress_quotes)
 
 
 /**
- * @alias ActiveRecord.transaction
- * @param {Function} proceed
- *      The block of code to execute inside the transaction.
- * @param {Function} [error]
- *      Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
- * @example
+ * ActiveRecord.transaction(callback,[error_callback]) -> null
+ * - proceed (Function): The block of code to execute inside the transaction.
+ * - error_callback (Function): Optional error handler that will be called with an exception if one is thrown during a transaction. If no error handler is passed the exception will be thrown.
+ *
  *     ActiveRecord.transaction(function(){
  *         var from = Account.find(2);
  *         var to = Account.find(3);
  *         to.despoit(from.withdraw(100.00));
  *     });
- */
+ **/
 ActiveRecord.transaction = function transaction(proceed,error)
 {
     try
@@ -111,6 +97,7 @@ ActiveRecord.transaction = function transaction(proceed,error)
         }
     }
 };
+
 //deprecated
 ActiveRecord.ClassMethods.transaction = ActiveRecord.transaction;
 

@@ -65,9 +65,9 @@ ActiveSupport.Inflections = {
     ]
 };
 
-ActiveSupport.Object.extend(ActiveSupport.String,{
+ActiveSupport.Object.extend(ActiveSupport.Number,{
     /**
-     * ActiveSupport.String.ordinalize(number) -> String
+     * ActiveSupport.Number.ordinalize(number) -> String
      * Generates an ordinalized version of a number as a string (9th, 2nd, etc)
      **/
     ordinalize: function ordinalize(number)
@@ -86,7 +86,10 @@ ActiveSupport.Object.extend(ActiveSupport.String,{
                 default: return number + "th";
             }
         }
-    },
+    }
+});
+
+ActiveSupport.Object.extend(ActiveSupport.String,{
     /**
      * ActiveSupport.String.pluralize(word) -> String
      * Generates a plural version of an english word.

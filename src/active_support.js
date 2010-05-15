@@ -5,10 +5,10 @@ if(typeof exports != "undefined"){
 }
 
 (function(global_context){
-
+ 
 /** 
- * == ActiveSupport ==
- * Provides a number of methods from the Prototype.js framework,
+ * ActiveSupport
+ * Provides a subset of methods from the Prototype.js framework,
  * without modifying any built in prototypes to ensure compatibility
  * and portability.
  **/
@@ -64,8 +64,9 @@ ActiveSupport = {
     },
     /**
      * ActiveSupport.methodize([modules]) -> null
-     * - modules (Array): A list of the modules to methodize, can contain "Array", "Function", "String"
-     * Calling ActiveSupport.methodize will take the methods inside of the "Array", "Function", "String"
+     * - modules (Array): A list of the modules to methodize, can contain "Array", "Function", "String", "Number"
+     * 
+     * Calling ActiveSupport.methodize will take the methods inside of the "Array", "Function", "String", "Number"
      * modules and make them methods of the respective native class's prototype. This is not enabled by default.
      * 
      *     var bound = ActiveSupport.Function.bind(function(){},this);
@@ -77,7 +78,7 @@ ActiveSupport = {
     {
         if(!modules)
         {
-            modules = ['Array','Function','String'];
+            modules = ['Array','Function','String','Number'];
         }
         for(var i = 0; i < modules.length; ++i)
         {
@@ -93,3 +94,9 @@ ActiveSupport = {
 };
 
 })(this);
+
+//= require <active_support/array>
+//= require <active_support/function>
+//= require <active_support/string>
+//= require <active_support/number>
+//= require <active_support/object>

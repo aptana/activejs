@@ -13,6 +13,9 @@ if(typeof exports != "undefined"){
 //= require <active_record/calculations>
 //= require <active_record/adapters>
 //= require <active_record/adapters/in_memory>
+
+//in memory adapter throwing pdoc into infinite loop
+
 //= require <active_record/adapters/rest>
 //= require <active_record/where_parser>
 //= require <active_record/finders>

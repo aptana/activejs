@@ -1,14 +1,5 @@
 /**
- * @alias ActiveRoutes
- * @constructor
- * @param {Array} routes
- * @param {Object} [scope] defaults to window
- * @param {Object} [options]
- * @return {ActiveRoutes}
- * @example
- *
- * ActiveRoutes
- * ============
+ * == ActiveRoutes ==
  * 
  * ActiveRoutes maps URI strings to method calls, and visa versa. It shares a
  * similar syntax to Rails Routing, but is framework agnostic and can map
@@ -19,7 +10,7 @@
  * 
  * Declaring Routes
  * ----------------
- * Wether declared in the constructor, or with addRoute(), routes can have up
+ * Wether declared in the constructor, or with `addRoute`, routes can have up
  * to three parameters, and can be declared in any of the follow ways:
  * 
  * - "name", "path", {params}
@@ -86,7 +77,7 @@
  * 
  * Generating URLs
  * ---------------
- * The method urlFor() is available on every route set, and can generate a
+ * The method `urlFor` is available on every route set, and can generate a
  * URL from an object. Using the routes declared in the example above:
  * 
  *     routes.urlFor({object:'Blog',method:'post',id:5}) == '/blog/post/5';
@@ -102,7 +93,7 @@
  *
  * Dispatching
  * -----------
- * To call a given method from a URL string, use the dispatch() method.
+ * To call a given method from a URL string, use the `dispatch` method.
  * 
  *     routes.dispatch('/'); //will call Pages.index()
  *     routes.dispatch('/blog/post/5'); //will call Blog.post({id: 5});
@@ -113,8 +104,28 @@
  * between requests, so the history is not of use. Client side, after each
  * dispatch, the route and parameters are recorded. The history itself is
  * accessible with the "history" property, and is traversable with the
- * next() and back() methods.
- */
+ * `next` and `back` methods.
+ *
+ * [[ActiveView]] integrates with `ActiveRoutes` and [SWFAddress](http://www.asual.com/swfaddress/)
+ * to provide automatic history / back button support.
+ **/
+ 
+/** section: ActiveRoutes
+ * class ActiveRoutes
+ * See [ActiveRoutes tutorial](../index.html)
+ *
+ * Events
+ * ------
+ * - beforeDispatch(route,path)
+ * - afterDispatch(route,path)
+ **/
+ 
+/**
+ * new ActiveRoutes(routes[,context][,options])
+ * - routes (Array)
+ * - context (Object)
+ * - options (Object)
+ **/
 ActiveRoutes = function initialize(routes,scope,options)
 {
     this.initialized = false;
@@ -123,9 +134,8 @@ ActiveRoutes = function initialize(routes,scope,options)
     this.routes = [];
     this.index = 0;
     /**
-     * @alias ActiveRoutes.prototype.history
-     * @property {Array}
-     */
+     * ActiveRoutes#history -> Array
+     **/
     this.history = [];
     this.options = ActiveSupport.Object.extend({
         classSuffix: '',
@@ -159,24 +169,23 @@ ActiveRoutes.setRoutes = function setRoutes(routes)
 };
 
 /**
- * @namespace {ActiveRoutes.Route} A Route object reffered to in
- * the documentation is a psuedo class instance that will always
+ * class ActiveRoutes.Route
+ * A Route object reffered to in the documentation is a psuedo class instance that will always
  * contain the following properties:
  *
- *  - name {String}
- *  - path {String}
- *  - params {Object}
+ *  - name (String)
+ *  - path (String)
+ *  - params (Object)
  * 
  * The route may optionally contain:
  *
- *  - orderedParams {Array}
- *  - extension {String}
- */
+ *  - orderedParams (Array)
+ *  - extension (String)
+ **/
 
 /**
- * @alias ActiveRoutes.logging
- * @property {Boolean}
- */
+ * ActiveRoutes.logging -> Boolean
+ **/
 ActiveRoutes.logging = false;
 
 ActiveRoutes.prototype.goToIndex = function goToIndex(index)
@@ -191,10 +200,10 @@ ActiveRoutes.prototype.goToIndex = function goToIndex(index)
 };
 
 /**
+ * ActiveRoutes#back() -> Boolean
  * Calls to the previous dispatched route in the history.
- * @alias ActiveRoutes.prototype.back
  * @return {Boolean}
- */
+ **/
 ActiveRoutes.prototype.back = function back()
 {
     if(this.index == 0)
@@ -207,11 +216,10 @@ ActiveRoutes.prototype.back = function back()
 };
 
 /**
+ * ActiveRoutes#next() -> Boolean
  * Calls to the next dispatched route in the history if back() has already
  * been called.
- * @alias ActiveRoutes.prototype.next
- * @return {Boolean}
- */
+ **/
 ActiveRoutes.prototype.next = function next()
 {
     if(this.index >= this.history.length - 1)
@@ -224,30 +232,24 @@ ActiveRoutes.prototype.next = function next()
 };
 
 /**
+ * ActiveRoutes#getError() -> String | null
  * If match() returns false, the error it generates can be retrieved with this
  *  function.
- * @alias ActiveRoutes.prototype.getError
- * @return {mixed} String or null
- */
+ **/
 ActiveRoutes.prototype.getError = function getError()
 {
     return this.error;
 };
 
 /**
+ * ActiveRoutes#addRoute(route_name,path[,params]) -> null
+ * ActiveRoutes#addRoute(path[,params]) -> null
+ * 
  * Add a new route to the route set. When adding routes via the constructor
  * routes will be pushed onto the array, if called after the route set is
  * initialized, the route will be unshifted onto the route set (and will
  * have the highest priority).
- * @alias ActiveRoutes.prototype.addRoute
- * @exception {ActiveRoutes.Errors.NoPathInRoute}
- * @exception {ActiveRoutes.Errors.NoObjectInRoute}
- * @exception {ActiveRoutes.Errors.NoMethodInRoute}
- * @example
- * routes.addRoute('route_name','/route/path',{params});<br/>
- * routes.addRoute('/route/path',{params});<br/>
- * routes.addRoute('/route/path');
- */
+ **/
 ActiveRoutes.prototype.addRoute = function addRoute()
 {
     var name,path,params,route;

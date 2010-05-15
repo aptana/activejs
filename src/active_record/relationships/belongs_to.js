@@ -1,11 +1,14 @@
 /**
+ * ActiveRecord.Model.belongsTo(related_model_name[,options]) -> null
  * Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.
- * @alias ActiveRecord.Class.belongsTo
- * @param {String} related_model_name
- *      Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
- * @param {Object} [options]
- *      Can contain {String} "foreignKey", {String} name, {String} "counter" keys.
- * @example
+ * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
+ * - options (Object)
+ * 
+ * Options can contain:
+ * 
+ * - foreignKey (String)
+ * - name (String)
+ * - counter (String)
  *
  *     Comment.belongsTo('User',{
  *         counter: 'comment_count' //comment count must be a column in User
@@ -15,7 +18,7 @@
  *     c.getUser()
  *     c.buildUser()
  *     c.createUser()
- */
+ **/
 ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, options)
 {
     this.relationships.push(['belongsTo',related_model_name,options]);

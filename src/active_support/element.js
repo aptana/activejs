@@ -1,6 +1,9 @@
 var global_context = ActiveSupport.getGlobalContext();
 var ie = !!(global_context.attachEvent && !global_context.opera);
 
+/**
+ * ActiveSupport.Element
+ **/
 ActiveSupport.Element = {
     ieAttributeTranslations: {
         'class': 'className',
@@ -13,6 +16,25 @@ ActiveSupport.Element = {
         'cellspacing': 'cellSpacing',
         'cellpadding': 'cellPadding'
     },
+    /**
+     * ActiveSupport.Element.keyCodes -> Object
+     * Contains the following:
+     *  
+     * - KEY_BACKSPACE
+     * - KEY_TAB
+     * - KEY_RETURN
+     * - KEY_ESC
+     * - KEY_LEFT
+     * - KEY_UP
+     * - KEY_RIGHT
+     * - KEY_DOWN
+     * - KEY_DELETE
+     * - KEY_HOME
+     * - KEY_END
+     * - KEY_PAGEUP
+     * - KEY_PAGEDOWN
+     * - KEY_INSERT
+     **/
     keyCodes: {
         KEY_BACKSPACE: 8,
         KEY_TAB:       9,
@@ -110,6 +132,7 @@ ActiveSupport.Element = {
      * - element (Element)
      * - content (String | Number | Element)
      * - position (String): "top", "bottom", "before", "after"
+     * Note that this element does not identically mimic Prototype's Element.prototype.insert
      **/
     insert: function insert(element,content,position)
     {
@@ -145,38 +168,19 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.update(element,content[,position])
-     * Works exactly like update, 
+     * ActiveSupport.Element.update(element,content[,position]) -> Element
+     * Works exactly like update, but calls ActiveSupport.Element.clear() on the element first.
      **/
     update: function update(element,content,position)
     {
         ActiveSupport.Element.clear(element);
         ActiveSupport.Element.insert(element,content,position);
+        return element;
     },
-    collect: function collect(target_element,elements,callback,context)
-    {
-        if(callback)
-        {
-            var arguments_array = ActiveSupport.Array.from(arguments);
-            var arguments_for_bind = arguments_array.slice(3);
-            if(arguments_for_bind.length > 0)
-            {
-                arguments_for_bind.unshift(callback);
-                callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-            }
-            var collected_elements = [];
-            for(var i = 0; i < elements.length; ++i)
-            {
-                collected_elements.push(callback(elements[i]));
-            }
-            elements = collected_elements;
-        }
-        for(var i = 0; i < elements.length; ++i)
-        {
-            target_element.appendChild(elements[i]);
-        }
-        return elements;
-    },
+    /**
+     * ActiveSupport.Element.writeAttribute(element,name,value) -> Element
+     * ActiveSupport.Element.writeAttribute(element,attributes_hash) -> Element
+     **/
     writeAttribute: function writeAttribute(element,name,value)
     {
         var transitions = {
@@ -225,6 +229,9 @@ ActiveSupport.Element = {
         }
         return element;
     },
+    /**
+     * ActiveSupport.Element.hasClassName(element,class_name) -> Boolean
+     **/
     hasClassName: function hasClassName(element,class_name)
     {
         if(!element)
@@ -234,6 +241,9 @@ ActiveSupport.Element = {
         var element_class_name = element.className;
         return (element_class_name.length > 0 && (element_class_name == class_name || new RegExp("(^|\\s)" + class_name + "(\\s|$)").test(element_class_name)));
     },
+    /**
+     * ActiveSupport.Element.addClassName(element,class_name) -> Element
+     **/
     addClassName: function addClassName(element,class_name)
     {
         if(!element)
@@ -246,6 +256,9 @@ ActiveSupport.Element = {
         }
         return element;
     },
+    /**
+     * ActiveSupport.Element.removeClassName(element,class_name) -> Element
+     **/
     removeClassName: function removeClassName(element,class_name)
     {
         if(!element)
@@ -256,6 +269,34 @@ ActiveSupport.Element = {
         return element;
     },
     documentReadyObservers: [],
+    /**
+     * ActiveSupport.Element.observe(element,event_name,callback[,context]) -> Function
+     * - element (Element): The DOM element to observe.
+     * - event_name (String): The name of the event, in all lower case, without the "on" prefix — e.g., "click" (not "onclick").
+     * - callback (Function): The function to call when the event occurs.
+     * - context (Object): The context to bind the callback to. Any additional arguments after context will be curried onto the callback.
+     * This implementation of event observation is loosely based on Prototype's, but instead of adding element.stopObserving() and event.stop() 
+     * methods to the respective Element and Event objects, an event stopping callback and an event handler unregistration callback are passed
+     * into your event handler.
+     * 
+     *     ActiveSupport.Element.observe(element,'click',function(event,stop,unregister){
+     *         stop();
+     *         unregister();
+     *     },this);
+     *     
+     *     //Prototype equivelent:
+     *     
+     *     var my_handler = element.observe('click',function(event){
+     *         event.stop();
+     *         element.stopObserving('click',my_handler);
+     *     }.bind(this));
+     * 
+     * dom:ready support is also built in:
+     *  
+     *     ActiveSupport.Element.observe(document,'ready',function(){});
+     * 
+     * If the above call was made after the document 'ready' event had already fired, the callback would be called immediately.
+     **/
     observe: function observe(element,event_name,callback,context)
     {
         //bind context to context and curried arguments if applicable
