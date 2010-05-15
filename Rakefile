@@ -9,7 +9,7 @@ module ActiveJSHelper
   ROOT_DIR = File.expand_path(File.dirname(__FILE__))
   
   SRC_DIR = File.join(ROOT_DIR, 'src')
-  DIST_DIR = File.join(ROOT_DIR, 'dist')
+  DIST_DIR = File.join(ROOT_DIR, 'assets/downloads')
   DOCS_DIR = File.join(ROOT_DIR, 'docs')
   TEST_DIR = File.join(ROOT_DIR, 'test')
   VENDOR_DIR = File.join(ROOT_DIR, 'vendor')
@@ -78,7 +78,7 @@ module ActiveJSHelper
       INCLUDES[:swfaddress]
     ],    
     #ActiveJS combined tests
-    File.join('..','test','test.js') => [
+    File.join('..','..','test','test.js') => [
       Dir[File.join(TEST_DIR,'**/setup.js')],
       Dir[File.join(TEST_DIR,'**/*.js')].reject{|item| item.match(/setup\.js$/)}
     ].flatten.reject{|item| item.match(/\/test.js$/)}
@@ -91,7 +91,7 @@ module ActiveJSHelper
     'active_record',
     'active_support'
   ].each do |group|
-    DISTRIBUTIONS[File.join('..','test',group,'test.js')] = [
+    DISTRIBUTIONS[File.join('..','..','test',group,'test.js')] = [
       Dir[File.join(TEST_DIR,group + '/setup.js')],
       Dir[File.join(TEST_DIR,group + '/*.js')].reject{|item| item.match(/setup\.js$/)}
     ].flatten.reject{|item| item.match(/\/test.js$/)}
@@ -130,18 +130,17 @@ task :dist, :copy_locations do |task,arguments|
   ActiveJSHelper.sprocketize
   ActiveJSHelper::DISTRIBUTIONS.each_pair do |target,payload|
     puts "Built #{File.expand_path(File.join(ActiveJSHelper::DIST_DIR,target))}"
-  end
-  if !arguments[:copy_locations].nil?
-    arguments[:copy_locations].split(',').each do |location_pair|
-      source, target = location_pair.split(':')
-      source = File.expand_path(File.join(ActiveJSHelper::DIST_DIR,source))
-      target = File.expand_path(target)
-      FileUtils.copy(
-        source,
-        target
-      )
-      puts "Copied #{source} to #{target}"
-    end
+  end  
+  copy_locations = (arguments[:copy_locations] || '').split(',')
+  copy_locations.each do |location_pair|
+    source, target = location_pair.split(':')
+    source = File.expand_path(File.join(ActiveJSHelper::DIST_DIR,source))
+    target = File.expand_path(target)
+    FileUtils.copy(
+      source,
+      target
+    )
+    puts "Copied #{source} to #{target}"
   end
   puts "Task complete."
 end

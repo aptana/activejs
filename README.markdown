@@ -9,12 +9,12 @@ ActiveJS is a pure JavaScript web application framework that provides client sid
 [GitHub Project](http://github.com/aptana/activejs)
 ----------------
 
-Download
---------
-- [ActiveJS](http://activejs.org/downloads/active.js)
-- [ActiveRecord](http://activejs.org/downloads/active_record.js)
-- [ActiveView](http://activejs.org/downloads/active_view.js)
-- [ActiveEvent](http://activejs.org/downloads/active_event.js)
-- [ActiveRoutes](http://activejs.org/downloads/active_routes.js)
-- [ActiveSupport](http://activejs.org/downloads/active_support.js)
+Downloads
+---------
+[ActiveJS](http://activejs.org/downloads/active.js) | 
+[ActiveRecord](http://activejs.org/downloads/active_record.js) | 
+[ActiveView](http://activejs.org/downloads/active_view.js) | 
+[ActiveEvent](http://activejs.org/downloads/active_event.js) | 
+[ActiveRoutes](http://activejs.org/downloads/active_routes.js) | 
+[ActiveSupport](http://activejs.org/downloads/active_support.js)
 
