@@ -1,0 +1,19 @@
+#footer {
+    position:relative;
+    font-size:9px;
+}
+
+#footer p {
+    width:240px;
+}
+
+#footer_logos {
+    position:absolute;
+    top:8px;
+    right:0;
+}
+
+#header_logo {
+    border:none;
+    margin-left:115px;
+}
