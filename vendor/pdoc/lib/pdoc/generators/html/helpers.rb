@@ -81,10 +81,12 @@ module PDoc
               return original unless obj
             end
             name = options.delete(:name) == :short ? obj.name : obj.full_name
-            path = path_to(obj)
-            title = obj.full_name
-            title = "#{title} (#{obj.type})" unless obj.type == 'section'
-            link_to(name, path, { :title => title }.merge(options))
+            if obj.type == 'section'
+              title = obj.full_name
+            else
+              title = "#{obj.full_name} (#{obj.type})"
+            end
+            link_to(name, path_to(obj), { :title => title }.merge(options))
           end
           
           def auto_link_code(obj, options = {})
@@ -149,10 +151,11 @@ module PDoc
             result
           end
           
-          def breadcrumb(obj, options)
+          def breadcrumb(obj, options = {})
+            options = {:name => :short}.merge(options)
             result = []
             begin
-              result << auto_link(obj, options)
+              result << auto_link(obj, options.dup)
               obj = obj.parent
             end until obj.is_a?(Models::Root)
             result.reverse!

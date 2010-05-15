@@ -22,12 +22,12 @@ module PDoc
             @pretty_urls = boolean
           end
         end
-        
+        attr_reader :templates_directory, :custom_assets, :index_page
         def initialize(parser_output, options = {})
           super
           @templates_directory = File.expand_path(options[:templates] || TEMPLATES_DIRECTORY)
           @index_page = options[:index_page] && File.expand_path(options[:index_page])
-          @json_api = options[:json_api]
+          @custom_assets = @options[:assets] && File.expand_path(@options[:assets])
           self.class.syntax_highlighter = SyntaxHighlighter.new(options[:syntax_highlighter])
           self.class.pretty_urls = options[:pretty_urls]
           set_markdown_parser(options[:markdown_parser])
@@ -53,7 +53,7 @@ module PDoc
         
         def load_custom_helpers
           begin
-            require File.join(@templates_directory, "helpers")
+            require File.join(templates_directory, "helpers")
           rescue LoadError => e
             return nil
           end
@@ -71,6 +71,7 @@ module PDoc
           
             render_index
             copy_assets
+            copy_custom_assets
             
             render_children(root)
             if root.sections?
@@ -80,7 +81,7 @@ module PDoc
               end
             end
 
-            dest = File.join("javascripts", "item_index.js")
+            dest = File.join("javascripts", "pdoc", "item_index.js")
             DocPage.new("item_index.js", false, variables).render_to_file(dest)
           end
         end
@@ -97,7 +98,7 @@ module PDoc
           puts "        Rendering #{dest}..."
           FileUtils.mkdir_p(dest)
           DocPage.new(template, variables.merge(var)).render_to_file(File.join(dest, 'index.html'))
-          render_json("#{dest}.json", doc) if @json_api
+          render_json("#{dest}.json", doc) if json_api?
           render_children(doc)
           @depth -= 1
         end
@@ -122,7 +123,13 @@ module PDoc
         # Copies the content of the assets folder to the generated website's
         # root directory.
         def copy_assets
-          FileUtils.cp_r(Dir.glob(File.join(@templates_directory, "assets", "**")), '.')
+          FileUtils.cp_r(Dir.glob(File.join(templates_directory, "assets", "**")), '.')
+        end
+        
+        def copy_custom_assets
+          if custom_assets
+            FileUtils.cp_r(Dir.glob(File.join(custom_assets, "**")), ".")
+          end
         end
         
         def render_leaf(object)
@@ -141,14 +148,33 @@ module PDoc
             {
               :root => root,
               :depth => @depth,
-              :templates_directory => @templates_directory,
+              :templates_directory => templates_directory,
               :name => @options[:name],
               :short_name => @options[:short_name] || @options[:name],
               :home_url => @options[:home_url],
-              :doc_url => @options[:doc_url],
               :version => @options[:version],
-              :copyright_notice => @options[:copyright_notice]
+              :stylesheets => @options[:stylesheets] || [],
+              :index_title => @options[:index_title] || false,
+              :footer => footer,
+              :index_header => index_header,
+              :header => header
             }
+          end
+
+          def header
+            @header ||= @options[:header] ? htmlize(@options[:header]) : ''
+          end
+          
+          def index_header
+            @index_header ||= @options[:index_header] ? htmlize(@options[:index_header]) : ''
+          end
+          
+          def footer
+            @footer ||= @options[:footer] ? htmlize(@options[:footer]) : ''
+          end
+          
+          def json_api?
+            !!options[:json_api]
           end
           
           def is_proto_prop?(object)

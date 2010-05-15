@@ -24,9 +24,7 @@ html[xmlns] .section {
     height: 1%;
 }
 
-span.replaced { visibility: hidden; }
 span.hidden { display: none; }
-
 
 body {
   font-family: Verdana, sans-serif;
@@ -92,26 +90,6 @@ code, pre {
   overflow-x: auto;
 }
 
-
-/* MASTHEAD */
-
-.masthead {
-  margin-top: 31px;
-  height: 75px;
-  padding: 1px 0;
-  background: url(../images/header-stripe-small.png) repeat-x;
-}
-
-h1.logo {
-  width: 236px;
-  height: 150px;
-  background: url(../images/header-logo-small.png) no-repeat;
-}
-
-  h1.logo a {
-    text-decoration: none;
-  }
-  
 /* BREADCRUMBS */
 
 ul.breadcrumbs {
@@ -127,6 +105,8 @@ ul.breadcrumbs {
     margin-right: 0.4em;
   }
 
+/* DEPRECATION */
+
 #deprecated {
   position: absolute;
   right: 0;
@@ -137,7 +117,11 @@ ul.breadcrumbs {
   display: block;
   border: 0;
 }
-  
+
+.menu-item a.deprecated {
+  text-decoration: line-through;
+  color: #999;
+}
 
 /* PAGE CONTENT */
 
@@ -388,59 +372,59 @@ ul.argument-list {
 }
 
 .section-constructor .section-title h3 {
-  background-image: url(../images/constructor.png);
+  background-image: url(../../images/pdoc/constructor.png);
 }
 
 .section-method-list .section-title h3 {
-  background-image: url(../images/method.png);
+  background-image: url(../../images/pdoc/method.png);
 }
 
 .section-class_methods .section-title h3 {
-  background-image: url(../images/class_method.png);  
+  background-image: url(../../images/pdoc/class_method.png);  
 }
 
 .section-class_properties .section-title h3 {
-  background-image: url(../images/class_property.png);  
+  background-image: url(../../images/pdoc/class_property.png);  
 }
 
 .section-instance_methods .section-title h3 {
-  background-image: url(../images/instance_method.png);
+  background-image: url(../../images/pdoc/instance_method.png);
 }
 
 .section-instance_properties .section-title h3 {
-  background-image: url(../images/instance_property.png);  
+  background-image: url(../../images/pdoc/instance_property.png);  
 }
 
 .section-mixins .section-title h3 {
-  background-image: url(../images/mixin.png);
+  background-image: url(../../images/pdoc/mixin.png);
 }
 
 .section-classes .section-title h3 {
-  background-image: url(../images/class.png);
+  background-image: url(../../images/pdoc/class.png);
 }
 
 .section-namespaces .section-title h3 {
-  background-image: url(../images/namespace.png);
+  background-image: url(../../images/pdoc/namespace.png);
 }
 
 .section-sections .section-title h3 {
-  background-image: url(../images/section.png);
+  background-image: url(../../images/pdoc/section.png);
 }
 
 .section-utilities .section-title h3 {
-  background-image: url(../images/utility.png);
+  background-image: url(../../images/pdoc/utility.png);
 }
 
 .section-description .section-title h3 {
-  background-image: url(../images/description.png);
+  background-image: url(../../images/pdoc/description.png);
 }
 
 .section-subclasses .section-title h3 {
-  background-image: url(../images/subclass.png);
+  background-image: url(../../images/pdoc/subclass.png);
 }
 
 .section-superclass .section-title h3 {
-  background-image: url(../images/superclass.png);
+  background-image: url(../../images/pdoc/superclass.png);
 }
 
 /* notes */
@@ -458,19 +442,19 @@ p.related-to {
 
 p.note {
   background-color: #f0f0f4;
-  background-image: url(../images/information.png);
+  background-image: url(../../images/pdoc/information.png);
   border-color: #69c;
 }
 
 p.alias {
   background-color: #fff6de;
-  background-image: url(../images/alias.png);
+  background-image: url(../../images/pdoc/alias.png);
   border-color: #cc9;
 }
 
 p.related-to {
   background-color: #f4f0f4;
-  background-image: url(../images/related_to.png);
+  background-image: url(../../images/pdoc/related_to.png);
   border-color: #c9c;
 }
 
@@ -492,7 +476,7 @@ p.related-to {
   border-right: 1px solid #636363;
   padding: 4px 0 3px;
   border-bottom: 1px solid #587e93;
-  background: url(../images/search-background.png) repeat-x 0 0;
+  background: url(../../images/pdoc/search-background.png) repeat-x 0 0;
   text-align: center;
 }
 
@@ -568,44 +552,44 @@ p.related-to {
       }
 
     .menu-item a.class-method {
-      background-image: url(../images/class_method.png);  
+      background-image: url(../../images/pdoc/class_method.png);  
     }
     
     .menu-item a.instance-method {
-      background-image: url(../images/instance_method.png);  
+      background-image: url(../../images/pdoc/instance_method.png);  
     }
 
     .menu-item a.class {
-      background-image: url(../images/class.png);  
+      background-image: url(../../images/pdoc/class.png);  
     }
 
     .menu-item a.constructor {
-      background-image: url(../images/constructor.png);  
+      background-image: url(../../images/pdoc/constructor.png);  
     }
 
     .menu-item a.class-property {
-      background-image: url(../images/class_property.png);  
+      background-image: url(../../images/pdoc/class_property.png);  
     }
 
     .menu-item a.instance-property {
-      background-image: url(../images/instance_property.png);  
+      background-image: url(../../images/pdoc/instance_property.png);  
     }
 
     .menu-item a.namespace {
-      background-image: url(../images/namespace.png);  
+      background-image: url(../../images/pdoc/namespace.png);  
     }
     
     .menu-item a.mixin {
-      background-image: url(../images/mixin.png);
+      background-image: url(../../images/pdoc/mixin.png);
     }
 
     .menu-item a.utility {
-      background-image: url(../images/utility.png);    
+      background-image: url(../../images/pdoc/utility.png);    
     }
     
     .menu-item a.section {
       margin: 0;
-      background-image: url(../images/section.png);    
+      background-image: url(../../images/pdoc/section.png);    
     }
   
     #api_menu .menu-item a.section {
@@ -616,13 +600,13 @@ p.related-to {
       margin-bottom: 0;
       border-top: 1px solid #000;
       border-bottom: 1px solid #000;
-      background: url(../images/section-background.png) repeat-x 0 0;
+      background: url(../../images/pdoc/section-background.png) repeat-x 0 0;
     }
     
     #api_menu .menu-item a.section:hover {
       border-color: #69f;
       color: #D8D9EA;
-      background-image: url(../images/selected-section-background.png);
+      background-image: url(../../images/pdoc/selected-section-background.png);
     }
     
 .menu-section {
