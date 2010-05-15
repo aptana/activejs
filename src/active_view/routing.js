@@ -50,17 +50,17 @@ ActiveView.Routing = {
             }
         }
     },
-    generateRouteArray: function generateRouteArray(view_class,route_name,path)
+    generateRouteArray: function generateRouteArray(view_class,route_name,path,method_name)
     {
         return [route_name,path,{
             object: 'Routing',
-            method: route_name
+            method: method_name
         }];
     },
-    generateRoutingWrapperMethod: function generateRoutingWrapperMethod(view_class,route_name)
+    generateRoutingWrapperMethod: function generateRoutingWrapperMethod(view_class,route_name,method_name)
     {
         ActiveView.Routing[route_name] = function generated_routing_wrapper(params){
-            return view_class[route_name](params);
+            return view_class[method_name](params);
         };
     },
     initializeRoutes: function initializeRoutes()
@@ -69,22 +69,22 @@ ActiveView.Routing = {
         ActiveView.Routing.routes.observe('afterDispatch',ActiveView.Routing.afterDispatchHandler);
         SWFAddress.addEventListener(SWFAddressEvent.EXTERNAL_CHANGE,ActiveView.Routing.externalChangeHandler);
     },
-    addRoute: function addRoute(view_class,route_name,path)
+    addRoute: function addRoute(view_class,route_name,path,method_name)
     {
-        ActiveView.Routing.generateRoutingWrapperMethod(view_class,route_name);
-        ActiveView.Routing.routes.addRoute.apply(ActiveView.Routing.routes,ActiveView.Routing.generateRouteArray(view_class,route_name,path));
+        ActiveView.Routing.generateRoutingWrapperMethod(view_class,route_name,method_name);
+        ActiveView.Routing.routes.addRoute.apply(ActiveView.Routing.routes,ActiveView.Routing.generateRouteArray(view_class,route_name,path,method_name));
     },
-    generateRoutingMethod: function generateRoutingMethod(view_class,route_name)
+    generateRoutingMethod: function generateRoutingMethod(view_class,route_name,method_name)
     {
-        view_class.getInstance()[route_name] = ActiveSupport.Function.wrap(view_class.getInstance()[route_name],function wrapped_generated_routing_handler(proceed,params){
-            ActiveView.Routing.setRoute(view_class,route_name,params);
+        view_class.getInstance()[method_name] = ActiveSupport.Function.wrap(view_class.getInstance()[method_name],function wrapped_generated_routing_handler(proceed,params){
+            ActiveView.Routing.setRoute(view_class,route_name,params,method_name);
             proceed(params);
         });
-        view_class[route_name] = function generated_routing_handler(params){
-            view_class.getInstance()[route_name](params);
+        view_class[method_name] = function generated_routing_handler(params){
+            view_class.getInstance()[method_name](params);
         };
     },
-    setRoute: function setRoute(view,route_name,params)
+    setRoute: function setRoute(view,route_name,params,method_name)
     {
         var route = false;
         for(var i = 0; i < ActiveView.Routing.routes.routes.length; ++i)
@@ -95,7 +95,7 @@ ActiveView.Routing = {
                 break;
             }
         }
-        params.method = route_name;
+        params.method = method_name;
         params.object = 'Routing';
         var final_route = ActiveSupport.Object.clone(route);
         //need to deep copy the params
@@ -113,9 +113,10 @@ ActiveView.Routing = {
         for(var route_name in routes)
         {
             var view_class = routes[route_name][1];
+            var method_name = routes[route_name][2] || route_name;
             var path = routes[route_name][0];
-            ActiveView.Routing.generateRoutingMethod(view_class,route_name);
-            ActiveView.Routing.addRoute(view_class,route_name,path);
+            ActiveView.Routing.generateRoutingMethod(view_class,route_name,method_name);
+            ActiveView.Routing.addRoute(view_class,route_name,path,method_name);
         }
        ActiveView.Routing.enable();
     }
