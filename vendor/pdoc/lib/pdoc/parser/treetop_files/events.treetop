@@ -1,0 +1,17 @@
+grammar Events
+  include Basic
+  
+  rule events
+    line space* 'fires' space+ event more:(',' space* event)* {
+      def to_a
+        [event.text_value].concat(more.elements.map{ |e| e.event.text_value })
+      end
+    }
+  end
+  
+  rule event
+    [a-zA-Z]+ (':' [a-zA-Z]+)*
+  end
+end
+
+

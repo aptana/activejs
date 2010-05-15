@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>beforeRunningCommand</key>
+	<string>nop</string>
+	<key>command</key>
+	<string>#!/usr/bin/env ruby
+
+# Input:  Entire Document
+# Output: Insert as Snippet
+# Key Equivalent: &lt;Return&gt;
+# Scope: comment.block
+
+line     = ENV['TM_CURRENT_LINE']
+index    = ENV['TM_LINE_NUMBER'].to_i
+nextline = $stdin.readlines[index + 1]
+
+puts
+print " " if line =~ /\/\*\*/
+print "*  $0"
+if line.match(/\/\*\*/) &amp;&amp; !nextline.match(/^\s*\*/)
+  puts
+  print "**/"
+end</string>
+	<key>input</key>
+	<string>document</string>
+	<key>keyEquivalent</key>
+	<string></string>
+	<key>name</key>
+	<string>Continue PDoc Comment</string>
+	<key>output</key>
+	<string>insertAsSnippet</string>
+	<key>scope</key>
+	<string>comment.block</string>
+	<key>uuid</key>
+	<string>58E0442A-7A56-4D19-A063-19C1616C5B6E</string>
+</dict>
+</plist>

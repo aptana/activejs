@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'oyster'
+require File.dirname(__FILE__) + '/../lib/pdoc'
+
+spec = Oyster.spec do
+  name "pdoc -- Inline comment parser and JavaScript documentation generator"
+  author "Tobie Langel <tobie.langel@gmail.com>"
+  
+  synopsis <<-EOS
+    pdoc [-o OUTPUT_DIR] [-t TEMPLATE_DIR] SOURCE_FILES
+    pdoc [OPTIONS] -d SOURCE_DIRECTORY
+  EOS
+  
+  string :directory,
+         :desc => "Directory to search for JavaScript files. Will take all *.js " +
+                  "files from the given directory (including subdirectories) and use " +
+                  "them to generate documentation. This option takes precedence over " +
+                  "SOURCE_FILES."
+  
+  string :output,
+         :desc => "Directory in which to dump output files",
+         :default => "pdoc"
+  
+  string :templates,
+         :desc => "Directory containing template files"
+  
+  subcommand :'copy-templates' do
+    synopsis <<-EOS
+      pdoc copy-templates TYPE DESTINATION
+    EOS
+    
+    description <<-EOS
+      PDoc includes a set of default templates for each type of output generator.
+      This command lets you extract a set of these templates into a local directory
+      so you can tweak it to suit your needs. Be sure to specify your set of
+      templates next time you run pdoc.
+    EOS
+  end
+end
+
+begin; options = spec.parse
+rescue Oyster::HelpRendered; exit
+end
+
+if command = options[:'copy-templates']
+  args = command[:unclaimed]
+  PDoc.copy_templates(args[0], File.expand_path(args[1]))
+  exit
+end
+
+files = (d = options[:directory]) ?
+        Dir["#{d}/**/*.js"].map(&File.method(:expand_path)) :
+        options[:unclaimed].dup
+
+files << {:destination => options[:output], :templates => options[:templates]}
+PDoc::Runner.new(*files).run
+

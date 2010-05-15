@@ -1,0 +1,14 @@
+<pre class="syntax"><code class="ebnf"><%= method_synopsis(object).join('<br />') %></code></pre>
+<% if object.respond_to?(:arguments) && object.arguments? %>
+  <ul class="argument-list">
+    <% object.arguments.each do |arg| %>
+      <li>
+        <code class="argument-name"><%= arg.name %></code>
+        <% unless arg.types.empty? %>
+          <span class="argument-types">(<%= auto_link_types(arg.types).map { |t| "<code>#{t}</code>"}.join(' | ') %>)</span>
+        <% end %>
+        <%= ' &ndash; ' + inline_htmlize(arg.description) unless arg.description.empty? %>
+      </li>
+    <% end %>
+  </ul> <!-- .argument-list -->
+<% end %>

@@ -1,0 +1,11 @@
+<% if object.aliases? %>
+  <p class="alias aliases">Aliased as: <%= object.aliases.map.map { |a| auto_link_code(a, :name => :long) }.join(', ') %></p>
+<% end %>
+
+<% if object.alias? %>
+  <p class="alias alias-of">Alias of: <%= auto_link_code(object.alias, :name => :long) %></p>
+<% end %>
+
+<% if object.respond_to?(:related_to) && related_to = object.related_to %>
+  <p class="related-to">Related to: <%= auto_link_code(related_to, :name => :long) %></p>      
+<% end %>

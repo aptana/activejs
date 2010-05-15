@@ -1,0 +1,75 @@
+grammar Documentation
+  include Tags
+  include Events
+  include ArgumentDescription
+  include Description
+  include SectionContent
+  include EbnfExpression
+  
+  rule documentation
+    ((!comment_start .)* doc_instance)+ (!comment_start .)* <Doc> / (!comment_start .)* {
+      def each
+      end
+    }
+  end
+  
+  rule doc_instance
+    section_doc / klass_method_doc / instance_method_doc / klass_property_doc / instance_property_doc / utility_doc / constructor_doc / klass_doc / mixin_doc / constant_doc / namespace_doc
+  end
+  
+  rule section_doc
+    start section comment_end <Section>
+  end
+  
+  rule constructor_doc
+    start ebnf:(line constructor)+ argument_descriptions events text comment_end <Constructor>
+  end
+  
+  rule mixin_doc
+    start line ebnf:mixin text comment_end <Mixin>
+  end
+  
+  rule klass_doc
+    start line space* ebnf:klass text comment_end <Klass>
+  end
+
+  rule klass_method_doc
+    start ebnf:(line klass_method)+ argument_descriptions events text comment_end <KlassMethod>
+  end
+  
+  rule instance_method_doc
+    start ebnf:(line instance_method)+ argument_descriptions events text comment_end <InstanceMethod>
+  end
+  
+  rule klass_property_doc
+    start line ebnf:klass_property text comment_end <KlassProperty>
+  end
+  
+  rule instance_property_doc
+    start line ebnf:instance_property text comment_end <InstanceProperty>
+  end
+
+  rule constant_doc
+    start line ebnf:constant text comment_end <Constant>
+  end
+  
+  rule utility_doc
+    start ebnf:(line utility)+ argument_descriptions events text comment_end <Utility>
+  end
+  
+  rule namespace_doc
+    start line space* ebnf:namespace text comment_end <Namespace>
+  end
+  
+  rule start
+    comment_start space* (tags)?
+  end
+  
+  rule argument_descriptions
+    (argument_description+ blank_line)?
+  end
+  
+  rule events
+    (super)?
+  end
+end

@@ -1,0 +1,22 @@
+<% @title = "#{@doc_instance.full_name} #{@doc_instance.type}" %>
+
+<%= include "partials/title", :object => @doc_instance %>
+
+<div class="section">
+  <div class="section-title">
+  </div> <!-- .section-title -->
+  <div class="section-content">
+    <div class="method-description">
+      <% if @doc_instance.respond_to?(:signatures) %>
+        <%= include "partials/method_signatures", :object => @doc_instance %>
+      <% else %>
+        <pre class="syntax"><code class="ebnf"><%= @doc_instance.signature.name %> &rarr; <%= auto_link_types(@doc_instance.signature.return_value, :name => :long).join(' | ') %></code></pre>
+      <% end %>
+
+      <%= htmlize(@doc_instance.description) %>
+      
+      <%= include "partials/relationships", :object => @doc_instance %>
+      <%= include "partials/methodized_note", :object => @doc_instance %>
+    </div>
+  </div> <!-- .section-content -->
+</div> <!-- .section -->

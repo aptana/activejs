@@ -1,0 +1,41 @@
+grammar Basic
+  rule test_base
+    (blank_line / text_line / comment_start / comment_end / line / line_break / space / char)+
+  end
+
+  rule blank_line
+    line_break space* line_separator space* &(line_break) <BlankLine>
+  end
+  
+  rule text_line
+    line text:char+ <TextLine>
+  end
+  
+  rule line
+    line_break space* line_separator space <Line>
+  end
+  
+  rule comment_start
+    line_break space* "/**" space* <CommentStart>
+  end
+  
+  rule comment_end
+    line_break space* "**/" space* line_break <CommentEnd>
+  end
+  
+  rule line_break
+    [\n] <LineBreak>
+  end
+  
+  rule line_separator
+    "*"
+  end
+
+  rule char
+    ![\n] . <Char>
+  end
+  
+  rule space
+    " " <Space>
+  end
+end

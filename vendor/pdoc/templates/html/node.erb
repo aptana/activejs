@@ -1,0 +1,35 @@
+<% d = @doc_instance %>
+
+<%= include "partials/title", :object => @doc_instance %>
+
+<% if d.description && !d.description.empty? %>
+  <%= layout_section('Description') %>
+    <%= htmlize(d.description) %>
+  <%= end_layout_section %>
+<% end %>
+
+<%= include "partials/namespaces", :object => @doc_instance %>
+<%= include "partials/classes", :object => @doc_instance %>
+
+<%= include "partials/class_relationships", :object => @doc_instance %>
+<%= include "partials/related_utilities",   :object => @doc_instance %>
+<%= include "partials/constructor",         :object => @doc_instance %>
+
+<%
+types = [
+  [:class_methods, 'Class methods'],
+  [:class_properties, 'Class properties'],
+  [:instance_methods, 'Instance methods'],
+  [:instance_properties, 'Instance properties'],
+  [:constants, 'Constants']
+].each do |a| %>
+  <% method, title = a %>
+  <% methods = @doc_instance.send(method) %>
+  <% unless methods.empty? %>
+    <%= layout_section(title, method) %>
+      <ul class="method-list">
+        <%= include "partials/link_list", :collection => methods.sort! %>
+      </ul>
+    <%= end_layout_section %>
+  <% end %>
+<% end %>

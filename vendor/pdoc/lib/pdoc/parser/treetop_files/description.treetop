@@ -1,0 +1,7 @@
+grammar Description
+  include Basic
+  
+  rule text
+    (blank_line / text_line)* <Text>
+  end
+end

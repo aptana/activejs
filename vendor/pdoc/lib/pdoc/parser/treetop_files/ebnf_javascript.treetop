@@ -1,0 +1,54 @@
+grammar EbnfJavascript
+  include Basic
+  rule primitive
+    js_all_caps_constant / js_namespace / js_constant  / js_variable / js_object
+  end
+  
+  rule js_object
+    '{' [^}]* '}'
+  end
+  
+  rule js_constant
+    [A-Z] [a-zA-Z_0-9$]* {
+      def value
+        text_value
+      end
+    }
+  end
+
+  rule js_all_caps_constant
+    [A-Z] [A-Z_]+ {
+      def value
+        text_value
+      end
+    }
+  end
+  
+  rule js_variable
+    [_a-zA-Z] [_a-zA-Z0-9]* {
+      def value
+        text_value
+      end
+    }
+  end
+  
+  rule js_namespace
+    (js_constant / js_all_caps_constant / js_variable) ('.' (js_constant / js_all_caps_constant / js_variable))* {
+      def namespace
+        to_a.slice(0..-2).join(".")
+      end
+    
+      def name
+        to_a.pop
+      end
+    
+      def to_a
+        text_value.split('.')
+      end
+      
+      def full_name
+        text_value
+      end
+    }
+  end
+end

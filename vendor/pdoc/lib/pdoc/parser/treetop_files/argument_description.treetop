@@ -1,0 +1,31 @@
+grammar ArgumentDescription
+  include EbnfJavascript
+  
+  rule argument_description
+    first:argument_description_first_line more:(argument_description_line)* <ArgumentDescription>
+  end
+  
+  rule argument_description_first_line
+    line space* '-' space+ argument_name arg_types:(space+ arguments_types)? ':' description:char+
+  end
+  
+  rule argument_description_line
+    line space* first_char:(!'-' .) more_char:char+ {
+      def to_s
+        first_char.text_value << more_char.text_value
+      end
+    }
+  end
+  
+  rule argument_name
+    '@'? name:[a-zA-Z$]+
+  end
+  
+  rule arguments_types
+    '(' space* argument_type more:(space+ '|' space+ argument_type)* space* ')'
+  end
+  
+  rule argument_type
+    js_namespace / '?'
+  end
+end

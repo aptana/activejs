@@ -1,0 +1,19 @@
+<% if object.respond_to?(:subclass) %>
+  <% if object.superclass %>
+    <%= layout_section('Superclass') %>
+      <p><%= auto_link_code(object.superclass, :name => :long) %></p>
+    <%= end_layout_section %>
+  <% end %>
+
+  <% if object.subclasses? %>
+    <%= layout_section('Subclasses') %>
+      <p><%= object.subclasses.sort!.map { |s| auto_link_code(s, :name => :long) }.join(', ') %></p>
+    <%= end_layout_section %>
+  <% end %>
+<% end %>
+
+<% if object.included_mixins? %>
+  <%= layout_section('Includes', :mixins) %>
+    <p><%= object.included_mixins.sort!.map { |m| auto_link_code(m, :name => :long) }.join(', ') %></p>
+  <%= end_layout_section %>
+<% end %>
