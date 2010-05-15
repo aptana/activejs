@@ -10,7 +10,7 @@ var Adapters = {};
 ActiveRecord.adapters = [];
 
 /**
- * ActiveRecord.connection -> null | Object
+ * ActiveRecord.connection
  * null if no connection is active, or the connection object.
  **/
 ActiveRecord.connection = null;

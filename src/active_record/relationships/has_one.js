@@ -16,7 +16,7 @@
  *     u.getCreditCard()
  *     u.buildCreditCard()
  *     u.createCreditCard()
- */
+ **/
 ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
 {
     this.relationships.push(['hasOne',related_model_name,options]);

@@ -3,7 +3,7 @@
  * When using any finder method, the returned array will be extended
  * with the methods in this namespace. A returned result set is still
  * an instance of Array.
- */
+ **/
 var ResultSet = {};
 
 ResultSet.InstanceMethods = {

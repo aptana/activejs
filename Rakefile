@@ -154,11 +154,11 @@ task :docs do
     :destination => ActiveJSHelper::DOCS_DIR,
     :syntax_highlighter => :pygments,
     :markdown_parser => :bluecloth,
-    :src_code_href => proc { |file|
-      "http://github.com/aptana/activejs/#{file}"
+    :src_code_href => proc { |doc|
+      "http://github.com/aptana/activejs/#{doc.file}#{doc.line_number}"
     },
     :pretty_urls => false,
-    :bust_cache => true,
+    :bust_cache => false,
     :name => 'ActiveJS',
     :short_name => 'ActiveJS',
     :home_url => 'http://activejs.org',

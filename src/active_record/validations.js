@@ -12,7 +12,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         this._validators.push(validator);
     },
     /**
-     * ActiveRecord.Model.validatesPresenceOf(field_name[,options])
+     * ActiveRecord.Model.validatesPresenceOf(field_name[,options]) -> null
      **/
     validatesPresenceOf: function validatesPresenceOf(field, options)
     {
