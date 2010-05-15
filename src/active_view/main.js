@@ -1,21 +1,22 @@
 /**
- */
+ * == ActiveView ==
+ **/
+ 
+/** section: ActiveView
+ * ActiveView
+ **/
 ActiveView = {};
 
 /**
- * Defaults to false.
- * @alias ActiveView.logging
- * @property {Boolean}
- */
+ * ActiveView.logging -> Boolean
+ **/
 ActiveView.logging = false;
 
 /**
- * Creates a new ActiveView class. The structure function must return a DOM node.
- * @alias ActiveView.create
- * @param {Function} structure
- * @param {Object} [instance_methods]
- * @return {ActiveView}
- */
+ * ActiveView.create(structure[,methods]) -> ActiveView.Class
+ * - structure (Function): This function must return an DOM Element node.
+ * - methods (Object): Instance methods for your ActiveView class.
+ **/
 ActiveView.create = function create(structure,methods)
 {
     var klass = function klass(scope){
@@ -30,6 +31,12 @@ ActiveView.create = function create(structure,methods)
     ActiveEvent.extend(klass);
     return klass;
 };
+
+/**
+ * class ActiveView.Class
+ * includes Observable
+ * ActiveView.Class refers to any class created with [[ActiveView.create]].
+ **/
 
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
@@ -72,31 +79,23 @@ var InstanceMethods = (function(){
             }
         },
         /**
-         * @alias ActiveView.prototype.get
-         * @param {String} key
-         * @return {mixed}
-         */
+         * ActiveView.Class#get(key) -> mixed
+         **/
         get: function get(key)
         {
             return this.scope.get(key);
         },
         /**
-         * @alias ActiveView.prototype.set
-         * @param {String} key
-         * @param {mixed} value
-         * @param {Boolean} [suppress_observers]
-         * @return {mixed}
-         */
+         * ActiveView.Class#set(key,value[,suppress_notifications]) -> mixed
+         **/
         set: function set(key,value,suppress_observers)
         {
             return this.scope.set(key,value,suppress_observers);
         },
         /**
-         * @alias ActiveView.prototype.attachTo
+         * ActiveView.Class#attachTo(element) -> Element
          * Inserts the view's outer most element into the passed element.
-         * @param {Element} element
-         * @return {Element}
-         */
+         **/
         attachTo: function attachTo(element)
         {
             element.appendChild(this.getElement());
@@ -107,34 +106,40 @@ var InstanceMethods = (function(){
             this.element = element;
         },
         /**
-         * @alias ActiveView.prototype.getElement
-         * @return {Element}
-         */
+         * ActiveView.Class#getElement() -> Element
+         **/
         getElement: function getElement()
         {
             return this.element;
         },
+        /**
+         * ActiveView.Class#getScope() -> ActiveEvent.ObservableHash
+         * Get's the current scope/data in your view. Note that modifying this
+         * object may trigger changes in the view. Use `exportScope` to get copy
+         * of the data that is safe to mutate.
+         **/
         getScope: function getScope()
         {
             return this.scope;
         },
+        /**
+         * ActiveView.Class#exportScope() -> Object
+         * Gets a vanilla hash of the scope/data in your view.
+         **/
         exportScope: function exportScope()
         {
-            return ActiveSupport.Object.clone(this.scope);
+            return ActiveSupport.Object.clone(this.scope.toObject());
         }
     };
 })();
 
 var ClassMethods = (function(){
     return {
-        set: function set(key,value,suppress_observers)
-        {
-            return this.getInstance().set(key,value,suppress_observers);
-        },
-        get: function get(key)
-        {
-            return this.getInstance().get(key);
-        },
+        /**
+         * ActiveView.Class.getInstance([params]) -> Object
+         * Returns an instance of the ActiveView.Class, initializing it
+         * if necessary.
+         **/
         getInstance: function getInstance(params)
         {
             if(!this.instance)

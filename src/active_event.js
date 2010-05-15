@@ -153,6 +153,7 @@ ActiveEvent.extend = function extend(object){
     
     /**
      * Observable.observe(event_name,observer[,context]) -> Function
+     * See ActiveEvent tutorial.
      **/
     object.observe = function observe(event_name,observer,context)
     {
@@ -327,11 +328,24 @@ ActiveEvent.extend = function extend(object){
     }
 };
 
+/**
+ * class ActiveEvent.ObservableHash
+ * includes Observable
+ * A simple hash implementation that fires notifications on `set`/`unset`.
+ * 
+ * Events
+ * ------
+ * - set(key,value)
+ * - unset(key)
+ **/
 var ObservableHash = function ObservableHash(object)
 {
     this._object = object || {};
 };
 
+/**
+ * ActiveEvent.ObservableHash#set(key,value[,suppress_notifications = false]) -> mixed
+ **/
 ObservableHash.prototype.set = function set(key,value,suppress_observers)
 {
     var old_value = this._object[key];
@@ -343,11 +357,17 @@ ObservableHash.prototype.set = function set(key,value,suppress_observers)
     return value;
 };
 
+/**
+ * ActiveEvent.ObservableHash#get(key) -> mixed
+ **/
 ObservableHash.prototype.get = function get(key)
 {
     return this._object[key];
 };
 
+/**
+ * ActiveEvent.ObservableHash#unset(key) -> mixed
+ **/
 ObservableHash.prototype.unset = function unset(key)
 {
     if(this._observers && this._observers.unset)
@@ -359,6 +379,10 @@ ObservableHash.prototype.unset = function unset(key)
     return value;
 };
 
+/**
+ * ActiveEvent.ObservableHash#toObject() -> Object
+ * Returns a vanilla (non-observable) hash.
+ **/
 ObservableHash.prototype.toObject = function toObject()
 {
     return this._object;

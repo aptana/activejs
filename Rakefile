@@ -38,7 +38,8 @@ module ActiveJSHelper
     INCLUDES[:active_support_extensions],
     File.join(SRC_DIR,'active_event.js'),
     File.join(SRC_DIR,'active_routes.js'),
-    File.join(SRC_DIR,'active_record.js')
+    File.join(SRC_DIR,'active_record.js'),
+    File.join(SRC_DIR,'active_view.js')
   ]
   
   DISTRIBUTIONS = {
@@ -147,6 +148,7 @@ end
 
 desc "Builds the documentation"
 task :docs do
+  
   rm_rf Dir.glob(File.join(ActiveJSHelper::DOCS_DIR, "*"))
   ActiveJSHelper.sprocketize_for_docs
   PDoc.run({
@@ -155,16 +157,21 @@ task :docs do
     :syntax_highlighter => :pygments,
     :markdown_parser => :bluecloth,
     :src_code_href => proc { |doc|
-      "http://github.com/aptana/activejs/#{doc.file}#{doc.line_number}"
+      "http://github.com/aptana/activejs/blob/#{hash}/#{doc.file}#LID#{doc.line_number}"
     },
     :pretty_urls => false,
     :bust_cache => false,
     :name => 'ActiveJS',
     :short_name => 'ActiveJS',
     :home_url => 'http://activejs.org',
-    :doc_url => 'http://activejs.org/api',
+    :doc_url => 'http://activejs.org',
     :version => ActiveJSHelper::VERSION,
-    :copyright_notice => 'This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/MIT/">MIT License</a>.' 
+    :index_title => 'ActiveJS: JavaScript Application Framework',
+    :index_page => 'README.markdown',
+    :index_header => '<a href="http://activejs.org/" id="header_logo"><img src="http://activejs.org/images/activejs.gif"/></a>',
+    :footer => '<div id="footer_logos"><a href="http://syntacticx.com"><img src="http://activejs.org/images/syntacticx.gif" style="border:none;"/></a><a href="http://aptana.org/"><img src="http://activejs.org/images/aptana.gif" style="border:none;"/></a></div>',
+    :assets => 'assets',
+    :stylesheets => ['docs']
   })
   FileUtils.rm(ActiveJSHelper::SOURCE_FILE_FOR_DOCS)
 end

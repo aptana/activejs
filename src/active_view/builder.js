@@ -77,11 +77,127 @@ var Builder = {
 };
 
 /**
- * Contains all DOM generator methods, b(), h1(), etc. This object can
- * always be referenced statically as ActiveView.Builder, but is also
- * available as this.builder inside of ActiveView classes.
- * @alias ActiveView.Builder
- * @property {Object}
- */
+ * ActiveView.Builder
+ * See the [[ActiveView]] or [[ActiveView.Builder.tag]] for usage.
+ * 
+ * Contains the following DOM Element generator methods:
+ * - abbr
+ * - acronym
+ * - address
+ * - applet
+ * - area
+ * - b
+ * - base
+ * - basefont
+ * - bdo
+ * - big
+ * - blockquote
+ * - body
+ * - br
+ * - button
+ * - caption
+ * - center
+ * - cite
+ * - code
+ * - col
+ * - colgroup
+ * - dd
+ * - del
+ * - dfn
+ * - dir
+ * - div
+ * - dl
+ * - dt
+ * - em
+ * - embed
+ * - fieldset
+ * - font
+ * - form
+ * - frame
+ * - frameset
+ * - h1
+ * - h2
+ * - h3
+ * - h4
+ * - h5
+ * - h6
+ * - head
+ * - hr
+ * - html
+ * - i
+ * - iframe
+ * - img
+ * - input
+ * - ins
+ * - isindex
+ * - kbd
+ * - label
+ * - legend
+ * - li
+ * - link
+ * - map
+ * - menu
+ * - meta
+ * - nobr
+ * - noframes
+ * - noscript
+ * - object
+ * - ol
+ * - optgroup
+ * - option
+ * - p
+ * - param
+ * - pre
+ * - q
+ * - s
+ * - samp
+ * - script
+ * - select
+ * - small
+ * - span
+ * - strike
+ * - strong
+ * - style
+ * - sub
+ * - sup
+ * - table
+ * - tbody
+ * - td
+ * - textarea
+ * - tfoot
+ * - th
+ * - thead
+ * - title
+ * - tr
+ * - tt
+ * - u
+ * - ul
+ * - var
+ **/
 ActiveView.Builder = {};
 Builder.generator(ActiveView.Builder);
+
+/**
+ * ActiveView.Builder.tag([content][,attributes][,child_nodes]) -> Element
+ * - content (String | Number | Function): The content to be inserted in the node.
+ * - attributes (Object): Hash of HTML attributes, must use "className" instead of "class".
+ * - child_nodes (Array | Element | Function): May be an array of child nodes, a callback function or an Element
+ *  
+ * **This method refers to tag methods, "br", "li", etc not a method named "tag".**
+ *  
+ *  tag() methods accept a variable number of arguments. You can pass multiple
+ *  `content` arguments, `attributes` hashes or child nodes (as an array or single
+ *  elements) in any order.
+ *  
+ *     builder.ul(builder.li('a'),builder.li('b'),{className:'my_list'});
+ *     builder.ul({className:'my_list'},[builder.li('a'),builder.li('b')]);
+ *  
+ * Functions that are passed in will be called, and the response treated as
+ * an argument, this could be one of the tag methods:
+ *  
+ *     builder.p('First line',builder.br,'Second Line')
+ * 
+ * it could also be a class method, or an inline function:
+ * 
+ *     builder.p('First line',my_view_method,'Second Line')
+ **/
