@@ -135,3 +135,69 @@ ActiveRoutes.prototype.match = function(path){
     }
     return false;
 };
+
+/**
+ * ActiveRoutes#reverseLookup(class_name,method_name) -> Object | Boolean
+ * ActiveRoutes#reverseLookup(params) -> Object | Boolean
+ * var route = routes.reverseLookup('Blog','post');
+ * var route = routes.reverseLookup({object: 'Blog',method: 'post'});
+ * //route.path == '/blog/post/:id'
+ **/
+ActiveRoutes.prototype.reverseLookup = function reverseLookup(class_name,action_name)
+{
+    var lower_case_action_name = action_name.toLowerCase();
+    if(typeof(class_name) != 'string')
+    {
+        var original_class_name = class_name;
+        class_name = this.classNameFromClass(class_name);
+        if(!class_name)
+        {
+            return false;
+        }
+    }
+    //look for object + method match
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = this.routes[i];
+        if(route.params.object && route.params.object.toLowerCase() == class_name.toLowerCase() && route.params.method && route.params.method.toLowerCase() == lower_case_action_name)
+        {
+            return route;
+        }
+    }
+    //look for object + :method match
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = this.routes[i];
+        if(route.params.object && route.params.object.toLowerCase() == class_name.toLowerCase() && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
+        {
+            var final_route = ActiveSupport.Object.clone(route);
+            final_route.method = action_name;
+            return final_route;
+        }
+    }
+    //look for :object + :method match
+    for(var i = 0; i < this.routes.length; ++i)
+    {
+        var route = this.routes[i];
+        if((!route.params.object || route.path.match(/(^|\/)\:object($|\/)/)) && (!route.params.method || route.path.match(/(^|\/)\:method($|\/)/)))
+        {
+            var final_route = ActiveSupport.Object.clone(route);
+            final_route.method = action_name;
+            final_route.object = class_name;
+            return route;
+        }
+    }
+    return false;
+};
+
+ActiveRoutes.prototype.classNameFromClass = function classNameFromClass(klass)
+{
+    for(var class_name in this.scope)
+    {
+        if(this.scope[class_name] == klass)
+        {
+            return class_name;
+        }
+    }
+    return false;
+};

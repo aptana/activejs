@@ -4,9 +4,15 @@ if(typeof exports != "undefined"){
     exports.ActiveSupport = ActiveSupport;
 }
 
+/**
+ * == ActiveSupport ==
+ * Provides a subset of important Function, Array and String methods from Prototype.js
+ * Also includes a port of Ajax.Request, and methods that other modules in ActiveJS rely
+ * on to operate.
+ **/
 (function(global_context){
  
-/** 
+/** section: ActiveSupport
  * ActiveSupport
  * Provides a subset of methods from the Prototype.js framework,
  * without modifying any built in prototypes to ensure compatibility

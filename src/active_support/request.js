@@ -133,7 +133,7 @@ ActiveSupport.Object.extend(ActiveSupport.Request.prototype,{
         {
             this.notify('onCreate',response);
         }
-        var state = Ajax.Request.Events[ready_state];
+        var state = ActiveSupport.Request.events[ready_state];
         if(state == 'Complete')
         {
             this._complete = true;

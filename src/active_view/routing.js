@@ -1,3 +1,7 @@
+/**
+ * ActiveView.Routing
+ * Enables history / back button support in ActiveView. See the ActiveView tutorial for examples.
+ **/
 ActiveView.Routing = {
     routes: false,
     enabled: true,
@@ -14,11 +18,18 @@ ActiveView.Routing = {
             });
         }
     },
+    /**
+     * ActiveView.Routing.enable() -> null
+     * Calling [[ActiveView.Routing.setRoutes]] will automatically call `enable`.
+     **/
     enable: function enable()
     {
         ActiveView.Routing.enabled = true;
         ActiveView.Routing.start();
     },
+    /**
+     * ActiveView.Routing.disable() -> null
+     **/
     disable: function disable()
     {
         ActiveView.Routing.enabled = false;
@@ -104,6 +115,17 @@ ActiveView.Routing = {
         //dispatch the route, but suppress the actual dispatcher
         ActiveView.Routing.routes.dispatch(final_route,true);
     },
+    /**
+     * ActiveView.Routing.setRoutes(routes) -> null
+     * - routes (Object)
+     * See the ActiveView tutorial for a full explanation of routing.
+     * 
+     *     ActiveView.Routing.setRoutes({
+     *         home: ['/',BlogView,'index'],
+     *         articles: ['/articles/',ArticlesView,'index'],
+     *         article: ['/articles/:id',ArticlesView,'article']
+     *     });
+     **/
     setRoutes: function setRoutes(routes)
     {
         if(!ActiveView.Routing.routes)
@@ -118,6 +140,6 @@ ActiveView.Routing = {
             ActiveView.Routing.generateRoutingMethod(view_class,route_name,method_name);
             ActiveView.Routing.addRoute(view_class,route_name,path,method_name);
         }
-       ActiveView.Routing.enable();
+        ActiveView.Routing.enable();
     }
 };

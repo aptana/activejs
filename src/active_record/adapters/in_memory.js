@@ -1,11 +1,23 @@
-/**
- * ActiveRecord.Adapters.InMemory
- * In memory, non persistent storage.
- **/
 Adapters.InMemory = function InMemory(storage){
     this.lastInsertId = null;
     this.setStorage(storage);
 };
+
+/**
+ * ActiveRecord.connection.storage -> Object
+ * Contains the raw data that the InMemory database uses. Stored in this format:
+ * 
+ *     {
+ *         table_name: {
+ *             id: {
+ *                 column_name: value
+ *             }
+ *         }
+ *     }
+ *     
+ *     ActiveRecord.connection.storage.table_name[id].column_name
+ *     ActiveRecord.connection.storage.comments[5].title
+ **/
 
 ActiveSupport.Object.extend(Adapters.InMemory.prototype,Adapters.InstanceMethods);
 
@@ -38,7 +50,10 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     },
     executeSQL: function executeSQL(sql)
     {
-        ActiveSupport.log('Adapters.InMemory could not execute SQL:' + sql);
+        if(ActiveRecord.logging)
+        {
+            ActiveSupport.log('Adapters.InMemory could not execute SQL:' + sql);
+        }
     },
     insertEntity: function insertEntity(table, primary_key_name, data)
     {
@@ -58,7 +73,6 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
         }
         this.lastInsertId = data.id;
         this.storage[table][data.id] = data;
-        this.notify('created',table,data.id,data);
         return true;
     },
     getLastInsertedRowId: function getLastInsertedRowId()
@@ -82,7 +96,6 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
         {
             this.storage[table][id] = data;
         }
-        this.notify('updated',table,id,data);
         return true;
     },
     calculateEntities: function calculateEntities(table, params, operation)
@@ -134,20 +147,19 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
         this.setupTable(table);
         if(!id || id === 'all')
         {
-            for(var id_to_be_deleted in this.storage[table])
-            {
-                this.notify('destroyed',table,id_to_be_deleted);
-            }
             this.storage[table] = {};
             return true;
         }
         else if(this.storage[table][id])
         {
             delete this.storage[table][id];
-            this.notify('destroyed',table,id);
             return true;
         }
         return false;
+    },
+    findEntityById: function findEntityById(table, primary_key_name, id)
+    {
+        return this.storage[table][id];
     },
     findEntitiesById: function findEntitiesById(table, primary_key_name, ids)
     {

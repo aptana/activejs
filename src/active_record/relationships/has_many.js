@@ -152,7 +152,10 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     {
         this.observe('afterDestroy', function destroyDependentChildren(record){
             var list = record['get' + relationship_name + 'List']();
-            ActiveSupport.log('Relationships.hasMany destroy ' + list.length + ' dependent ' + related_model_name + ' children of ' + record.modelName);
+            if(ActiveRecord.logging)
+            {
+                ActiveSupport.log('Relationships.hasMany destroy ' + list.length + ' dependent ' + related_model_name + ' children of ' + record.modelName);
+            }
             for(var i = 0; i < list.length; ++i)
             {
                 list[i].destroy();

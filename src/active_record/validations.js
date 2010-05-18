@@ -87,7 +87,10 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         {
             this.validate();
         }
-        ActiveSupport.log('ActiveRecord.validate() ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
+        if(ActiveRecord.logging)
+        {
+            ActiveSupport.log('ActiveRecord.validate() ' + String(this._errors.length === 0) + (this._errors.length > 0 ? '. Errors: ' + String(this._errors) : ''));
+        }
         return this._errors.length === 0;
     },
     getValidators: function getValidators()

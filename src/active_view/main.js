@@ -1,5 +1,7 @@
 /**
  * == ActiveView ==
+ * 
+ * ActiveView tutorial in progress.
  **/
  
 /** section: ActiveView
@@ -54,7 +56,7 @@ var InstanceMethods = (function(){
         {
             if(ActiveView.logging)
             {
-                ActiveSupport.log('ActiveView: initialized with scope:',scope);
+                ActiveSupport.log('ActiveView: initialized ',this,' with scope:',scope);
             }
             var response = this.structure(ActiveView.Builder,ActiveSupport.Element);
             if(response && !this.element)

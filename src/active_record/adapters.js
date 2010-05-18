@@ -4,33 +4,47 @@
 var Adapters = {};
 
 /**
- * ActiveRecord.adapters -> Array
- * A list of the connected adapters.
- **/
-ActiveRecord.adapters = [];
-
-/**
  * ActiveRecord.connection
  * null if no connection is active, or the connection object.
  **/
 ActiveRecord.connection = null;
 
 /**
- * ActiveRecord.connect(adapter[,adapter_arguments]) -> null
- * Must be called before using ActiveRecord. If the adapter requires arguments, those must be passed in after the type of adapter.
+ * ActiveRecord.connect() -> null
+ * ActiveRecord.connect(url) -> null
+ * ActiveRecord.connection(json) -> null
+ * - url (String): Location to load JSON data from.
+ * - json (String | Object): JSON string or JSON object.
  * 
- *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
+ *     //empty in memory database
+ *     ActiveRecord.connect();
+ *     //in memory database populated with json data
+ *     ActiveRecord.connect('{my_table:{1:{field:"value"}}}');
+ *     //in memory database populated with json data loaded from remote source
+ *     ActiveRecord.connect('my_data_source.json');
  **/
-ActiveRecord.connect = function connect(adapter)
+ActiveRecord.connect = function connect()
 {
-    var connection = adapter.connect.apply(adapter, ActiveSupport.Array.from(arguments).slice(1));
-    if(connection)
+    switch(arguments.length)
     {
-        ActiveRecord.connection = connection;
+        case 0:
+            ActiveRecord.connection = ActiveRecord.Adapters.InMemory.connect();
+            ActiveRecord.notify('ready');
+            break;
+        case 1:
+            if((typeof(arguments[0]) == 'string' && arguments[0].match(/\{/)) || (typeof(arguments[0]) == 'object' && !ActiveSupport.Object.isArray(arguments[0])))
+            {
+                ActiveRecord.connection = ActiveRecord.Adapters.InMemory.connect(arguments[0]);
+                ActiveRecord.notify('ready');
+            }
+            else
+            {
+                ActiveRecord.connection = ActiveRecord.Adapters.InMemory.connect();
+                ActiveRecord.Adapters.REST.connect([arguments[0],'get',false]);
+                //ready fired from within the REST adapter after Ajax request
+            }
+            break;
     }
-    ActiveRecord.adapters.push(adapter);
-    ActiveEvent.extend(ActiveRecord.connection);
-    ActiveRecord.notify('connected');
 };
 
 /**

@@ -36,7 +36,7 @@
           var test_group_script_name = 'active_' + test_group.toLowerCase();
           var test_group_module_name = 'Active' + test_group;
           //load the requested module
-          load_script('../dist/' + (test_group == 'All' ? 'active' : test_group_script_name) + '.js',function(){
+          load_script('../assets/downloads/' + (test_group == 'All' ? 'active' : test_group_script_name) + '.js',function(){
             return typeof(window[test_group == 'All' ? 'ActiveSupport' : test_group_module_name]) != 'undefined';
           },function(){
             //load tests for requested module
@@ -44,7 +44,7 @@
               return typeof(ActiveTest.Tests[test_group == 'All' ? 'Support' : test_group]) != 'undefined';
             },function(){
               if(test_group == 'All' || test_group == 'Record'){
-                ActiveRecord.connect(ActiveRecord.Adapters[connection_adapter]);
+                ActiveRecord.connect();
                 ActiveRecord.logging = logging;
                 ActiveView.logging = logging;
                 ActiveRoutes.logging = logging;

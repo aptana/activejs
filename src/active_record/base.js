@@ -97,7 +97,7 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        var record = this.constructor.get(this._id);
+        var record = this.constructor.find(this._id);
         if (!record)
         {
             return false;
@@ -193,7 +193,7 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
         {
             return false;
         }
-        ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
+        var response = ActiveRecord.connection.deleteEntity(this.tableName,this.constructor.primaryKeyName,this._id);
         if (this.notify('afterDestroy') === false)
         {
             return false;
@@ -286,21 +286,18 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *              return user.name.toLowerCase() == 'a';
      *         }
      *     });
-     *
-     *     // If your primary key is not numeric, find(id) will not work.
-     *     // Use findBy<PrimaryKey>(id) or get(id) instead:
-     *
-     *     var commit = Commit.find('cxfeea6'); // BAD - Will be interpreted as a SQL statement.
-     *     commit = Commit.findById('cxfeea6'); // GOOD
-     *     commit = Commit.get('cxfeea6');      // GOOD
      **/
     find: function find(params)
     {
-        var result;
+        if(!ActiveRecord.connection)
+        {
+            throw ActiveRecord.Errors.ConnectionNotEstablished.getErrorString();
+        }
         if(params === 0)
         {
             return false;
         }
+        var result;
         if (!params)
         {
             params = {};
@@ -316,7 +313,16 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
             else
             {
                 //single id
-                result = ActiveRecord.connection.findEntitiesById(this.tableName,this.primaryKeyName,[params]);
+                var data = ActiveRecord.connection.findEntityById(this.tableName,this.primaryKeyName,params);
+                if(data)
+                {
+                    return this.build(data);
+                }
+                else
+                {
+                    return false;
+                }
+                
             }
             if (result && result.iterate && result.iterate(0))
             {
@@ -383,7 +389,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
             var responses = [];
             for(var i = 0; i < id.length; ++i)
             {
-                var instance = this.get(id[i]);
+                var instance = this.find(id[i]);
                 if(!instance)
                 {
                     responses.push(false);
@@ -397,7 +403,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var instance = this.get(id);
+            var instance = this.find(id);
             if(!instance)
             {
                 return false;
@@ -416,19 +422,14 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
             var records = [];
             for(var i = 0; i < data.length; ++i)
             {
-                ++ActiveRecord.internalCounter;
                 var record = new this(ActiveSupport.Object.clone(data[i]));
-                record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
                 records.push(record);
             }
             return records;
         }
         else
         {
-            ++ActiveRecord.internalCounter;
-            var record = new this(ActiveSupport.Object.clone(data));
-            record.internalCount = parseInt(Number(ActiveRecord.internalCounter),10); //ensure number is a copy
-            return record;
+            return new this(ActiveSupport.Object.clone(data));
         }
     },
     /**
@@ -484,7 +485,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
             var results = [];
             for(var i = 0; i < id.length; ++i)
             {
-                var record = this.get(id[i]);
+                var record = this.find(id[i]);
                 if(!record)
                 {
                     results.push(false);
@@ -498,7 +499,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         }
         else
         {
-            var record = this.get(id);
+            var record = this.find(id);
             if(!record)
             {
                 return false;
