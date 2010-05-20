@@ -1,10 +1,59 @@
+/**
+ * class ActiveSupport.CallbackQueue
+ * Allows for the execution of callbacks in the order they are registered.
+ * 
+ *     var queue = new ActiveSupport.CallbackQueue(function(){
+ *         console.log('Callback queue empty.');
+ *     });
+ *     new ActiveSupport.Request(url,{
+ *         onComplete: queue.push(function(){
+ *             console.log('Ajax Request finished.');
+ *         })
+ *     });
+ *     var callback_two = queue.push(function(){
+ *         console.log('"callback_two" called.');
+ *     });
+ *     callback_two();
+ *     var callback_three = queue.push(function(){
+ *         console.log('"callback_three" called.');
+ *     });
+ *     callback_three();
+ * 
+ * Ajax callback finishes after `callback_two` and `callback_three`, but 
+ * output to the console would still be:
+ * 
+ *     //Ajax Request finished.
+ *     //"callback_two" called.
+ *     //"callback_three" called.
+ *     //Callback queue empty.
+ * 
+ * Note that ActiveSupport.CallbackQueue will only function if the first callback
+ * added will be called asynchronously (as a result of an Ajax request or setTimeout
+ * call).
+ **/
+ 
+/**
+ * new ActiveSupport.CallbackQueue(on_complete[,context])
+ * - on_complete (Function): The function to call when all callacks are completed.
+ * - context (Object): optional context to bind the on_complete function to.
+ **/
 ActiveSupport.CallbackQueue = function CallbackQueue(on_complete)
 {
+    if(arguments.length > 1)
+    {
+        var arguments_array = ActiveSupport.Array.from(arguments);
+        var arguments_for_bind = arguments_array.slice(1);
+        if(arguments_for_bind.length > 0)
+        {
+            arguments_for_bind.unshift(on_complete);
+            on_complete = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
+        }
+    }
     this.stack = [];
     this.waiting = {};
     if(on_complete)
     {
-        this.setOnComplete(on_complete);
+        this.setOnComplete(on_complete || function(){});
     }
 };
 
@@ -13,8 +62,21 @@ ActiveSupport.CallbackQueue.prototype.setOnComplete = function setOnComplete(on_
     this.onComplete = on_complete;
 };
 
+/**
+ * ActiveSupport.CallbackQueue#push(callback[,context]) -> Function
+ **/
 ActiveSupport.CallbackQueue.prototype.push = function push(callback)
 {
+    if(arguments.length > 1)
+    {
+        var arguments_array = ActiveSupport.Array.from(arguments);
+        var arguments_for_bind = arguments_array.slice(1);
+        if(arguments_for_bind.length > 0)
+        {
+            arguments_for_bind.unshift(callback);
+            callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
+        }
+    }
     var wrapped = ActiveSupport.Function.wrap(callback || (function(){}),ActiveSupport.Function.bind(function callback_queue_wrapper(proceed){
         var i = null;
         var index = ActiveSupport.Array.indexOf(this.stack,wrapped);
