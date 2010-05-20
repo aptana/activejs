@@ -1,8 +1,10 @@
+require 'rubygems'
+gem 'sprockets'
+require 'sprockets'
 require 'rake'
 require 'rake/packagetask'
 require 'yaml'
 require 'vendor/pdoc/lib/pdoc'
-require 'vendor/sprockets/lib/sprockets'
 require 'fileutils'
 
 module ActiveJSHelper
@@ -29,7 +31,8 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support/json.js'),
       File.join(SRC_DIR,'active_support/callback_queue.js'),
       File.join(SRC_DIR,'active_support/element.js'),
-      File.join(SRC_DIR,'active_support/request.js')
+      File.join(SRC_DIR,'active_support/request.js'),
+      File.join(SRC_DIR,'active_support/initializer.js')
     ]
   }
   
@@ -147,7 +150,6 @@ end
 
 desc "Builds the documentation"
 task :docs do
-  
   rm_rf Dir.glob(File.join(ActiveJSHelper::DOCS_DIR, "*"))
   ActiveJSHelper.sprocketize_for_docs
   PDoc.run({
@@ -173,4 +175,15 @@ task :docs do
     :stylesheets => ['docs']
   })
   FileUtils.rm(ActiveJSHelper::SOURCE_FILE_FOR_DOCS)
+end
+
+desc "Builds the distributions, and documentation, calls git push, and copies the generated docs to a location of your choosing"
+task :deploy, :target do |task,arguments|
+  %x[git push]
+  Rake::Task["dist"].reenable
+  Rake::Task["dist"].invoke
+  Rake::Task["docs"].reenable
+  Rake::Task["docs"].invoke
+  rm_rf Dir.glob(File.join(arguments[:target],"*"))
+  FileUtils.cp_r(Dir.glob(File.join(ActiveJSHelper::DOCS_DIR,"*")),File.join(arguments[:target]))
 end
