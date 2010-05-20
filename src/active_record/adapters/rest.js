@@ -45,7 +45,7 @@ ActiveSupport.Object.extend(Adapters.REST,{
             http_method,
             http_params,
             function initial_data_load_on_success(transport){
-                var json_data = transport.responseJSON; //TODO: remove eval
+                var json_data = transport.responseJSON || ActiveSupport.JSON.parse(transport.responseText);
                 if(response_processor_callback)
                 {
                     json_data = response_processor_callback(json_data);
