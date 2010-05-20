@@ -1,5 +1,6 @@
 /**
  * ActiveView.Routing
+ * fires ready
  * Enables history / back button support in ActiveView. See the ActiveView tutorial for examples.
  **/
 ActiveView.Routing = {
@@ -14,7 +15,12 @@ ActiveView.Routing = {
         {
             ActiveView.Routing.startObserver = ActiveSupport.Element.observe(ActiveSupport.getGlobalContext().document,'ready',function document_ready_observer(){
                 ActiveView.Routing.ready = true;
-                ActiveView.Routing.routes.dispatch(ActiveView.Routing.getCurrentPath());
+                if(ActiveView.Routing.notify('ready') !== false)
+                {
+                    setTimeout(function initial_route_dispatcher(){
+                        ActiveView.Routing.routes.dispatch(ActiveView.Routing.getCurrentPath());
+                    });
+                }
             });
         }
     },
@@ -143,3 +149,4 @@ ActiveView.Routing = {
         ActiveView.Routing.enable();
     }
 };
+ActiveEvent.extend(ActiveView.Routing);
