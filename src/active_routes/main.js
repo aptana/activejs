@@ -8,6 +8,9 @@
  * to provide deep linking and back button / history support for your Ajax
  * application.
  * 
+ * **ActiveRotes is a generic routing system. To add routing to your ActiveView
+ * classes see the [ActiveView tutorial](../activeview/index.html)**.
+ * 
  * Declaring Routes
  * ----------------
  * Wether declared in the constructor, or with `addRoute`, routes can have up
