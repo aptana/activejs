@@ -1,6 +1,0 @@
-if (!window.PDoc) window.PDoc = {};
-PDoc.elements = {
-  <%= @root.registry.map do |k, v|
-    "'#{k}': { 'name': '#{k}', 'type': '#{v.type}', 'path': '#{path_to(v)}' }"
-  end.join(",\n") %>
-};

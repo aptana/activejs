@@ -1,9 +1,0 @@
-<% if object.methodized? %>
-  <p class="note">
-    <% if object.respond_to?(:methodized_self) %>
-      This method can be called <em>either</em> as an <a href="<%= path_to(object.methodized_self) %>">instance method</a> <em>or</em> as a generic method.
-    <% else %>
-    This method can be called <em>either</em> as an instance method <em>or</em> as a <a href="<%= path_to(object.functionalized_self) %>">generic method</a>.
-    <% end %>
-  If calling as a generic, pass the instance in as the first argument.<p>
-<% end %>

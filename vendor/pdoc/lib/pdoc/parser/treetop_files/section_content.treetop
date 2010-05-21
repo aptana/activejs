@@ -1,8 +1,0 @@
-grammar SectionContent
-  include Basic
-  include Description
-  
-  rule section
-    line space* '==' space* title:[a-zA-Z0-9\s]+ space* '==' space* text <Section>
-  end
-end
