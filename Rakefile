@@ -1,10 +1,8 @@
 require 'rubygems'
-gem 'sprockets'
 require 'sprockets'
 require 'rake'
 require 'rake/packagetask'
 require 'yaml'
-require 'vendor/pdoc/lib/pdoc'
 require 'fileutils'
 
 module ActiveJSHelper
@@ -16,7 +14,7 @@ module ActiveJSHelper
   TEST_DIR = File.join(ROOT_DIR, 'test')
   VENDOR_DIR = File.join(ROOT_DIR, 'vendor')
   
-  VERSION = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['ACTIVE_JS_VERSION']
+  VERSION = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['VERSION']
   
   SOURCE_FILE_FOR_DOCS = File.join(DIST_DIR, 'source_for_docs.js')
   
@@ -150,6 +148,7 @@ end
 
 desc "Builds the documentation"
 task :docs do
+  require 'vendor/pdoc/lib/pdoc'
   rm_rf Dir.glob(File.join(ActiveJSHelper::DOCS_DIR, "*"))
   ActiveJSHelper.sprocketize_for_docs
   PDoc.run({
@@ -179,11 +178,21 @@ end
 
 desc "Builds the distributions, and documentation, calls git push, and copies the generated docs to a location of your choosing"
 task :deploy, :target do |task,arguments|
-  %x[git push]
   Rake::Task["dist"].reenable
   Rake::Task["dist"].invoke
   Rake::Task["docs"].reenable
   Rake::Task["docs"].invoke
   rm_rf Dir.glob(File.join(arguments[:target],"*"))
   FileUtils.cp_r(Dir.glob(File.join(ActiveJSHelper::DOCS_DIR,"*")),File.join(arguments[:target]))
+end
+
+task :compress do
+  require 'yui/compressor'
+  compressor = YUI::JavaScriptCompressor.new(:munge => true)
+  ActiveJSHelper::DISTRIBUTIONS.each_pair do |name,payload|
+    src = File.read(File.join(ActiveJSHelper::DIST_DIR,name))
+    File.open(File.join(ActiveJSHelper::DIST_DIR,name.gsub(/\.js$/,'.min.js')),'w') do |file|
+      file.write(compressor.compress(src))
+    end
+  end
 end
