@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'sprockets'
+require 'vendor/sprockets/lib/sprockets'
 require 'rake'
 require 'rake/packagetask'
 require 'yaml'
