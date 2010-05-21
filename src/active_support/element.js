@@ -299,18 +299,7 @@ ActiveSupport.Element = {
      **/
     observe: function observe(element,event_name,callback,context)
     {
-        //bind context to context and curried arguments if applicable
-        if(arguments.length > 3)
-        {
-            var arguments_array = ActiveSupport.Array.from(arguments);
-            var arguments_for_bind = arguments_array.slice(3);
-            if(arguments_for_bind.length > 0)
-            {
-                arguments_for_bind.unshift(callback);
-                callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-            }
-        }
-        
+        callback = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(callback || function(){},arguments,3);
         //dom:ready support
         if(element == ActiveSupport.getGlobalContext().document && event_name == 'ready')
         {

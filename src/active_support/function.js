@@ -45,6 +45,20 @@ ActiveSupport.Function = {
             }
         }
     },
+    bindAndCurryFromArgumentsAboveIndex: function bindAndCurryFromArgumentsAboveIndex(func,arguments,length)
+    {
+        if(arguments.length - length > 0)
+        {
+            var arguments_array = ActiveSupport.Array.from(arguments);
+            var arguments_for_bind = arguments_array.slice(length);
+            arguments_for_bind.unshift(func);
+            return ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
+        }
+        else
+        {
+            return func;
+        }
+    },
     /**
      * ActiveSupport.Function.curry(function[,argument]) -> Function
      * Emulates Prototype's [Function.prototype.curry](http://api.prototypejs.org/language/function/prototype/curry/).

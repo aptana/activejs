@@ -32,6 +32,7 @@ ActiveRecord.connect = function connect()
             ActiveRecord.notify('ready');
             break;
         case 1:
+        case 2:
             if((typeof(arguments[0]) == 'string' && arguments[0].match(/\{/)) || (typeof(arguments[0]) == 'object' && !ActiveSupport.Object.isArray(arguments[0])))
             {
                 ActiveRecord.connection = ActiveRecord.Adapters.InMemory.connect(arguments[0]);
@@ -40,7 +41,7 @@ ActiveRecord.connect = function connect()
             else
             {
                 ActiveRecord.connection = ActiveRecord.Adapters.InMemory.connect();
-                ActiveRecord.Adapters.REST.connect([arguments[0],'get',false]);
+                ActiveRecord.Adapters.REST.connect(typeof(arguments[0]) == 'string' ? [arguments[0],'GET',false] : arguments[0],arguments[1]);
                 //ready fired from within the REST adapter after Ajax request
             }
             break;

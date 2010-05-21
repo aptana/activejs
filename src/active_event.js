@@ -157,17 +157,7 @@ ActiveEvent.extend = function extend(object){
      **/
     object.observe = function observe(event_name,observer,context)
     {
-        if(arguments.length > 2)
-        {
-            var arguments_array = ActiveSupport.Array.from(arguments);
-            var arguments_for_bind = arguments_array.slice(2);
-            if(arguments_for_bind.length > 0)
-            {
-                arguments_for_bind.unshift(observer);
-                observer = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-            }
-        }
-        
+        observer = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(observer,arguments,2);
         if(typeof(event_name) === 'string' && typeof(observer) !== 'undefined')
         {
             this._objectEventSetup(event_name);
@@ -218,17 +208,7 @@ ActiveEvent.extend = function extend(object){
      **/
     object.observeOnce = function observeOnce(event_name,outer_observer,context)
     {
-        if(arguments.length > 2)
-        {
-            var arguments_array = ActiveSupport.Array.from(arguments);
-            var arguments_for_bind = arguments_array.slice(2);
-            if(arguments_for_bind.length > 0)
-            {
-                arguments_for_bind.unshift(outer_observer);
-                outer_observer = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-            }
-        }
-        
+        outer_observer = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(outer_observer,arguments,2);
         var inner_observer = ActiveSupport.Function.bind(function bound_inner_observer(){
             outer_observer.apply(this,arguments);
             this.stopObserving(event_name,inner_observer);

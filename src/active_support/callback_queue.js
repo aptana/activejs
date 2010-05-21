@@ -39,16 +39,7 @@
  **/
 ActiveSupport.CallbackQueue = function CallbackQueue(on_complete)
 {
-    if(arguments.length > 1)
-    {
-        var arguments_array = ActiveSupport.Array.from(arguments);
-        var arguments_for_bind = arguments_array.slice(1);
-        if(arguments_for_bind.length > 0)
-        {
-            arguments_for_bind.unshift(on_complete);
-            on_complete = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-        }
-    }
+    on_complete = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(on_complete || function(){},arguments,1);
     this.stack = [];
     this.waiting = {};
     if(on_complete)
@@ -67,17 +58,8 @@ ActiveSupport.CallbackQueue.prototype.setOnComplete = function setOnComplete(on_
  **/
 ActiveSupport.CallbackQueue.prototype.push = function push(callback)
 {
-    if(arguments.length > 1)
-    {
-        var arguments_array = ActiveSupport.Array.from(arguments);
-        var arguments_for_bind = arguments_array.slice(1);
-        if(arguments_for_bind.length > 0)
-        {
-            arguments_for_bind.unshift(callback);
-            callback = ActiveSupport.Function.bind.apply(ActiveSupport,arguments_for_bind);
-        }
-    }
-    var wrapped = ActiveSupport.Function.wrap(callback || (function(){}),ActiveSupport.Function.bind(function callback_queue_wrapper(proceed){
+    callback = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(callback || function(){},arguments,1);
+    var wrapped = ActiveSupport.Function.wrap(callback,ActiveSupport.Function.bind(function callback_queue_wrapper(proceed){
         var i = null;
         var index = ActiveSupport.Array.indexOf(this.stack,wrapped);
         this.waiting[index] = [proceed,ActiveSupport.Array.from(arguments).slice(1)];
