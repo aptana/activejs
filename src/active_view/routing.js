@@ -71,7 +71,7 @@ ActiveView.Routing = {
     {
         return [route_name,path,{
             object: 'Routing',
-            method: method_name
+            method: route_name
         }];
     },
     generateRoutingWrapperMethod: function generateRoutingWrapperMethod(view_class,route_name,method_name)
@@ -112,7 +112,7 @@ ActiveView.Routing = {
                 break;
             }
         }
-        params.method = method_name;
+        params.method = route_name;
         params.object = 'Routing';
         var final_route = ActiveSupport.Object.clone(route);
         //need to deep copy the params
