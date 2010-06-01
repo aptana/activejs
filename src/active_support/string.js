@@ -63,5 +63,26 @@ ActiveSupport.String = {
     trim: function trim(str)
     {
         return (str || "").replace(/^\s+|\s+$/g,"");
+    },
+    scriptFragment: '<script[^>]*>([\\S\\s]*?)<\/script>',
+    /**
+     * ActiveSupport.String.evalScripts(string) -> null
+     **/
+    evalScripts: function evalScripts(str)
+    {
+        var match_all = new RegExp(ActiveSupport.String.scriptFragment,'img');
+        var match_one = new RegExp(ActiveSupport.String.scriptFragment,'im');
+        var matches = str.match(match_all) || [];
+        for(var i = 0; i < matches.length; ++i)
+        {
+            eval((matches[i].match(match_one) || ['', ''])[1]);
+        }
+    },
+    /**
+     * ActiveSupport.String.stripScripts(string) -> String
+     **/
+    stripScripts: function stripScripts(str)
+    {
+        return str.replace(new RegExp(ActiveSupport.String.scriptFragment,'img'),'');
     }
 };
