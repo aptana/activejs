@@ -268,6 +268,53 @@ ActiveSupport.Element = {
         element.className = element.className.replace(new RegExp("(^|\\s+)" + class_name + "(\\s+|$)"),' ').replace(/^\s+/, '').replace(/\s+$/, '');
         return element;
     },
+    getDimensions: function getDimensions(element)
+    {
+        var display = element.style.display;
+        if(!display)
+        {
+            var css = document.defaultView.getComputedStyle(element,null);
+            display = css ? css.display : null;
+        }
+        //safari bug
+        if(display != 'none' && display != null)
+        {
+            return {
+                width: element.offsetWidth,
+                height: element.offsetHeight
+            };
+        }
+        var element_style = element.style;
+        var original_visibility = element_style.visibility;
+        var original_position = element_style.position;
+        var original_display = element_style.display;
+        element_style.visibility = 'hidden';
+        element_style.position = 'absolute';
+        element_style.display = 'block';
+        var original_width = element.clientWidth;
+        var original_height = element.clientHeight;
+        element_style.display = original_display;
+        element_style.position = original_position;
+        element_style.visibility = original_visibility;
+        return {
+            width: original_width,
+            height: original_height
+        };
+    },
+    /**
+     * ActiveSupport.Element.getWidth(element) -> Number
+     **/
+    getWidth: function getWidth(element)
+    {
+        return ActiveSupport.Element.getDimensions(element).width;
+    },
+    /**
+     * ActiveSupport.Element.getHeight(element) -> Number
+     **/
+    getHeight: function getHeight(element)
+    {
+        return ActiveSupport.Element.getDimensions(element).height;
+    },
     documentReadyObservers: [],
     /**
      * ActiveSupport.Element.observe(element,event_name,callback[,context]) -> Function
