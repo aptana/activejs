@@ -46,6 +46,10 @@ ActiveRoutes.prototype.dispatch = function dispatch(path,suppress_dispatcher)
     else
     {
         route = ActiveSupport.Object.clone(path);
+        if(route.params.path && ActiveSupport.Object.isArray(route.params.path))
+        {
+            route.params.path = route.params.path.join('/');
+        }
         path = this.urlFor(route.params);
     }
     this.history.push(route);
