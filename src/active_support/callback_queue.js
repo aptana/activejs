@@ -48,6 +48,11 @@ ActiveSupport.CallbackQueue = function CallbackQueue(on_complete)
     }
 };
 
+/**
+ * ActiveSupport.CallbackQueue.stack -> Array
+ * The stack of callbacks that are `push`ed onto the queue.
+ **/
+ 
 ActiveSupport.CallbackQueue.prototype.setOnComplete = function setOnComplete(on_complete)
 {
     this.onComplete = on_complete;
