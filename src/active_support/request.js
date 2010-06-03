@@ -233,14 +233,14 @@ ActiveSupport.Object.extend(ActiveSupport.Request,{
                     var values_response = [];
                     for(var i = 0; i < values.length; ++i)
                     {
-                        values_response.push(ActiveSupport.Request.toQueryPair(key,values[i]));
+                        values_response.push(ActiveSupport.Request.toQueryPair(param_name,values[i]));
                     }
                     response.push(values_response.join('&'));
                 }
             }
             else
             {
-                response.push(ActiveSupport.Request.toQueryPair(key,values));
+                response.push(ActiveSupport.Request.toQueryPair(param_name,values));
             }
         }
         return response.join('&');
