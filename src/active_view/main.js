@@ -31,15 +31,52 @@ ActiveView.create = function create(structure,methods)
     ActiveSupport.Object.extend(klass.prototype,InstanceMethods);
     ActiveSupport.Object.extend(klass.prototype,methods || {});
     ActiveEvent.extend(klass);
+    klass.observe = ActiveSupport.Function.wrap(klass.observe,ActiveView.observeWrapperForAttachedEvent);
+    klass.prototype.observe = ActiveSupport.Function.wrap(klass.prototype.observe,ActiveView.observeWrapperForAttachedEvent);
     return klass;
+};
+
+//fires the "attached" event when the instance's element is attached to the dom
+ActiveView.observeWrapperForAttachedEvent = function observeWrapper(proceed)
+{
+    var arguments_array = ActiveSupport.Array.from(arguments).slice(1);
+    var is_class = (typeof(this.instance) != 'undefined' && typeof(this.initialize) == 'undefined');
+    var event_name = arguments_array[is_class ? 1 : 0];
+    var instance = is_class ? arguments_array[0] : this;
+    if(event_name == 'attached')
+    {
+        var element = instance.getElement();
+        if(instance._attachedEventFired || (!instance._attachedEventFired && element && element.parentNode))
+        {
+            instance._attachedEventFired = true;
+            instance.notify('attached');
+        }
+        else
+        {
+            instance._eventAttachedInterval = setInterval(function(){
+                var element = instance.getElement();
+                if(element && element.parentNode)
+                {
+                    instance.notify('attached');
+                    instance._attachedEventFired = true;
+                    clearInterval(instance._eventAttachedInterval);
+                }
+            },10);
+        }
+    }
+    return proceed.apply(proceed,arguments_array);
 };
 
 /**
  * class ActiveView.Class
  * includes Observable
  * ActiveView.Class refers to any class created with [[ActiveView.create]].
+ * 
+ * Events
+ * ------
+ * - initialized()
+ * - attached(): Called when the instance's `element` object is attached to the DOM tree.
  **/
-
 ActiveView.isActiveViewInstance = function isActiveViewInstance(object)
 {
     return object && object.getElement && object.getElement().nodeType == 1 && object.scope;
@@ -71,6 +108,7 @@ var InstanceMethods = (function(){
             {
                 this.scope.set(key,this.scope._object[key]);
             }
+            this.notify('initialized');
         },
         setupScope: function setupScope(scope)
         {
