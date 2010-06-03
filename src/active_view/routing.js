@@ -2,6 +2,11 @@
  * ActiveView.Routing
  * fires ready
  * Enables history / back button support in ActiveView. See the ActiveView tutorial for examples.
+ * 
+ * Events
+ * ------
+ * - ready()
+ * - external_change(current_path): Called when a url (link) or back/forward button triggers a route.
  **/
 ActiveView.Routing = {
     routes: false,
@@ -62,6 +67,7 @@ ActiveView.Routing = {
             {
                 if(current_path != ActiveView.Routing.lastDispatchLocation)
                 {
+                    ActiveView.Routing.notify('external_change',current_path);
                     ActiveView.Routing.routes.dispatch(current_path);
                 }
             }
