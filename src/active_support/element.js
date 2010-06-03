@@ -3,6 +3,28 @@ var ie = !!(global_context.attachEvent && !global_context.opera);
 
 /**
  * ActiveSupport.Element
+ * ActiveSupport.Element is a simple DOM manipulation library that does not modify the built in Element object. All ActiveSupport.Element methods take an Element object (and not a string) as their first argument. ActiveSupport.Element is available inside ActiveView classes as the second argument:
+ * 
+ *     var MyClass = ActiveView.create(function(builder,dom){
+ *         var link = builder.a({href:'#'},'Text');
+ *         dom.addClassName(link,'active');
+ *         dom.getWidth(link);
+ *         return builder.div(link);
+ *     });
+ * 
+ * The implementation of event obeserver's differs from Prototype's since it does not modify the Element object. Your observer receives three arguments, the Event object, a function that will stop the event when called, and a function that will unregister the observer.
+ * 
+ *     var dom = ActiveSupport.Element;
+ *     dom.observe(link,'click',function(event,stop,unregister){
+ *         //do stuff
+ *         stop();
+ *     });
+ * 
+ * ActiveSupport.Element also supports the a similar event to Prototype's dom:ready:
+ * 
+ *     dom.observe(document,'ready',function(){
+ *         //...
+ *     });
  **/
 ActiveSupport.Element = {
     ieAttributeTranslations: {
