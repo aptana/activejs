@@ -67,35 +67,6 @@ ActiveSupport = {
                 return output;
             }
         };
-    },
-    /**
-     * ActiveSupport.methodize([modules]) -> null
-     * - modules (Array): A list of the modules to methodize, can contain "Array", "Function", "String", "Number"
-     * 
-     * Calling ActiveSupport.methodize will take the methods inside of the "Array", "Function", "String", "Number"
-     * modules and make them methods of the respective native class's prototype. This is not enabled by default.
-     * 
-     *     var bound = ActiveSupport.Function.bind(function(){},this);
-     *     ActiveSupport.methodize()
-     *     //bind() now available on Function.prototype
-     *     var bound = function(){}.bind(this)
-     **/
-    methodize: function methodize(modules)
-    {
-        if(!modules)
-        {
-            modules = ['Array','Function','String','Number'];
-        }
-        for(var i = 0; i < modules.length; ++i)
-        {
-            for(var method_name in ActiveSupport[modules[i]])
-            {
-                if(typeof(ActiveSupport[modules[i]][method_name]) == 'function')
-                {
-                    ActiveSupport.getGlobalContext()[modules[i]].prototype[method_name] = ActiveSupport.Function.methodize(ActiveSupport[modules[i]][method_name]);
-                }
-            }
-        }
     }
 };
 
