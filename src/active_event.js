@@ -138,7 +138,7 @@ ActiveEvent = {};
  * Mixin [[Observable]] to the given object.
  **/
 ActiveEvent.extend = function extend(object){
-        
+    
     object._objectEventSetup = function _objectEventSetup(event_name)
     {
         if(!this._observers)

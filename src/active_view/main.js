@@ -16,55 +16,113 @@ ActiveView.logging = false;
 
 /**
  * ActiveView.create(structure[,methods]) -> ActiveView.Class
+ * ActiveView.create(parent_class,structure[,methods]) -> ActiveView.Class
  * - structure (Function): This function must return an DOM Element node.
  * - methods (Object): Instance methods for your ActiveView class.
  **/
 ActiveView.create = function create(structure,methods)
 {
+    var parent_class;
+    if(ActiveView.isActiveViewClass(structure))
+    {
+        parent_class = structure;
+        structure = arguments[1];
+        methods = arguments[2];
+    }
     var klass = function klass(scope){
         this.setupScope(scope);
         this.initialize.apply(this,arguments);
+        this.notify('initialized');
+        if(klass._observers && 'attached' in klass._observers)
+        {
+             ActiveView.triggerOrDelayAttachedEventOnInstance(this);
+        }
     };
     klass.instance = false;
-    klass.prototype.structure = structure;
     ActiveSupport.Object.extend(klass,ClassMethods);
-    ActiveSupport.Object.extend(klass.prototype,InstanceMethods);
-    ActiveSupport.Object.extend(klass.prototype,methods || {});
+    if(parent_class)
+    {
+        ActiveSupport.Object.extend(klass.prototype,parent_class.prototype);
+        klass.prototype.structure = ActiveSupport.Function.wrap(parent_class.prototype.structure,function(proceed,builder,dom){
+          return ActiveSupport.Function.bind(structure,this)(ActiveSupport.Function.bind(proceed,this)(builder,dom),builder,dom);
+        });
+    }
+    else
+    {
+        ActiveSupport.Object.extend(klass.prototype,InstanceMethods);
+        klass.prototype.structure = structure;
+    }
     ActiveEvent.extend(klass);
-    klass.observe = ActiveSupport.Function.wrap(klass.observe,ActiveView.observeWrapperForAttachedEvent);
-    klass.prototype.observe = ActiveSupport.Function.wrap(klass.prototype.observe,ActiveView.observeWrapperForAttachedEvent);
+    klass.prototype.observe = ActiveSupport.Function.wrap(klass.prototype.observe,ActiveView.observeWrapperForAttachedEventOnInstance);
+    if(parent_class)
+    {
+        klass._observers = ActiveSupport.Object.clone(parent_class._observers);
+        klass.prototype._observers = {};
+        ActiveView.wrapActiveEventMethodsForChildClass(klass,parent_class);
+    }
+    ActiveSupport.Object.extend(klass.prototype,methods || {});
     return klass;
 };
 
+ActiveView.wrapActiveEventMethodsForChildClass = function wrapActiveEventMethodsForChildClass(child_class,parent_class)
+{
+    var methods = ['observe','stopObserving','observeOnce'];
+    for(var i = 0; i < methods.length; ++i)
+    {
+        (function method_wrapper_iterator(method_name){
+            parent_class[method_name] = ActiveSupport.Function.wrap(parent_class[method_name],function method_wrapper(proceed){
+                var arguments_array = ActiveSupport.Array.from(arguments).slice(1);
+                child_class[method_name].apply(child_class,arguments_array);
+                return proceed.apply(proceed,arguments_array);
+            });
+        })(methods[i]);
+    }
+};
+
 //fires the "attached" event when the instance's element is attached to the dom
-ActiveView.observeWrapperForAttachedEvent = function observeWrapper(proceed)
+ActiveView.observeWrapperForAttachedEventOnInstance = function observeWrapperForAttachedEventOnInstance(proceed,event_name)
 {
     var arguments_array = ActiveSupport.Array.from(arguments).slice(1);
-    var is_class = (typeof(this.instance) != 'undefined' && typeof(this.initialize) == 'undefined');
-    var event_name = arguments_array[is_class ? 1 : 0];
-    var instance = is_class ? arguments_array[0] : this;
+    var response = proceed.apply(proceed,arguments_array);
     if(event_name == 'attached')
     {
-        var element = instance.getElement();
-        if(instance._attachedEventFired || (!instance._attachedEventFired && element && element.parentNode))
+        ActiveView.triggerOrDelayAttachedEventOnInstance(this);
+    }
+    return response;
+};
+
+ActiveView.nodeInDomTree = function nodeInDomTree(node)
+{
+    var ancestor = node;
+    while(ancestor.parentNode)
+    {
+        ancestor = ancestor.parentNode;
+    }
+    return !!(ancestor.body);
+};
+
+ActiveView.triggerOrDelayAttachedEventOnInstance = function triggerOrDelayAttachedEventOnInstance(instance){
+    if(!instance._attachedEventFired && instance.element && ActiveView.nodeInDomTree(instance.element))
+    {
+        instance.notify('attached');
+        instance._attachedEventFired = true;
+        if(instance._attachedEventInterval)
         {
-            instance._attachedEventFired = true;
-            instance.notify('attached');
-        }
-        else
-        {
-            instance._eventAttachedInterval = setInterval(function(){
-                var element = instance.getElement();
-                if(element && element.parentNode)
-                {
-                    instance.notify('attached');
-                    instance._attachedEventFired = true;
-                    clearInterval(instance._eventAttachedInterval);
-                }
-            },10);
+            clearInterval(instance._attachedEventInterval);
         }
     }
-    return proceed.apply(proceed,arguments_array);
+    else if(!('_attachedEventInterval' in instance))
+    {
+        instance._attachedEventInterval = setInterval(function(){
+            if(instance.element && ActiveView.nodeInDomTree(instance.element))
+            {
+                instance.notify('attached');
+                instance._attachedEventFired = true;
+                clearInterval(instance._attachedEventInterval);
+                instance._attachedEventInterval = false;
+            }
+        },10);
+    }
 };
 
 /**
