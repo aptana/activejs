@@ -25,7 +25,7 @@ ActiveSupport.Object.extend(Adapters.REST,{
             {
                 if(ActiveSupport.Array.indexOf(['search','outbound_transform','inbound_transform'],action_name) == -1)
                 {
-                    Adapters.REST.generateWrapper(action_name,model,mapping[model_name][action_name]);
+                    Adapters.REST.generateWrapper(action_name,model);
                 }
             }
         }
@@ -70,39 +70,39 @@ ActiveSupport.Object.extend(Adapters.REST,{
             }
         );
     },
-    generateWrapper: function generateWrapper(action_name,model,mapping_fragment)
+    generateWrapper: function generateWrapper(action_name,model)
     {
         switch(action_name)
         {
             case 'update':
-                Adapters.REST.generateClassWrapper('update',model,mapping_fragment);
-                Adapters.REST.generateInstanceWrapper('save',model,mapping_fragment);
-                Adapters.REST.generateInstanceWrapper('updateAttribute',model,mapping_fragment);
-                Adapters.REST.generateInstanceWrapper('updateAttributes',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('update',model);
+                Adapters.REST.generateInstanceWrapper('save',model);
+                Adapters.REST.generateInstanceWrapper('updateAttribute',model);
+                Adapters.REST.generateInstanceWrapper('updateAttributes',model);
                 break;
             case 'create':
-                Adapters.REST.generateClassWrapper('create',model,mapping_fragment);
-                Adapters.REST.generateInstanceWrapper('save',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('create',model);
+                Adapters.REST.generateInstanceWrapper('save',model);
                 break;
             case 'destroy':
-                Adapters.REST.generateClassWrapper('destroy',model,mapping_fragment);
-                Adapters.REST.generateInstanceWrapper('destroy',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('destroy',model);
+                Adapters.REST.generateInstanceWrapper('destroy',model);
                 break;
             case 'batch_create':
-                Adapters.REST.generateClassWrapper('create',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('create',model);
                 break;
             case 'batch_update':
-                Adapters.REST.generateClassWrapper('update',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('update',model);
                 break;
             case 'batch_destroy':
-                Adapters.REST.generateClassWrapper('destroy',model,mapping_fragment);
+                Adapters.REST.generateClassWrapper('destroy',model);
                 break;
             case 'search':
-                
+
                 break;
         }
     },
-    generateInstanceWrapper: function generateInstanceWrapper(method_name,model,mapping_fragment)
+    generateInstanceWrapper: function generateInstanceWrapper(method_name,model)
     {
         if(!Adapters.REST.wrappedMethods[model.modelName])
         {
@@ -114,11 +114,11 @@ ActiveSupport.Object.extend(Adapters.REST,{
         }
         if(!Adapters.REST.wrappedMethods[model.modelName].instance[method_name])
         {
-            Adapters.REST.wrappedMethods[model.modelName].instance[method_name] = model.prototype[method_name] = ActiveSupport.Function.wrap(model.prototype[method_name],Adapters.REST.instanceWrapperGenerators[method_name](model,mapping_fragment));
+            Adapters.REST.wrappedMethods[model.modelName].instance[method_name] = model.prototype[method_name] = ActiveSupport.Function.wrap(model.prototype[method_name],Adapters.REST.instanceWrapperGenerators[method_name](model));
         }
     },
-    generateClassWrapper: function generateClassWrapper(method_name,model,mapping_fragment)
-    {   
+    generateClassWrapper: function generateClassWrapper(method_name,model)
+    {
         if(!Adapters.REST.wrappedMethods[model.modelName])
         {
             Adapters.REST.wrappedMethods[model.modelName] = {};
@@ -129,7 +129,7 @@ ActiveSupport.Object.extend(Adapters.REST,{
         }
         if(!Adapters.REST.wrappedMethods[model.modelName].klass[method_name])
         {
-            Adapters.REST.wrappedMethods[model.modelName].klass[method_name] = model[method_name] = ActiveSupport.Function.wrap(model[method_name],Adapters.REST.classWrapperGenerators[method_name](model,mapping_fragment));
+            Adapters.REST.wrappedMethods[model.modelName].klass[method_name] = model[method_name] = ActiveSupport.Function.wrap(model[method_name],Adapters.REST.classWrapperGenerators[method_name](model));
         }
     },
     getPersistencePostBody: function getPersistencePostBody(model,params,http_params,mapping_fragment)
@@ -159,20 +159,14 @@ ActiveSupport.Object.extend(Adapters.REST,{
             }
             else
             {
-                var final_params = [];
-                for(var param_name in http_params || {})
-                {
-                    final_params.push(param_name + '=' + encodeURIComponent(http_params[param_name]));
-                }
+                var final_params = {};
+                ActiveSupport.Object.extend(final_params,http_params);
                 if(transform)
                 {
                     transform(params);
                 }
-                for(var param_name in params)
-                {
-                    final_params.push(params_container_name + '[' + param_name + ']=' + encodeURIComponent(params[param_name]));
-                }
-                return final_params.join('&');
+                final_params[params_container_name] = params;
+                return ActiveSupport.JSON.stringify(final_params);
             }
         }
         return '';
@@ -301,7 +295,7 @@ ActiveSupport.Object.extend(Adapters.REST,{
 });
 
 Adapters.REST.classWrapperGenerators = {
-    create: function create(model,mapping_fragment)
+    create: function create(model)
     {
         return function generated_class_create_wrapper(proceed,attributes,callback){
             var instance = proceed(attributes);
@@ -334,7 +328,7 @@ Adapters.REST.classWrapperGenerators = {
                         });
                         for(var i = 0; i < instance.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,instance[i],mapping_fragment,instance[i].toObject(function(attributes){
+                            Adapters.REST.createPersistenceRequest(model,instance[i],Adapters.REST.mapping[model_name].create,instance[i].toObject(function(attributes){
                                 delete attributes.id;
                                 return attributes;
                             }),callback_queue.push(function(created_item){
@@ -345,7 +339,7 @@ Adapters.REST.classWrapperGenerators = {
                 }
                 else
                 {
-                    Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(function(attributes){
+                    Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].create,instance.toObject(function(attributes){
                         delete attributes.id;
                         return attributes;
                     }),callback);
@@ -354,7 +348,7 @@ Adapters.REST.classWrapperGenerators = {
             return instance;
         };
     },
-    update: function update(model,mapping_fragment)
+    update: function update(model)
     {
         return function generated_class_update_wrapper(proceed,id,attributes,callback){
             var instance = proceed(id,attributes);
@@ -384,7 +378,7 @@ Adapters.REST.classWrapperGenerators = {
                         });
                         for(var i = 0; i < instance.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,instance[i],mapping_fragment,instance[i].toObject(),callback_queue.push(function(updated_item){
+                            Adapters.REST.createPersistenceRequest(model,instance[i],Adapters.REST.mapping[model_name].update,instance[i].toObject(),callback_queue.push(function(updated_item){
                                 updated_items.push(updated_item);
                             }));
                         }
@@ -392,13 +386,13 @@ Adapters.REST.classWrapperGenerators = {
                 }
                 else
                 {
-                    Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(),callback);
+                    Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].update,instance.toObject(),callback);
                 }
             }
             return instance;
         };
     },
-    destroy: function destroy(model,mapping_fragment)
+    destroy: function destroy(model)
     {
         return function generated_class_destroy_wrapper(proceed,id,callback){
             var response = proceed(id);
@@ -423,7 +417,7 @@ Adapters.REST.classWrapperGenerators = {
                         var callback_queue = new ActiveSupport.CallbackQueue(callback);
                         for(var i = 0; i < id.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,{
+                            Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].update,{
                                 id: id
                             },callback_queue.push(function(){}));
                         }
@@ -431,7 +425,7 @@ Adapters.REST.classWrapperGenerators = {
                 }
                 else
                 {
-                    Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,{
+                    Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].update,{
                         id: id
                     },callback);
                 }
@@ -442,47 +436,47 @@ Adapters.REST.classWrapperGenerators = {
 };
 
 Adapters.REST.instanceWrapperGenerators = {
-    updateAttribute: function updateAttribute(model,mapping_fragment)
+    updateAttribute: function updateAttribute(model)
     {
         return function generated_instance_update_attribute_wrapper(proceed,key,value,callback){
             var instance = proceed(key,value);
             if(instance && callback)
             {
-                Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(),callback);
+                Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].update,instance.toObject(),callback);
             }
             return instance;
         };
     },
-    updateAttributes: function updateAttributes(model,mapping_fragment)
+    updateAttributes: function updateAttributes(model)
     {
         return function generated_instance_update_attributes_wrapper(proceed,attributes,callback){
             var instance = proceed(attributes);
             if(instance && callback)
             {
-                Adapters.REST.createPersistenceRequest(model,instance,mapping_fragment,instance.toObject(),callback);
+                Adapters.REST.createPersistenceRequest(model,instance,Adapters.REST.mapping[model_name].update,instance.toObject(),callback);
             }
             return instance;
         };
     },
-    save: function save(model,mapping_fragment)
+    save: function save(model)
     {
         return function generated_instance_save_wrapper(proceed,force_created_mode,callback){
             var instance = proceed(force_created_mode);
             //TODO: see if should delete "id" for create case
             if(instance && callback)
             {
-                
+
             }
             return instance;
         };
     },
-    destroy: function destroy(model,mapping_fragment)
+    destroy: function destroy(model)
     {
         return function generated_instance_destroy_wrapper(proceed,callback){
             var response = proceed();
             if(callback)
             {
-                Adapters.REST.createPersistenceRequest(model,false,mapping_fragment,instance.toObject(),callback);
+                Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].destroy,instance.toObject(),callback);
             }
             return response;
         };
