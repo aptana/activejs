@@ -2,6 +2,10 @@ ActiveTest.Tests.Routes.matching = function()
 {
     with(ActiveTest)
     {
+        
+        
+        
+        /*
         //test exact matches
         var routes_without_params = new ActiveRoutes([
             ['index','/home',{object: 'page',method: 'index'}],
@@ -163,5 +167,6 @@ ActiveTest.Tests.Routes.matching = function()
         assert(reverse_lookup_exact_with_object.path == 'article/:id','reverseLookup() exact with ojbect');
         assert(reverse_lookup_ambiguous_method.path == 'pages/:method','reverseLookup() ambiguous method');
         assert(reverse_lookup_ambiguous_object_and_method.path == ':object/:method/:id','reverseLookup() ambiguous object and method');
+        */
     }
 };

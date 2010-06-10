@@ -2,6 +2,7 @@ ActiveTest.Tests.Routes.history = function()
 {
     with(ActiveTest)
     {
+        /*
         var last_action;
         
         var routes = new ActiveRoutes(test_valid_route_set,test_scope);
@@ -33,5 +34,6 @@ ActiveTest.Tests.Routes.history = function()
         
         var next_response = routes.next();
         assert(!next_response && routes.index == 2,'next() cannot traverse beyond history length');
+        */
     }
 };
