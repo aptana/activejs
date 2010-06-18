@@ -118,7 +118,8 @@ ActiveRoutes = {
     routeMatcherFromPath: function routeMatcherFromPath(path)
     {
         var params = [];
-        var reg_exp_pattern = path.replace(/\:([\w]+)(\/?)/g,function(){
+        var reg_exp_pattern = path.replace(/\)/g,')?');
+        reg_exp_pattern = reg_exp_pattern.replace(/\:([\w]+)(\/?)/g,function(){
             params.push(arguments[1]);
             return ActiveRoutes.paramPattern;
         });
@@ -193,7 +194,7 @@ ActiveRoutes = {
             for(var param_name in params)
             {
                 url = url.replace(param_matcher,function(){
-                    return arguments[1] == param_name ? params[param_name] + arguments[2] : arguments[1] + arguments[2];
+                    return arguments[1] == param_name ? params[param_name] + arguments[2] : ':' + arguments[1] + arguments[2];
                 });
             }
         }
