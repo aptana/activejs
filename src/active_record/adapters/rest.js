@@ -417,7 +417,7 @@ Adapters.REST.classWrapperGenerators = {
                         var callback_queue = new ActiveSupport.CallbackQueue(callback);
                         for(var i = 0; i < id.length; ++i)
                         {
-                            Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].update,{
+                            Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].destroy,{
                                 id: id
                             },callback_queue.push(function(){}));
                         }
@@ -425,7 +425,7 @@ Adapters.REST.classWrapperGenerators = {
                 }
                 else
                 {
-                    Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].update,{
+                    Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].destroy,{
                         id: id
                     },callback);
                 }
