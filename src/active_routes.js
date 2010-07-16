@@ -9,35 +9,80 @@ if(typeof exports != "undefined"){
 /**
  * == ActiveRoutes ==
  *
- * Application routing and history management (back button support).
+ * ActiveRoutes maps urls to method calls and method calls back to urls. This
+ * enables back button support and allows methods to be called by normal links
+ * (A tags) in your application without adding event handlers or additional code.
  * 
- * Calling `setRoutes` will setup ActiveRoutes and dispatch the current route (if any)
- * as soon as the page is fully loaded. You can pass in a method, or an array of an
- * object and a method. Each method will receive a hash of named parameters from
- * the route, except routes containing a wildcard, which will receive the matching
- * path as a string.
+ * Calling `setRoutes` will setup ActiveRoutes and call the dispatcher with the
+ * current url (if any) as soon as the page is fully loaded. `setRoutes` takes
+ * a hash with items in two formats:
+ * 
+ *     - String path: Function anonymous_callback
+ *     - String path: Array [Object,Function method_callback]
+ * 
+ * A path string can contain any of the following:
+ * 
+ *     - "/about/contact" A plain path with no parameters.
+ *     - "/about/:section" A path with a required named parameter.
+ *     - "/about/(:section)" A path with an optional named paramter.
+ *     - "/about/*" A path with an asterix / wildcard.
+ * 
+ * Each callback will be called with a hash containing the named parameters
+ * specified in the path. A path with a wildcard will contain a "path" parameter.
  * 
  *     ActiveRoutes.setRoutes({
  *         '/': [HomeView,'index'],
  *         '/contact/:id': [ContactView,'contact'],
- *         '/about': function(params){},
- *         '/wiki/*': function(path){}
+ *         '/about/(:section)': function(params){
+ *           if(params.section == 'about'){
+ *             ...
+ *           }
+ *         },
+ *         '/wiki/*': function(params){
+ *           if(params.path == ''){
+ *             ...
+ *           }
+ *         }
  *     });
  * 
- * If an object and a method is passed in, another property will be added to that
- * method allowing you to generate a url to the method:
+ * Url Generation
+ * --------------
+ * Method callbacks gain a `getUrl` method that is added to the function
+ * object. Anonymous callbacks do not gain this method.
  * 
- *     ContactView.contact.getUrl({id: 5}); //"/contact/5"
+ *     ContactView.contact.getUrl({id: 5}) == "/contact/5"
  * 
- * In addition when the method is called directly it will automatically update the
- * current path / url and history. Anonymous methods passed in directly cannot
- * generate urls and will not auto update the current path / url / history.
+ * Two Way Routing
+ * ---------------
+ * When method callbacks are called directly the url bar and history will
+ * be automatically updated.
+ * 
+ *     ContactView.contact({id:5});
+ *     //browser url bar now set to #/contact/5
+ * 
+ * Anonymous callbacks do not support this functionality. 
+ * 
+ * Dispatching
+ * -----------
+ * ActiveRoutes polls for changes in the url, so the user entering a 
+ * url, clicking a link or clicking the back button will trigger the
+ * dispatcher. You can call `dispatch` directly:
+ * 
+ *     ActiveRoutes.dispatch('/contact/5');
+ * 
+ * But any link would also automatically trigger the dispatcher:
+ * 
+ *     <a href="#/contact/5">My Link</a>
+ * 
+ * As well as calling the method directly:
+ * 
+ *     ContactView.contact({id:5});
  * 
  * Events
  * ------
  * - ready()
  * - afterDispatch(path,method,params)
- * - externalChange(path)
+ * - externalChange(path): called when the url is changed by the back button or a link is clicked,
  **/
  
 /**
@@ -60,7 +105,6 @@ ActiveRoutes = {
     currentRoute: false,
     history: [],
     paramPattern: '([\\w]+)(/|$)',
-    normalizePathDotDotPattern: /[^\/\\]+[\/\\]\.\.[\/\\]/,
     enabled: false,
     /**
      * ActiveRoutes.setRoutes(routes) -> null
@@ -118,15 +162,19 @@ ActiveRoutes = {
     routeMatcherFromPath: function routeMatcherFromPath(path)
     {
         var params = [];
-        var reg_exp_pattern = path.replace(/\)/g,')?');
+        var reg_exp_pattern = String(path);
+        reg_exp_pattern = reg_exp_pattern.replace(/\((\:?[\w]+)\)/g,function(){
+          return '' + arguments[1] + '?'; //regex for optional params "/:one/:two/(:three)"
+        });
         reg_exp_pattern = reg_exp_pattern.replace(/\:([\w]+)(\/?)/g,function(){
             params.push(arguments[1]);
-            return ActiveRoutes.paramPattern;
+            return '(' + ActiveRoutes.paramPattern + ')';
         });
+        reg_exp_pattern = reg_exp_pattern.replace(/\)\?\/\(/g,')?('); //cleanup for optional params 
         if(reg_exp_pattern.match(/\*/))
         {
             params.push('path');
-            reg_exp_pattern = reg_exp_pattern.replace(/\*/g,'(.+$)');
+            reg_exp_pattern = reg_exp_pattern.replace(/\*/g,'((.+$))?');
         }
         return [new RegExp('^' + reg_exp_pattern + '$'),params];
     },
@@ -158,7 +206,6 @@ ActiveRoutes = {
      **/
     match: function match(path)
     {
-        path = ActiveRoutes.normalizePath(path);
         for(var i = 0; i < ActiveRoutes.routes.length; ++i)
         {
             if(ActiveRoutes.routes[i][0] == path)
@@ -174,7 +221,7 @@ ActiveRoutes = {
                 var params = {};
                 for(var ii = 0; ii < ActiveRoutes.routePatterns[i][1].length; ++ii)
                 {
-                    params[ActiveRoutes.routePatterns[i][1][ii]] = matches[((ii + 1) * 2) - 1];
+                    params[ActiveRoutes.routePatterns[i][1][ii]] = matches[((ii + 1) * 3) - 1];
                 }
                 return [ActiveRoutes.routes[i][1],params];
             }
@@ -183,6 +230,7 @@ ActiveRoutes = {
     },
     generateUrl: function generateUrl(url,params)
     {
+        url = url.replace(/(\(|\))/g,'');
         params = params || {};
         if(typeof(params) == 'string' && url.match(/\*/))
         {
@@ -204,7 +252,6 @@ ActiveRoutes = {
     {
         if(ActiveRoutes.enabled)
         {
-            path = ActiveRoutes.normalizePath(path);
             if(ActiveRoutes.currentRoute != path)
             {
                 ActiveRoutes.historyManager.onChange(path);
@@ -218,7 +265,7 @@ ActiveRoutes = {
     getCurrentPath: function getCurrentPath()
     {
         var path_bits = ActiveSupport.getGlobalContext().location.href.split('#');
-        return ActiveRoutes.normalizePath(path_bits[1] && (path_bits[1].match(/^\//) || path_bits[1] == '') ? path_bits[1] : '');
+        return path_bits[1] && (path_bits[1].match(/^\//) || path_bits[1] == '') ? path_bits[1] : '';
     },
     /**
      * ActiveRoutes.start() -> null
@@ -303,22 +350,6 @@ ActiveRoutes = {
     getHistory: function getHistory()
     {
         return ActiveRoutes.history;
-    },
-    normalizePath: function normalizePath(path)
-    {
-        //remove hash
-        path = path.replace(/\#.+$/,'');
-        //remove query string
-        path = path.replace(/\?.+$/,'');
-        //remove trailing and starting slashes, replace backslashes, replace multiple slashes with a single slash
-        path = path.replace(/\/{2,}/g,"/").replace(/\\\\/g,"\\").replace(/(\/|\\)$/,'').replace(/\\/g,'/').replace(/^\//,'');
-        while(path.match(ActiveRoutes.normalizePathDotDotPattern))
-        {
-            path = path.replace(ActiveRoutes.normalizePathDotDotPattern,'');
-        }
-        //replace /index with /
-        //path = path.replace(/(\/index$|^index$)/i,'');
-        return path;
     }
 };
 ActiveEvent.extend(ActiveRoutes);
