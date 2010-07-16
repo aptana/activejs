@@ -1,0 +1,110 @@
+code,
+.dp-highlighter li {
+	font-weight:normal;
+	font-family:"bitstream vera sans mono",monaco,"lucida console","courier new",courier,serif;
+	color:#fff;
+	font-size:14px;
+}
+
+.dp-highlighter ol {
+	margin:0;
+	padding:0;
+}
+
+.dp-highlighter ol,
+.dp-highlighter ol li {
+	list-style:none;
+}
+
+#main .dp-highlighter div.comment {
+	font-family:inherit;
+}
+
+.dp-highlighter ol.css .comment {
+	color:#545454;
+}
+
+.dp-highlighter ol.css .string {
+	color:#8B9F67;
+}
+
+.dp-highlighter ol.css .value {
+	color:#FAF092;
+}
+
+.dp-highlighter ol.css .keyword {
+	color:#D3A864;
+}
+
+.dp-highlighter ol.css .color {
+	color:#CA7840;
+}
+
+.dp-highlighter ol.css .size {
+	color:#CA7840;
+}
+
+.dp-highlighter ol.css .rule {
+	color:#7287A8;
+}
+
+.dp-highlighter ol.javascript .comment {
+	color:#545454;
+}
+
+.dp-highlighter ol.javascript .string {
+	color:#8B9F67;
+}
+
+.dp-highlighter ol.javascript .keyword {
+	color:#D3A864;
+}
+
+.dp-highlighter ol.javascript .constants {
+	color:#DF6547;
+}
+
+.dp-highlighter ol.javascript .const {
+	color:#DF6547;
+}
+
+.dp-highlighter ol.javascript ._this {
+	color:#7287A8;
+}
+
+.dp-highlighter ol.javascript .builtin {
+	color:#9F839E;
+}
+
+.dp-highlighter ol.javascript .regexp {
+	color:#D3A864;
+}
+
+.dp-highlighter ol.javascript .support_property {
+	color:#DF6547;
+}
+
+.dp-highlighter ol.javascript .support_method {
+	color:#FAF092;
+}
+
+.dp-highlighter ol.javascript .func_dec {
+	color:#A26F3A;
+}
+
+.dp-highlighter ol.xml .comments {
+	color:#545454;
+}
+
+.dp-highlighter ol.xml .tag,
+.dp-highlighter ol.xml .tag-name {
+	color:#A26F3A;
+}
+
+.dp-highlighter ol.xml .attribute {
+	color:#D3A864;
+}
+
+.dp-highlighter ol.xml .attribute-value {
+	color:#8B9F67;
+}
