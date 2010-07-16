@@ -1,7 +1,7 @@
 /**
  * class ActiveSupport.Initializer
  * Several asynchronous events occur in an ActiveJS application before
- * your application is ready to use. The initializer ensures that ActiveView
+ * your application is ready to use. The initializer ensures that ActiveRoutes
  * and ActiveRecord are configured appropriately and that these events occur
  * in the correct order. Specifically the initializer will:
  * 
@@ -68,8 +68,8 @@ ActiveSupport.Initializer.prototype.setRoutes = function setRoutes()
 {
     if(this.routes)
     {
-        ActiveView.Routing.observe('ready',this.onComplete,this);
-        ActiveView.Routing.setRoutes((typeof(this.routes) == 'function') ? this.routes() : this.routes);
+        ActiveRoutes.observe('ready',this.onComplete,this);
+        ActiveRoutes.setRoutes((typeof(this.routes) == 'function') ? this.routes() : this.routes);
     }
     else
     {

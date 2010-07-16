@@ -1,6 +1,5 @@
 /**
  * == ActiveView ==
- * 
  * ActiveView tutorial in progress.
  **/
  
@@ -147,6 +146,9 @@ ActiveView.isActiveViewClass = function isActiveViewClass(object)
 
 var InstanceMethods = (function(){
     return {
+        /**
+         * new ActiveView.Class([scope])
+         **/
         initialize: function initialize(scope)
         {
             if(ActiveView.logging)
@@ -222,7 +224,7 @@ var InstanceMethods = (function(){
         },
         /**
          * ActiveView.Class#exportScope() -> Object
-         * Gets a vanilla hash of the scope/data in your view.
+         * Gets a plain hash of the scope/data in your view.
          **/
         exportScope: function exportScope()
         {

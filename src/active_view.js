@@ -4,6 +4,5 @@ var ActiveView = null;
 
 //= require <active_view/main>
 //= require <active_view/builder>
-//= require <active_view/routing>
 
 })();

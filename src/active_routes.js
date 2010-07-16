@@ -85,7 +85,7 @@ if(typeof exports != "undefined"){
  * - externalChange(path): called when the url is changed by the back button or a link is clicked,
  **/
  
-/**
+/** section: ActiveRoutes
  * ActiveRoutes
  **/
 ActiveRoutes = {
@@ -291,7 +291,7 @@ ActiveRoutes = {
     {
         if(ActiveRoutes.enabled)
         {
-            var current_path = ActiveView.Routing.getCurrentPath();
+            var current_path = ActiveRoutes.getCurrentPath();
             if(ActiveRoutes.ready)
             {
                 if(current_path != ActiveRoutes.currentRoute)
