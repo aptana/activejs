@@ -7,50 +7,54 @@
     <script src="javascripts/syntax.js"></script>
     <script id="source_code">
       LayoutView = ActiveView.create(function(builder,dom){
-        this.listView = new ListView();
-        var element = builder.div(
-          this.listViewElement = this.listView.getElement(),
-          this.addListItemForm = builder.form(
-            this.textInput = builder.input({type:'text'}),
-            this.addButton = builder.input({type:'submit',value:'Add'})
-          )
+        this.tableView = TableView.getInstance();
+        this.tableView.addRow('Table Row One');
+        this.tableView.addRow('Table Row Two');
+        this.tableView.addRow('Table Row Three');
+        return builder.div(
+          builder.p('Paragraph One'),
+          builder.p('Paragraph ',builder.b('Two')),
+          NestedElementView.getInstance().getElement(),
+          this.tableView.getElement()
         );
-        dom.observe(this.addListItemForm,'submit',function(event,stop){
-          this.listView.insertListItem(this.textInput.value);
-          this.textInput.value = '';
-          stop();
-        },this);
-        this.listView.insertListItem('Sample Item');
-        return element;
       });
       
-      ListView = ActiveView.create(function(builder,dom){
-        return builder.ul();
+      NestedElementView = ActiveView.create(function(builder,dom){
+        return builder.ul(
+          builder.li('List Item One'),
+          builder.li(builder.b('List Item Two')),
+          builder.li(builder.i('List Item Three'))
+        );
+      });
+      
+      TableView = ActiveView.create(function(builder,dom){
+        return builder.table({cellpadding:0, cellspacing:0, border:1},
+          this.tableBodyContainer = builder.tbody()
+        );
       },{
-        insertListItem: function(content){
-          var dom = ActiveSupport.Element;
-          dom.insert(this.element,new ListItemView({
+        addRow: function(content){
+          var row_view = new RowView({
             content: content
-          }).getElement());
+          });
+          this.tableBodyContainer.appendChild(row_view.getElement());
         }
       });
       
-      ListItemView = ActiveView.create(function(builder,dom){
-        var element = builder.li(
-          builder.span(this.get('content')),
-          ' ',
-          this.removeLink = builder.a({href:'#'},'Remove')
+      RowView = ActiveView.create(function(builder,dom){
+        return builder.tr(
+          builder.td(
+            this.get('content')
+          )
         );
-        dom.observe(this.removeLink,'click',function(event,stop){
-          dom.remove(this.getElement());
-          stop();
-        },this);
-        return element;
       });
-            
+      
       ActiveSupport.Element.observe(document,'ready',function(){
         var example_container = document.getElementById('example_container');
         example_container.appendChild(LayoutView.getInstance().getElement());
+      });
+    </script>
+    <script>
+      ActiveSupport.Element.observe(document,'ready',function(){
         //source code highlighting setup
         var source_code_display_container = document.getElementById('source_code_display');
         var source_code = document.getElementById('source_code').innerHTML;
@@ -58,16 +62,15 @@
         dp.sh.HighlightAll('javascript',false,false,false,true,false);
       });
     </script>
-    <style>    
-    </style>
   </head>
   <body>
     <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
-    <h1>ActiveView Editable List</h1>
+    <h1>Static Views</h1>
+    <h2><span>Uses:</span> ActiveView</h2>
     <p></p>
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>
-        <th>Editable List</th>
+        <th>DOM Output</th>
         <th>Source Code</th>
       </tr>
       <tr>

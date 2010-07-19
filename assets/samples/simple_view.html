@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="stylesheets/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="javascripts/active.js"></script>
+    <script src="javascripts/syntax.js"></script>
+    <script id="source_code">
+      LayoutView = ActiveView.create(function(builder,dom){
+        return builder.div(
+          builder.ul(
+            builder.li('Item One'),
+            builder.li(builder.b('Item Two')),
+            builder.li('Item Three')
+          )
+        );
+      });
+      
+      ActiveSupport.Element.observe(document,'ready',function(){
+        var example_container = document.getElementById('example_container');
+        example_container.appendChild(LayoutView.getInstance().getElement());
+      });
+    </script>
+    <script>
+      ActiveSupport.Element.observe(document,'ready',function(){
+        //source code highlighting setup
+        var source_code_display_container = document.getElementById('source_code_display');
+        var source_code = document.getElementById('source_code').innerHTML;
+        source_code_display_container.innerHTML = source_code;
+        dp.sh.HighlightAll('javascript',false,false,false,true,false);
+      });
+    </script>
+  </head>
+  <body>
+    <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
+    <h1>Static Views</h1>
+    <h2><span>Uses:</span> ActiveView</h2>
+    <p></p>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <th>DOM Output</th>
+        <th>Source Code</th>
+      </tr>
+      <tr>
+        <td id="example_container"></td>
+        <td><pre class="highlighted"><code class="javascript" id="source_code_display"></code></pre></td>
+      </tr>
+    </table> 
+  </body>
+</html>

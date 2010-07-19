@@ -13,59 +13,106 @@
       });
     
       LayoutView = ActiveView.create(function(builder,dom){
-        var element = builder.div(
+        //all views except ListItemView act as singletons in this example
+        return builder.div(
           ListItemCounterView.getInstance().getElement(),
           ListView.getInstance().getElement(),
+          EditView.getInstance().getElement()
+        );
+      });
+      
+      EditView = ActiveView.create(function(builder,dom){
+        var element = builder.div(
           this.addListItemForm = builder.form(
             this.textInput = builder.input({type:'text'}),
-            this.addButton = builder.input({type:'submit',value:'Add'})
+            this.saveButton = builder.input({type:'submit',value:'Create'})
           )
         );
         dom.observe(this.addListItemForm,'submit',function(event,stop){
-          ListItem.create({
-            content: this.textInput.value
-          });
-          this.textInput.value = '';
+          this.save();
           stop();
         },this);
         return element;
+      },{
+        load: function(list_item){
+          this.listItem = list_item;
+          this.textInput.value = list_item.content;
+          this.saveButton.value = 'Save';
+          this.textInput.focus();
+        },
+        reset: function(){
+          this.saveButton.value = 'Create';
+          this.listItem = false;
+          this.textInput.value = '';
+        },
+        save: function(){
+          //the DOM will be updated from the afterSave / afterCreate / afterDestroy
+          //observers registered on the ListItem model
+          if(this.listItem){
+            this.listItem.set('content',this.textInput.value);
+            this.listItem.save();
+          }else{
+            ListItem.create({
+              content: this.textInput.value
+            });
+          }
+          this.reset();
+        }
       });
       
       ListView = ActiveView.create(function(builder,dom){
         this.listItemsIndexedById = {};
         return builder.ul();
       },{
-        createListItem: function(list_item){
+        updateListItemView: function(list_item){
+          this.listItemsIndexedById[list_item.get('id')].update(list_item);
+        },
+        createListItemView: function(list_item){
           var dom = ActiveSupport.Element;
           this.listItemsIndexedById[list_item.get('id')] = new ListItemView({
             list_item: list_item
           });
           dom.insert(this.element,this.listItemsIndexedById[list_item.get('id')].getElement());
         },
-        destroyListItem: function(list_item){
+        destroyListItemView: function(list_item){
           var dom = ActiveSupport.Element;
           dom.remove(this.listItemsIndexedById[list_item.get('id')].getElement());
           delete this.listItemsIndexedById[list_item.get('id')];
         }
       });
+      ListItem.observe('afterSave',function(list_item){
+        ListView.getInstance().updateListItemView(list_item);
+      });
       ListItem.observe('afterCreate',function(list_item){
-        ListView.getInstance().createListItem(list_item);
+        ListView.getInstance().createListItemView(list_item);
       });
       ListItem.observe('afterDestroy',function(list_item){
-        ListView.getInstance().destroyListItem(list_item);
+        ListView.getInstance().destroyListItemView(list_item);
       });
       
       ListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
-          builder.span(this.get('list_item').get('content')),
+          this.contentContainer = builder.span(this.get('list_item').get('content')),
           ' ',
+          this.editLink = builder.a({href:'#'},'Edit'),
+          ' | ',
           this.removeLink = builder.a({href:'#'},'Remove')
         );
         dom.observe(this.removeLink,'click',function(event,stop){
           ListItem.destroy(this.get('list_item').get('id'));
           stop();
         },this);
+        dom.observe(this.editLink,'click',function(event,stop){
+          EditView.getInstance().load(this.get('list_item'));
+          stop();
+        },this);
+        
         return element;
+      },{
+        update: function(list_item){
+          var dom = ActiveSupport.Element;
+          dom.update(this.contentContainer,list_item.get('content'));
+        }
       });
       
       ListItemCounterView = ActiveView.create(function(builder,dom){
@@ -106,6 +153,10 @@
       ActiveSupport.Element.observe(document,'ready',function(){
         var example_container = document.getElementById('example_container');
         example_container.appendChild(LayoutView.getInstance().getElement());
+      });
+    </script>
+    <script>
+      ActiveSupport.Element.observe(document,'ready',function(){
         //source code highlighting setup
         var source_code_display_container = document.getElementById('source_code_display');
         var source_code = document.getElementById('source_code').innerHTML;
@@ -113,12 +164,16 @@
         dp.sh.HighlightAll('javascript',false,false,false,true,false);
       });
     </script>
-    <style>    
-    </style>
   </head>
   <body>
     <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
-    <h1>ActiveView Editable List</h1>
+    <h1>Editable List With Database</h1>
+    <h2><span>Uses:</span> ActiveView ActiveRecord</h2>
+    <p>Note that in this example ActiveRecord is not configured with a REST connection so data will not persist between page loads.</p>
+    <p>Try running these snippets line by line from the console.</p>
+    <pre class="highlighted"><code class="javascript">var list_item = ListItem.create({content:'test'});
+list_item.updateAttribute('content','test two');
+list_item.destroy();</code></pre>
     <p></p>
     <table border="0" cellpadding="0" cellspacing="0" width="100%">
       <tr>

@@ -1,6 +1,12 @@
+html {
+  margin:0;
+}
+
 body {
   font-family:Helvetica,Arial;
   background-color:#eee;
+  padding:15px;
+  margin:0;
 }
 
 a {
@@ -16,8 +22,8 @@ a:hover {
 
 #return {
   position:absolute;
-  top:10px;
-  right:10px;
+  top:15px;
+  right:15px;
 }
 
 #example_container {
@@ -29,6 +35,15 @@ th {
   text-align:left;
 }
 
+th {
+  padding-bottom:5px;
+  border-bottom:1px solid #ccc;
+}
+
+td {
+  padding-top:10px;
+}
+
 pre.highlighted {
 	margin:0;
 	padding:20px 30px 20px 30px;
@@ -37,4 +52,20 @@ pre.highlighted {
 	font-size:12px;
 	overflow:auto;
 	width:740px;
+}
+
+h1 {
+  margin:0 0 5px 0;
+  padding:0;
+}
+
+h2 {
+  font-size:14px;
+  margin:0;
+  padding:0;
+}
+
+h2 span {
+  color:#666;
+  font-weight:normal;
 }
