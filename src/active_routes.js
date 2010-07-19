@@ -82,13 +82,17 @@ if(typeof exports != "undefined"){
  * ------
  * - ready()
  * - afterDispatch(path,method,params)
- * - externalChange(path): called when the url is changed by the back button or a link is clicked,
+ * - externalChange(path): called when the url is changed by the back button or a link is clicked
+ * - initialDispatchFailed(): called when the page loads but no route could be matched from the url bar
  **/
  
 /** section: ActiveRoutes
  * ActiveRoutes
  **/
 ActiveRoutes = {
+    errors: {
+        methodDoesNotExist: ActiveSupport.createError('The method "%" does not exist for the route "%"')
+    },
     historyManager: {
         initialize: function(){
             SWFAddress.addEventListener(SWFAddressEvent.EXTERNAL_CHANGE,ActiveRoutes.externalChangeHandler);
@@ -142,11 +146,19 @@ ActiveRoutes = {
         if(arguments[2])
         {
             var object = arguments[1];
+            if(typeof(object.getInstance) != 'undefined')
+            {
+                object = object.getInstance();
+            }
             var method = arguments[2];
             var original_method = object[method];
+            if(typeof(object[method]) == 'undefined')
+            {
+                throw ActiveRoutes.errors.methodDoesNotExist.getErrorString(method,path);
+            }
             object[method] = function routing_wrapper(params){
                 ActiveRoutes.setRoute(ActiveRoutes.generateUrl(path,params));
-                original_method.apply(original_method,arguments);
+                original_method.apply(object,arguments);
             };
             object[method].getUrl = function url_generator(params){
                 return ActiveRoutes.generateUrl(path,params);
@@ -181,11 +193,15 @@ ActiveRoutes = {
     /**
      * ActiveRoutes.dispatch(path) -> Boolean
      **/
-    dispatch: function dispatch(path)
+    dispatch: function dispatch(path,force)
     {
         var match = ActiveRoutes.match(path);
-        path = ActiveRoutes.normalizePath(path);
-        if(ActiveRoutes.enabled && path != ActiveRoutes.currentRoute && match)
+        var should_dispatch = path != ActiveRoutes.currentRoute;
+        if(!should_dispatch && force == true)
+        {
+            should_dispatch = true;
+        }
+        if(ActiveRoutes.enabled && should_dispatch && match)
         {
             if(!match[0].getUrl)
             {
@@ -281,7 +297,10 @@ ActiveRoutes = {
                 if(ActiveRoutes.notify('ready') !== false)
                 {
                     setTimeout(function initial_route_dispatcher(){
-                        ActiveRoutes.dispatch(ActiveRoutes.getCurrentPath());
+                        if(!ActiveRoutes.dispatch(ActiveRoutes.getCurrentPath(),true))
+                        {
+                            ActiveRoutes.notify('initialDispatchFailed');
+                        }
                     });
                 }
             });
