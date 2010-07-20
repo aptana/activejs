@@ -60,7 +60,12 @@ if(typeof exports != "undefined"){
  *     ContactView.contact({id:5});
  *     //browser url bar now set to #/contact/5
  * 
- * Anonymous callbacks do not support this functionality. 
+ * Anonymous callbacks do not support this functionality. To acheive this
+ * functionality ActiveRoutes wraps your method callbacks with another method
+ * that performs the routing callbacks. The original method (without
+ * routing callbacks) can be called via the `callWithoutRouting` property:
+ * 
+ *     ContactView.contact.callWithoutRouting({id:5});
  * 
  * Dispatching
  * -----------
@@ -162,6 +167,9 @@ ActiveRoutes = {
             };
             object[method].getUrl = function url_generator(params){
                 return ActiveRoutes.generateUrl(path,params);
+            };
+            object[method].callWithoutRouting = function original_method_callback(){
+                return original_method.apply(object,arguments);
             };
             ActiveRoutes.routes.push([path,object[method]]);
         }

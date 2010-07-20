@@ -13,8 +13,8 @@
  *         database: 'path/to/db.json',
  *         routes: function(){
  *             return {
- *                 home: ['/',MyApp.ViewOne,'index'],
- *                 about: ['/about',MyApp.ViewTwo,'about']
+ *                 '/': [MyApp.ViewOne,'index'],
+ *                 '/about': [MyApp.ViewTwo,'about']
  *             };
  *         },
  *         callback: function(){
