@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="stylesheets/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="../downloads/active.js"></script>
+    <script src="javascripts/syntax.js"></script>
+    <script src="javascripts/showdown.js"></script>
+    <script id="source_code">      
+      WikiPage = ActiveRecord.create('wiki_pages',{
+        name: '',
+        body: ''
+      },{
+        getHTML: function(){
+          return WikiPage.htmlFromMarkdownSource(this.get('body'));
+        }
+      });
+      WikiPage.htmlFromMarkdownSource = function(markdown_source){
+        return (new Showdown.converter()).makeHtml(markdown_source);
+      };
+      
+      LayoutView = ActiveView.create(function(builder,dom){
+        return builder.div(
+          builder.table({cellpadding:0,cellspacing:0,border:0,width:'100%'},
+            builder.tbody(
+              builder.tr(
+                builder.td({width:'66%',valign:'top'},
+                  PageView.getInstance().getElement()
+                ),
+                builder.td({width:'33%',valign:'top'},
+                  PageListView.getInstance().getElement()
+                )
+              )
+            )
+          )
+        );
+      });
+      
+      PageView = ActiveView.create(function(builder,dom){
+        return builder.div(
+          this.showContainer = builder.div(
+            this.nameContainer = builder.h1(),
+            this.bodyContainer = builder.div()
+          ),
+          this.editContainer = builder.div()
+        );
+      },{
+        show: function(params){
+          var dom = ActiveSupport.Element;
+          this.set('wiki_page',WikiPage.findByName(params.name));
+          if(!this.get('wiki_page')){
+            this.create();
+          }else{
+            dom.hide(this.editContainer);
+            dom.show(this.showContainer);
+            dom.update(this.nameContainer,this.get('wiki_page').get('name'));
+            this.bodyContainer.innerHTML = this.get('wiki_page').get('body');
+          }
+        },
+        create: function(){
+          this.edit.callWithoutRouting({
+            name: false
+          });
+        },
+        edit: function(params){
+          var dom = ActiveSupport.Element;
+          this.set('wiki_page',WikiPage.findByName(params.name));
+          dom.hide(this.showContainer);
+          dom.show(this.editContainer);
+          this.editView = new EditView({
+            wiki_page: this.get('wiki_page')
+          });
+          this.editView.observe('saved',function(wiki_page){
+            dom.remove(this.editView.getElement());
+            this.show({
+              name: wiki_page.get('name')
+            });
+          },this);
+          this.editView.observe('attached',function(){
+            this.editView.nameInput.focus();
+          },this);
+          this.editContainer.appendChild(this.editView.getElement());
+        }
+      });
+      
+      PageListView = ActiveView.create(function(builder,dom){
+        this.wikiPageListItemViewsIndexedById = {};
+        return builder.div(
+          builder.b(builder.a({href:'#' + PageView.getInstance().create.getUrl()},'Create New Page')),
+          builder.ul()
+        );
+      },{
+        updateWikiPageListItemView: function(wiki_page){
+          this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].update(wiki_page);
+        },
+        createWikiPageListItemView: function(wiki_page){
+          this.wikiPageListItemViewsIndexedById[wiki_page.get('id')] = new PageListItemView({
+            wiki_page: wiki_page 
+          });
+          this.element.appendChild(this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].getElement());
+        },
+        destroyWikiPageListItemView: function(wiki_page){
+          var dom = ActiveSupport.Element;
+          dom.remove(this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].getElement());
+          delete this.wikiPageListItemViewsIndexedById[wiki_page.get('id')];
+        }
+      });
+      WikiPage.observe('afterUpdate',function(wiki_page){
+        PageListView.getInstance().updateWikiPageListItemView(wiki_page);
+      });
+      WikiPage.observe('afterCreate',function(wiki_page){
+        PageListView.getInstance().createWikiPageListItemView(wiki_page);
+      });
+      WikiPage.observe('afterDestroy',function(wiki_page){
+        PageListView.getInstance().destroyWikiPageListItemView(wiki_page);
+      });
+      
+      PageListItemView = ActiveView.create(function(builder,dom){
+        var element = builder.li(
+          this.nameContainer = builder.span(this.get('wiki_page').get('name')),
+          ' ',
+          this.editLink = builder.a({href:'#'},'Edit'),
+          ' | ',
+          this.removeLink = builder.a({href:'#'},'Remove')
+        );
+        dom.observe(this.removeLink,'click',function(event,stop){
+          WikiPage.destroy(this.get('wiki_page').get('id'));
+          stop();
+        },this);
+        dom.observe(this.editLink,'click',function(event,stop){
+          PageView.getInstance().edit({
+            name: this.get('wiki_page').get('name')
+          });
+          stop();
+        },this);
+        return element;
+      },{
+        update: function(wiki_page){
+          this.set('wiki_page',wiki_page);
+          var dom = ActiveSupport.Element;
+          dom.update(this.nameContainer,this.get('wiki_page').get('name'));
+        }
+      });
+      
+      EditView = ActiveView.create(function(builder,dom){
+        var element = builder.table({cellpadding:0,cellspacing:0,border:0},
+          builder.tbody(
+            builder.tr(
+              builder.td({valign:'top'},
+                this.titleContainer = builder.h3(),
+                builder.form(
+                  builder.p(builder.b('Name')),
+                  this.nameInput = builder.input({type:'text',style:'width:320px'}),
+                  builder.p(builder.b('Body (Formatted with Markdown)')),
+                  this.bodyInput = builder.textarea(),
+                  builder.br(),
+                  this.saveButton = builder.input({type:'submit',value:'Save'})
+                )
+              ),
+              builder.td({valign:'top',style:'padding-left:25px;'},
+                builder.p(builder.b('Preview')),
+                this.previewContainer = builder.div()
+              )
+            )
+          )
+        );
+        dom.observe(this.nameInput,'keyup',function(){
+          this.nameInput.value = this.nameInput.value.replace(/[^A-Za-z0-9_\-]/g,'');
+          this.nameInput.value = this.nameInput.value.replace(/\s+$/,'');
+        },this);
+        dom.observe(this.bodyInput,'keyup',function(){
+          this.renderPreview();
+        },this);
+        dom.observe(element,'submit',function(event,stop){
+          if(this.nameInput.value.length > 0 && this.bodyInput.value.length > 0){
+            if(this.get('wiki_page')){
+              this.get('wiki_page').updateAttributes({
+                name: this.nameInput.value,
+                body: this.bodyInput.value
+              });
+            }else{
+              this.set('wiki_page',WikiPage.create({
+                name: this.nameInput.value,
+                body: this.bodyInput.value
+              }));
+            }
+            this.notify('saved',this.get('wiki_page'));
+          }
+          stop();
+        },this);
+        if(this.get('wiki_page')){
+          dom.update(this.titleContainer,'Editing "' + this.get('wiki_page').get('name') + '"');
+          this.nameInput.value = this.get('wiki_page').get('name');
+          this.bodyInput.value = this.get('wiki_page').get('body');
+          this.renderPreview();
+        }else{
+          dom.update(this.titleContainer,'Create New Page');
+        }
+        return element;
+      },{
+        renderPreview: function(){
+          this.previewContainer.innerHTML = WikiPage.htmlFromMarkdownSource(this.bodyInput.value);
+        }
+      });
+      
+      new ActiveSupport.Initializer({
+        database: true,
+        routes: function(){
+          return {
+            '/create': [PageView.getInstance(),'create'],
+            '/:name': [PageView.getInstance(),'show'],
+            '/:name/edit': [PageView.getInstance(),'edit']
+          };
+        },
+        callback: function(){
+          var example_container = document.getElementById('example_container');
+          example_container.appendChild(LayoutView.getInstance().getElement());
+        }
+      });
+      ActiveRoutes.observe('initialDispatchFailed',function(){
+        PageView.getInstance().create();
+      });
+    </script>
+    <script>
+      ActiveSupport.Element.observe(document,'ready',function(){
+        //source code highlighting setup
+        var source_code_display_container = document.getElementById('source_code_display');
+        var source_code = document.getElementById('source_code').innerHTML;
+        source_code_display_container.innerHTML = source_code;
+        dp.sh.HighlightAll('javascript',false,false,false,true,false);
+      });
+    </script>
+    <style>
+      textarea {
+        width:320px;
+        height:240px;
+      }
+    </style>
+  </head>
+  <body>
+    <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
+    <h1>Wiki</h1>
+    <h2><span>Uses:</span> Full Stack</h2>
+    <p></p>
+    <hr/>
+    <div id="example_container"></div>
+    <hr/>
+    <b>Source Code</b>
+    <pre class="highlighted"><code class="javascript" id="source_code_display"></code></pre>
+  </body>
+</html>

@@ -106,12 +106,12 @@
           EditView.getInstance().load(this.get('list_item'));
           stop();
         },this);
-        
         return element;
       },{
         update: function(list_item){
+          this.set('list_item',list_item);
           var dom = ActiveSupport.Element;
-          dom.update(this.contentContainer,list_item.get('content'));
+          dom.update(this.contentContainer,this.get('list_item').get('content'));
         }
       });
       
@@ -169,7 +169,7 @@
     <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
     <h1>Editable List With Database</h1>
     <h2><span>Uses:</span> ActiveView ActiveRecord</h2>
-    <p>Note that in this example ActiveRecord is not configured with a REST connection so data will not persist between page loads.</p>
+    <p>Note that in this example ActiveRecord is not configured with a REST connection so data will not persist between page loads. All views observe the ListItem model to react to changes in data.</p>
     <p>Try running these snippets line by line from the console.</p>
     <pre class="highlighted"><code class="javascript">var list_item = ListItem.create({content:'test'});
 list_item.updateAttribute('content','test two');
