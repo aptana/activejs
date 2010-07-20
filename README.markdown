@@ -46,6 +46,7 @@ ActiveJS is a JavaScript application framework that provides local and REST base
           <td><a href="http://activejs.org/samples/wiki.html">Wiki</a></td>
           <td>Full Stack</td>
         </tr>
+      </table>
     </td>
   </tr>
 </table>
