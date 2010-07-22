@@ -8,6 +8,7 @@ require 'fileutils'
 module ActiveJSHelper
   ROOT_DIR = File.expand_path(File.dirname(__FILE__))
   
+  ASSETS_DIR = File.join(ROOT_DIR, 'assets')
   SRC_DIR = File.join(ROOT_DIR, 'src')
   DIST_DIR = File.join(ROOT_DIR, 'assets/downloads')
   DOCS_DIR = File.join(ROOT_DIR, 'docs')
@@ -170,13 +171,13 @@ task :docs do
     :index_page => 'README.markdown',
     :index_header => '<a href="http://activejs.org/" id="header_logo"><img src="http://activejs.org/images/activejs.gif"/></a>',
     :footer => '<div id="footer_logos"><a href="http://syntacticx.com"><img src="http://activejs.org/images/syntacticx.gif" style="border:none;"/></a><a href="http://aptana.org/"><img src="http://activejs.org/images/aptana.gif" style="border:none;"/></a></div>',
-    :assets => 'assets',
     :stylesheets => ['docs']
   })
   FileUtils.rm(ActiveJSHelper::SOURCE_FILE_FOR_DOCS)
+  FileUtils.cp_r(Dir.glob(File.join(ActiveJSHelper::ASSETS_DIR,"**")), ActiveJSHelper::DOCS_DIR)
 end
 
-desc "Builds the distributions, and documentation, calls git push, and copies the generated docs to a location of your choosing"
+desc "Builds the distributions, and documentation, and copies the generated docs to a location of your choosing"
 task :deploy, :target do |task,arguments|
   Rake::Task["dist"].reenable
   Rake::Task["dist"].invoke
