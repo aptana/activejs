@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link href="stylesheets/screen.css" media="screen" rel="stylesheet" type="text/css" />
+    <link href="stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="../downloads/active.js"></script>
+    <script src="javascripts/syntax.js"></script>
+    <script id="source_code">
+      ArticleView = ActiveView.create(function(builder,dom){
+        return builder.div(
+          this.titleElement = builder.h2(this.get('title')),
+          this.bodyElement = builder.p(this.get('body'))
+        );
+      });
+      
+      AdminArticleView = ActiveView.create(ArticleView,function(element,builder,dom){
+        //element is the div returned by an ArticleView instance
+        var form = builder.form(
+          builder.p('Title'),
+          this.titleInput = builder.input({
+            type: 'text',
+            value: this.get('title')
+          }),
+          builder.p('Body'),
+          this.bodyInput = builder.textarea({
+            style: 'width:320px; height:150px;'
+          },this.get('body')),
+          builder.input({type:'submit',value:'Save'}),
+          builder.h3('Preview')
+        );
+        dom.observe(this.titleInput,'keyup',function(){
+          dom.update(this.titleElement,this.titleInput.value);
+        },this);
+        dom.observe(this.bodyInput,'keyup',function(){
+          dom.update(this.bodyElement,this.bodyInput.value);
+        },this);
+        dom.observe(form,'submit',function(event,stop){
+          stop();
+        },this);
+        dom.insert(element,form,'top');
+        return element;
+      });
+      
+      LayoutView = ActiveView.create(function(builder,dom){
+        return builder.div(
+          new ArticleView({
+            id: 1,
+            title: 'Title One',
+            body: 'Body One'
+          }),
+          builder.hr(),
+          new AdminArticleView({
+            id: 2,
+            title: 'Title Two',
+            body: 'Body Two'
+          })
+        );
+      });
+
+      ActiveSupport.Element.observe(document,'ready',function(){
+        var example_container = document.getElementById('example_container');
+        example_container.appendChild(LayoutView.getInstance().getElement());
+      });
+    </script>
+    <script>
+      ActiveSupport.Element.observe(document,'ready',function(){
+        //source code highlighting setup
+        var source_code_display_container = document.getElementById('source_code_display');
+        var source_code = document.getElementById('source_code').innerHTML;
+        source_code_display_container.innerHTML = source_code;
+        dp.sh.HighlightAll('javascript',false,false,false,true,false);
+      });
+    </script>
+  </head>
+  <body>
+    <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
+    <h1>Editable Articles</h1>
+    <h2><span>Uses:</span> ActiveView (with View Aspects)</h2>
+    <p></p>
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <th>DOM Output</th>
+        <th>Source Code</th>
+      </tr>
+      <tr>
+        <td id="example_container"></td>
+        <td><pre class="highlighted"><code class="javascript" id="source_code_display"></code></pre></td>
+      </tr>
+    </table> 
+  </body>
+</html>

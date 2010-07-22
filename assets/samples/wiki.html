@@ -28,7 +28,7 @@
                   PageView.getInstance().getElement()
                 ),
                 builder.td({width:'33%',valign:'top'},
-                  PageListView.getInstance().getElement()
+                  WikiPageListView.getInstance().getElement()
                 )
               )
             )
@@ -83,39 +83,39 @@
         }
       });
       
-      PageListView = ActiveView.create(function(builder,dom){
-        this.wikiPageListItemViewsIndexedById = {};
+      WikiPageListView = ActiveView.create(function(builder,dom){
+        this.itemViewsIndexedById = {};
         return builder.div(
           builder.b(builder.a({href:'#' + PageView.getInstance().create.getUrl()},'Create New Page')),
           builder.ul()
         );
       },{
-        updateWikiPageListItemView: function(wiki_page){
-          this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].update(wiki_page);
+        updateListItem: function(wiki_page){
+          this.itemViewsIndexedById[wiki_page.get('id')].update(wiki_page);
         },
-        createWikiPageListItemView: function(wiki_page){
-          this.wikiPageListItemViewsIndexedById[wiki_page.get('id')] = new PageListItemView({
+        createListItem: function(wiki_page){
+          this.itemViewsIndexedById[wiki_page.get('id')] = new WikiPageListItemView({
             wiki_page: wiki_page 
           });
-          this.element.appendChild(this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].getElement());
+          this.element.appendChild(this.itemViewsIndexedById[wiki_page.get('id')].getElement());
         },
-        destroyWikiPageListItemView: function(wiki_page){
+        destroyListItem: function(wiki_page){
           var dom = ActiveSupport.Element;
-          dom.remove(this.wikiPageListItemViewsIndexedById[wiki_page.get('id')].getElement());
-          delete this.wikiPageListItemViewsIndexedById[wiki_page.get('id')];
+          dom.remove(this.itemViewsIndexedById[wiki_page.get('id')].getElement());
+          delete this.itemViewsIndexedById[wiki_page.get('id')];
         }
       });
       WikiPage.observe('afterUpdate',function(wiki_page){
-        PageListView.getInstance().updateWikiPageListItemView(wiki_page);
+        WikiPageListView.getInstance().updateListItem(wiki_page);
       });
       WikiPage.observe('afterCreate',function(wiki_page){
-        PageListView.getInstance().createWikiPageListItemView(wiki_page);
+        WikiPageListView.getInstance().createListItem(wiki_page);
       });
       WikiPage.observe('afterDestroy',function(wiki_page){
-        PageListView.getInstance().destroyWikiPageListItemView(wiki_page);
+        WikiPageListView.getInstance().destroyListItem(wiki_page);
       });
       
-      PageListItemView = ActiveView.create(function(builder,dom){
+      WikiPageListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
           this.nameContainer = builder.span(this.get('wiki_page').get('name')),
           ' ',
@@ -235,14 +235,26 @@
         width:320px;
         height:240px;
       }
+      
+      #nav {
+        background-color:#333;
+        margin:-15px -15px 0 -15px;
+      }
+      
+      #nav h1 {
+        color:#fff;
+        text-shadow:2px 2px 1px #000;
+        padding:5px 0 5px 10px;
+        font-size:24px;
+      }
     </style>
   </head>
   <body>
-    <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
-    <h1>Wiki</h1>
-    <h2><span>Uses:</span> Full Stack</h2>
-    <p></p>
-    <hr/>
+    <div id="nav">
+      <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
+      <h1>Wiki</h1>
+      <h2><span>Uses:</span> Full Stack</h2>
+    </div>
     <div id="example_container"></div>
     <hr/>
     <b>Source Code</b>
