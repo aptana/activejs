@@ -3,6 +3,7 @@
  * See the [[ActiveView]] or [[ActiveView.Builder.tag]] for usage.
  * 
  * Contains the following DOM Element generator methods:
+ * 
  * - abbr
  * - acronym
  * - address
@@ -149,7 +150,7 @@ var Builder = {
      *  
      * **This method refers to tag methods, "br", "li", etc not a method named "tag".**
      *  
-     *  tag() methods accept a variable number of arguments. You can pass multiple
+     *  `tag` methods accept a variable number of arguments. You can pass multiple
      *  `content` arguments, `attributes` hashes or child nodes (as an array or single
      *  elements) in any order.
      *  

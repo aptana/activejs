@@ -1,8 +1,8 @@
 /**
  * == ActiveEvent ==
  * 
- * ActiveEvent allows you to create observable events, and attach event
- * handlers to any class or object.
+ * Create observable events, and attach event handlers to any class or object.
+ * Supports class events that cascade to all instances.
  *
  * Setup
  * -----
@@ -51,8 +51,14 @@
  *         //this will only be called once
  *     });
  * 
+ * Function Binding
+ * ----------------
  * You can bind and curry your observers by adding extra arguments, which
  * will be passed to [[ActiveSupport.Function.bind]]:
+ * 
+ *     Message.observe('sent',function(message,text){
+ *         //this == context
+ *     },context);
  * 
  *     Message.observe('sent',function(curried_argument,message,text){
  *         //this == context

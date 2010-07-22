@@ -9,7 +9,7 @@ if(typeof exports != "undefined"){
 /**
  * == ActiveRoutes ==
  *
- * ActiveRoutes maps urls to method calls and method calls back to urls. This
+ * Maps urls to method calls and method calls to urls. This
  * enables back button support and allows methods to be called by normal links
  * (A tags) in your application without adding event handlers or additional code.
  * 
