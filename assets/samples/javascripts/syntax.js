@@ -1,5 +1,3 @@
-//modified for LivePipe.net, changes also released under the LGPL
-
 /**
  * Code Syntax Highlighter.
  * Version 1.5

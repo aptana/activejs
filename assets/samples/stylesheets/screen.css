@@ -20,42 +20,8 @@ a:hover {
   text-decoration:underline;
 }
 
-#return {
-  position:absolute;
-  top:15px;
-  right:15px;
-}
-
 #example_container {
   vertical-align:top;
-}
-
-th {
-  text-align:left;
-}
-
-th {
-  padding-bottom:5px;
-  border-bottom:1px solid #ccc;
-}
-
-td {
-  padding-top:10px;
-}
-
-pre.highlighted {
-	margin:0;
-	padding:20px 30px 20px 30px;
-	background-color:#000;
-	color:#fff;
-	font-size:12px;
-	overflow:auto;
-	width:740px;
-}
-
-h1 {
-  margin:0 0 5px 0;
-  padding:0;
 }
 
 h2 {
@@ -67,4 +33,70 @@ h2 {
 h2 span {
   color:#666;
   font-weight:normal;
+}
+
+#nav {
+  margin:-15px -15px 10px -15px;
+  padding-bottom:1px;
+  border-bottom:1px solid #000;
+}
+
+#nav h1 {
+  background-color:#000;
+  color:#fff;
+  text-shadow:2px 2px 1px #000;
+  padding:5px 0 5px 10px;
+  margin:0;
+  font-size:24px;
+}
+
+#nav span {
+  font-size:14px;
+  color:#aaa;
+  display:inline;
+  font-weight:normal;
+  text-shadow:none;
+}
+
+#nav span b {
+  color:#ccc;
+}
+
+#nav a {
+  color:#ccc;
+}
+
+#nav a:hover {
+  color:#fff;
+}
+
+#return {
+  color:#ccc;
+  top:9px;
+  right:10px;
+  font-size:14px;
+  position:absolute;
+  padding:0;
+  margin:0;
+}
+
+#return:hover {
+  color:#fff;
+}
+
+pre.highlighted {
+	margin:0;
+	overflow:auto;
+	padding:0;
+	margin:10px -15px -15px -15px;
+	border-top:1px solid #000;
+	padding-top:1px;
+}
+
+pre.highlighted div {
+  padding:0 30px 20px 30px;
+  margin:0;
+	color:#fff;
+	font-size:12px;
+	background-color:#000;
 }

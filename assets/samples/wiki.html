@@ -5,8 +5,9 @@
     <link href="stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" />
     <script src="../downloads/active.js"></script>
     <script src="javascripts/syntax.js"></script>
+    <script src="javascripts/example_setup.js"></script>
     <script src="javascripts/showdown.js"></script>
-    <script id="source_code">      
+    <script id="source_code">
       WikiPage = ActiveRecord.create('wiki_pages',{
         name: '',
         body: ''
@@ -117,11 +118,14 @@
       
       WikiPageListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
-          this.nameContainer = builder.span(this.get('wiki_page').get('name')),
-          ' ',
+          this.nameContainer = builder.a({href:'#' + PageView.getInstance().show.getUrl({
+            name: this.get('wiki_page').get('name')
+          })},this.get('wiki_page').get('name')),
+          ' (',
           this.editLink = builder.a({href:'#'},'Edit'),
           ' | ',
-          this.removeLink = builder.a({href:'#'},'Remove')
+          this.removeLink = builder.a({href:'#'},'Remove'),
+          ')'
         );
         dom.observe(this.removeLink,'click',function(event,stop){
           WikiPage.destroy(this.get('wiki_page').get('id'));
@@ -221,43 +225,19 @@
         PageView.getInstance().create();
       });
     </script>
-    <script>
-      ActiveSupport.Element.observe(document,'ready',function(){
-        //source code highlighting setup
-        var source_code_display_container = document.getElementById('source_code_display');
-        var source_code = document.getElementById('source_code').innerHTML;
-        source_code_display_container.innerHTML = source_code;
-        dp.sh.HighlightAll('javascript',false,false,false,true,false);
-      });
-    </script>
     <style>
       textarea {
         width:320px;
         height:240px;
-      }
-      
-      #nav {
-        background-color:#333;
-        margin:-15px -15px 0 -15px;
-      }
-      
-      #nav h1 {
-        color:#fff;
-        text-shadow:2px 2px 1px #000;
-        padding:5px 0 5px 10px;
-        font-size:24px;
-      }
+      }      
     </style>
   </head>
   <body>
-    <div id="nav">
-      <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
-      <h1>Wiki</h1>
-      <h2><span>Uses:</span> Full Stack</h2>
-    </div>
-    <div id="example_container"></div>
-    <hr/>
-    <b>Source Code</b>
-    <pre class="highlighted"><code class="javascript" id="source_code_display"></code></pre>
+    <script>
+      document.body.appendChild((new ExampleLayout({
+        title: 'Wiki',
+        uses: ['Full Stack']
+      })).getElement());
+    </script>
   </body>
 </html>

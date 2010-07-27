@@ -5,6 +5,7 @@
     <link href="stylesheets/syntax.css" media="screen" rel="stylesheet" type="text/css" />
     <script src="../downloads/active.js"></script>
     <script src="javascripts/syntax.js"></script>
+    <script src="javascripts/example_setup.js"></script>
     <script id="source_code">
       LayoutView = ActiveView.create(function(builder,dom){
         this.containers = {};
@@ -65,15 +66,6 @@
         example_container.appendChild(LayoutView.getInstance().getElement());
       });
     </script>
-    <script>
-      ActiveSupport.Element.observe(document,'ready',function(){
-        //source code highlighting setup
-        var source_code_display_container = document.getElementById('source_code_display');
-        var source_code = document.getElementById('source_code').innerHTML;
-        source_code_display_container.innerHTML = source_code;
-        dp.sh.HighlightAll('javascript',false,false,false,true,false);
-      });
-    </script>
     <style>
       ul {
         text-align: left;
@@ -120,19 +112,11 @@
     </style>
   </head>
   <body>
-    <a id="return" href="http://activejs.org/">Return to ActiveJS Home</a>
-    <h1>Routed Tabs</h1>
-    <h2><span>Uses:</span> ActiveView ActiveRoutes</h2>
-    <p>Refreshing the page will automatically load to the previously selected tab. Back and forward buttons can control the tabs as well as manually changing the url to "one", "two", or "three".</p>
-    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-      <tr>
-        <th>DOM Output</th>
-        <th>Source Code</th>
-      </tr>
-      <tr>
-        <td id="example_container"></td>
-        <td><pre class="highlighted"><code class="javascript" id="source_code_display"></code></pre></td>
-      </tr>
-    </table> 
+    <script>
+      document.body.appendChild((new ExampleLayout({
+        title: 'Routed Tabs',
+        uses: ['ActiveView','ActiveRoutes']
+      })).getElement());
+    </script>
   </body>
 </html>
