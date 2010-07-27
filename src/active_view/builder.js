@@ -158,7 +158,7 @@ var Builder = {
      *     builder.ul({className:'my_list'},[builder.li('a'),builder.li('b')]);
      *  
      * Functions that are passed in will be called, and the response treated as
-     * an argument, this could be one of the tag methods:
+     * an argument, for instance: one of the tag methods:
      *  
      *     builder.p('First line',builder.br,'Second Line')
      * 

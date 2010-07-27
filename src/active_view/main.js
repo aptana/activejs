@@ -2,11 +2,7 @@
  * == ActiveView ==
  * 
  * DOM based view programming in pure JavaScript.
- **/
- 
-/** section: ActiveView
- * ActiveView
- * ==========
+ * 
  * ActiveView classes are created with [[ActiveView.create]].
  * The first argument is a function that will receive [[ActiveView.Builder]]
  * and [[ActiveSupport.Element]] as it's arguments. This function is where
@@ -164,6 +160,10 @@
  * 
  *     var builder = ActiveView.Builder;
  *     var dom = ActiveSupport.Element;
+ **/
+ 
+/** section: ActiveView
+ * ActiveView
  **/
 ActiveView = {};
 
