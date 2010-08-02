@@ -4,13 +4,16 @@
 }
 
 #footer p {
-    width:240px;
+  padding-left:5px;
+}
+
+#footer p:first-child {
+  margin-top:72px;
 }
 
 #footer_logos {
-    position:absolute;
-    top:8px;
-    right:0;
+  position:absolute;
+  top:8px;
 }
 
 #header_logo {

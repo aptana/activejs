@@ -169,8 +169,8 @@ task :docs do
     :version => ActiveJSHelper::VERSION,
     :index_title => 'ActiveJS: JavaScript Application Framework',
     :index_page => 'README.markdown',
-    :index_header => '<a href="http://activejs.org/" id="header_logo"><img src="http://activejs.org/images/activejs.gif"/></a>',
-    :footer => '<div id="footer_logos"><a href="http://syntacticx.com"><img src="http://activejs.org/images/syntacticx.gif" style="border:none;"/></a><a href="http://aptana.org/"><img src="http://activejs.org/images/aptana.gif" style="border:none;"/></a></div>',
+    :index_header => '<a href="http://activejs.org/downloads/active.js" id="header_logo"><img src="http://activejs.org/images/activejs.gif"/></a>',
+    :footer => '<div id="footer_logos"><a href="http://syntacticx.com"><img src="http://activejs.org/images/syntacticx.gif" style="border:none;"/></a><a href="http://aptana.org/"><img src="http://activejs.org/images/aptana.gif" style="border:none;"/></a><a href="http://dashwire.com/"><img src="http://activejs.org/images/dashwire.gif" style="border:none;"/></a></div>',
     :stylesheets => ['docs']
   })
   FileUtils.rm(ActiveJSHelper::SOURCE_FILE_FOR_DOCS)

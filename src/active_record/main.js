@@ -40,7 +40,7 @@
  * 
  * Creating Updating and Destroying Records
  * ----------------------------------------
- * CRUD operations are fairly straightforward:
+ * CRUD operations are straightforward:
  *   
  *     var jessica = User.create({
  *         username: "Jessica",
@@ -200,49 +200,53 @@
  *       <td valign="top"><b>User</b>.destroy(batch)</td>
  *       <td valign="top">DELETE</td>
  *       <td valign="top">/users/batch.json</td>
- *       <td valign="top">{Users:[ {column_name: value, ...}, ... ]}</td>
+ *       <td valign="top">{Users:[ {column: value, ...}, ... ]}</td>
  *       <td>[{column_name: value, ...}, ...]</td>
  *     </tr>
  *     <tr>
  *       <td valign="top"><b>User</b>.destroy</td>
  *       <td valign="top">DELETE</td>
  *       <td valign="top">/users/:id.json</td>
- *       <td valign="top">{User: {column_name: value, ...}}</td>
+ *       <td valign="top">{User: {column: value, ...}}</td>
  *       <td>{column_name: value, ...}</td>
  *     </tr>
  *     <tr>
  *       <td valign="top"><b>User</b>.create(batch)</td>
  *       <td valign="top">POST</td>
  *       <td valign="top">/users/batch.json</td>
- *       <td valign="top">{Users:[ {column_name: value, ...}, ... ]}</td>
+ *       <td valign="top">{Users:[ {column: value, ...}, ... ]}</td>
  *       <td>[{column_name: value, ...}, ...]</td>
  *     </tr>
  *     <tr>
  *       <td valign="top"><b>User</b>.create</td>
  *       <td valign="top">POST</td>
  *       <td valign="top">/users.json</td>
- *       <td valign="top">{User: {column_name: value, ...}}</td>
+ *       <td valign="top">{User: {column: value, ...}}</td>
  *       <td>{column_name: value, ...}</td>
  *     </tr>
  *     <tr>
  *       <td valign="top"><b>User</b>.update</td>
  *       <td valign="top">PUT</td>
  *       <td valign="top">/Users/:id.json</td>
- *       <td valign="top">{User: {column_name: value, ...}}</td>
+ *       <td valign="top">{User: {column: value, ...}}</td>
  *       <td>{column_name: value, ...}</td>
  *     </tr>
  *     <tr>
  *       <td valign="top"><b>User</b>.update(batch)</td>
  *       <td valign="top">PUT</td>
  *       <td valign="top">/users/batch.json</td>
- *       <td valign="top">{Users:[ {column_name: value, ...}, ... ]}</td>
+ *       <td valign="top">{Users:[ {column: value, ...}, ... ]}</td>
  *       <td>[{column_name: value, ...}, ...]</td>
  *     </tr>
  * </table>
  * 
  * Using REST Persistence
  * ----------------------
- * Once REST callbacks have been configured,  
+ * In additon to configuring your models to use REST persistence, the
+ * persistence needs to be triggered. By default calling `create`, `save`, etc
+ * **will not** persist data back to the server. In order to trigger the
+ * persistence pass an extra argument of true, or a function callback to any
+ * of the following methods:
  * 
  * - Class.create
  * - Class.update
@@ -250,11 +254,24 @@
  * - instance.updateAttribute
  * - instance.updateAttributes
  * - instance.save
- * - instance.destroy 
+ * - instance.destroy
  * 
+ * When the server responds the local data will be automatically updated
+ * and the callback will receive the instance that was create / updated
+ * / destroyed. If it was a batch operation the callback will receive an
+ * array of instances.
  * 
- * - Model callback API formats
- *
+ *      var jessica = User.create({
+ *          username: 'Jessica',
+ *          password: 'rabbit'
+ *      },true);
+ *      
+ *      jessica.set('password','rabbit123');
+ *      jessica.save(function(jessica){
+ *           //the instance will contain any modifications
+ *           //the server made to the attributes
+ *      });
+ * 
  * Class & Instance Methods
  * ------------------------
  * Class or instance methods can be added to all ActiveRecord models by using
@@ -291,7 +308,7 @@
  *     User.observe('afterCreate',function(user){
  *         console.log('User with id of ' + user.id + ' was created.');
  *     });
- * 
+ *     
  *     var u = User.find(5);
  *     u.observe('afterDestroy',function(){
  *         //this particular user was destroyed
@@ -306,7 +323,7 @@
  *     User.afterCreate(function(user){
  *         console.log('User with id of ' + user.id + ' was created.');
  *     });
- * 
+ *     
  *     var u = User.find(5);
  *     u.afterDestroy(function(){
  *         //this particular user was destroyed
@@ -358,11 +375,11 @@
  *     });
  * 
  *     User.validatesPresenceOf('password');
- * 
+ *     
  *     var user = User.build({
  *         'username': 'Jessica'
  *     });
- * 
+ *     
  *     user.save(); //false
  *     var errors = user.getErrors(); //contains a list of the errors that occured
  *     user.set('password','rabbit');
