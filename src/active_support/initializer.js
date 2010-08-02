@@ -31,8 +31,8 @@
  * The options hash can contain:
  * 
  * - database (String | Array): URL of a JSON database to load, or an array of arguments to [[ActiveRecord.connect]]
- * - routes (Object | Function): A hash of routes, or a function that returns one. Usually a function is needed to avoid a race condition.
- * - callback (Function): The function to be called when the initializer is completed.
+ * - routes (Object | Function): A hash of routes, or a function that returns one. Usually a function is needed as the objects that will be routed to are not available when the initializer is loaded.
+ * - callback (Function): The function to be called when the initializer has completed.
  **/
  
 /**

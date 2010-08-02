@@ -18,10 +18,24 @@ ActiveRecord.connection = null;
  * 
  *     //empty in memory database
  *     ActiveRecord.connect();
+ * 
  *     //in memory database populated with json data
  *     ActiveRecord.connect('{my_table:{1:{field:"value"}}}');
+ * 
  *     //in memory database populated with json data loaded from remote source
  *     ActiveRecord.connect('my_data_source.json');
+ * 
+ *     //same as above with custom HTTP method and params to load data
+ *     ActiveRecord.connect(['http://server/','POST',{session_id:1}]);
+ * 
+ *     //same as above with REST mapping parameters
+ *     ActiveRecord.connect(['http://server/','POST',{session_id:1}],{
+ *         User: {
+ *             create: ['http://server/user.json','POST'],
+ *             update: ['http://server/user/:id.json','PUT'],
+ *             destroy: ['http://server/user/:id.json','DELETE']
+ *         }
+ *     });
  **/
 ActiveRecord.connect = function connect()
 {

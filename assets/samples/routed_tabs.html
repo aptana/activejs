@@ -10,6 +10,7 @@
       LayoutView = ActiveView.create(function(builder,dom){
         this.containers = {};
         var element = builder.div(
+          builder.p('Use back and forward buttons after clicking on a tab.'),
           TabView.getInstance().getElement(),
           this.containers.one = builder.div('Container One'),
           this.containers.two = builder.div('Container Two'),
