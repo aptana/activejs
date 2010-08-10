@@ -439,6 +439,7 @@ Adapters.REST.instanceWrapperGenerators = {
     updateAttribute: function updateAttribute(model)
     {
         return function generated_instance_update_attribute_wrapper(proceed,key,value,callback){
+            var model_name = model.modelName;
             var instance = proceed(key,value);
             if(instance && callback)
             {
@@ -450,6 +451,7 @@ Adapters.REST.instanceWrapperGenerators = {
     updateAttributes: function updateAttributes(model)
     {
         return function generated_instance_update_attributes_wrapper(proceed,attributes,callback){
+            var model_name = model.modelName;
             var instance = proceed(attributes);
             if(instance && callback)
             {
@@ -465,7 +467,7 @@ Adapters.REST.instanceWrapperGenerators = {
             //TODO: see if should delete "id" for create case
             if(instance && callback)
             {
-
+                throw "REST adapter instance.save not implemented";
             }
             return instance;
         };
@@ -473,6 +475,7 @@ Adapters.REST.instanceWrapperGenerators = {
     destroy: function destroy(model)
     {
         return function generated_instance_destroy_wrapper(proceed,callback){
+            var model_name = model.modelName;
             var response = proceed();
             if(callback)
             {
