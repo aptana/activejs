@@ -97,6 +97,33 @@
  * - u
  * - ul
  * - var
+ * 
+ * Also includes HTML 5 tags:
+ * 
+ * - article
+ * - aside
+ * - audio
+ * - command
+ * - details
+ * - figcaption
+ * - figure
+ * - footer
+ * - header
+ * - hgroup
+ * - keygen
+ * - mark
+ * - meter
+ * - nav
+ * - output
+ * - progress
+ * - rp
+ * - ruby
+ * - section
+ * - source
+ * - summary
+ * - time
+ * - video
+ * 
  **/
 var Builder = {
     tags: ('A ABBR ACRONYM ADDRESS APPLET AREA B BASE BASEFONT BDO BIG BLOCKQUOTE BODY ' +
@@ -104,7 +131,10 @@ var Builder = {
         'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
         'KBD LABEL LEGEND LI LINK MAP MENU META NOBR NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
         'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
-        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR').split(/\s+/),
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR' + 
+        'ARTICLE ASIDE AUDIO COMMAND DETAILS FIGCAPTION FIGURE FOOTER HEADER HGROUP KEYGEN MARK' + 
+        'METER NAV OUTPUT PROGRESS RP RUBY SECTION SOURCE SUMMARY TIME VIDEO'
+    ).split(/\s+/),
     processNodeArgument: function processNodeArgument(elements,attributes,argument)
     {
         if(typeof(argument) === 'undefined' || argument === null || argument === false)
