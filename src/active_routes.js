@@ -110,7 +110,6 @@ ActiveRoutes = {
     ready: false,
     routes: [], //array of [path,method]
     routePatterns: [], //array of [regexp,param_name_array]
-    currentIndex: 0,
     currentRoute: false,
     history: [],
     paramPattern: '([\\w]+)(/|$)',
