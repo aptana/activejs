@@ -216,6 +216,7 @@ ActiveRoutes = {
                 ActiveRoutes.setRoute(path);
             }
             match[0](match[1]);
+            this.history.push([path,match[0],match[1]]);
             this.notify('afterDispatch',path,match[0],match[1]);
             return true;
         }
@@ -339,44 +340,17 @@ ActiveRoutes = {
         ActiveRoutes.enabled = false;
     },
     /**
-     * ActiveRoutes.back() -> null
-     **/
-    back: function back()
-    {
-        if(ActiveRoutes.currentIndex == 0)
-        {
-            return false;
-        }
-        --ActiveRoutes.currentIndex;
-        ActiveRoutes.dispatch(this.history[ActiveRoutes.currentIndex]);
-        return true;
-    },
-    /**
-     * ActiveRoutes.forward() -> null
-     **/
-    forward: function forward()
-    {
-        if(ActiveRoutes.currentIndex >= ActiveRoutes.history.length - 1)
-        {
-            return false;
-        }
-        ++ActiveRoutes.currentIndex;
-        ActiveRoutes.dispatch(ActiveRoutes.history[ActiveRoutes.currentIndex]);
-        return true;
-    },
-    /**
-     * ActiveRoutes.goTo(index) -> Boolean
-     **/
-    goTo: function goTo(index)
-    {
-        return ActiveRoutes.dispatch(ActiveRoutes.history[index]);
-    },
-    /**
      * ActiveRoutes.getHistory() -> Array
      **/
     getHistory: function getHistory()
     {
         return ActiveRoutes.history;
+    },
+    /**
+     * ActiveRoutes.getPreviousRoute() -> Array
+     **/
+    getPreviousRoute: function getPreviousRoute(){
+      return ActiveRoutes.history[ActiveRoutes.history.length - 2];
     }
 };
 ActiveEvent.extend(ActiveRoutes);
