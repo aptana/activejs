@@ -214,8 +214,8 @@ ActiveRoutes = {
             {
                 ActiveRoutes.setRoute(path);
             }
-            match[0](match[1]);
             this.history.push([path,match[0],match[1]]);
+            match[0](match[1]);
             this.notify('afterDispatch',path,match[0],match[1]);
             return true;
         }

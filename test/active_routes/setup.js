@@ -8,7 +8,8 @@ Controller = {
     multipleParams: function(){},
     test: function(){},
     optionalOne: function(){},
-    optionalTwo: function(){}
+    optionalTwo: function(){},
+    optionalThree: function(){}
 };
 
 ActiveRoutes.addRoute('/article/:id',Controller,'article');

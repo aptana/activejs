@@ -205,6 +205,7 @@ ActiveView.create = function create(structure,methods)
         methods = arguments[2];
     }
     var klass = function klass(scope){
+        this._observers = {}; //TODO: figure out why view aspects make this necessary
         this.setupScope(scope);
         this.initialize.apply(this,arguments);
         this.notify('initialized');
