@@ -97,8 +97,8 @@ ActiveSupport.Object.extend(Adapters.REST,{
             case 'batch_destroy':
                 Adapters.REST.generateClassWrapper('destroy',model);
                 break;
-            case 'search':
-
+            case 'find':
+                Adapters.REST.generateClassWrapper('find',model);
                 break;
         }
     },
@@ -295,6 +295,13 @@ ActiveSupport.Object.extend(Adapters.REST,{
 });
 
 Adapters.REST.classWrapperGenerators = {
+    find: function find(model)
+    {
+        return function generated_class_find_wrapper(proceed,params,callback){
+            //Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].find,{},
+            //    Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),  
+        };
+    },
     create: function create(model)
     {
         return function generated_class_create_wrapper(proceed,attributes,callback){

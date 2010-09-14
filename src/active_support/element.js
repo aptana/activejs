@@ -38,6 +38,7 @@ ActiveSupport.Element = {
         'cellspacing': 'cellSpacing',
         'cellpadding': 'cellPadding'
     },
+    ieAttributeTranslationSniffingCache: {},
     /**
      * ActiveSupport.Element.keyCodes -> Object
      * Contains the following:
@@ -221,6 +222,30 @@ ActiveSupport.Element = {
         for(var attribute_name in attributes)
         {
             name = transitions[attribute_name] || attribute_name;
+            // check if things need to be remapped for IE (Some stuff has been fixed when IE > 7)
+            if(ie && ActiveSupport.Element.ieAttributeTranslations[name])
+            {
+                if(name in ActiveSupport.Element.ieAttributeTranslationSniffingCache)
+                {
+                    if(ActiveSupport.Element.ieAttributeTranslationSniffingCache[name])
+                    {
+                        name = ActiveSupport.Element.ieAttributeTranslationSniffingCache[name];
+                    }
+                }
+                else
+                {
+                    var test_element = ActiveSupport.getGlobalContext().document.createElement("div");
+                    test_element.setAttribute(name,"test");
+                    if(test_element[ActiveSupport.Element.ieAttributeTranslations[name]] !== "test") {
+                        test_element.setAttribute(ActiveSupport.Element.ieAttributeTranslations[name],"test");
+                        ActiveSupport.Element.ieAttributeTranslationSniffingCache[name] = test_element[ActiveSupport.Element.ieAttributeTranslations[name]] === "test";
+                        if(ActiveSupport.Element.ieAttributeTranslationSniffingCache[name])
+                        {
+                            name = ActiveSupport.Element.ieAttributeTranslations[name];
+                        }
+                    }
+                }
+            }
             value = attributes[attribute_name];
             if(value === false || value === null)
             {
@@ -232,20 +257,13 @@ ActiveSupport.Element = {
             }
             else
             {
-                if(!ie)
+                if(name == 'style')
                 {
-                    element.setAttribute(name,value);
+                    element.style.cssText = value;
                 }
                 else
                 {
-                    if(name == 'style')
-                    {
-                        element.style.cssText = value;
-                    }
-                    else
-                    {
-                        element.setAttribute(ActiveSupport.Element.ieAttributeTranslations[name] || name,value);
-                    }
+                    element.setAttribute(name,value);
                 }
             }
         }

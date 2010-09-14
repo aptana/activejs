@@ -128,6 +128,7 @@
  * 
  * "method" can be any of the following keys, each taking a location argument:
  * 
+ * - find
  * - create
  * - batch_create
  * - update
