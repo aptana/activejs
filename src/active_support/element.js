@@ -229,7 +229,7 @@ ActiveSupport.Element = {
                 {
                     if(ActiveSupport.Element.ieAttributeTranslationSniffingCache[name])
                     {
-                        name = ActiveSupport.Element.ieAttributeTranslationSniffingCache[name];
+                        name = ActiveSupport.Element.ieAttributeTranslations[name];
                     }
                 }
                 else
