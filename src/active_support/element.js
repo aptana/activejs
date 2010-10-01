@@ -313,7 +313,15 @@ ActiveSupport.Element = {
         var display = element.style.display;
         if(!display)
         {
-            var css = document.defaultView.getComputedStyle(element,null);
+            var css;
+            if(document.defaultView && document.defaultView.getComputedStyle)
+            {
+                css = document.defaultView.getComputedStyle(element,null);
+            }
+            else if(element.currentStyle)
+            {
+                css = element.currentStyle;
+            }
             display = css ? css.display : null;
         }
         //safari bug
