@@ -298,7 +298,7 @@ ActiveRoutes = {
     {
         if(!ActiveRoutes.startObserver && !ActiveRoutes.ready)
         {
-            ActiveRoutes.startObserver = ActiveSupport.Element.observe(ActiveSupport.getGlobalContext().document,'ready',function document_ready_observer(){
+            ActiveRoutes.startObserver = DOM.observe(ActiveSupport.getGlobalContext().document,'ready',function document_ready_observer(){
                 ActiveRoutes.historyManager.initialize();
                 ActiveRoutes.ready = true;
                 ActiveRoutes.enabled = true;

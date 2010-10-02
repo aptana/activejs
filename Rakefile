@@ -21,15 +21,14 @@ module ActiveJSHelper
   
   INCLUDES = {
     :swfaddress => [
-      File.join(VENDOR_DIR,'swfaddress/swfaddress.js'),
-      File.join(SRC_DIR,'active_view/routing.js')
+      File.join(VENDOR_DIR,'swfaddress/swfaddress.js')
     ],
     :active_support_extensions => [
+      File.join(SRC_DIR,'dom.js'),
       File.join(SRC_DIR,'active_support/inflector.js'),
       File.join(SRC_DIR,'active_support/date.js'),
       File.join(SRC_DIR,'active_support/json.js'),
       File.join(SRC_DIR,'active_support/callback_queue.js'),
-      File.join(SRC_DIR,'active_support/element.js'),
       File.join(SRC_DIR,'active_support/request.js'),
       File.join(SRC_DIR,'active_support/initializer.js')
     ]
@@ -37,6 +36,7 @@ module ActiveJSHelper
   
   DISTRIBUTION_FOR_DOC_GENERATION = [
     File.join(SRC_DIR,'active_support.js'),
+    File.join(SRC_DIR,'builder.js'),
     INCLUDES[:active_support_extensions],
     File.join(SRC_DIR,'active_event.js'),
     File.join(SRC_DIR,'active_routes.js'),
@@ -45,6 +45,12 @@ module ActiveJSHelper
   ]
   
   DISTRIBUTIONS = {
+    'dom.js' => [
+      File.join(SRC_DIR,'dom.js')
+    ],
+    'builder.js' => [
+      File.join(SRC_DIR,'dom.js')
+    ],
     'active_support.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions]
@@ -55,7 +61,8 @@ module ActiveJSHelper
     ],
     'active_view.js' => [
       File.join(SRC_DIR,'active_support.js'),
-      File.join(SRC_DIR,'active_support/element.js'),
+      File.join(SRC_DIR,'dom.js'),
+      File.join(SRC_DIR,'builder.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_view.js')
     ],
@@ -73,6 +80,7 @@ module ActiveJSHelper
     'active.js' => [
       File.join(SRC_DIR,'active_support.js'),
       INCLUDES[:active_support_extensions],
+      File.join(SRC_DIR,'builder.js'),
       File.join(SRC_DIR,'active_event.js'),
       File.join(SRC_DIR,'active_routes.js'),
       File.join(SRC_DIR,'active_view.js'),

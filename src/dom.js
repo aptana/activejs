@@ -1,32 +1,25 @@
-var global_context = ActiveSupport.getGlobalContext();
+(function(global_context){
+
 var ie = !!(global_context.attachEvent && !global_context.opera);
 
 /**
- * ActiveSupport.Element
- * ActiveSupport.Element is a simple DOM manipulation library that does not modify the built in Element object. All ActiveSupport.Element methods take an Element object (and not a string) as their first argument. ActiveSupport.Element is available inside ActiveView classes as the second argument:
+ * DOM
+ * DOM is a simple DOM manipulation library that does not modify the built in Element object. All DOM methods take an Element object (and not a string) as their first argument.
  * 
- *     var MyClass = ActiveView.create(function(builder,dom){
- *         var link = builder.a({href:'#'},'Text');
- *         dom.addClassName(link,'active');
- *         dom.getWidth(link);
- *         return builder.div(link);
- *     });
+ * The implementation of event obeserver's differs from Prototype's since it does not modify the Element object.
  * 
- * The implementation of event obeserver's differs from Prototype's since it does not modify the Element object. Your observer receives three arguments, the Event object, a function that will stop the event when called, and a function that will unregister the observer.
- * 
- *     var dom = ActiveSupport.Element;
- *     dom.observe(link,'click',function(event,stop,unregister){
+ *     DOM.observe(link,'click',function(event){
  *         //do stuff
- *         stop();
+ *         DOM.stop(event);
  *     });
  * 
- * ActiveSupport.Element also supports the a similar event to Prototype's dom:ready:
+ * DOM also supports the a similar event to Prototype's dom:ready:
  * 
- *     dom.observe(document,'ready',function(){
+ *     DOM.observe(document,'ready',function(){
  *         //...
  *     });
  **/
-ActiveSupport.Element = {
+DOM = {
     ieAttributeTranslations: {
         'class': 'className',
         'checked': 'defaultChecked',
@@ -40,7 +33,7 @@ ActiveSupport.Element = {
     },
     ieAttributeTranslationSniffingCache: {},
     /**
-     * ActiveSupport.Element.keyCodes -> Object
+     * DOM.keyCodes -> Object
      * Contains the following:
      *  
      * - KEY_BACKSPACE
@@ -76,7 +69,7 @@ ActiveSupport.Element = {
     },
     cache: {},
     /**
-     * ActiveSupport.Element.create(tag_name,attributes_hash) -> Element
+     * DOM.create(tag_name,attributes_hash) -> Element
      **/
     create: function create(tag_name,attributes)
     {
@@ -98,17 +91,17 @@ ActiveSupport.Element = {
             tag += '>';
             delete attributes.name;
             delete attributes.type;
-            element = ActiveSupport.Element.extend(global_context.document.createElement(tag));
+            element = DOM.extend(global_context.document.createElement(tag));
         }
         else
         {
-            if(!ActiveSupport.Element.cache[tag_name])
+            if(!DOM.cache[tag_name])
             {
-                ActiveSupport.Element.cache[tag_name] = ActiveSupport.Element.extend(global_context.document.createElement(tag_name));
+                DOM.cache[tag_name] = DOM.extend(global_context.document.createElement(tag_name));
             }
-            element = ActiveSupport.Element.cache[tag_name].cloneNode(false);
+            element = DOM.cache[tag_name].cloneNode(false);
         }
-        ActiveSupport.Element.writeAttribute(element,attributes);
+        DOM.writeAttribute(element,attributes);
         return element;
     },
     extend: function extend(element)
@@ -116,7 +109,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.clear(element) -> Element
+     * DOM.clear(element) -> Element
      **/
     clear: function clear(element)
     {
@@ -127,7 +120,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.hide(element) -> Element
+     * DOM.hide(element) -> Element
      **/
     hide: function hide(element)
     {
@@ -135,7 +128,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.show(element) -> Element
+     * DOM.show(element) -> Element
      **/
     show: function show(element)
     {
@@ -143,7 +136,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.remove(element) -> Element
+     * DOM.remove(element) -> Element
      **/
     remove: function remove(element)
     {
@@ -151,7 +144,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.insert(element,content[,position]) -> Element
+     * DOM.insert(element,content[,position]) -> Element
      * - element (Element)
      * - content (String | Number | Element)
      * - position (String): "top", "bottom", "before", "after"
@@ -163,11 +156,11 @@ ActiveSupport.Element = {
         {
             content = content.getElement();
         }
-        if(ActiveSupport.Object.isArray(content))
+        if(content && typeof(content) == 'object' && 'length' in content && 'splice' in content && 'join' in content)
         {
             for(var i = 0; i < content.length; ++i)
             {
-                ActiveSupport.Element.insert(element,content[i],position);
+                DOM.insert(element,content[i],position);
             }
         }
         else
@@ -191,18 +184,18 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.update(element,content[,position]) -> Element
-     * Works exactly like update, but calls ActiveSupport.Element.clear() on the element first.
+     * DOM.update(element,content[,position]) -> Element
+     * Works exactly like update, but calls DOM.clear() on the element first.
      **/
     update: function update(element,content,position)
     {
-        ActiveSupport.Element.clear(element);
-        ActiveSupport.Element.insert(element,content,position);
+        DOM.clear(element);
+        DOM.insert(element,content,position);
         return element;
     },
     /**
-     * ActiveSupport.Element.writeAttribute(element,name,value) -> Element
-     * ActiveSupport.Element.writeAttribute(element,attributes_hash) -> Element
+     * DOM.writeAttribute(element,name,value) -> Element
+     * DOM.writeAttribute(element,attributes_hash) -> Element
      **/
     writeAttribute: function writeAttribute(element,name,value)
     {
@@ -223,25 +216,25 @@ ActiveSupport.Element = {
         {
             name = transitions[attribute_name] || attribute_name;
             // check if things need to be remapped for IE (Some stuff has been fixed when IE > 7)
-            if(ie && ActiveSupport.Element.ieAttributeTranslations[name])
+            if(ie && DOM.ieAttributeTranslations[name])
             {
-                if(name in ActiveSupport.Element.ieAttributeTranslationSniffingCache)
+                if(name in DOM.ieAttributeTranslationSniffingCache)
                 {
-                    if(ActiveSupport.Element.ieAttributeTranslationSniffingCache[name])
+                    if(DOM.ieAttributeTranslationSniffingCache[name])
                     {
-                        name = ActiveSupport.Element.ieAttributeTranslations[name];
+                        name = DOM.ieAttributeTranslations[name];
                     }
                 }
                 else
                 {
-                    var test_element = ActiveSupport.getGlobalContext().document.createElement("div");
+                    var test_element = global_context.document.createElement("div");
                     test_element.setAttribute(name,"test");
-                    if(test_element[ActiveSupport.Element.ieAttributeTranslations[name]] !== "test") {
-                        test_element.setAttribute(ActiveSupport.Element.ieAttributeTranslations[name],"test");
-                        ActiveSupport.Element.ieAttributeTranslationSniffingCache[name] = test_element[ActiveSupport.Element.ieAttributeTranslations[name]] === "test";
-                        if(ActiveSupport.Element.ieAttributeTranslationSniffingCache[name])
+                    if(test_element[DOM.ieAttributeTranslations[name]] !== "test") {
+                        test_element.setAttribute(DOM.ieAttributeTranslations[name],"test");
+                        DOM.ieAttributeTranslationSniffingCache[name] = test_element[DOM.ieAttributeTranslations[name]] === "test";
+                        if(DOM.ieAttributeTranslationSniffingCache[name])
                         {
-                            name = ActiveSupport.Element.ieAttributeTranslations[name];
+                            name = DOM.ieAttributeTranslations[name];
                         }
                     }
                 }
@@ -270,7 +263,7 @@ ActiveSupport.Element = {
         return element;
     },
     /**
-     * ActiveSupport.Element.hasClassName(element,class_name) -> Boolean
+     * DOM.hasClassName(element,class_name) -> Boolean
      **/
     hasClassName: function hasClassName(element,class_name)
     {
@@ -282,7 +275,7 @@ ActiveSupport.Element = {
         return (element_class_name.length > 0 && (element_class_name == class_name || new RegExp("(^|\\s)" + class_name + "(\\s|$)").test(element_class_name)));
     },
     /**
-     * ActiveSupport.Element.addClassName(element,class_name) -> Element
+     * DOM.addClassName(element,class_name) -> Element
      **/
     addClassName: function addClassName(element,class_name)
     {
@@ -290,14 +283,14 @@ ActiveSupport.Element = {
         {
             return false;
         }
-        if(!ActiveSupport.Element.hasClassName(element,class_name))
+        if(!DOM.hasClassName(element,class_name))
         {
             element.className += (element.className ? ' ' : '') + class_name;
         }
         return element;
     },
     /**
-     * ActiveSupport.Element.removeClassName(element,class_name) -> Element
+     * DOM.removeClassName(element,class_name) -> Element
      **/
     removeClassName: function removeClassName(element,class_name)
     {
@@ -350,22 +343,22 @@ ActiveSupport.Element = {
         };
     },
     /**
-     * ActiveSupport.Element.getWidth(element) -> Number
+     * DOM.getWidth(element) -> Number
      **/
     getWidth: function getWidth(element)
     {
-        return ActiveSupport.Element.getDimensions(element).width;
+        return DOM.getDimensions(element).width;
     },
     /**
-     * ActiveSupport.Element.getHeight(element) -> Number
+     * DOM.getHeight(element) -> Number
      **/
     getHeight: function getHeight(element)
     {
-        return ActiveSupport.Element.getDimensions(element).height;
+        return DOM.getDimensions(element).height;
     },
     documentReadyObservers: [],
     /**
-     * ActiveSupport.Element.observe(element,event_name,callback[,context]) -> Function
+     * DOM.observe(element,event_name,callback[,context]) -> Function
      * - element (Element): The DOM element to observe.
      * - event_name (String): The name of the event, in all lower case, without the "on" prefix — e.g., "click" (not "onclick").
      * - callback (Function): The function to call when the event occurs.
@@ -374,7 +367,7 @@ ActiveSupport.Element = {
      * methods to the respective Element and Event objects, an event stopping callback and an event handler unregistration callback are passed
      * into your event handler.
      * 
-     *     ActiveSupport.Element.observe(element,'click',function(event,stop,unregister){
+     *     DOM.observe(element,'click',function(event,stop,unregister){
      *         stop();
      *         unregister();
      *     },this);
@@ -388,25 +381,33 @@ ActiveSupport.Element = {
      * 
      * dom:ready support is also built in:
      *  
-     *     ActiveSupport.Element.observe(document,'ready',function(){});
+     *     DOM.observe(document,'ready',function(){});
      * 
      * If the above call was made after the document 'ready' event had already fired, the callback would be called immediately.
      **/
     observe: function observe(element,event_name,callback,context)
     {
-        callback = ActiveSupport.Function.bindAndCurryFromArgumentsAboveIndex(callback || function(){},arguments,3);
-        //dom:ready support
-        if(element == ActiveSupport.getGlobalContext().document && event_name == 'ready')
+        if(arguments.length > 3)
         {
-            if(ActiveSupport.Element.documentReadyObservers == null)
+            var arguments_for_bind = [];
+            for(var i = 3; i < arguments.length; ++i)
             {
-                //ActiveSupport.Element.documentReadyObservers will be null if the document is ready
+                arguments_for_bind.push(arguments[i]);
+            }
+            callback = DOM.bind(callback || function(){},arguments_for_bind);
+        }
+        //dom:ready support
+        if(element == global_context.document && event_name == 'ready')
+        {
+            if(DOM.documentReadyObservers == null)
+            {
+                //DOM.documentReadyObservers will be null if the document is ready
                 //if so, trigger the observer now
                 callback();
             }
             else
             {
-                ActiveSupport.Element.documentReadyObservers.push(callback);
+                DOM.documentReadyObservers.push(callback);
             }
             return;
         }
@@ -417,31 +418,7 @@ ActiveSupport.Element = {
             {
                 event = window.event;
             }
-            return callback(
-                event,
-                //event.srcElement ? (event.srcElement.nodeType == 3 ? event.srcElement.parentNode : event.srcElement) : null,
-                function stop_callback(){
-                    event.cancelBubble = true;
-                    event.returnValue = false;
-                    if(event.preventDefault)
-                    {
-                        event.preventDefault();
-                    }
-                    if(event.stopPropagation)
-                    {
-                        event.stopPropagation();
-                    }                
-                },function remove_event_listener(){
-                    if(element.removeEventListener)
-                    {
-                        element.removeEventListener(event_name,callback_wrapper,false);
-                    }
-                    else
-                    {
-                        element.detachEvent("on" + event_name,callback_wrapper);
-                    }
-                }
-            );
+            return callback(event);
         };
         
         //attach event listener
@@ -455,13 +432,80 @@ ActiveSupport.Element = {
         }
         
         return callback_wrapper;
-    }
+    },
+    /**
+     * DOM.stopObserving(element,event_name,callback) -> Function
+     **/
+    stopObserving: function stopObserving(element,event_name,callback)
+    {
+        if(element.removeEventListener)
+        {
+            element.removeEventListener(event_name,callback,false);
+        }
+        else
+        {
+            element.detachEvent("on" + event_name,callback);
+        }
+    },
+    /**
+     * DOM.stop(event) -> Event
+     * Cross browser compatible way of stopping the propagation of an event.
+     **/
+    stop: function stop(event)
+    {
+        event.cancelBubble = true;
+        event.returnValue = false;
+        if(event.preventDefault)
+        {
+            event.preventDefault();
+        }
+        if(event.stopPropagation)
+        {
+            event.stopPropagation();
+        }
+        return event;
+    },
+    //cloned from ActiveSupport.Function for portability
+    bind: function bind(func,object)
+    {
+        if(typeof(object) == 'undefined')
+        {
+            return func;
+        }
+        if(arguments.length < 3)
+        {
+            return function bound()
+            {
+                return func.apply(object,arguments);
+            };
+        }
+        else
+        {
+            var args = [];
+            for(var i = 2; i < arguments.length; ++i)
+            {
+                args.push(arguments[i]);
+            }
+            return function bound()
+            {
+                var concat_args = [];
+                for(var i = 0; i < arguments.length; ++i)
+                {
+                    concat_args.push(arguments[i]);
+                }
+                return func.apply(object,args.concat(concat_args));
+            }
+        }
+    },
+    
 };
+
+})(this);
 
 /*
 Ported from Prototype.js usage:
     
-    ActiveSupport.Element.observe(document,'ready',function(){
+    DOM.observe(document,'ready',function(){
     
     });
 */
@@ -483,13 +527,13 @@ Ported from Prototype.js usage:
           window.clearTimeout(timer);
       }
       loaded = true;
-      if(ActiveSupport.Element.documentReadyObservers.length > 0)
+      if(DOM.documentReadyObservers.length > 0)
       {
-          for(var i = 0; i < ActiveSupport.Element.documentReadyObservers.length; ++i)
+          for(var i = 0; i < DOM.documentReadyObservers.length; ++i)
           {
-              ActiveSupport.Element.documentReadyObservers[i]();
+              DOM.documentReadyObservers[i]();
           }
-          ActiveSupport.Element.documentReadyObservers = null;
+          DOM.documentReadyObservers = null;
       }
   };
 
@@ -522,30 +566,31 @@ Ported from Prototype.js usage:
   }
   else
   {
-      ActiveSupport.Element.observe(document,'readystatechange',check_ready_state);
+      DOM.observe(document,'readystatechange',check_ready_state);
       if(window == top)
       {
           timer = window.setTimeout(poll_do_scroll);
       }
   }
   
-  ActiveSupport.Element.observe(window,'load',fire_content_loaded_event);
+  DOM.observe(window,'load',fire_content_loaded_event);
+  
 })();
 
 //Ajax Library integration
-(function(){
+(function(global_context){
     //Prototype
     if(global_context.Prototype && global_context.Prototype.Browser && global_context.Prototype.Browser.IE && global_context.Element && global_context.Element.extend)
     {
-        ActiveSupport.Element.extend = function extendForPrototype(element){
+        DOM.extend = function extendForPrototype(element){
           return Element.extend(element);
         };
     };
     //MooTools
     if(global_context.MooTools && global_context.Browser && global_context.Browser.Engine.trident && global_context.document.id)
     {
-        ActiveSupport.Element.extend = function extendForMooTools(element){
+        DOM.extend = function extendForMooTools(element){
             return global_context.document.id(element);
         };
     }
-})();
+})(this);

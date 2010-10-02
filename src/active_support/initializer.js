@@ -5,7 +5,7 @@
  * and ActiveRecord are configured appropriately and that these events occur
  * in the correct order. Specifically the initializer will:
  * 
- * - observe the document 'ready' event provided by ActiveSupport.Element
+ * - observe the document 'ready' event provided by DOM
  * - connect ActiveRecord to a data source
  * - configure ActiveView.Routing
  * 
@@ -70,7 +70,7 @@ ActiveSupport.Initializer = function Initializer(params)
           ActiveRoutes.dispatch(this.initialRoute);
         },this);
     }
-    ActiveSupport.Element.observe(document,'ready',this.queue.push());
+    DOM.observe(document,'ready',this.queue.push());
 };
 
 ActiveSupport.Initializer.prototype.setRoutes = function setRoutes()
