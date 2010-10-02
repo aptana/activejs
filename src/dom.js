@@ -390,11 +390,11 @@ DOM = {
         if(arguments.length > 3)
         {
             var arguments_for_bind = [];
-            for(var i = 3; i < arguments.length; ++i)
+            for(var i = 2; i < arguments.length; ++i)
             {
                 arguments_for_bind.push(arguments[i]);
             }
-            callback = DOM.bind(callback || function(){},arguments_for_bind);
+            callback = DOM.bind.apply(DOM,arguments_for_bind);
         }
         //dom:ready support
         if(element == global_context.document && event_name == 'ready')
