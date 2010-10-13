@@ -1,12 +1,18 @@
 (function(global_context){
 
 var ie = !!(global_context.attachEvent && !global_context.opera);
+var mouseenter_mouseleave_supported = 'onmouseenter' in document.documentElement && 'onmouseleave' in document.documentElement;
 
 /**
  * DOM
- * DOM is a simple DOM manipulation library that does not modify the built in Element object. All DOM methods take an Element object (and not a string) as their first argument.
  * 
- * The implementation of event obeserver's differs from Prototype's since it does not modify the Element object.
+ * DOM is a simple DOM manipulation library that does not modify the built in
+ * Element object. All DOM methods take an Element object (and not a string)
+ * as their first argument except `stop`, `pointerX` and `pointerY` which
+ * take an Event object.
+ * 
+ * The implementation of event obeserver's differs from Prototype's since it
+ * does not modify the Element object.
  * 
  *     DOM.observe(link,'click',function(event){
  *         //do stuff
@@ -356,6 +362,74 @@ DOM = {
     {
         return DOM.getDimensions(element).height;
     },
+    /**
+     * DOM.cumulativeOffset(element) -> Array
+     * Returns an array containing [left,top], also has `left` and `top`.
+     **/
+    cumulativeOffset: function cumulativeOffset(element)
+    {
+      if(ie)
+      {
+          try
+          {
+              element.offsetParent;
+          }
+          catch(e)
+          {
+              var response = [0,0];
+              response.top = 0;
+              response.left = 0;
+              return response;
+          }
+      }
+      var top = 0;
+      var left = 0;
+      do
+      {
+          top += element.offsetTop  || 0;
+          left += element.offsetLeft || 0;
+          element = element.offsetParent;
+      }while(element);
+      var response = [left,top];
+      response.left = left;
+      response.top = top;
+      return response;
+    },
+    /**
+     * DOM.ancestors(element) -> Array
+     **/
+    ancestors: function ancestors(element)
+    {
+        var elements = [];
+        while(element = element.parentNode)
+        {
+            if(element.nodeType == 1)
+            {
+                elements.push(element);
+            }
+        }
+        return elements;
+    },
+    /**
+     * DOM.pointerX(event) -> Number
+     **/
+    pointerX: function pointerX(event)
+    {
+        return event.pageX || (event.clientX +
+          (document.documentElement.scrollLeft || (document.body ? document.body.scrollLeft : 0)) -
+          (document.documentElement.clientLeft || 0)
+        );
+    },
+    /**
+     * DOM.pointerY(event) -> Number
+     **/
+    pointerY: function pointerY(event)
+    {
+        return event.pageY || (event.clientY +
+          (document.documentElement.scrollTop || (document.body ? document.body.scrollTop : 0)) -
+          (document.documentElement.clientTop || 0)
+        );
+    },
     documentReadyObservers: [],
     /**
      * DOM.observe(element,event_name,callback[,context]) -> Function
@@ -363,13 +437,12 @@ DOM = {
      * - event_name (String): The name of the event, in all lower case, without the "on" prefix — e.g., "click" (not "onclick").
      * - callback (Function): The function to call when the event occurs.
      * - context (Object): The context to bind the callback to. Any additional arguments after context will be curried onto the callback.
-     * This implementation of event observation is loosely based on Prototype's, but instead of adding element.stopObserving() and event.stop() 
-     * methods to the respective Element and Event objects, an event stopping callback and an event handler unregistration callback are passed
-     * into your event handler.
+     * This implementation of event observation is loosely based on Prototype's. "mouseenter" and "mouseleave" events are supported cross
+     * browser.
      * 
-     *     DOM.observe(element,'click',function(event,stop,unregister){
-     *         stop();
-     *         unregister();
+     *     var my_handler = DOM.observe(element,'click',function(event){
+     *         DOM.stop(event);
+     *         DOM.stopObserving(element,'click',my_handler);
      *     },this);
      *     
      *     //Prototype equivelent:
@@ -418,17 +491,49 @@ DOM = {
             {
                 event = window.event;
             }
-            return callback(event);
+            if(!mouseenter_mouseleave_supported && (event_name === 'mouseenter' || event_name === 'mouseleave'))
+            {
+                var parent = event.relatedTarget;
+                while(parent && parent !== element)
+                {
+                    try
+                    {
+                        parent = parent.parentNode;
+                    }
+                    catch(e)
+                    {
+                        parent = element;
+                    }
+                }
+                if(parent === element)
+                {
+                    return;
+                }
+                return callback(event);
+            }
+            else
+            {
+                return callback(event);
+            }
         };
+        
+        var actual_event_name = event_name;
+        if(!mouseenter_mouseleave_supported && (event_name === 'mouseenter' || event_name === 'mouseleave'))
+        {
+            actual_event_name = {
+              'mouseenter': 'mouseover',
+              'mouseleave': 'mouseout'
+            }[event_name];
+        }
         
         //attach event listener
         if(element.addEventListener)
         {
-            element.addEventListener(event_name,callback_wrapper,false);
+            element.addEventListener(actual_event_name,callback_wrapper,false);
         }
         else
         {
-            element.attachEvent('on' + event_name,callback_wrapper);
+            element.attachEvent('on' + actual_event_name,callback_wrapper);
         }
         
         return callback_wrapper;
@@ -496,8 +601,7 @@ DOM = {
                 return func.apply(object,args.concat(concat_args));
             }
         }
-    },
-    
+    }
 };
 
 })(this);
@@ -537,11 +641,11 @@ Ported from Prototype.js usage:
       }
   };
 
-  function check_ready_state(event,stop,stop_observing)
+  function check_ready_state(event)
   {
       if(document.readyState === 'complete')
       {
-          stop_observing();
+          DOM.stopObserving(document,'readystatechange',check_ready_state);
           fire_content_loaded_event();
       }
   };

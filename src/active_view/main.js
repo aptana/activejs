@@ -356,15 +356,6 @@ var InstanceMethods = (function(){
         {
             return this.scope.set(key,value,suppress_observers);
         },
-        /**
-         * ActiveView.Class#attachTo(element) -> Element
-         * Inserts the view's outer most element into the passed element.
-         **/
-        attachTo: function attachTo(element)
-        {
-            element.appendChild(this.getElement());
-            return this.element;
-        },
         setElement: function setElement(element)
         {
             this.element = element;

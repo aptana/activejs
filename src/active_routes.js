@@ -31,8 +31,8 @@ if(typeof exports != "undefined"){
  * specified in the path. A path with a wildcard will contain a "path" parameter.
  * 
  *     ActiveRoutes.setRoutes({
- *         '/': [HomeView,'index'],
- *         '/contact/:id': [ContactView,'contact'],
+ *         '/': [HomeView.getInstance(),'index'],
+ *         '/contact/:id': [ContactView.getInstance(),'contact'],
  *         '/about/(:section)': function(params){
  *           if(params.section == 'about'){
  *             ...
@@ -118,8 +118,8 @@ ActiveRoutes = {
      * ActiveRoutes.setRoutes(routes) -> null
      * 
      *     ActiveRoutes.setRoutes({
-     *         '/': [HomeView,'index'],
-     *         '/contact/:id': [ContactView,'contact'],
+     *         '/': [HomeView.getInstance(),'index'],
+     *         '/contact/:id': [ContactView.getInstance(),'contact'],
      *         '/about': function(params){},
      *         '/wiki/*': function(path){}
      *     });
