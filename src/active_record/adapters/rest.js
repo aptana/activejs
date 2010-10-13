@@ -38,12 +38,12 @@ ActiveSupport.Object.extend(Adapters.REST,{
     {
         var url = initial_data_location[0];
         var http_method = initial_data_location[1].toLowerCase() || 'post';
-        var http_params = Adapters.REST.getHTTPParamsFromMappingFragment(initial_data_location);
+        var post_body = Adapters.REST.getHTTPParamsFromMappingFragment(initial_data_location);
         var response_processor_callback = initial_data_location[3];
         Adapters.REST.createAjaxRequest(
             url,
             http_method,
-            http_params,
+            post_body,
             function initial_data_load_on_success(transport){
                 var json_data = transport.responseJSON || ActiveSupport.JSON.parse(transport.responseText);
                 if(response_processor_callback)
@@ -99,6 +99,9 @@ ActiveSupport.Object.extend(Adapters.REST,{
                 break;
             case 'find':
                 Adapters.REST.generateClassWrapper('find',model);
+                break;
+            case 'search':
+                model.search = Adapters.REST.generateSearchMethod(model);
                 break;
         }
     },
@@ -260,7 +263,9 @@ ActiveSupport.Object.extend(Adapters.REST,{
         return Adapters.REST.createAjaxRequest(
             Adapters.REST.substituteUrlParams(url,instance_params),
             http_method.toLowerCase(),
-            Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),
+            http_method.toLowerCase() == 'get'
+                ? ActiveSupport.Object.extend(ActiveSupport.Object.clone(instance_params || {}),http_params)
+                : Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),
             Adapters.REST.getPersistenceSuccessCallback(mapping_fragment,instance,callback),
             Adapters.REST.getPersistenceFailureCallback(mapping_fragment,instance,callback)
         );
@@ -280,28 +285,24 @@ ActiveSupport.Object.extend(Adapters.REST,{
     },
     createAjaxRequest: function createAjaxRequest(url,http_method,post_body,on_success,on_failure)
     {
-        var post_body_is_json = post_body && (post_body.substr(0,1) == '{' || post_body.substr(0,1) == '[');
+        var post_body_is_json = post_body && typeof(post_body) == 'string' && (post_body.substr(0,1) == '{' || post_body.substr(0,1) == '[');
         var final_url = url;
         var final_params = {
             contentType: post_body_is_json ? 'application/json' : 'application/x-www-form-urlencoded',
             method: http_method,
-            postBody: post_body,
             onSuccess: on_success,
             onFailure: on_failure
         };
-        //console.log('new ActiveSupport.Request',final_url,final_params);
+        if(http_method.toLowerCase() == 'get'){
+          final_params.parameters = post_body;
+        }else{
+          final_params.postBody = post_body;
+        }
         return new ActiveSupport.Request(final_url,final_params);
     }
 });
 
 Adapters.REST.classWrapperGenerators = {
-    find: function find(model)
-    {
-        return function generated_class_find_wrapper(proceed,params,callback){
-            //Adapters.REST.createPersistenceRequest(model,false,Adapters.REST.mapping[model_name].find,{},
-            //    Adapters.REST.getPersistencePostBody(model,instance_params,http_params,mapping_fragment),  
-        };
-    },
     create: function create(model)
     {
         return function generated_class_create_wrapper(proceed,attributes,callback){
@@ -439,6 +440,18 @@ Adapters.REST.classWrapperGenerators = {
             }
             return response;
         };
+    },
+    find: function(model){
+        return function generated_class_create_wrapper(proceed,attributes,callback){
+            var method_name = 'find';
+            if(!attributes.remote)
+            {
+                return proceed.apply(proceed,ActiveSupport.Array.from(arguments).slice(1));
+            }
+            var final_attributes = ActiveSupport.Object.clone(attributes);
+            delete final_attributes.remote;
+            Adapters.REST.remoteFindHandlerGenerator('find',model,final_attributes,callback);
+        };
     }
 };
 
@@ -493,9 +506,40 @@ Adapters.REST.instanceWrapperGenerators = {
     }
 };
 
+Adapters.REST.remoteFindHandlerGenerator = function(method_name,model,attributes,callback){
+    var mapping = ActiveRecord.Adapters.REST.mapping[model.modelName];
+    if(mapping && mapping[method_name])
+    {
+        var final_mapping = ActiveSupport.Object.clone(mapping[method_name]);
+        final_mapping[2] = ActiveSupport.Object.extend(final_mapping[2] || {},attributes || {});
+        var request = ActiveRecord.Adapters.REST.createPersistenceRequest(this,false,final_mapping,false);
+        request.options.onSuccess = function remote_find_on_success_handler(response){
+            if(!ActiveSupport.Object.isArray(response.responseJSON))
+            {
+                throw Adapters.REST.Errors.remoteFindDidNotReturnArray.getErrorString(model.modelName,method_name);
+            }
+            callback(response.responseJSON.map(function remote_find_result_iterator(instance_attributes){
+                return new model(instance_attributes);
+            }));
+        };
+    }
+    else
+    {
+        throw Adapters.REST.Errors.methodNotImplemented.getErrorString(method_name,model.modelName)
+    }
+};
+
+Adapters.REST.generateSearchMethod = function(model){
+    return function generated_search_method(attributes,callback){
+        Adapters.REST.remoteFindHandlerGenerator('search',model,attributes,callback);
+    };
+};
+
 Adapters.REST.Errors = {
     modelDoesNotExist: ActiveSupport.createError('The ActiveRecord model % does not exist.'),
-    initialDataLoadError: ActiveSupport.createError('A server error occurred while performing the initial data load.')
+    initialDataLoadError: ActiveSupport.createError('A server error occurred while performing the initial data load.'),
+    remoteFindDidNotReturnArray: ActiveSupport.createError('%.%() failed to return an array.'),
+    methodNotImplemented: ActiveSupport.createError('% is not implemented for %')
 };
 
 /*
@@ -519,6 +563,10 @@ Test
         - test with failure
     - class.batch_destroy with destroy
         - test with failure
+    - class.find
+        - test with failure
+    - class.search
+        - test with failure
     - instance.updateAttribute
         - test with failure
     - instance.updateAttributes
@@ -528,15 +576,4 @@ Test
     - instance.destroy
         - test with failure
 
-*/
-/*
-ActiveRecord.ClassMethods.search = function search(query,proceed,extra_query_params){
-  new Ajax.Request('/' + this.tableName + '/search.json',{
-    method: 'get',
-    parameters: encodeURIComponent('query') + '=' + encodeURIComponent(query) + (extra_query_params || ''),
-    onSuccess: function(request){
-      proceed(request.responseJSON,query)
-    }
-  });
-};
 */
