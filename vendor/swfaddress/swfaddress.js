@@ -217,7 +217,7 @@ function () {
                     if (_version < 7) {
                         _l.reload()
                     } else {
-                        if(_version > 7){
+                        if(_version >= 7){
                             _update.call(this, false); //TODO: research why IE8 needs this
                         }else{
                             this.setValue(hash);
@@ -343,9 +343,9 @@ function () {
                     _d.body.insertAdjacentElement("afterBegin", _frame)
                 }
                 _st(function () {
-                    _events.addListener(_frame, "load", _htmlLoad);
+                    //_events.addListener(_frame, "load", _htmlLoad);
                     if (typeof _frame.contentWindow[ID] == UNDEFINED) {
-                        _htmlWrite()
+                        //_htmlWrite()
                     }
                 },
                 50)
@@ -697,7 +697,7 @@ function () {
             }
         }
         if ((_msie && _version < 8) && _opts.history) {
-            _st(_htmlWrite, 50)
+            //_st(_htmlWrite, 50)
         }
         if (_safari) {
             _st(function () {
