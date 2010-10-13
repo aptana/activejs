@@ -23,7 +23,7 @@ ActiveSupport.Object.extend(Adapters.REST,{
             }
             for(var action_name in mapping[model_name])
             {
-                if(ActiveSupport.Array.indexOf(['search','outbound_transform','inbound_transform'],action_name) == -1)
+                if(ActiveSupport.Array.indexOf(['outbound_transform','inbound_transform'],action_name) == -1)
                 {
                     Adapters.REST.generateWrapper(action_name,model);
                 }
