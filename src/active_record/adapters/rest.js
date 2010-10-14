@@ -450,7 +450,7 @@ Adapters.REST.classWrapperGenerators = {
             }
             var final_attributes = ActiveSupport.Object.clone(attributes);
             delete final_attributes.remote;
-            Adapters.REST.remoteFindHandlerGenerator('find',model,final_attributes,callback);
+            return Adapters.REST.remoteFindHandlerGenerator('find',model,final_attributes,callback);
         };
     }
 };
@@ -522,6 +522,7 @@ Adapters.REST.remoteFindHandlerGenerator = function(method_name,model,attributes
                 return new model(instance_attributes);
             }));
         };
+        return request;
     }
     else
     {
@@ -531,7 +532,7 @@ Adapters.REST.remoteFindHandlerGenerator = function(method_name,model,attributes
 
 Adapters.REST.generateSearchMethod = function(model){
     return function generated_search_method(attributes,callback){
-        Adapters.REST.remoteFindHandlerGenerator('search',model,attributes,callback);
+        return Adapters.REST.remoteFindHandlerGenerator('search',model,attributes,callback);
     };
 };
 
