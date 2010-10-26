@@ -342,13 +342,13 @@ function () {
                     _frame.style.display = "none";
                     _d.body.insertAdjacentElement("afterBegin", _frame)
                 }
-                _st(function () {
+               /* _st(function () {
                     //_events.addListener(_frame, "load", _htmlLoad);
                     if (typeof _frame.contentWindow[ID] == UNDEFINED) {
                         //_htmlWrite()
                     }
                 },
-                50)
+                50)*/
             } else {
                 if (_safari) {
                     if (_version < 418) {
@@ -696,9 +696,9 @@ function () {
                 }
             }
         }
-        if ((_msie && _version < 8) && _opts.history) {
-            //_st(_htmlWrite, 50)
-        }
+        /*if ((_msie && _version < 8) && _opts.history) {
+            _st(_htmlWrite, 50)
+        }*/
         if (_safari) {
             _st(function () {
                 _silent = FALSE
