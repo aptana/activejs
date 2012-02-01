@@ -19,7 +19,7 @@ var Indicies = {
                 }
             }
         }
-        
+
     }
 };
 
@@ -28,10 +28,10 @@ var Indicies = {
  * - index_name (name)
  * - index (Object)
  * - callbacks (Object): Must contain "afterSave" and "afterDestroy" keys containing callback functions.
- * 
+ *
  * Allows the construction of arbitrary data indicies from data in your models.
  * Indicies will stay up to date as records are created, saved or destroyed.
- * 
+ *
  * The afterSave and afterDestroy objects will only receive the data for a
  * given record (generated with instance.toObject()). The afterSave callback
  * will handle both the create and update scenarios.
@@ -46,16 +46,16 @@ var Indicies = {
  *     });
  *     var flower_record = Photo.create({name:'flower'});
  *     Photo.indexed.byName.flower == flower_record;
- *     
+ *
  * If you only need and index of key => id pairs (name => id pairs in the
  * example above), you can shorten the call to the following:
  *
  *     Photo.addIndex('byName','name'):
  *
  * A more complicated example, which pre fills an index object:
- * 
+ *
  *     var index = {a:{},b:{},c:{}};
- *     
+ *
  *     Contact.addIndex('byLetter',index,{
  *         afterSave: function(index,contact){
  *             var first_letter = contact.name.substring(0,1).toLowerCase();
@@ -66,12 +66,12 @@ var Indicies = {
  *             delete index[first_letter][contact.id];
  *         }
  *     });
- *     
+ *
  *     //the index will now be available at:
  *     Contact.indexed.byLetter;
- *     
+ *
  *     Contact.create({name: 'Abbey'});
- *     
+ *
  *     for(var id in Contact.indexed.byLetter.a){}
  **/
 ActiveRecord.ClassMethods.addIndex = function addIndex(name,index,callbacks)

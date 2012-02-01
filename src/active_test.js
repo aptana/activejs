@@ -54,7 +54,7 @@ var ActiveTest = {
                 for(var test_name in ActiveTest.Tests[group_name])
                 {
                     if(test_name !== 'setup' && test_name !== 'teardown' && test_name !== 'cleanup')
-                    {            
+                    {
                         stack.push(ActiveSupport.Function.curry(function(test_name){
                             ActiveTest.currentTestName = test_name;
                             try

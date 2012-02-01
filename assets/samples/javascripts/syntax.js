@@ -3,17 +3,17 @@
  * Version 1.5
  * Copyright (C) 2004-2007 Alex Gorbatchev.
  * http://www.dreamprojections.com/syntaxhighlighter/
- * 
- * This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General 
- * Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option) 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General
+ * Public License as published by the Free Software Foundation; either version 2.1 of the License, or (at your option)
  * any later version.
  *
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied 
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
  * details.
  *
- * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to 
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 //
@@ -51,7 +51,7 @@ dp.sh.Toolbar.Commands = {
 			highlighter.div.className = highlighter.div.className.replace('collapsed', '');
 		}
 	},
-	
+
 	// opens a new windows and puts the original unformatted source code inside.
 	ViewSource: {
 		label: 'view plain',
@@ -63,7 +63,7 @@ dp.sh.Toolbar.Commands = {
 			wnd.document.close();
 		}
 	},
-	
+
 	// Copies the original source code in to the clipboard. Uses either IE only method or Flash object if ClipboardSwf is set
 	CopyToClipboard: {
 		label: 'copy to clipboard',
@@ -71,7 +71,7 @@ dp.sh.Toolbar.Commands = {
 		func: function(sender, highlighter)
 		{
 			var code = highlighter.originalCode;
-			
+
 			if(window.clipboardData)
 			{
 				window.clipboardData.setData('text', code);
@@ -79,21 +79,21 @@ dp.sh.Toolbar.Commands = {
 			else if(dp.sh.ClipboardSwf != null)
 			{
 				var flashcopier = highlighter.flashCopier;
-				
+
 				if(flashcopier == null)
 				{
 					flashcopier = document.createElement('div');
 					highlighter.flashCopier = flashcopier;
 					highlighter.div.appendChild(flashcopier);
 				}
-				
+
 				flashcopier.innerHTML = '<embed src="' + dp.sh.ClipboardSwf + '" FlashVars="clipboard='+encodeURIComponent(code)+'" width="0" height="0" type="application/x-shockwave-flash"></embed>';
 			}
-			
+
 			alert('The code is in your clipboard now');
 		}
 	},
-	
+
 	// creates an invisible iframe, puts the original source code inside and prints it
 	PrintSource: {
 		label: 'print',
@@ -104,7 +104,7 @@ dp.sh.Toolbar.Commands = {
 
 			// this hides the iframe
 			iframe.style.cssText = 'position:absolute;width:0px;height:0px;left:-500px;top:-500px;';
-			
+
 			document.body.appendChild(iframe);
 			doc = iframe.contentWindow.document;
 
@@ -114,13 +114,13 @@ dp.sh.Toolbar.Commands = {
 
 			iframe.contentWindow.focus();
 			iframe.contentWindow.print();
-			
+
 			alert('Printing...');
-			
+
 			document.body.removeChild(iframe);
 		}
 	},
-	
+
 	About: {
 		label: '?',
 		func: function(highlighter)
@@ -129,7 +129,7 @@ dp.sh.Toolbar.Commands = {
 			var doc	= wnd.document;
 
 			dp.sh.Utils.CopyStyles(doc, window.document);
-			
+
 			doc.write(dp.sh.Strings.AboutDialog.replace('{V}', dp.sh.Version));
 			doc.close();
 			wnd.focus();
@@ -141,19 +141,19 @@ dp.sh.Toolbar.Commands = {
 dp.sh.Toolbar.Create = function(highlighter)
 {
 	var div = document.createElement('DIV');
-	
+
 	div.className = 'tools';
-	
+
 	for(var name in dp.sh.Toolbar.Commands)
 	{
 		var cmd = dp.sh.Toolbar.Commands[name];
-		
+
 		if(cmd.check != null && !cmd.check(highlighter))
 			continue;
-		
+
 		div.innerHTML += '<a href="#" onclick="dp.sh.Toolbar.Command(\'' + name + '\',this);return false;">' + cmd.label + '</a>';
 	}
-	
+
 	return div;
 }
 
@@ -161,10 +161,10 @@ dp.sh.Toolbar.Create = function(highlighter)
 dp.sh.Toolbar.Command = function(name, sender)
 {
 	var n = sender;
-	
+
 	while(n != null && n.className.indexOf('dp-highlighter') == -1)
 		n = n.parentNode;
-	
+
 	if(n != null)
 		dp.sh.Toolbar.Commands[name].func(sender, n.highlighter);
 }
@@ -256,7 +256,7 @@ dp.sh.Highlighter.prototype.AddBit = function(str, css)
 		return;
 
 	var span = this.CreateElement('SPAN');
-	
+
 //	str = str.replace(/&/g, '&amp;');
 	str = str.replace(/ /g, '&nbsp;');
 	str = str.replace(/</g, '&lt;');
@@ -264,22 +264,22 @@ dp.sh.Highlighter.prototype.AddBit = function(str, css)
 //	str = str.replace(/>/g, '&gt;');
 	str = str.replace(/\n/gm, '&nbsp;<br>');
 
-	// when adding a piece of code, check to see if it has line breaks in it 
+	// when adding a piece of code, check to see if it has line breaks in it
 	// and if it does, wrap individual line breaks with span tags
 	if(css != null)
 	{
 		if((/br/gi).test(str))
 		{
 			var lines = str.split('&nbsp;<br>');
-			
+
 			for(var i = 0; i < lines.length; i++)
 			{
 				span = this.CreateElement('SPAN');
 				span.className = css;
 				span.innerHTML = lines[i];
-				
+
 				this.div.appendChild(span);
-				
+
 				// don't add a <BR> for the last line
 				if(i + 1 < lines.length)
 					this.div.appendChild(this.CreateElement('BR'));
@@ -304,18 +304,18 @@ dp.sh.Highlighter.prototype.IsInside = function(match)
 {
 	if(match == null || match.length == 0)
 		return false;
-	
+
 	for(var i = 0; i < this.matches.length; i++)
 	{
 		var c = this.matches[i];
-		
+
 		if(c == null)
 			continue;
 
 		if((match.index > c.index) && (match.index < c.index + c.length))
 			return true;
 	}
-	
+
 	return false;
 }
 
@@ -333,16 +333,16 @@ dp.sh.Highlighter.prototype.ProcessSmartTabs = function(code)
 	var tab		= '\t';
 
 	// This function inserts specified amount of spaces in the string
-	// where a tab is while removing that given tab. 
+	// where a tab is while removing that given tab.
 	function InsertSpaces(line, pos, count)
 	{
 		var left	= line.substr(0, pos);
 		var right	= line.substr(pos + 1, line.length);	// pos + 1 will get rid of the tab
 		var spaces	= '';
-		
+
 		for(var i = 0; i < count; i++)
 			spaces += ' ';
-		
+
 		return left + spaces + right;
 	}
 
@@ -357,20 +357,20 @@ dp.sh.Highlighter.prototype.ProcessSmartTabs = function(code)
 		while((pos = line.indexOf(tab)) != -1)
 		{
 			// This is pretty much all there is to the 'smart tabs' logic.
-			// Based on the position within the line and size of a tab, 
+			// Based on the position within the line and size of a tab,
 			// calculate the amount of spaces we need to insert.
 			var spaces = tabSize - pos % tabSize;
-			
+
 			line = InsertSpaces(line, pos, spaces);
 		}
-		
+
 		return line;
 	}
 
 	// Go through all the lines and do the 'smart tabs' magic.
 	for(var i = 0; i < lines.length; i++)
 		result += ProcessLine(lines[i], tabSize) + '\n';
-	
+
 	return result;
 }
 
@@ -379,7 +379,7 @@ dp.sh.Highlighter.prototype.SwitchToList = function()
 	// thanks to Lachlan Donald from SitePoint.com for this <br/> tag fix.
 	var html = this.div.innerHTML.replace(/<(br)\/?>/gi, '\n');
 	var lines = html.split('\n');
-	
+
 	if(this.addControls == true)
 		this.bar.appendChild(dp.sh.Toolbar.Create(this));
 
@@ -390,7 +390,7 @@ dp.sh.Highlighter.prototype.SwitchToList = function()
 		var columns = this.CreateElement('div');
 		var showEvery = 10;
 		var i = 1;
-		
+
 		while(i <= 150)
 		{
 			if(i % showEvery == 0)
@@ -404,7 +404,7 @@ dp.sh.Highlighter.prototype.SwitchToList = function()
 				i++;
 			}
 		}
-		
+
 		columns.className = 'columns';
 		columns.appendChild(div);
 		this.bar.appendChild(columns);
@@ -414,7 +414,7 @@ dp.sh.Highlighter.prototype.SwitchToList = function()
 	{
 		var li = this.CreateElement('LI');
 		var span = this.CreateElement('SPAN');
-		
+
 		// uses .line1 and .line2 css styles for alternating lines
 		li.className = (i % 2 == 0) ? 'alt' : '';
 		span.innerHTML = lines[i] + '&nbsp;';
@@ -422,7 +422,7 @@ dp.sh.Highlighter.prototype.SwitchToList = function()
 		li.appendChild(span);
 		this.ol.appendChild(li);
 	}
-	
+
 	this.div.innerHTML	= '';
 }
 
@@ -432,7 +432,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 	{
 		return str.replace(/^\s*(.*?)[\s\n]*$/g, '$1');
 	}
-	
+
 	function Chop(str)
 	{
 		return str.replace(/\n*$/, '').replace(/^\n*/, '');
@@ -450,7 +450,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 		{
 			if(Trim(lines[i]).length == 0)
 				continue;
-				
+
 			var matches = regex.exec(lines[i]);
 
 			if(matches != null && matches.length > 0)
@@ -464,7 +464,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 
 		return lines.join('\n');
 	}
-	
+
 	// This function returns a portions of the string from pos1 to pos2 inclusive
 	function Copy(string, pos1, pos2)
 	{
@@ -472,10 +472,10 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 	}
 
 	var pos	= 0;
-	
+
 	if(code == null)
 		code = '';
-	
+
 	this.originalCode = code;
 	this.code = Chop(Unindent(code));
 	this.div = this.CreateElement('DIV');
@@ -485,9 +485,9 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 
 	this.div.className = 'dp-highlighter';
 	this.div.highlighter = this;
-	
+
 	this.bar.className = 'bar';
-	
+
 	// set the first line
 	this.ol.start = this.firstLine;
 
@@ -496,7 +496,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 
 	if(this.collapse)
 		this.div.className += ' collapsed';
-	
+
 	if(this.noGutter)
 		this.div.className += ' nogutter';
 
@@ -504,7 +504,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 	if(this.tabsToSpaces == true)
 		this.code = this.ProcessSmartTabs(this.code);
 
-	this.ProcessRegexList();	
+	this.ProcessRegexList();
 
 	// if no matches found, add entire code as plain text
 	if(this.matches.length == 0)
@@ -539,7 +539,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 
 		pos = match.index + match.length;
 	}
-	
+
 	this.AddBit(this.code.substr(pos), null);
 
 	this.SwitchToList();
@@ -547,7 +547,7 @@ dp.sh.Highlighter.prototype.Highlight = function(code)
 	this.div.appendChild(this.ol);
 }
 
-dp.sh.Highlighter.prototype.GetKeywords = function(str) 
+dp.sh.Highlighter.prototype.GetKeywords = function(str)
 {
 	return '\\b' + str.replace(/ /g, '\\b|\\b') + '\\b';
 }
@@ -558,31 +558,31 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 	function FindValue()
 	{
 		var a = arguments;
-		
+
 		for(var i = 0; i < a.length; i++)
 		{
 			if(a[i] == null)
 				continue;
-				
+
 			if(typeof(a[i]) == 'string' && a[i] != '')
 				return a[i] + '';
-		
+
 			if(typeof(a[i]) == 'object' && a[i].value != '')
 				return a[i].value + '';
 		}
-		
+
 		return null;
 	}
-	
+
 	function IsOptionSet(value, list)
 	{
 		for(var i = 0; i < list.length; i++)
 			if(list[i] == value)
 				return true;
-		
+
 		return false;
 	}
-	
+
 	function GetOptionValue(name, list, defaultValue)
 	{
 		var regex = new RegExp('^' + name + '\\[(\\w+)\\]$', 'gi');
@@ -591,10 +591,10 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 		for(var i = 0; i < list.length; i++)
 			if((matches = regex.exec(list[i])) != null)
 				return matches[1];
-		
+
 		return defaultValue;
 	}
-	
+
 	function FindTagsByName(list, name, tagName)
 	{
 		var tags = document.getElementsByTagName(tagName);
@@ -609,7 +609,7 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 	var registered = {};
 	var propertyName = 'innerHTML';
 
-	// for some reason IE doesn't find <pre/> by name, however it does see them just fine by tag name... 
+	// for some reason IE doesn't find <pre/> by name, however it does see them just fine by tag name...
 	FindTagsByName(elements, name, 'code');
 
 	if(elements.length == 0)
@@ -622,7 +622,7 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 
 		if(aliases == null)
 			continue;
-		
+
 		for(var i = 0; i < aliases.length; i++)
 			registered[aliases[i]] = brush;
 	}
@@ -631,24 +631,24 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 	{
 		var element = elements[i];
 		var options = FindValue(
-				element.attributes['class'], element.className, 
+				element.attributes['class'], element.className,
 				element.attributes['language'], element.language
 				);
 		var language = '';
-		
+
 		if(options == null)
 			continue;
-		
+
 		options = options.split(':');
-		
+
 		language = options[0].toLowerCase();
 
 		if(registered[language] == null)
 			continue;
-		
+
 		// instantiate a brush
 		highlighter = new dp.sh.Brushes[registered[language]]();
-		
+
 		// hide the original element
 		element.style.display = 'none';
 
@@ -660,16 +660,16 @@ dp.sh.HighlightAll = function(name, showGutter /* optional */, showControls /* o
 		// write out custom brush style
 		//if(highlighter.Style)
 		//	document.write('<style>' + highlighter.Style + '</style>');
-		
+
 		// first line idea comes from Andrew Collington, thanks!
 		highlighter.firstLine = (firstLine == null) ? parseInt(GetOptionValue('firstline', options, 1)) : firstLine;
 
 		highlighter.Highlight(element[propertyName]);
-		
+
 		highlighter.source = element;
 
 		element.parentNode.insertBefore(highlighter.div, element);
-	}	
+	}
 }
 
 
@@ -681,8 +681,8 @@ dp.sh.Brushes.JScript = function()
 					'new package private protected public return short static super switch ' +
 					'synchronized throw throws transient try typeof var void volatile while with';
 	var constants = 'true false null TRUE FALSE NULL [0-9]+';
-	var builtin =	'window document event Object Function Math Array Hash String Date RegExp';			
-	this.regexList = [	
+	var builtin =	'window document event Object Function Math Array Hash String Date RegExp';
+	this.regexList = [
 		{ regex: dp.sh.RegexLib.SingleLineCComments,				css: 'comment' },			// one line comments
 		{ regex: dp.sh.RegexLib.MultiLineCComments,					css: 'comment' },			// multiline comments
 		{ regex: dp.sh.RegexLib.DoubleQuotedString,					css: 'string' },			// double quoted strings
@@ -736,7 +736,7 @@ dp.sh.Brushes.CSS = function()
 					'table-caption table-cell table-column table-column-group table-footer-group table-header-group table-row table-row-group teal '+
 					'text-bottom text-top thick thin top transparent tty tv ultra-condensed ultra-expanded underline upper-alpha uppercase upper-latin '+
 					'upper-roman url visible wait white wider w-resize x-fast x-high x-large x-loud x-low x-slow x-small x-soft xx-large xx-small yellow';
-	
+
 	var fonts =		'[mM]onospace [tT]ahoma [vV]erdana [aA]rial [hH]elvetica [sS]ans-serif [sS]erif';
 
 	this.regexList = [
@@ -772,10 +772,10 @@ dp.sh.Brushes.Xml.prototype.ProcessRegexList = function()
 	{
 		array[array.length] = value;
 	}
-	
+
 	/* If only there was a way to get index of a group within a match, the whole XML
 	   could be matched with the expression looking something like that:
-	
+
 	   (<!\[CDATA\[\s*.*\s*\]\]>)
 	   | (<!--\s*.*\s*?-->)
 	   | (<)*(\w+)*\s*(\w+)\s*=\s*(".*?"|'.*?'|\w+)(/*>)*
@@ -788,7 +788,7 @@ dp.sh.Brushes.Xml.prototype.ProcessRegexList = function()
 	// Match CDATA in the following format <![ ... [ ... ]]>
 	// (\&lt;|<)\!\[[\w\s]*?\[(.|\s)*?\]\](\&gt;|>)
 	this.GetMatches(new RegExp('(\&lt;|<)\\!\\[[\\w\\s]*?\\[(.|\\s)*?\\]\\](\&gt;|>)', 'gm'), 'cdata');
-	
+
 	// Match comments
 	// (\&lt;|<)!--\s*.*?\s*--(\&gt;|>)
 	this.GetMatches(new RegExp('(\&lt;|<)!--\\s*.*?\\s*--(\&gt;|>)', 'gm'), 'comments');
@@ -802,10 +802,10 @@ dp.sh.Brushes.Xml.prototype.ProcessRegexList = function()
 		{
 			continue;
 		}
-			
+
 		push(this.matches, new dp.sh.Match(match[1], match.index, 'attribute'));
-	
-		// if xml is invalid and attribute has no property value, ignore it	
+
+		// if xml is invalid and attribute has no property value, ignore it
 		if(match[2] != undefined)
 		{
 			push(this.matches, new dp.sh.Match(match[2], match.index + match[0].indexOf(match[2]), 'attribute-value'));

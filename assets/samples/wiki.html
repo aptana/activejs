@@ -19,7 +19,7 @@
       WikiPage.htmlFromMarkdownSource = function(markdown_source){
         return (new Showdown.converter()).makeHtml(markdown_source);
       };
-      
+
       LayoutView = ActiveView.create(function(builder,dom){
         return builder.div(
           builder.table({cellpadding:0,cellspacing:0,border:0,width:'100%'},
@@ -36,7 +36,7 @@
           )
         );
       });
-      
+
       PageView = ActiveView.create(function(builder,dom){
         return builder.div(
           this.showContainer = builder.div(
@@ -83,7 +83,7 @@
           this.editContainer.appendChild(this.editView.getElement());
         }
       });
-      
+
       WikiPageListView = ActiveView.create(function(builder,dom){
         this.itemViewsIndexedById = {};
         return builder.div(
@@ -96,7 +96,7 @@
         },
         createListItem: function(wiki_page){
           this.itemViewsIndexedById[wiki_page.get('id')] = new WikiPageListItemView({
-            wiki_page: wiki_page 
+            wiki_page: wiki_page
           });
           this.element.appendChild(this.itemViewsIndexedById[wiki_page.get('id')].getElement());
         },
@@ -115,7 +115,7 @@
       WikiPage.observe('afterDestroy',function(wiki_page){
         WikiPageListView.getInstance().destroyListItem(wiki_page);
       });
-      
+
       WikiPageListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
           this.nameContainer = builder.a({href:'#' + PageView.getInstance().show.getUrl({
@@ -145,7 +145,7 @@
           dom.update(this.nameContainer,this.get('wiki_page').get('name'));
         }
       });
-      
+
       EditView = ActiveView.create(function(builder,dom){
         var element = builder.table({cellpadding:0,cellspacing:0,border:0},
           builder.tbody(
@@ -206,7 +206,7 @@
           this.previewContainer.innerHTML = WikiPage.htmlFromMarkdownSource(this.bodyInput.value);
         }
       });
-      
+
       new ActiveSupport.Initializer({
         database: true,
         routes: function(){
@@ -229,7 +229,7 @@
       textarea {
         width:320px;
         height:240px;
-      }      
+      }
     </style>
   </head>
   <body>

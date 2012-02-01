@@ -13,7 +13,7 @@
           this.bodyElement = builder.p(this.get('body'))
         );
       });
-      
+
       AdminArticleView = ActiveView.create(ArticleView,function(element,builder,dom){
         //element is the div returned by an ArticleView instance
         var form = builder.form(
@@ -41,7 +41,7 @@
         dom.insert(element,form,'top');
         return element;
       });
-      
+
       LayoutView = ActiveView.create(function(builder,dom){
         return builder.div(
           new ArticleView({

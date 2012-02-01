@@ -92,11 +92,11 @@ function Lexeme(type, text)
 
 Lexeme.prototype.toString = function toString()
 {
-    if (this.typeName) 
+    if (this.typeName)
     {
         return "[" + this.typeName + "]~" + this.text + "~";
     }
-    else 
+    else
     {
         return "[" + this.type + "]~" + this.text + "~";
     }
@@ -124,7 +124,7 @@ WhereLexer.prototype.advance = function advance()
     var inWhitespace = true;
     var result = null;
 
-    while (inWhitespace) 
+    while (inWhitespace)
     {
         // assume not in whitespace
         inWhitespace = false;
@@ -132,7 +132,7 @@ WhereLexer.prototype.advance = function advance()
         // clear possible last whitespace result
         result = null;
 
-        if (this.offset < this.length) 
+        if (this.offset < this.length)
         {
             var match, text, type;
 
@@ -144,29 +144,29 @@ WhereLexer.prototype.advance = function advance()
                 result = new Lexeme(WHITESPACE, match[0]);
                 inWhitespace = true;
             }
-            else if ((match = OPERATOR_PATTERN.exec(this.source)) !== null) 
+            else if ((match = OPERATOR_PATTERN.exec(this.source)) !== null)
             {
                 text = match[0];
                 type = OperatorMap[text.toLowerCase()];
 
                 result = new Lexeme(type, text);
             }
-            else if ((match = KEYWORD_PATTERN.exec(this.source)) !== null) 
+            else if ((match = KEYWORD_PATTERN.exec(this.source)) !== null)
             {
                 text = match[0];
                 type = KeywordMap[text.toLowerCase()];
 
                 result = new Lexeme(type, text);
             }
-            else if ((match = STRING_PATTERN.exec(this.source)) !== null) 
+            else if ((match = STRING_PATTERN.exec(this.source)) !== null)
             {
                 result = new Lexeme(STRING, match[0]);
             }
-            else if ((match = NUMBER_PATTERN.exec(this.source)) !== null) 
+            else if ((match = NUMBER_PATTERN.exec(this.source)) !== null)
             {
                 result = new Lexeme(NUMBER, match[0]);
             }
-            else if ((match = IDENTIFIER_PATTERN.exec(this.source)) !== null) 
+            else if ((match = IDENTIFIER_PATTERN.exec(this.source)) !== null)
             {
                 result = new Lexeme(IDENTIFIER, match[0]);
             }
@@ -176,7 +176,7 @@ WhereLexer.prototype.advance = function advance()
             }
 
             // assign type name, if we have one
-            if (TypeMap[result.type]) 
+            if (TypeMap[result.type])
             {
                 result.typeName = TypeMap[result.type];
             }
@@ -228,46 +228,46 @@ BinaryOperatorNode.prototype.execute = function execute(row, functionProvider)
     else
     {
         var rhs = this.rhs.execute(row, functionProvider);
-        
+
         switch (this.operator)
         {
             case EQUAL:
                 result = (lhs === rhs);
                 break;
-                
+
             case NOT_EQUAL:
                 result = (lhs !== rhs);
                 break;
-                
+
             case LESS_THAN:
                 result = (lhs < rhs);
                 break;
-                
+
             case LESS_THAN_EQUAL:
                 result = (lhs <= rhs);
                 break;
-                
+
             case GREATER_THAN:
                 result = (lhs > rhs);
                 break;
-                
+
             case GREATER_THAN_EQUAL:
                 result = (lhs >= rhs);
                 break;
-                
+
             case AND:
                 result = (lhs && rhs);
                 break;
-                
+
             case OR:
                 result = (lhs || rhs);
                 break;
-                
+
             default:
                 throw new Error("Unknown operator type: " + this.operator);
         }
     }
-    
+
     return result;
 };
 
@@ -364,7 +364,7 @@ WhereParser.prototype.parseInExpression = function parseInExpression()
 {
     var result = this.parseOrExpression();
 
-    while (currentLexeme !== null && currentLexeme.type === IN) 
+    while (currentLexeme !== null && currentLexeme.type === IN)
     {
         // advance over 'in'
         this._lexer.advance();
@@ -414,7 +414,7 @@ WhereParser.prototype.parseOrExpression = function parseOrExpression()
 {
     var result = this.parseAndExpression();
 
-    while (currentLexeme !== null && currentLexeme.type === OR) 
+    while (currentLexeme !== null && currentLexeme.type === OR)
     {
         // advance over 'or' or '||'
         this._lexer.advance();
@@ -431,7 +431,7 @@ WhereParser.prototype.parseAndExpression = function parseAndExpression()
 {
     var result = this.parseEqualityExpression();
 
-    while (currentLexeme !== null && currentLexeme.type === AND) 
+    while (currentLexeme !== null && currentLexeme.type === AND)
     {
         // advance over 'and' or '&&'
         this._lexer.advance();
@@ -448,7 +448,7 @@ WhereParser.prototype.parseEqualityExpression = function parseEqualityExpression
 {
     var result = this.parseRelationalExpression();
 
-    if (currentLexeme !== null) 
+    if (currentLexeme !== null)
     {
         var type = currentLexeme.type;
 
@@ -473,7 +473,7 @@ WhereParser.prototype.parseRelationalExpression = function()
 {
     var result = this.parseMemberExpression();
 
-    if (currentLexeme !== null) 
+    if (currentLexeme !== null)
     {
         var type = currentLexeme.type;
 
@@ -500,7 +500,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
 {
     var result = null;
 
-    if (currentLexeme !== null) 
+    if (currentLexeme !== null)
     {
         switch (currentLexeme.type)
         {
@@ -509,7 +509,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                 // advance over identifier
                 this._lexer.advance();
 
-                if (currentLexeme !== null && currentLexeme.type === LPAREN) 
+                if (currentLexeme !== null && currentLexeme.type === LPAREN)
                 {
                     // this is a function
                     var name = result.identifier;
@@ -519,7 +519,7 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     this._lexer.advance();
 
                     // process arguments
-                    while (currentLexeme !== null && currentLexeme.type !== RPAREN) 
+                    while (currentLexeme !== null && currentLexeme.type !== RPAREN)
                     {
                         args.push(this.parseOrExpression());
 
@@ -530,12 +530,12 @@ WhereParser.prototype.parseMemberExpression = function parseMemberExpression()
                     }
 
                     // advance over ')'
-                    if (currentLexeme !== null) 
+                    if (currentLexeme !== null)
                     {
                         this._lexer.advance();
                         result = new FunctionNode(name, args);
                     }
-                    else 
+                    else
                     {
                         throw new Error("Function argument list was not closed with a right parenthesis.");
                     }

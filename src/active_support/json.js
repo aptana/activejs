@@ -37,7 +37,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
         // Format integers to have at least two digits.
         return n < 10 ? '0' + n : n;
     }
-    
+
     Date.prototype.toJSON = function (key) {
         return this.getUTCFullYear()   + '-' +
              f(this.getUTCMonth() + 1) + '-' +
@@ -60,7 +60,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             '\\': '\\\\'
         },
         rep;
-    
+
     function quote(string) {
         escapeable.lastIndex = 0;
         return escapeable.test(string) ?
@@ -74,7 +74,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             }) + '"' :
             '"' + string + '"';
     }
-    
+
     function str(key, holder) {
         var i,          // The loop counter.
             k,          // The member key.
@@ -147,7 +147,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
             return v;
         }
     }
-    
+
     return {
         /**
          * ActiveSupport.JSON.stringify(object) -> String
@@ -176,7 +176,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
          **/
         parse: function (text, reviver) {
             var j;
-    
+
             function walk(holder, key) {
                 var k, v, value = holder[key];
                 if (value && typeof value === 'object') {
@@ -193,7 +193,7 @@ ActiveSupport.getAlternateJSONImplementation = function getAlternateJSONImplemen
                 }
                 return reviver.call(holder, key, value);
             }
-    
+
             cx.lastIndex = 0;
             if (cx.test(text)) {
                 text = text.replace(cx, function (a) {

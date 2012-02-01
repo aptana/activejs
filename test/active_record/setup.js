@@ -16,7 +16,7 @@ ActiveTest.Tests.Record.setup = function()
     ActiveRecord.execute('DROP TABLE IF EXISTS custom_table');
     ActiveRecord.execute('DROP TABLE IF EXISTS guid');
     ActiveRecord.execute('DROP TABLE IF EXISTS reserved');
-    
+
     //define Posts via SQL
     ActiveRecord.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY,user_id,title,body)');
     Post = ActiveRecord.create('posts');
@@ -29,7 +29,7 @@ ActiveTest.Tests.Record.setup = function()
             dependent: true
         });
     }
-    
+
     //define Comments via Migrations
     Comment = ActiveRecord.create('comments',{
         title: '',
@@ -45,11 +45,11 @@ ActiveTest.Tests.Record.setup = function()
     Comment.validatesPresenceOf('title');
     Comment.belongsTo('user');
     Comment.belongsTo(Post);
-    
+
     CreditCard = ActiveRecord.create('credit_cards',{
         number: 0
     });
-    
+
     User = ActiveRecord.create('users',{
         name: '',
         password: '',
@@ -67,13 +67,13 @@ ActiveTest.Tests.Record.setup = function()
     User.hasOne(CreditCard,{
         dependent: true
     });
-    
+
     ModelWithStringDates = ActiveRecord.create('string_dates',{
         name: '',
         created: '',
         updated: ''
     });
-    
+
     ModelWithDates = ActiveRecord.create('dates',{
         name: '',
         created: {
@@ -83,7 +83,7 @@ ActiveTest.Tests.Record.setup = function()
             type: 'DATETIME'
         }
     });
-    
+
     Article = ActiveRecord.create('articles',{
         name: ''
     });
@@ -91,7 +91,7 @@ ActiveTest.Tests.Record.setup = function()
     Article.hasMany('Category',{
         through: 'Categorization'
     });
-    
+
     Category = ActiveRecord.create('categories',{
         name: ''
     });
@@ -99,7 +99,7 @@ ActiveTest.Tests.Record.setup = function()
     Category.hasMany('Article',{
         through: 'Categorization'
     });
-    
+
     Categorization = ActiveRecord.create('categorizations',{
         article_id: 0,
         category_id: 0
@@ -110,7 +110,7 @@ ActiveTest.Tests.Record.setup = function()
     Categorization.belongsTo('Category',{
         dependent: true
     });
-    
+
     FieldTypeTester = ActiveRecord.create('field_type_testers',{
         string_field: '',
         number_field: 0,
@@ -124,11 +124,11 @@ ActiveTest.Tests.Record.setup = function()
             value: 'DEFAULT'
         }
     });
-    
+
     SingularTableName = ActiveRecord.create('singular_table_name',{
         string_field: ''
     });
-    
+
     Custom = ActiveRecord.create({
         tableName: 'custom_table',
         modelName: 'Orange'
@@ -138,7 +138,7 @@ ActiveTest.Tests.Record.setup = function()
         },
         name: ''
     });
-    
+
     Guid = ActiveRecord.create('guid',{
         guid: {
             primaryKey: true,
@@ -146,7 +146,7 @@ ActiveTest.Tests.Record.setup = function()
         },
         data: ''
     });
-    
+
     Reserved = ActiveRecord.create('reserved',{
         to: { primaryKey: true },
         from: '',

@@ -11,7 +11,7 @@ if(typeof exports != "undefined"){
  * on to operate.
  **/
 (function(global_context){
- 
+
 /** section: ActiveSupport
  * ActiveSupport
  * Provides a subset of methods from the Prototype.js framework,

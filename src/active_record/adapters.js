@@ -15,19 +15,19 @@ ActiveRecord.connection = null;
  * ActiveRecord.connection(json) -> null
  * - url (String): Location to load JSON data from.
  * - json (String | Object): JSON string or JSON object.
- * 
+ *
  *     //empty in memory database
  *     ActiveRecord.connect();
- * 
+ *
  *     //in memory database populated with json data
  *     ActiveRecord.connect('{my_table:{1:{field:"value"}}}');
- * 
+ *
  *     //in memory database populated with json data loaded from remote source
  *     ActiveRecord.connect('my_data_source.json');
- * 
+ *
  *     //same as above with custom HTTP method and params to load data
  *     ActiveRecord.connect(['http://server/','POST',{session_id:1}]);
- * 
+ *
  *     //same as above with REST mapping parameters
  *     ActiveRecord.connect(['http://server/','POST',{session_id:1}],{
  *         User: {
@@ -65,7 +65,7 @@ ActiveRecord.connect = function connect()
 /**
  * ActiveRecord.execute(sql_statement) -> Array
  * Accepts a variable number of arguments.
- *  
+ *
  * Execute a SQL statement on the active connection. If the statement requires arguments they must be passed in after the SQL statement.
  *
  *     ActiveRecord.execute('DELETE FROM users WHERE user_id = ?',5);
@@ -83,7 +83,7 @@ ActiveRecord.execute = function execute()
  * ActiveRecord.escape(value[,suppress_quotes = false]) -> Number | String
  * Escapes a given argument for use in a SQL string. By default
  * the argument passed will also be enclosed in quotes.
- * 
+ *
  * ActiveRecord.escape(5) == 5
  * ActiveRecord.escape('tes"t') == '"tes\"t"';
  **/
@@ -188,7 +188,7 @@ Adapters.fieldTypesWithDefaultValues = {
     'mediumblob': '',
     'longblob': '',
     'longtext': '',
-    
+
     'enum': '',
     'set': ''
 };
@@ -210,7 +210,7 @@ Adapters.InstanceMethods = {
                 }
                 return field.value || default_value;
             }
-            //default value was set, but was not field specification 
+            //default value was set, but was not field specification
             else
             {
                 return field;

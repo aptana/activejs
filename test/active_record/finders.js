@@ -1,5 +1,5 @@
 ActiveTest.Tests.Record.finders = function()
-{    
+{
     with(ActiveTest)
     {
         var a = Comment.create({
@@ -37,10 +37,10 @@ ActiveTest.Tests.Record.finders = function()
           where: ['title = ?','b'],
           limit: 1
         });
-        assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion via find)');            
-        
+        assert(b[0] && b[0].title == 'b','find(SQL string with WHERE, LIMIT and param substituion via find)');
+
         assert(Comment.find().length == 3 && Comment.find({all: true}).length == 3,'find({all: true})');
-        
+
         var asc = Comment.find({
             all: true,
             order: 'id ASC'
@@ -49,17 +49,17 @@ ActiveTest.Tests.Record.finders = function()
             all: true,
             order: 'id DESC'
         });
-        
+
         var asc_find_by_sql = Comment.find('SELECT * FROM comments ORDER BY id ASC');
         var desc_find_by_sql = Comment.find('SELECT * FROM comments ORDER BY id DESC');
-        
+
         assert(asc[0].title == asc_find_by_sql[0].title && asc[2].title == asc_find_by_sql[2].title && desc[0].title == desc_find_by_sql[0].title && desc[2].title == desc_find_by_sql[2].title,'find(sql_string)');
         assert(asc[0].title == 'a' && asc[2].title == 'c' && desc[0].title == 'c' && desc[2].title == 'a','find({all: true,order: String})');
-        
+
         assert(typeof(Comment.findByTitle) != 'undefined','findBy#{X} exists.');
         assert(typeof(Comment.findAllByTitle) != 'undefined','findAllBy#{X} exists.');
         assert(Comment.findByTitle('a').title == a.title && Comment.findById(a.id).id == a.id,'findByX works');
-        
+
         //find by callback
         var comments_found_by_callback = Comment.find({
             callback: function(comment){
@@ -74,7 +74,7 @@ ActiveTest.Tests.Record.finders = function()
             }
         });
         assert(comment_found_by_callback.title == 'c','find({callback:function(){},first:true})');
-        
+
         //test GROUP BY
         Comment.destroy('all');
         var one = Comment.create({title: 'a'});
@@ -87,7 +87,7 @@ ActiveTest.Tests.Record.finders = function()
         assert(result[0].title == 'a' && result[1].title == 'b','GROUP BY clause via params works');
         var result = Comment.find('SELECT * FROM comments GROUP BY title ORDER BY id ASC');
         assert(result[0].title == 'a' && result[1].title == 'b','GROUP BY clause via SQL works');
-        
+
         //test find multiple by id
         //add extra record to make sure it is not finding all
         Comment.create({

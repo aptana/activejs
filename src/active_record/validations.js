@@ -17,7 +17,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     validatesPresenceOf: function validatesPresenceOf(field, options)
     {
         options = ActiveSupport.Object.extend({
-            
+
         },options || {});
         this.addValidator(function validates_presence_of_callback(){
             if(!this.get(field) || this.get(field) === '')

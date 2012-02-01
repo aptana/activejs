@@ -1,11 +1,11 @@
 /**
  * class ActiveSupport.Request
- * 
+ *
  * Supports an indentical API to Prototype's [Ajax.Request/Response](http://api.prototypejs.org/ajax/),
  * but does not include handling / onException callbacks or Ajax.Responders.
  *
  * You can mimic Ajax.Responder functionality with ActiveEvent:
- * 
+ *
  *     //only needs to be done once per app, but not enabled by default
  *     ActiveEvent.extend(ActiveSupport.Request);
  *     ActiveSupport.Request.observe('onComplete',function(request,response,header_json){});
@@ -183,7 +183,7 @@ ActiveSupport.Object.extend(ActiveSupport.Request.prototype,{
         }
     },
     evalResponse: function evalResponse()
-    {   
+    {
         return eval((this.transport.responseText || '').replace(/^\/\*-secure-([\s\S]*)\*\/\s*$/,'$1'));
     },
     isSameOrigin: function isSameOrigin()
@@ -262,12 +262,12 @@ ActiveSupport.Response = function Response(request)
 {
     var global_context = ActiveSupport.getGlobalContext();
     var ie = !!(global_context.attachEvent && !global_context.opera);
-    
+
     this.status = 0;
     this.statusText = '';
     this.getStatus = request.getStatus;
     this.getHeader = request.getHeader;
-    
+
     this.request = request;
     var transport = this.transport = request.transport;
     var ready_state = this.readyState = transport.readyState;

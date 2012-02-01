@@ -113,7 +113,7 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
      * ActiveRecord.Model#save([force_created_mode = false]) -> Boolean
      * - force_created_mode (Boolean): Defaults to false, will force the record to act as if it was created even if an id property was passed.
-     * Persists the object, creating or updating as nessecary. 
+     * Persists the object, creating or updating as nessecary.
      **/
     save: function save(force_created_mode)
     {
@@ -203,7 +203,7 @@ ActiveSupport.Object.extend(ActiveRecord.InstanceMethods,{
     /**
      * ActiveRecord.Model#toSerializableObject([transform_callback]) -> Object
      * toJSON will call this instead of toObject() to get the
-     * data they will serialize. By default this calls toObject(), but 
+     * data they will serialize. By default this calls toObject(), but
      * you can override this method to easily create custom JSON output.
      * - transform_callback (Function): Will recieve and should reutrn a hash of attributes.
      **/
@@ -227,7 +227,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      * ActiveRecord.Model.find(array_of_ids) -> Array
      * ActiveRecord.Model.find(params) -> Array
      * ActiveRecord.Model.find(sql_statement) -> Array
-     * 
+     *
      * Find a given record, or multiple records matching the passed conditions. Params may contain:
      *
      * - select (Array) of columns to select, default ['*']
@@ -239,7 +239,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      * - callback (Function)
      *
      *     //finding single records
-     *     var user = User.find(5); 
+     *     var user = User.find(5);
      *     var user = User.find({
      *         first: true,
      *         where: {
@@ -255,7 +255,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *     var users = User.find(); //finds all
      *     var users = User.find(1,2,3); //finds ids 1,2,3
      *     var users = User.find([1,2,3]); // finds ids 1,2,3
-     *     
+     *
      *     //finding multiple records with complex where statements
      *     var users = User.find({
      *         where: 'name = "alice" AND password = "' + md5('pass') + '"',
@@ -275,7 +275,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
      *         }
      *         order: 'id DESC'
      *     });
-     *     
+     *
      *     //find using a complete SQL statement
      *     var users = User.find('SELECT * FROM users ORDER id DESC');
      *
@@ -322,7 +322,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
                 {
                     return false;
                 }
-                
+
             }
             if (result && result.iterate && result.iterate(0))
             {
@@ -434,7 +434,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * ActiveRecord.Model.create(attributes) -> Object
-     * 
+     *
      *     var u = User.create({
      *         name: 'alice',
      *         password: 'pass'
@@ -463,7 +463,7 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
     },
     /**
      * ActiveRecord.Model.update(id,attributes) -> Object
-     * 
+     *
      *     Article.update(3,{
      *         title: 'New Title'
      *     });
@@ -518,9 +518,9 @@ ActiveSupport.Object.extend(ActiveRecord.ClassMethods,{
         ActiveRecord.connection.updateMultitpleEntities(this.tableName, updates, conditions);
     },
     /**
-     * ActiveRecord.Model.resultSetFromArray(result_set[,find_params]) -> Array 
+     * ActiveRecord.Model.resultSetFromArray(result_set[,find_params]) -> Array
      * Extends a vanilla array with ActiveRecord.ResultSet methods allowing for
-     * the construction of custom result set objects from arrays where result 
+     * the construction of custom result set objects from arrays where result
      * sets are expected. This will modify the array that is passed in and
      * return the same array object.
      *

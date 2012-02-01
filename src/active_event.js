@@ -1,6 +1,6 @@
 /**
  * == ActiveEvent ==
- * 
+ *
  * Create observable events, and attach event handlers to any class or object.
  * Supports class events that cascade to all instances.
  *
@@ -11,20 +11,20 @@
  *
  *     ActiveEvent.extend(MyClass); //class and all instances are observable
  *     ActiveEvent.extend(my_object); //this object becomes observable
- * 
+ *
  * Creating Events
  * ---------------
  * You can create an event inside any method of your class or object by calling
  * the `notify` method with name of the event followed by any arguments to be
  * passed to observers.
- * 
+ *
  *     var Message = function(){};
  *     ActiveEvent.extend(Message);
  *     Message.prototype.send = function(text){
  *         //message sending code here...
  *         this.notify('sent',text);
  *     };
- * 
+ *
  * Observing Events
  * ----------------
  * To observe an event call the `observe` method with the name of the event you
@@ -33,16 +33,16 @@
  * the instance that triggered the event will always be the first argument
  * passed to the observer. `observeOnce` works just like `observe` in every
  * way, but is only called once.
- * 
+ *
  *     Message.observe('sent',function(message,text){
  *         //responds to all sent messages
  *     });
- * 
+ *
  *     var m = new Message();
  *     m.observe('sent',function(text){
  *         //this will only be called when "m" is sent
  *     });
- * 
+ *
  *     observable_hash.observe('set',function(key,value){
  *         console.log('observable_hash.set: ' + key + '=' + value);
  *     });
@@ -50,20 +50,20 @@
  *     observable_hash.observeOnce('set',function(key,value){
  *         //this will only be called once
  *     });
- * 
+ *
  * Function Binding
  * ----------------
  * You can bind and curry your observers by adding extra arguments, which
  * will be passed to [[ActiveSupport.Function.bind]]:
- * 
+ *
  *     Message.observe('sent',function(message,text){
  *         //this == context
  *     },context);
- * 
+ *
  *     Message.observe('sent',function(curried_argument,message,text){
  *         //this == context
  *     },context,curried_argument);
- * 
+ *
  * Control Flow
  * ------------
  * When `notify` is called, if any of the registered observers for that event
@@ -84,21 +84,21 @@
  *         this.notify('sent',text);
  *         return true;
  *     };
- * 
+ *
  *     var m = new Message();
- *     
+ *
  *     var observer = m.observe('send',function(message,text){
  *         if(text === 'test')
  *             return false;
  *     });
- *     
+ *
  *     m.send('my message'); //returned true
  *     m.send('test'); //returned false
- *     
+ *
  *     m.stopObserving('send',observer);
- *     
+ *
  *     m.send('test'); //returned true
- * 
+ *
  * Object.options
  * --------------
  * If an object has an options property that contains a callable function with
@@ -109,7 +109,7 @@
  *         this.options = options;
  *     };
  *     ActiveEvent.extend(Widget);
- *  
+ *
  *     var my_widget = new Widget({
  *         afterChange: function(){}
  *     });
@@ -144,7 +144,7 @@ ActiveEvent = {};
  * Mixin [[Observable]] to the given object.
  **/
 ActiveEvent.extend = function extend(object){
-    
+
     object._objectEventSetup = function _objectEventSetup(event_name)
     {
         if(!this._observers)
@@ -156,7 +156,7 @@ ActiveEvent.extend = function extend(object){
             this._observers[event_name] = [];
         }
     };
-    
+
     /**
      * Observable.observe(event_name,observer[,context]) -> Function
      * See ActiveEvent tutorial.
@@ -181,7 +181,7 @@ ActiveEvent.extend = function extend(object){
         }
         return observer;
     };
-    
+
     /**
      * Observable.stopObserving([event_name][,observer]) -> null
      * Removes a given observer. If no observer is passed, removes all
@@ -204,7 +204,7 @@ ActiveEvent.extend = function extend(object){
             this._observers = {};
         }
     };
-    
+
     /**
      * Observable.observeOnce(event_name,observer[,context]) -> Function
      * Works exactly like `observe`, but will `stopObserving` after the first
@@ -223,7 +223,7 @@ ActiveEvent.extend = function extend(object){
         this._observers[event_name].push(inner_observer);
         return inner_observer;
     };
-    
+
     /**
      * Observable.notify(event_name[,argument]) -> Array | Boolean
      * Triggers event_name with the passed arguments, accepts a variable number of arguments.
@@ -318,7 +318,7 @@ ActiveEvent.extend = function extend(object){
  * class ActiveEvent.ObservableHash
  * includes Observable
  * A simple hash implementation that fires notifications on `set`/`unset`.
- * 
+ *
  * Events
  * ------
  * - set(key,value)

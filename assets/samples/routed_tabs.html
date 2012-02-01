@@ -27,7 +27,7 @@
         }
         return element;
       });
-      
+
       TabView = ActiveView.create(function(builder,dom){
         this.selectedTabName = false;
         this.tabs = {};
@@ -51,7 +51,7 @@
           return this.selectedTabName;
         }
       });
-      
+
       ActiveRoutes.setRoutes({
         '/:tab': [TabView,'setTab']
       });
@@ -109,7 +109,7 @@
         background: #eee;
         text-decoration:none;
       }
-      
+
     </style>
   </head>
   <body>

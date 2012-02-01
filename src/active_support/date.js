@@ -1,7 +1,7 @@
 /**
  * ActiveSupport.dateFromDateTime(date_time) -> Date
  * - date_time (String): in "yyyy-mm-dd HH:MM:ss" format
- *  
+ *
  * Generates a JavaScript Date object from a MySQL DATETIME formatted string.
  **/
 ActiveSupport.dateFromDateTime = function dateFromDateTime(date_time)
@@ -17,22 +17,22 @@ ActiveSupport.dateFromDateTime = function dateFromDateTime(date_time)
  * Includes enhancements by Scott Trenda <scott.trenda.net> and Kris Kowal <cixar.com/~kris.kowal/>
  *
  * http://blog.stevenlevithan.com/archives/date-time-format
- * 
+ *
  * Accepts a date, a mask, or a date and a mask.
  * Returns a formatted version of the given date.
  * The date defaults to the current date/time.
  * The mask defaults to dateFormat.masks.default.
  */
- 
+
 /**
  *  ActiveSupport.dateFormat(format) -> String
  *  ActiveSupport.dateFormat(date,format[,convert_to_local_time = false]) -> String
  *  - date (Date): If no date is passed the current Date will be used.
  *  - format (String): test
  *  - convert_to_local_time (Boolean): test
- * 
+ *
  * See: <http://blog.stevenlevithan.com/archives/date-time-format>
- * 
+ *
  * If convert_to_local_time is true the Date object will be assume to be GMT
  * and be converted from GMT to the local time. Local time will be the local
  * time of the server if running server side, or local time of the client
@@ -123,7 +123,7 @@ ActiveSupport.dateFormat = (function date_format_wrapper()
             return $0 in flags ? flags[$0] : $0.slice(1, $0.length - 1);
         });
     };
-    
+
     // Some common format strings
     dateFormat.masks = {
         "default":      "ddd mmm dd yyyy HH:MM:ss",
@@ -152,6 +152,6 @@ ActiveSupport.dateFormat = (function date_format_wrapper()
             "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
         ]
     };
-    
+
     return dateFormat;
 })();

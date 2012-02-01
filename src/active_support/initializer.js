@@ -4,11 +4,11 @@
  * your application is ready to use. The initializer ensures that ActiveRoutes
  * and ActiveRecord are configured appropriately and that these events occur
  * in the correct order. Specifically the initializer will:
- * 
+ *
  * - observe the document 'ready' event provided by DOM
  * - connect ActiveRecord to a data source
  * - configure ActiveView.Routing
- * 
+ *
  *     new ActiveSupport.Initializer({
  *         database: 'path/to/db.json',
  *         routes: function(){
@@ -22,21 +22,21 @@
  *             MyApp.setup();
  *         }
  *     });
- *     
+ *
  **/
- 
+
 /**
  * new ActiveSupport.Initializer(options)
  * - options (Object)
- * 
+ *
  * The options hash can contain:
- * 
+ *
  * - database (String | Array): URL of a JSON database to load, or an array of arguments to [[ActiveRecord.connect]]
  * - routes (Object | Function): A hash of routes, or a function that returns one. Usually a function is needed as the objects that will be routed to are not available when the initializer is loaded.
  * - initialRoute (String): The route to be called when the app starts. Defaults to false.
  * - callback (Function): The function to be called when the initializer has completed.
  **/
- 
+
 /**
  * ActiveSupport.Initializer#initialized -> Boolean
  **/
