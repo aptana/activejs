@@ -7,18 +7,18 @@ require 'fileutils'
 
 module ActiveJSHelper
   ROOT_DIR = File.expand_path(File.dirname(__FILE__))
-  
+
   ASSETS_DIR = File.join(ROOT_DIR, 'assets')
   SRC_DIR = File.join(ROOT_DIR, 'src')
   DIST_DIR = File.join(ROOT_DIR, 'assets/downloads')
   DOCS_DIR = File.join(ROOT_DIR, 'docs')
   TEST_DIR = File.join(ROOT_DIR, 'test')
   VENDOR_DIR = File.join(ROOT_DIR, 'vendor')
-  
+
   VERSION = YAML.load(IO.read(File.join(SRC_DIR, 'constants.yml')))['VERSION']
-  
+
   SOURCE_FILE_FOR_DOCS = File.join(DIST_DIR, 'source_for_docs.js')
-  
+
   INCLUDES = {
     :swfaddress => [
       File.join(VENDOR_DIR,'swfaddress/swfaddress.js')
@@ -33,7 +33,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_support/initializer.js')
     ]
   }
-  
+
   DISTRIBUTION_FOR_DOC_GENERATION = [
     File.join(SRC_DIR,'active_support.js'),
     File.join(SRC_DIR,'builder.js'),
@@ -43,7 +43,7 @@ module ActiveJSHelper
     File.join(SRC_DIR,'active_record.js'),
     File.join(SRC_DIR,'active_view.js')
   ]
-  
+
   DISTRIBUTIONS = {
     'dom.js' => [
       File.join(SRC_DIR,'dom.js')
@@ -86,7 +86,7 @@ module ActiveJSHelper
       File.join(SRC_DIR,'active_view.js'),
       File.join(SRC_DIR,'active_record.js'),
       INCLUDES[:swfaddress]
-    ],    
+    ],
     #ActiveJS combined tests
     File.join('..','..','test','test.js') => [
       Dir[File.join(TEST_DIR,'**/setup.js')],
@@ -106,7 +106,7 @@ module ActiveJSHelper
       Dir[File.join(TEST_DIR,group + '/*.js')].reject{|item| item.match(/setup\.js$/)}
     ].flatten.reject{|item| item.match(/\/test.js$/)}
   end
-  
+
   def self.sprocketize
     load_path = [SRC_DIR]
     DISTRIBUTIONS.each_pair do |distribution_name,source_files|
@@ -121,7 +121,7 @@ module ActiveJSHelper
       secretary.concatenation.save_to(File.join(DIST_DIR, distribution_name))
     end
   end
-  
+
   def self.sprocketize_for_docs
     flattened_source_files = DISTRIBUTION_FOR_DOC_GENERATION.clone.flatten
     secretary = Sprockets::Secretary.new(
@@ -140,7 +140,7 @@ task :dist, :copy_locations do |task,arguments|
   ActiveJSHelper.sprocketize
   ActiveJSHelper::DISTRIBUTIONS.each_pair do |target,payload|
     puts "Built #{File.expand_path(File.join(ActiveJSHelper::DIST_DIR,target))}"
-  end  
+  end
   copy_locations = (arguments[:copy_locations] || '').split(',')
   copy_locations.each do |location_pair|
     source, target = location_pair.split(':')

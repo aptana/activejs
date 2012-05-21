@@ -3,13 +3,13 @@
  * Sepcifies a 1->1 relationship between models. The foreign key will reside in the related object.
  * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * - options (Object)
- *  
+ *
  * Options can contain:
- * 
+ *
  * - foreignKey (String)
  * - name (String)
  * - dependent (Boolean)
- * 
+ *
  *     User.hasOne(CreditCard);
  *     var u = User.find(5);
  *     //each User instance will gain the following 3 methods
@@ -57,7 +57,7 @@ ActiveRecord.ClassMethods.hasOne = function hasOne(related_model_name, options)
     }, related_model_name, foreign_key);
     ActiveSupport.Object.extend(this.prototype, instance_methods);
     ActiveSupport.Object.extend(this, class_methods);
-    
+
     //dependent
     if(options.dependent)
     {

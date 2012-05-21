@@ -21,7 +21,7 @@ ActiveSupport.Array = {
         return results;
     },
     /**
-     * ActiveSupport.Array.indexOf(array,object[,index]) -> Number 
+     * ActiveSupport.Array.indexOf(array,object[,index]) -> Number
      * Emulates Array.indexOf for implementations that do not support it.
      **/
     indexOf: function indexOf(array,item,i)

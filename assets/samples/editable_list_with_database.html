@@ -8,11 +8,11 @@
     <script src="javascripts/example_setup.js"></script>
     <script id="source_code">
       ActiveRecord.connect();
-    
+
       ListItem = ActiveRecord.create('list_items',{
         content: ''
       });
-    
+
       LayoutView = ActiveView.create(function(builder,dom){
         //all views except ListItemView act as singletons in this example
         return builder.div(
@@ -21,7 +21,7 @@
           EditView.getInstance().getElement()
         );
       });
-      
+
       EditView = ActiveView.create(function(builder,dom){
         var element = builder.div(
           this.addListItemForm = builder.form(
@@ -60,7 +60,7 @@
           this.reset();
         }
       });
-      
+
       ListView = ActiveView.create(function(builder,dom){
         this.listItemsIndexedById = {};
         return builder.ul();
@@ -90,7 +90,7 @@
       ListItem.observe('afterDestroy',function(list_item){
         ListView.getInstance().destroyListItemView(list_item);
       });
-      
+
       ListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
           this.contentContainer = builder.span(this.get('list_item').get('content')),
@@ -115,7 +115,7 @@
           dom.update(this.contentContainer,this.get('list_item').get('content'));
         }
       });
-      
+
       ListItemCounterView = ActiveView.create(function(builder,dom){
         this.count = 0;
         var element = builder.p(
@@ -150,7 +150,7 @@
       ListItem.observe('afterDestroy',function(list_item){
         ListItemCounterView.getInstance().decrement();
       });
-      
+
       ActiveSupport.Element.observe(document,'ready',function(){
         var example_container = document.getElementById('example_container');
         example_container.appendChild(LayoutView.getInstance().getElement());

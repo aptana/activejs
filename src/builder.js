@@ -1,9 +1,9 @@
 /**
  * Builder
  * See the [[ActiveView]] or [[Builder.tag]] for usage.
- * 
+ *
  * Contains the following DOM Element generator methods:
- * 
+ *
  * - abbr
  * - acronym
  * - address
@@ -97,9 +97,9 @@
  * - u
  * - ul
  * - var
- * 
+ *
  * Also includes HTML 5 tags:
- * 
+ *
  * - article
  * - aside
  * - audio
@@ -123,31 +123,31 @@
  * - summary
  * - time
  * - video
- * 
+ *
  **/
- 
+
 /**
  * Builder.tag([content][,attributes][,child_nodes]) -> Element
  * - content (String | Number | Function): The content to be inserted in the node.
  * - attributes (Object): Hash of HTML attributes, must use "className" instead of "class".
  * - child_nodes (Array | Element | Function): May be an array of child nodes, a callback function or an Element
- *  
+ *
  * **This method refers to tag methods, "br", "li", etc not a method named "tag".**
- *  
+ *
  *  `tag` methods accept a variable number of arguments. You can pass multiple
  *  `content` arguments, `attributes` hashes or child nodes (as an array or single
  *  elements) in any order.
- *  
+ *
  *     Builder.ul(Builder.li('a'),Builder.li('b'),{className:'my_list'});
  *     Builder.ul({className:'my_list'},[Builder.li('a'),Builder.li('b')]);
- *  
+ *
  * Functions that are passed in will be called, and the response treated as
  * an argument, for instance: one of the tag methods:
- *  
+ *
  *     Builder.p('First line',Builder.br,'Second Line')
- * 
+ *
  * it could also be a class method, or an inline function:
- * 
+ *
  *     Builder.p('First line',my_view_method,'Second Line')
  **/
 var Builder = {
@@ -156,8 +156,8 @@ var Builder = {
         'FONT FORM FRAME FRAMESET H1 H2 H3 H4 H5 H6 HEAD HR HTML I IFRAME IMG INPUT INS ISINDEX '+
         'KBD LABEL LEGEND LI LINK MAP MENU META NOBR NOFRAMES NOSCRIPT OBJECT OL OPTGROUP OPTION P '+
         'PARAM PRE Q S SAMP SCRIPT SELECT SMALL SPAN STRIKE STRONG STYLE SUB SUP TABLE TBODY TD '+
-        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR ' + 
-        'ARTICLE ASIDE AUDIO COMMAND DETAILS FIGCAPTION FIGURE FOOTER HEADER HGROUP KEYGEN MARK ' + 
+        'TEXTAREA TFOOT TH THEAD TITLE TR TT U UL VAR ' +
+        'ARTICLE ASIDE AUDIO COMMAND DETAILS FIGCAPTION FIGURE FOOTER HEADER HGROUP KEYGEN MARK ' +
         'METER NAV OUTPUT PROGRESS RP RUBY SECTION SOURCE SUMMARY TIME VIDEO'
     ).split(/\s+/),
     processNodeArgument: function processNodeArgument(elements,attributes,argument)

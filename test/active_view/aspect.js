@@ -34,13 +34,13 @@ ActiveTest.Tests.View.aspect = function()
         });
 		ChildView.className = 'ChildView.Class';
 		ChildView.prototype.className = 'ChildView.Instnace';
-		
+
 		var child = new ChildView({value:'test'});
 		assert(child.get('a') == 1 && child.get('b') == 2,'View aspects, scope cascades to child.');
 		document.body.appendChild(child.getElement());
         assert(child.getText() == 'test' && child.textNode.className == 'added','Basic aspect logic working.');
         ActiveSupport.Element.remove(child.getElement());
-		
+
 		var notify_arg_from_parent;
 		var notify_arg_from_child;
 		var trigger_count = 0;
@@ -55,7 +55,7 @@ ActiveTest.Tests.View.aspect = function()
 		child.parentTrigger();
 		child.childTrigger();
 		assert(trigger_count == 2 && notify_arg_from_parent == 'a' && notify_arg_from_child == 'b','Instance events inherited and triggered properly.');
-		
+
 		notify_arg_from_parent = false;
 		notify_arg_from_child = false;
 		ChildView.observe('parent_event',function(){
@@ -68,7 +68,7 @@ ActiveTest.Tests.View.aspect = function()
 		});
 		new ChildView({value: 'test'});
 		assert(trigger_count == 4 && notify_arg_from_parent == 'a' && notify_arg_from_child == 'b','Class events triggered properly.');
-		
+
 		var notify_arg_from_parent_class;
 		notify_arg_from_parent = false;
 		notify_arg_from_child = false;
@@ -78,7 +78,7 @@ ActiveTest.Tests.View.aspect = function()
 		});
 		new ChildView({value: 'test'});
 		assert(trigger_count == 7 && notify_arg_from_parent_class == 'a' && notify_arg_from_parent == 'a' && notify_arg_from_child == 'b','Event registered on parent class cascades to child.');
-		
+
 		notify_arg_from_parent_class = false;
 		notify_arg_from_parent = false;
 		notify_arg_from_child = false;

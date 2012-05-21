@@ -3,9 +3,9 @@
  * Sepcifies a 1<-1 relationship between models. The foreign key will reside in the declaring object.
  * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * - options (Object)
- * 
+ *
  * Options can contain:
- * 
+ *
  * - foreignKey (String)
  * - name (String)
  * - counter (String)
@@ -64,7 +64,7 @@ ActiveRecord.ClassMethods.belongsTo = function belongsTo(related_model_name, opt
     }, related_model_name, foreign_key);
     ActiveSupport.Object.extend(this.prototype, instance_methods);
     ActiveSupport.Object.extend(this, class_methods);
-    
+
     //counter
     if(options.counter)
     {

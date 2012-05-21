@@ -1,7 +1,7 @@
 /**
  * class ActiveSupport.CallbackQueue
  * Allows for the execution of callbacks in the order they are registered.
- * 
+ *
  *     var queue = new ActiveSupport.CallbackQueue(function(){
  *         console.log('Callback queue empty.');
  *     });
@@ -18,20 +18,20 @@
  *         console.log('"callback_three" called.');
  *     });
  *     callback_three();
- * 
- * Ajax callback finishes after `callback_two` and `callback_three`, but 
+ *
+ * Ajax callback finishes after `callback_two` and `callback_three`, but
  * output to the console would still be:
- * 
+ *
  *     //Ajax Request finished.
  *     //"callback_two" called.
  *     //"callback_three" called.
  *     //Callback queue empty.
- * 
+ *
  * Note that ActiveSupport.CallbackQueue will only function if the first callback
  * added will be called asynchronously (as a result of an Ajax request or setTimeout
  * call).
  **/
- 
+
 /**
  * new ActiveSupport.CallbackQueue(on_complete[,context])
  * - on_complete (Function): The function to call when all callacks are completed.
@@ -52,7 +52,7 @@ ActiveSupport.CallbackQueue = function CallbackQueue(on_complete)
  * ActiveSupport.CallbackQueue.stack -> Array
  * The stack of callbacks that are `push`ed onto the queue.
  **/
- 
+
 ActiveSupport.CallbackQueue.prototype.setOnComplete = function setOnComplete(on_complete)
 {
     this.onComplete = on_complete;

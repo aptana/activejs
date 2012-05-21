@@ -3,9 +3,9 @@
  * Sepcifies a 1->N relationship between models. The foreign key will reside in the child (related) object.
  * - related_model_name (String): Can be a plural or singular referring to the related table, the model name, or a reference to the model itself ("users","User" or User would all work).
  * - options (Object)
- * 
+ *
  * Options can contain:
- * 
+ *
  * - foreignKey (String)
  * - name (String)
  * - dependent (Boolean)
@@ -21,7 +21,7 @@
  *     u.buildComment()
  *     u.destroyComment()
  *     u.getCommentList() //takes the same options as find()
- *     u.getCommentCount() //takes the same options as count() 
+ *     u.getCommentCount() //takes the same options as count()
  **/
 ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options)
 {
@@ -40,7 +40,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
     var foreign_key = Relationships.normalizeForeignKey(options.foreignKey, Relationships.normalizeModelName(this.modelName));
     var class_methods = {};
     var instance_methods = {};
-    
+
     if(options.through)
     {
         var through_model_name = Relationships.normalizeModelName(options.through);
@@ -54,7 +54,7 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             }
             return response;
         }, through_model_name, related_model_name, foreign_key);
-        
+
         instance_methods['get' + relationship_name + 'Count'] = ActiveSupport.Function.curry(function getRelatedCountForThrough(through_model_name, related_model_name, foreign_key, params){
             if(!params)
             {
@@ -143,10 +143,10 @@ ActiveRecord.ClassMethods.hasMany = function hasMany(related_model_name, options
             return ActiveRecord.Models[related_model_name].create(params);
         }, related_model_name, foreign_key);
     }
-    
+
     ActiveSupport.Object.extend(this.prototype, instance_methods);
     ActiveSupport.Object.extend(this, class_methods);
-    
+
     //dependent
     if(options.dependent)
     {

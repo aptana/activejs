@@ -24,7 +24,7 @@
         this.listView.insertListItem('Sample Item');
         return element;
       });
-      
+
       ListView = ActiveView.create(function(builder,dom){
         return builder.ul();
       },{
@@ -35,7 +35,7 @@
           }).getElement());
         }
       });
-      
+
       ListItemView = ActiveView.create(function(builder,dom){
         var element = builder.li(
           builder.span(this.get('content')),
@@ -48,7 +48,7 @@
         },this);
         return element;
       });
-            
+
       ActiveSupport.Element.observe(document,'ready',function(){
         var example_container = document.getElementById('example_container');
         example_container.appendChild(LayoutView.getInstance().getElement());

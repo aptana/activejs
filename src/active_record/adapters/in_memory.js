@@ -6,7 +6,7 @@ Adapters.InMemory = function InMemory(storage){
 /**
  * ActiveRecord.connection.storage -> Object
  * Contains the raw data that the InMemory database uses. Stored in this format:
- * 
+ *
  *     {
  *         table_name: {
  *             id: {
@@ -14,7 +14,7 @@ Adapters.InMemory = function InMemory(storage){
  *             }
  *         }
  *     }
- *     
+ *
  *     ActiveRecord.connection.storage.table_name[id].column_name
  *     ActiveRecord.connection.storage.comments[5].title
  **/
@@ -30,7 +30,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     /**
      * ActiveRecord.connection.setStorage(storage) -> null
      * Sets the storage (in memory database hash) affter connect() has been called.
-     * 
+     *
      *     ActiveRecord.connect(ActiveRecord.Adapters.InMemory);
      *     ActiveRecord.connection.setStorage({my_table:{...}});
      **/
@@ -81,7 +81,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     },
     updateMultitpleEntities: function updateMultitpleEntities(table, updates, conditions)
     {
-        
+
     },
     updateEntity: function updateEntity(table, primary_key_name, id, data)
     {
@@ -244,7 +244,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
     {
         var params = {};
         var select = /\s*SELECT\s+.+\s+FROM\s+(\w+)\s+/i;
-        var select_match = sql.match(select); 
+        var select_match = sql.match(select);
         var table = select_match[1];
         sql = sql.replace(select,'');
         var fragments = [
@@ -318,7 +318,7 @@ ActiveSupport.Object.extend(Adapters.InMemory.prototype,{
         }
     },
     createWhere: function createWhere(where)
-    {   
+    {
         if(ActiveSupport.Object.isArray(where))
         {
             var where_fragment = where[0];

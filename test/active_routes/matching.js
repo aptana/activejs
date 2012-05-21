@@ -2,7 +2,7 @@ ActiveTest.Tests.Routes.matching = function()
 {
     with(ActiveTest)
     {
-        
+
         assert(ActiveRoutes.match('/')[0] == Controller.home,'basic match');
         assert(ActiveRoutes.match('/article/5')[0] == Controller.article && ActiveRoutes.match('/article/5')[1].id == 5,'match with param');
         assert(ActiveRoutes.match('/one/two/3/4/5/6')[0] == Controller.multipleParams
@@ -33,6 +33,6 @@ ActiveTest.Tests.Routes.matching = function()
           && ActiveRoutes.match('/one/a/b/c/d')[1].c == 'c'
           && ActiveRoutes.match('/one/a/b/c/d')[1].d == 'd'
         ,'match with multiple optional params, with missing params');
-        
+
     }
 };

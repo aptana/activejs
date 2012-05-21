@@ -9,9 +9,9 @@ ActiveTest.Tests.View.builder = function()
                    li({className: 'test'}),
                    {className: 'blarg'}
                );
-           } 
+           }
         });
-        
+
         var DeepView = ActiveView.create(function(){
             with(ActiveView.Builder){
                 return div(
@@ -30,10 +30,10 @@ ActiveTest.Tests.View.builder = function()
                             ),
                             tr(
                                 td(
-                                    
+
                                 ),
                                 td(
-                                    
+
                                 )
                             )
                         )

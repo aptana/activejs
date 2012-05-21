@@ -12,24 +12,24 @@ if(typeof exports != "undefined"){
  * Maps urls to method calls and method calls to urls. This
  * enables back button support and allows methods to be called by normal links
  * (A tags) in your application without adding event handlers or additional code.
- * 
+ *
  * Calling `setRoutes` will setup ActiveRoutes and call the dispatcher with the
  * current url (if any) as soon as the page is fully loaded. `setRoutes` takes
  * a hash with items in two formats:
- * 
+ *
  *     - String path: Function anonymous_callback
  *     - String path: Array [Object,Function method_callback]
- * 
+ *
  * A path string can contain any of the following:
- * 
+ *
  *     - "/about/contact" A plain path with no parameters.
  *     - "/about/:section" A path with a required named parameter.
  *     - "/about/(:section)" A path with an optional named paramter.
  *     - "/about/*" A path with an asterix / wildcard.
- * 
+ *
  * Each callback will be called with a hash containing the named parameters
  * specified in the path. A path with a wildcard will contain a "path" parameter.
- * 
+ *
  *     ActiveRoutes.setRoutes({
  *         '/': [HomeView.getInstance(),'index'],
  *         '/contact/:id': [ContactView.getInstance(),'contact'],
@@ -44,45 +44,45 @@ if(typeof exports != "undefined"){
  *           }
  *         }
  *     });
- * 
+ *
  * Url Generation
  * --------------
  * Method callbacks gain a `getUrl` method that is added to the function
  * object. Anonymous callbacks do not gain this method.
- * 
+ *
  *     ContactView.contact.getUrl({id: 5}) == "/contact/5"
- * 
+ *
  * Two Way Routing
  * ---------------
  * When method callbacks are called directly the url bar and history will
  * be automatically updated.
- * 
+ *
  *     ContactView.contact({id:5});
  *     //browser url bar now set to #/contact/5
- * 
+ *
  * Anonymous callbacks do not support this functionality. To acheive this
  * functionality ActiveRoutes wraps your method callbacks with another method
  * that performs the routing callbacks. The original method (without
  * routing callbacks) can be called via the `callWithoutRouting` property:
- * 
+ *
  *     ContactView.contact.callWithoutRouting({id:5});
- * 
+ *
  * Dispatching
  * -----------
- * ActiveRoutes polls for changes in the url, so the user entering a 
+ * ActiveRoutes polls for changes in the url, so the user entering a
  * url, clicking a link or clicking the back button will trigger the
  * dispatcher. You can call `dispatch` directly:
- * 
+ *
  *     ActiveRoutes.dispatch('/contact/5');
- * 
+ *
  * But any link would also automatically trigger the dispatcher:
- * 
+ *
  *     <a href="#/contact/5">My Link</a>
- * 
+ *
  * As well as calling the method directly:
- * 
+ *
  *     ContactView.contact({id:5});
- * 
+ *
  * Events
  * ------
  * - ready()
@@ -90,7 +90,7 @@ if(typeof exports != "undefined"){
  * - externalChange(path): called when the url is changed by the back button or a link is clicked
  * - initialDispatchFailed(): called when the page loads but no route could be matched from the url bar
  **/
- 
+
 /** section: ActiveRoutes
  * ActiveRoutes
  **/
@@ -116,7 +116,7 @@ ActiveRoutes = {
     enabled: false,
     /**
      * ActiveRoutes.setRoutes(routes) -> null
-     * 
+     *
      *     ActiveRoutes.setRoutes({
      *         '/': [HomeView.getInstance(),'index'],
      *         '/contact/:id': [ContactView.getInstance(),'contact'],
@@ -189,7 +189,7 @@ ActiveRoutes = {
             params.push(arguments[1]);
             return '(' + ActiveRoutes.paramPattern + ')';
         });
-        reg_exp_pattern = reg_exp_pattern.replace(/\)\?\/\(/g,')?('); //cleanup for optional params 
+        reg_exp_pattern = reg_exp_pattern.replace(/\)\?\/\(/g,')?('); //cleanup for optional params
         if(reg_exp_pattern.match(/\*/))
         {
             params.push('path');

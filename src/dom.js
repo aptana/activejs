@@ -5,22 +5,22 @@ var mouseenter_mouseleave_supported = 'onmouseenter' in document.documentElement
 
 /**
  * DOM
- * 
+ *
  * DOM is a simple DOM manipulation library that does not modify the built in
  * Element object. All DOM methods take an Element object (and not a string)
  * as their first argument except `stop`, `pointerX` and `pointerY` which
  * take an Event object.
- * 
+ *
  * The implementation of event obeserver's differs from Prototype's since it
  * does not modify the Element object.
- * 
+ *
  *     DOM.observe(link,'click',function(event){
  *         //do stuff
  *         DOM.stop(event);
  *     });
- * 
+ *
  * DOM also supports the a similar event to Prototype's dom:ready:
- * 
+ *
  *     DOM.observe(document,'ready',function(){
  *         //...
  *     });
@@ -41,7 +41,7 @@ DOM = {
     /**
      * DOM.keyCodes -> Object
      * Contains the following:
-     *  
+     *
      * - KEY_BACKSPACE
      * - KEY_TAB
      * - KEY_RETURN
@@ -439,23 +439,23 @@ DOM = {
      * - context (Object): The context to bind the callback to. Any additional arguments after context will be curried onto the callback.
      * This implementation of event observation is loosely based on Prototype's. "mouseenter" and "mouseleave" events are supported cross
      * browser.
-     * 
+     *
      *     var my_handler = DOM.observe(element,'click',function(event){
      *         DOM.stop(event);
      *         DOM.stopObserving(element,'click',my_handler);
      *     },this);
-     *     
+     *
      *     //Prototype equivelent:
-     *     
+     *
      *     var my_handler = element.observe('click',function(event){
      *         event.stop();
      *         element.stopObserving('click',my_handler);
      *     }.bind(this));
-     * 
+     *
      * dom:ready support is also built in:
-     *  
+     *
      *     DOM.observe(document,'ready',function(){});
-     * 
+     *
      * If the above call was made after the document 'ready' event had already fired, the callback would be called immediately.
      **/
     observe: function observe(element,event_name,callback,context)
@@ -484,7 +484,7 @@ DOM = {
             }
             return;
         }
-        
+
         //create callback wrapper
         var callback_wrapper = function callback_wrapper(event){
             if(!event)
@@ -516,7 +516,7 @@ DOM = {
                 return callback(event);
             }
         };
-        
+
         var actual_event_name = event_name;
         if(!mouseenter_mouseleave_supported && (event_name === 'mouseenter' || event_name === 'mouseleave'))
         {
@@ -525,7 +525,7 @@ DOM = {
               'mouseleave': 'mouseout'
             }[event_name];
         }
-        
+
         //attach event listener
         if(element.addEventListener)
         {
@@ -535,7 +535,7 @@ DOM = {
         {
             element.attachEvent('on' + actual_event_name,callback_wrapper);
         }
-        
+
         return callback_wrapper;
     },
     /**
@@ -608,9 +608,9 @@ DOM = {
 
 /*
 Ported from Prototype.js usage:
-    
+
     DOM.observe(document,'ready',function(){
-    
+
     });
 */
 (function() {
@@ -619,7 +619,7 @@ Ported from Prototype.js usage:
 
   var timer;
   var loaded = false;
-  
+
   function fire_content_loaded_event()
   {
       if(loaded)
@@ -676,9 +676,9 @@ Ported from Prototype.js usage:
           timer = window.setTimeout(poll_do_scroll);
       }
   }
-  
+
   DOM.observe(window,'load',fire_content_loaded_event);
-  
+
 })();
 
 //Ajax Library integration
